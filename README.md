@@ -1,6 +1,32 @@
 # deepple
 
-딥플은 사용자의 가치관과 취향을 분석하여 최적의 매칭을 제공하는 데이팅 서비스입니다.
+딥플은 사용자의 가치관과 취향을 분석하여 최적의 매칭을 제공하는 **데이팅 서비스**입니다.  
+**도메인 주도 설계**로 복잡한 비즈니스 로직을 응집력 있게 모델링하고, **도메인 이벤트**를 통해 경계 간 직접적인 의존 없이 협력하도록 설계했습니다.  
+**AWS 클라우드 인프라**를 구축하고, **GitHub Actions**, **AWS ECR**, **CodeDeploy**를 활용한 CI/CD 파이프라인으로 자동화된 배포를 구현했습니다.
+
+<br>
+
+## 시스템 아키텍처
+
+(다이어그램 추가 예정)
+
+> 자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
+
+<br>
+
+## CI/CD 파이프라인
+
+(다이어그램 추가 예정)
+
+> 자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
+
+<br>
+
+## 소프트웨어 아키텍처
+
+(다이어그램 추가 예정)
+
+> 자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
 
 <br>
 
@@ -21,20 +47,6 @@
 - **하트 및 결제**: 앱 내 재화 시스템, Apple App Store 결제 연동, 미션 보상
 - **커뮤니티**: 셀프 소개, 프로필 교환, 좋아요
 - **관리자**: 회원 프로필 심사, 회원 관리, 신고 처리, 회원 정지 및 경고
-
-<br>
-
-## 시스템 아키텍처 및 인프라
-
-AWS 기반 클라우드 인프라와 GitHub Actions 기반 CI/CD 파이프라인을 구축했습니다.  
-자세한 내용은 [여기](https://github.com/deepple-dev/deepple_server/wiki)를 참고하세요.
-
-<br>
-
-## 소프트웨어 아키텍처
-
-도메인 주도 설계와 코드 레벨 CQRS를 적용하여 비즈니스 로직을 명확히 분리했습니다.  
-자세한 내용은 [여기](https://github.com/deepple-dev/deepple_server/wiki)를 참고하세요.
 
 <br>
 
