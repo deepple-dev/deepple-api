@@ -20,13 +20,12 @@ public class TokenExtractor {
         String header = request.getHeader(AUTHORIZATION_HEADER);
 
         if (header == null) {
-            log.warn("Authorization 헤더가 없음: uri={}", request.getRequestURI());
+            log.warn("[토큰 추출 실패] Authorization 헤더 없음, uri={}", request.getRequestURI());
             return null;
         }
 
         if (!header.startsWith(BEARER_PREFIX)) {
-            log.warn("Authorization 헤더가 Bearer로 시작하지 않음: uri={}, header={}",
-                request.getRequestURI(), header.substring(0, Math.min(header.length(), 20)));
+            log.warn("[토큰 추출 실패] Bearer 형식 아님, uri={}", request.getRequestURI());
             return null;
         }
 

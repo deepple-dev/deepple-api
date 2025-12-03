@@ -89,7 +89,7 @@ public class TokenFilter extends OncePerRequestFilter {
     }
 
     private void setUnauthorizedResponse(HttpServletResponse response, StatusType statusType) {
-        log.error("토큰 인증에 실패했습니다: {}", statusType.getMessage());
+        log.warn("[토큰 인증 실패] {}", statusType.getMessage());
         responseHandler.setResponse(response, statusType);
     }
 }
