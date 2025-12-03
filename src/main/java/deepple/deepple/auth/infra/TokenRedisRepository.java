@@ -20,8 +20,8 @@ public class TokenRedisRepository implements TokenRepository {
         redisTemplate.opsForValue().set(generateKey(token), "", TTL);
     }
 
-    public void delete(String token) {
-        redisTemplate.delete(generateKey(token));
+    public boolean delete(String token) {
+        return Boolean.TRUE.equals(redisTemplate.delete(generateKey(token)));
     }
 
     public boolean exists(String token) {
