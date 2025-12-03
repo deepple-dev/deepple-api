@@ -40,8 +40,6 @@ public class JwtParser implements TokenParser {
         } catch (ExpiredJwtException e) {
             return true;
         } catch (JwtException e) {
-            log.warn("토큰 검증 중 예외 발생 (만료 아님): exceptionType={}, message={}",
-                e.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }
