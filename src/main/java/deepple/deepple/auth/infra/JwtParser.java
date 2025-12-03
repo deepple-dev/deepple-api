@@ -4,6 +4,7 @@ import deepple.deepple.auth.domain.TokenParser;
 import deepple.deepple.common.enums.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+@Slf4j
 @Component
 public class JwtParser implements TokenParser {
 
@@ -38,6 +40,8 @@ public class JwtParser implements TokenParser {
         } catch (ExpiredJwtException e) {
             return true;
         } catch (JwtException e) {
+            log.warn("토큰 검증 중 예외 발생 (만료 아님): exceptionType={}, message={}",
+                e.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }

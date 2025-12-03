@@ -4,8 +4,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TokenExtractor {
@@ -17,7 +19,14 @@ public class TokenExtractor {
     public String extractAccessToken(HttpServletRequest request) {
         String header = request.getHeader(AUTHORIZATION_HEADER);
 
-        if (header == null || !header.startsWith(BEARER_PREFIX)) {
+        if (header == null) {
+            log.warn("Authorization 헤더가 없음: uri={}", request.getRequestURI());
+            return null;
+        }
+
+        if (!header.startsWith(BEARER_PREFIX)) {
+            log.warn("Authorization 헤더가 Bearer로 시작하지 않음: uri={}, header={}",
+                request.getRequestURI(), header.substring(0, Math.min(header.length(), 20)));
             return null;
         }
 
