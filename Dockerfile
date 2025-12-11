@@ -26,6 +26,12 @@ FROM eclipse-temurin:21-jre-jammy
 
 VOLUME /tmp
 
+# Apple Root CA 인증서 복사
+COPY certs /etc/certs
+
+# Firebase 서비스 계정 키 복사
+COPY secrets/deepple-firebase.json /etc/secrets/deepple-firebase.json
+
 # 빌드 아티팩트 복사
 COPY --from=build /workspace/app/build/libs/*.jar app.jar
 
