@@ -30,33 +30,46 @@ This project uses GitHub Actions for automated deployment with zero-downtime Blu
 
 #### Development Server (dev-api.deepple.co.kr)
 
-- **Trigger**: Push to `develop` branch
+- **Trigger**: Push to `develop` branch (CI 성공 후 자동)
 - **Workflow**: `.github/workflows/cd-dev.yml`
 - **Strategy**: Blue-Green deployment with nginx (zero downtime)
 - **Process**:
     1. Build Docker image and push to AWS ECR
     2. Deploy to inactive slot (Blue:8081 or Green:8082)
-    3. Health check new container (30 retries, 60s max)
+    3. Health check new container (100 retries × 3초)
     4. Switch nginx proxy_pass to new port
     5. Graceful nginx reload (no dropped connections)
     6. Remove old container
 - **Rollback**: Automatic on health check failure - old container keeps running
-- **Monitoring**: GitHub Actions logs at `https://github.com/deepple-dev/deepple_server/actions`
+- **Monitoring**: GitHub Actions logs at `https://github.com/deepple-dev/deepple-api/actions`
 
 #### Production Server
 
-- **Trigger**: Push to `main` branch
+- **Trigger**: Manual (workflow_dispatch)
 - **Workflow**: `.github/workflows/cd-prod.yml`
+- **Strategy**: ECS Rolling Update
+- **Process**:
+    1. Build Docker image and push to AWS ECR
+    2. Update ECS Task Definition with new image
+    3. ECS performs rolling update
+    4. Wait for service stability
+- **Rollback**: ECS automatic rollback on unhealthy tasks, or manually deploy previous commit SHA
 
 #### Manual Deployment
 
 ```bash
-# Trigger deployment manually
-git push origin develop  # for dev
-git push origin main     # for prod
+# Development: Push to develop branch triggers CI → CD automatically
+git push origin develop
+
+# Production: Manual trigger from GitHub Actions UI
+# 1. Go to Actions → CD - Production
+# 2. Click "Run workflow"
+# 3. Select branch and optionally enter commit SHA or tag
+# 4. Click "Run workflow"
 
 # Check deployment status
 gh run list --workflow=cd-dev.yml
+gh run list --workflow=cd-prod.yml
 gh run view <run-id> --log
 ```
 
