@@ -1,41 +1,27 @@
 # deepple
 
-딥플은 사용자의 가치관과 취향을 분석하여 최적의 매칭을 제공하는 **데이팅 서비스**입니다.  
-**도메인 주도 설계**로 복잡한 비즈니스 로직을 응집력 있게 모델링하고, **도메인 이벤트**를 통해 경계 간 직접적인 의존 없이 협력하도록 설계했습니다.  
-**AWS 클라우드 인프라**를 구축하고, **GitHub Actions**, **AWS ECR**, **CodeDeploy**를 활용한 CI/CD 파이프라인으로 자동화된 배포를 구현했습니다.
-
-<br>
-
-## 시스템 아키텍처
-
-(다이어그램 추가 예정)
-
-> 자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
-
-<br>
-
-## CI/CD 파이프라인
-
-(다이어그램 추가 예정)
-
-> 자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
-
-<br>
-
-## 소프트웨어 아키텍처
-
-(다이어그램 추가 예정)
-
-> 자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
+딥플은 사용자의 가치관과 취향을 분석하여 최적의 매칭을 제공하는 **데이팅 서비스**입니다.
+**도메인 주도 설계**로 복잡한 비즈니스 로직을 응집력 있게 모델링하고, **도메인 이벤트**를 통해 경계 간 직접적인 의존 없이 협력하도록 설계했습니다.
+**AWS ECS 기반 클라우드 인프라**를 구축하였고, **GitHub Actions**를 활용한 CI/CD 파이프라인으로 자동화된 배포를 구현했습니다.
 
 <br>
 
 ## 기술 스택
 
 - JDK 21, Spring Boot 3, JPA, QueryDSL, Flyway
-- AWS EC2, ECR, RDS(MySQL), ElastiCache(Valkey), S3
+- AWS EC2, ECS, ECR, RDS(MySQL), ElastiCache(Valkey), S3
 - Docker, GitHub Actions, Nginx
 - Firebase Cloud Messaging, Apple App Store Server API, Bizgo SMS
+
+<br>
+
+## 문서
+
+자세한 내용은 [Wiki](https://github.com/deepple-dev/deepple-api/wiki)를 참고하세요.
+
+- [시스템 아키텍처](https://github.com/deepple-dev/deepple-api/wiki/시스템-아키텍처)
+- [소프트웨어 아키텍처](https://github.com/deepple-dev/deepple-api/wiki/소프트웨어-아키텍처)
+- [CI/CD 파이프라인](https://github.com/deepple-dev/deepple-api/wiki/CI-CD-파이프라인)
 
 <br>
 
