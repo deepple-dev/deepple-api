@@ -69,7 +69,7 @@ jobs:
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ vars.ECS_SERVICE }} \
+            --task-definition ${{ vars.ECS_TASK_DEFINITION }} \
             --query 'taskDefinition' \
             --output json | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
             > task-definition.json
