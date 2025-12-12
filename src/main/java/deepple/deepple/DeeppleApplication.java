@@ -15,10 +15,8 @@ import java.util.TimeZone;
 @EnableJpaAuditing
 @EnableFeignClients
 public class DeeppleApplication {
-
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
         SpringApplication.run(DeeppleApplication.class, args);
     }
-
 }
