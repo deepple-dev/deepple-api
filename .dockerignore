@@ -25,7 +25,9 @@ build/
 *.pem
 *.key
 secrets/
+!secrets/deepple-firebase.json
 certs/
+!certs/appstore/
 
 # 로그
 *.log
