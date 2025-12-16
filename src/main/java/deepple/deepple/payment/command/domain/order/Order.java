@@ -28,11 +28,11 @@ public class Order extends BaseEntity {
     private String transactionId;
 
     @Getter
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(50)")
     private PaymentMethod paymentMethod;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(50)")
     @Getter
     private OrderStatus status;
