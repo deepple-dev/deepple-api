@@ -29,8 +29,12 @@ public class FlywayConfig {
     }
 
     @Bean
-    public ApplicationRunner migrateFlyway(Flyway flyway) {
+    public ApplicationRunner migrateFlyway(Flyway flyway, FlywayProperties props) {
         return args -> {
+            if (!props.isEnabled()) {
+                log.info("Flyway is disabled. Skipping migration.");
+                return;
+            }
             try {
                 flyway.migrate();
             } catch (Exception e) {
