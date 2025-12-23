@@ -11,6 +11,7 @@ spring:
     show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
+        generate_statistics: true
         format_sql: ${JPA_FORMAT_SQL:false}
         jdbc:
           timezone: Asia/Seoul
@@ -98,16 +99,3 @@ scheduler:
 management:
   server:
     port: 8081
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: never
-    prometheus:
-      enabled: true
-  metrics:
-    tags:
-      application: ${APP_NAME:depple-spring-server-prod}
