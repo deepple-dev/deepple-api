@@ -91,6 +91,7 @@ dependencies {
 
     // Monitoring
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.hibernate.orm:hibernate-micrometer'
 }
 
 tasks.named('test') {

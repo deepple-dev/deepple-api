@@ -11,6 +11,7 @@ spring:
     show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
+        generate_statistics: true
         format_sql: ${JPA_FORMAT_SQL:true}
         jdbc:
           timezone: Asia/Seoul
@@ -94,20 +95,3 @@ bizgo:
 
 scheduler:
   cron: "0 0 0 * * *"
-
-management:
-  server:
-    port: 8081
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: never
-    prometheus:
-      enabled: true
-  metrics:
-    tags:
-      application: ${APP_NAME:depple-spring-server-dev}
