@@ -11,6 +11,7 @@ spring:
     show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
+        generate_statistics: true
         format_sql: ${JPA_FORMAT_SQL:false}
         jdbc:
           timezone: Asia/Seoul
@@ -96,13 +97,5 @@ scheduler:
   cron: "0 0 0 * * *"
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: never
   server:
-    port: 8080
+    port: 8081
