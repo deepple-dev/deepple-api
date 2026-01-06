@@ -11,7 +11,11 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(name = "member_introductions")
+@Table(name = "member_introductions",
+    indexes = {
+        @Index(name = "idx_member_introductions_member_introduced", columnList = "memberId, introducedMemberId"),
+    }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class MemberIntroduction extends BaseEntity {
