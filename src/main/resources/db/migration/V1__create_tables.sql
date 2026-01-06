@@ -1,4 +1,4 @@
-create table admins
+CREATE TABLE IF NOT EXISTS admins
 (
     created_at      datetime(6) not null,
     deleted_at      datetime(6),
@@ -14,7 +14,7 @@ create table admins
     primary key (id)
 ) engine=InnoDB;
 
-create table blocks
+CREATE TABLE IF NOT EXISTS blocks
 (
     blocked_id bigint not null,
     blocker_id bigint not null,
@@ -24,7 +24,7 @@ create table blocks
     primary key (id)
 ) engine=InnoDB;
 
-create table dating_exam_answer
+CREATE TABLE IF NOT EXISTS dating_exam_answer
 (
     created_at  datetime(6) not null,
     id          bigint       not null auto_increment,
@@ -34,7 +34,7 @@ create table dating_exam_answer
     primary key (id)
 ) engine=InnoDB;
 
-create table dating_exam_question
+CREATE TABLE IF NOT EXISTS dating_exam_question
 (
     created_at datetime(6) not null,
     id         bigint       not null auto_increment,
@@ -44,7 +44,7 @@ create table dating_exam_question
     primary key (id)
 ) engine=InnoDB;
 
-create table dating_exam_subject
+CREATE TABLE IF NOT EXISTS dating_exam_subject
 (
     is_public  bit          not null,
     created_at datetime(6) not null,
@@ -55,7 +55,7 @@ create table dating_exam_subject
     primary key (id)
 ) engine=InnoDB;
 
-create table dating_exam_submit
+CREATE TABLE IF NOT EXISTS dating_exam_submit
 (
     created_at datetime(6) not null,
     id         bigint       not null auto_increment,
@@ -66,7 +66,7 @@ create table dating_exam_submit
     primary key (id)
 ) engine=InnoDB;
 
-create table device_registrations
+CREATE TABLE IF NOT EXISTS device_registrations
 (
     is_active          bit    not null,
     id                 bigint not null auto_increment,
@@ -76,7 +76,7 @@ create table device_registrations
     primary key (id)
 ) engine=InnoDB;
 
-create table heart_purchase_options
+CREATE TABLE IF NOT EXISTS heart_purchase_options
 (
     amount     bigint,
     created_at datetime(6) not null,
@@ -89,7 +89,7 @@ create table heart_purchase_options
     primary key (id)
 ) engine=InnoDB;
 
-create table heart_transactions
+CREATE TABLE IF NOT EXISTS heart_transactions
 (
     amount                 bigint,
     created_at             datetime(6) not null,
@@ -103,7 +103,7 @@ create table heart_transactions
     primary key (id)
 ) engine=InnoDB;
 
-create table heart_usage_policies
+CREATE TABLE IF NOT EXISTS heart_usage_policies
 (
     created_at       datetime(6) not null,
     id               bigint not null auto_increment,
@@ -114,7 +114,7 @@ create table heart_usage_policies
     primary key (id)
 ) engine=InnoDB;
 
-create table interview_answers
+CREATE TABLE IF NOT EXISTS interview_answers
 (
     created_at  datetime(6) not null,
     id          bigint not null auto_increment,
@@ -125,7 +125,7 @@ create table interview_answers
     primary key (id)
 ) engine=InnoDB;
 
-create table interview_questions
+CREATE TABLE IF NOT EXISTS interview_questions
 (
     is_public  bit    not null,
     created_at datetime(6) not null,
@@ -136,7 +136,7 @@ create table interview_questions
     primary key (id)
 ) engine=InnoDB;
 
-create table likes
+CREATE TABLE IF NOT EXISTS likes
 (
     created_at  datetime(6) not null,
     id          bigint not null auto_increment,
@@ -147,7 +147,7 @@ create table likes
     primary key (id)
 ) engine=InnoDB;
 
-create table matches
+CREATE TABLE IF NOT EXISTS matches
 (
     created_at             datetime(6) not null,
     id                     bigint not null auto_increment,
@@ -163,25 +163,25 @@ create table matches
     primary key (id)
 ) engine=InnoDB;
 
-create table member_hobbies
+CREATE TABLE IF NOT EXISTS member_hobbies
 (
     member_id bigint not null,
     name      varchar(50)
 ) engine=InnoDB;
 
-create table member_ideal_cities
+CREATE TABLE IF NOT EXISTS member_ideal_cities
 (
     member_ideal_id bigint not null,
     cities          varchar(50)
 ) engine=InnoDB;
 
-create table member_ideal_hobbies
+CREATE TABLE IF NOT EXISTS member_ideal_hobbies
 (
     member_ideal_id bigint not null,
     hobbies         varchar(50)
 ) engine=InnoDB;
 
-create table member_ideals
+CREATE TABLE IF NOT EXISTS member_ideals
 (
     max_age         integer,
     min_age         integer,
@@ -195,7 +195,7 @@ create table member_ideals
     primary key (id)
 ) engine=InnoDB;
 
-create table member_introductions
+CREATE TABLE IF NOT EXISTS member_introductions
 (
     created_at           datetime(6) not null,
     id                   bigint not null auto_increment,
@@ -206,7 +206,7 @@ create table member_introductions
     primary key (id)
 ) engine=InnoDB;
 
-create table member_notification_preferences
+CREATE TABLE IF NOT EXISTS member_notification_preferences
 (
     is_enabled        bit,
     member_id         bigint      not null,
@@ -214,7 +214,7 @@ create table member_notification_preferences
     primary key (member_id, notification_type)
 ) engine=InnoDB;
 
-create table member_mission
+CREATE TABLE IF NOT EXISTS member_mission
 (
     attempt_count integer not null,
     is_completed  bit     not null,
@@ -227,7 +227,7 @@ create table member_mission
     primary key (id)
 ) engine=InnoDB;
 
-create table members
+CREATE TABLE IF NOT EXISTS members
 (
     height                   integer,
     is_dating_exam_submitted bit    not null,
@@ -258,7 +258,7 @@ create table members
     primary key (id)
 ) engine=InnoDB;
 
-create table missions
+CREATE TABLE IF NOT EXISTS missions
 (
     is_public        bit     not null,
     repeatable_count integer not null,
@@ -273,7 +273,7 @@ create table missions
     primary key (id)
 ) engine=InnoDB;
 
-create table notification_preferences
+CREATE TABLE IF NOT EXISTS notification_preferences
 (
     is_enabled_globally bit    not null,
     created_at          datetime(6) not null,
@@ -284,7 +284,7 @@ create table notification_preferences
     primary key (id)
 ) engine=InnoDB;
 
-create table notification_templates
+CREATE TABLE IF NOT EXISTS notification_templates
 (
     is_active      bit    not null,
     id             bigint not null auto_increment,
@@ -294,7 +294,7 @@ create table notification_templates
     primary key (id)
 ) engine=InnoDB;
 
-create table notifications
+CREATE TABLE IF NOT EXISTS notifications
 (
     created_at  datetime(6) not null,
     deleted_at  datetime(6),
@@ -311,7 +311,7 @@ create table notifications
     primary key (id)
 ) engine=InnoDB;
 
-create table orders
+CREATE TABLE IF NOT EXISTS orders
 (
     created_at     datetime(6) not null,
     id             bigint not null auto_increment,
@@ -323,7 +323,7 @@ create table orders
     primary key (id)
 ) engine=InnoDB;
 
-create table profile_exchanges
+CREATE TABLE IF NOT EXISTS profile_exchanges
 (
     created_at   datetime(6) not null,
     id           bigint not null auto_increment,
@@ -334,7 +334,7 @@ create table profile_exchanges
     primary key (id)
 ) engine=InnoDB;
 
-create table profile_images
+CREATE TABLE IF NOT EXISTS profile_images
 (
     is_primary    bit    not null,
     profile_order integer,
@@ -346,7 +346,7 @@ create table profile_images
     primary key (id)
 ) engine=InnoDB;
 
-create table reports
+CREATE TABLE IF NOT EXISTS reports
 (
     admin_id    bigint,
     created_at  datetime(6) not null,
@@ -361,7 +361,7 @@ create table reports
     primary key (id)
 ) engine=InnoDB;
 
-create table screenings
+CREATE TABLE IF NOT EXISTS screenings
 (
     admin_id         bigint,
     created_at       datetime(6) not null,
@@ -374,7 +374,7 @@ create table screenings
     primary key (id)
 ) engine=InnoDB;
 
-create table self_introductions
+CREATE TABLE IF NOT EXISTS self_introductions
 (
     is_opened  bit    not null,
     created_at datetime(6) not null,
@@ -387,7 +387,7 @@ create table self_introductions
     primary key (id)
 ) engine=InnoDB;
 
-create table suspensions
+CREATE TABLE IF NOT EXISTS suspensions
 (
     admin_id   bigint,
     created_at datetime(6) not null,
@@ -399,13 +399,13 @@ create table suspensions
     primary key (id)
 ) engine=InnoDB;
 
-create table warning_reasons
+CREATE TABLE IF NOT EXISTS warning_reasons
 (
     warning_id  bigint not null,
     reason_type varchar(50)
 ) engine=InnoDB;
 
-create table warnings
+CREATE TABLE IF NOT EXISTS warnings
 (
     is_critical bit    not null,
     admin_id    bigint,
@@ -416,81 +416,65 @@ create table warnings
     primary key (id)
 ) engine=InnoDB;
 
-create index idx_block_blocked_id
-    on blocks (blocked_id);
+CREATE INDEX IF NOT EXISTS idx_block_blocked_id
+    ON blocks (blocked_id);
 
-alter table blocks
-    add constraint unique_blocker_id_blocked_id unique (blocker_id, blocked_id);
+ALTER TABLE blocks
+    ADD CONSTRAINT IF NOT EXISTS unique_blocker_id_blocked_id
+    UNIQUE (blocker_id, blocked_id);
 
-alter table dating_exam_submit
-    add constraint uk_dating_exam_submit_member_subject unique (member_id, subject_id);
+ALTER TABLE dating_exam_submit
+    ADD CONSTRAINT IF NOT EXISTS uk_dating_exam_submit_member_subject
+    UNIQUE (member_id, subject_id);
 
-alter table device_registrations
-    add constraint uk_member_id unique (member_id);
+ALTER TABLE device_registrations
+    ADD CONSTRAINT IF NOT EXISTS uk_member_id
+    UNIQUE (member_id);
 
-create index idx_receiver_id
-    on likes (receiver_id);
+CREATE INDEX IF NOT EXISTS idx_receiver_id
+    ON likes (receiver_id);
 
-alter table likes
-    add constraint UKr7tda4tud26t5ybryolk9105x unique (sender_id, receiver_id);
+ALTER TABLE likes
+    ADD CONSTRAINT IF NOT EXISTS UKr7tda4tud26t5ybryolk9105x
+    UNIQUE (sender_id, receiver_id);
 
-create index idx_responder_id
-    on matches (responder_id);
+CREATE INDEX IF NOT EXISTS idx_responder_id
+    ON matches (responder_id);
 
-create index idx_requester_id_responder_id
-    on matches (requester_id, responder_id);
+CREATE INDEX IF NOT EXISTS idx_requester_id_responder_id
+    ON matches (requester_id, responder_id);
 
-alter table member_ideals
-    add constraint UK3e1lp5igxl6cxxdipej09phe6 unique (member_id);
+ALTER TABLE member_ideals
+    ADD CONSTRAINT IF NOT EXISTS UK3e1lp5igxl6cxxdipej09phe6
+    UNIQUE (member_id);
 
-create index idx_deleted_at
-    on members (deleted_at);
+CREATE INDEX IF NOT EXISTS idx_deleted_at
+    ON members (deleted_at);
 
-alter table members
-    add constraint UK99xbxdwmyun0ehfiwpbntlqs5 unique (phone_number);
+ALTER TABLE members
+    ADD CONSTRAINT IF NOT EXISTS UK99xbxdwmyun0ehfiwpbntlqs5
+    UNIQUE (phone_number);
 
-alter table orders
-    add constraint UKx21diseqfw2bofpm4opvb6go unique (transaction_id, payment_method);
+ALTER TABLE orders
+    ADD CONSTRAINT IF NOT EXISTS UKx21diseqfw2bofpm4opvb6go
+    UNIQUE (transaction_id, payment_method);
 
-create index idx_responder_id
-    on profile_exchanges (responder_id);
+CREATE INDEX IF NOT EXISTS idx_responder_id
+    ON profile_exchanges (responder_id);
 
-create index idx_requester_id_responder_id
-    on profile_exchanges (requester_id, responder_id);
+CREATE INDEX IF NOT EXISTS idx_requester_id_responder_id
+    ON profile_exchanges (requester_id, responder_id);
 
-create index idx_member_id_is_primary
-    on profile_images (member_id, is_primary);
+CREATE INDEX IF NOT EXISTS idx_member_id_is_primary
+    ON profile_images (member_id, is_primary);
 
-create index idx_member_id
-    on self_introductions (member_id);
+CREATE INDEX IF NOT EXISTS idx_member_id
+    ON self_introductions (member_id);
 
-alter table suspensions
-    add constraint UKbe4hjk4livshyt1rnk4el2f7p unique (member_id);
+ALTER TABLE suspensions
+    ADD CONSTRAINT IF NOT EXISTS UKbe4hjk4livshyt1rnk4el2f7p
+    UNIQUE (member_id);
 
-create index idx_member_id
-    on warnings (member_id);
+CREATE INDEX IF NOT EXISTS idx_member_id
+    ON warnings (member_id);
 
-alter table member_hobbies
-    add constraint FKs3rargk4m22bjg2tjhpc0ctt7
-        foreign key (member_id)
-            references members (id);
-
-alter table member_ideal_cities
-    add constraint FKo4hxe41a3bnikkcgnidgvlnsv
-        foreign key (member_ideal_id)
-            references member_ideals (id);
-
-alter table member_ideal_hobbies
-    add constraint FKi1nsyie3isud83mj5j77grkgr
-        foreign key (member_ideal_id)
-            references member_ideals (id);
-
-alter table member_notification_preferences
-    add constraint FK7b63dmtnmrxxvjs21pwto5dt6
-        foreign key (member_id)
-            references notification_preferences (id);
-
-alter table warning_reasons
-    add constraint FKouk9oiltck8uud2at58kqrjlx
-        foreign key (warning_id)
-            references warnings (id);
