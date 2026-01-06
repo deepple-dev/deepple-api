@@ -1,11 +1,10 @@
 -- ============================================================
--- 매칭 데이터 생성
--- 좋아요 보낸 회원에게만 매칭 요청 가능하므로 좋아요 기반으로 생성
+-- 04. 매칭 데이터 생성
 -- ============================================================
+-- 좋아요 보낸 회원에게만 매칭 요청 가능
 
--- 좋아요 중 매칭 비율
 SET
-@MATCH_RATIO = 30;  -- 30%
+@MATCH_RATIO = 30; -- 좋아요 중 매칭 비율 (%)
 
 -- 기존 데이터 삭제
 SET
@@ -14,6 +13,9 @@ TRUNCATE TABLE matches;
 SET
 FOREIGN_KEY_CHECKS = 1;
 
+-- ------------------------------------------------------------
+-- 1. 매칭 생성
+-- ------------------------------------------------------------
 INSERT INTO matches (created_at, updated_at,
                      requester_id, responder_id,
                      request_message, response_message,
@@ -24,10 +26,7 @@ SELECT NOW(6),
        l.sender_id,
        l.receiver_id,
        '안녕하세요! 프로필 보고 연락드려요 :)',
-       CASE
-           WHEN (l.id % 100) < 50 THEN '반갑습니다! 저도 관심있어요 :)'
-           ELSE NULL
-           END,
+       CASE WHEN (l.id % 100) < 50 THEN '반갑습니다! 저도 관심있어요 :)' ELSE NULL END,
        CASE
            WHEN (l.id % 100) < 30 THEN 'WAITING'
            WHEN (l.id % 100) < 80 THEN 'MATCHED'
@@ -43,5 +42,6 @@ WHERE (l.id % 100) < @MATCH_RATIO;
 
 COMMIT;
 
+-- 결과 확인
 SELECT CONCAT('04_matches 완료: ', COUNT(*), '건') AS status
 FROM matches;

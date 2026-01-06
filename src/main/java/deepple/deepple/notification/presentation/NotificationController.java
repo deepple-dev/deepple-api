@@ -4,6 +4,9 @@ import deepple.deepple.auth.presentation.AuthContext;
 import deepple.deepple.auth.presentation.AuthPrincipal;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.notification.command.application.*;
+import deepple.deepple.notification.command.domain.ChannelType;
+import deepple.deepple.notification.command.domain.NotificationType;
+import deepple.deepple.notification.command.domain.SenderType;
 import deepple.deepple.notification.query.NotificationQueryService;
 import deepple.deepple.notification.query.NotificationViews;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static deepple.deepple.common.enums.StatusType.OK;
 
@@ -65,6 +70,25 @@ public class NotificationController {
     public ResponseEntity<BaseResponse<Void>> send(
         @RequestBody NotificationSendRequest request
     ) {
+        notificationSendService.send(request);
+        return ResponseEntity.ok(BaseResponse.from(OK));
+    }
+
+    // TODO: 삭제 필요(k6 부하 테스트 용도)
+    @Operation(summary = "(테스트) 알림 전송 - k6 부하 테스트용")
+    @PostMapping("/test")
+    public ResponseEntity<BaseResponse<Void>> sendTestNotification(
+        @AuthPrincipal AuthContext authContext,
+        @RequestParam Long receiverId
+    ) {
+        var request = new NotificationSendRequest(
+            SenderType.MEMBER,
+            authContext.getId(),
+            receiverId,
+            NotificationType.LIKE,
+            Map.of("senderName", "테스트"),
+            ChannelType.PUSH
+        );
         notificationSendService.send(request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }

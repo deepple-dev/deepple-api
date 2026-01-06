@@ -1,5 +1,5 @@
 -- ============================================================
--- 알림 데이터 생성
+-- 05. 알림 데이터 생성
 -- ============================================================
 
 -- 기존 데이터 삭제
@@ -10,7 +10,9 @@ TRUNCATE TABLE notification_preferences;
 SET
 FOREIGN_KEY_CHECKS = 1;
 
--- notification_preferences 생성
+-- ------------------------------------------------------------
+-- 1. 알림 설정 생성
+-- ------------------------------------------------------------
 INSERT INTO notification_preferences (created_at, updated_at, deleted_at, member_id, is_enabled_globally)
 SELECT NOW(6), NOW(6), NULL, id, TRUE
 FROM members
@@ -18,7 +20,9 @@ WHERE activity_status = 'ACTIVE';
 
 COMMIT;
 
--- 좋아요 알림
+-- ------------------------------------------------------------
+-- 2. 좋아요 알림 생성
+-- ------------------------------------------------------------
 INSERT INTO notifications (created_at, updated_at, deleted_at,
                            sender_type, sender_id, receiver_id,
                            type, title, body, status, read_at)
@@ -37,7 +41,9 @@ FROM likes l;
 
 COMMIT;
 
--- 매칭 요청 알림
+-- ------------------------------------------------------------
+-- 3. 매칭 요청 알림 생성
+-- ------------------------------------------------------------
 INSERT INTO notifications (created_at, updated_at, deleted_at,
                            sender_type, sender_id, receiver_id,
                            type, title, body, status, read_at)
@@ -56,7 +62,9 @@ FROM matches m;
 
 COMMIT;
 
--- 매칭 수락/거절 알림
+-- ------------------------------------------------------------
+-- 4. 매칭 수락/거절 알림 생성
+-- ------------------------------------------------------------
 INSERT INTO notifications (created_at, updated_at, deleted_at,
                            sender_type, sender_id, receiver_id,
                            type, title, body, status, read_at)
@@ -76,7 +84,9 @@ WHERE m.status IN ('MATCHED', 'REJECTED', 'REJECT_CHECKED');
 
 COMMIT;
 
--- 심사 승인 알림
+-- ------------------------------------------------------------
+-- 5. 심사 승인 알림 생성
+-- ------------------------------------------------------------
 INSERT INTO notifications (created_at, updated_at, deleted_at,
                            sender_type, sender_id, receiver_id,
                            type, title, body, status, read_at)
@@ -96,5 +106,6 @@ WHERE m.activity_status = 'ACTIVE';
 
 COMMIT;
 
+-- 결과 확인
 SELECT CONCAT('05_notifications 완료: ', COUNT(*), '건') AS status
 FROM notifications;
