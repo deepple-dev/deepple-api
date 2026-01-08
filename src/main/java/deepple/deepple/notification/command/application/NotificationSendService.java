@@ -42,6 +42,38 @@ public class NotificationSendService {
         sendNotification(notification, device, request);
     }
 
+    // TODO: 삭제 필요(k6 부하 테스트 용도 - FCM 전송 제외)
+    @Transactional
+    public void sendWithoutPush(NotificationSendRequest request) {
+        // 1. 알림 생성
+        var notification = createNotificationWithTemplate(request);
+        if (notification == null) {
+            return;
+        }
+
+        // 2. 수신자 설정 확인
+        if (!canSendByPreference(notification)) {
+            return;
+        }
+
+        // 3. 수신자 기기 조회
+        var device = findReceiversActiveDevice(notification);
+        if (device == null) {
+            return;
+        }
+
+        // 4. FCM 전송 시간 시뮬레이션 (50ms)
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // 5. 저장
+        notification.markAsSent();
+        save(notification);
+    }
+
     private Notification createNotificationWithTemplate(NotificationSendRequest request) {
         return notificationTemplateRepository.findByType(request.notificationType())
             .map(template -> Notification.create(

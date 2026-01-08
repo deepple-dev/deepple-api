@@ -74,22 +74,25 @@ public class NotificationController {
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 
-    // TODO: 삭제 필요(k6 부하 테스트 용도)
-    @Operation(summary = "(테스트) 알림 전송 - k6 부하 테스트용")
+    // TODO: 삭제 필요(k6 부하 테스트 용도 - FCM 전송 제외, 50ms 대기)
+    @Operation(summary = "(테스트) 알림 전송 - k6 부하 테스트용 (FCM 전송 제외)")
     @PostMapping("/test")
     public ResponseEntity<BaseResponse<Void>> sendTestNotification(
         @AuthPrincipal AuthContext authContext,
         @RequestParam Long receiverId
     ) {
+        var types = NotificationType.values();
+        var type = types[(int) (receiverId % types.length)];
+
         var request = new NotificationSendRequest(
             SenderType.MEMBER,
             authContext.getId(),
             receiverId,
-            NotificationType.LIKE,
-            Map.of("senderName", "테스트"),
+            type,
+            Map.of("senderName", "테스트", "rejectionReason", "테스트 사유"),
             ChannelType.PUSH
         );
-        notificationSendService.send(request);
+        notificationSendService.sendWithoutPush(request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }
