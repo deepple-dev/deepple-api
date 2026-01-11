@@ -3,7 +3,7 @@ package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
 import deepple.deepple.member.command.application.member.exception.PermanentlySuspendedMemberException;
-import deepple.deepple.member.command.application.member.exception.PrimaryContactTypeSettingNeededException;
+import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberProfileService {
 
     private final MemberCommandRepository memberCommandRepository;
+    private final static String PHONE_NUMBER = "PHONE_NUMBER";
+    private final static String KAKAO = "KAKAO";
 
     @Transactional
     public void updateMember(Long memberId, MemberProfileUpdateRequest request) {
@@ -45,9 +47,12 @@ public class MemberProfileService {
     }
 
     @Transactional
-    public void validatePrimaryContactTypeSetting(Long memberId) {
-        if (getMemberById(memberId).getPrimaryContactType() == PrimaryContactType.NONE) {
-            throw new PrimaryContactTypeSettingNeededException();
+    public void validateContactTypeSetting(Long memberId, String contactType) {
+        Member member = getMemberById(memberId);
+        if (PHONE_NUMBER.equals(contactType) && member.getPhoneNumber() == null) {
+            throw new ContactTypeSettingNeededException();
+        } else if (KAKAO.equals(contactType) && member.getKakaoId() == null) {
+            throw new ContactTypeSettingNeededException();
         }
     }
 

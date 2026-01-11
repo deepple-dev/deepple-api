@@ -14,40 +14,30 @@ import org.springframework.web.client.RestClient;
 public class BizgoMessanger {
     private final RestClient restClient;
 
-    private final BizgoTokenHandler bizgoTokenHandler;
-
     @Value("${bizgo.from-phone-number}")
     private String fromPhoneNumber;
+
     @Value("${bizgo.api-url}")
     private String apiUrl;
 
+    @Value("${bizgo.api-key}")
+    private String apiKey;
+
     public void sendMessage(String message, String phoneNumber) {
-        trySendMessageWithRetry(message, phoneNumber);
+        /**
+         * TODO : 타임아웃 에러에 대해서, Fallback 으로 재시도하는 로직 추가.
+         */
+        sendRequest(message, phoneNumber);
     }
 
-    private void trySendMessageWithRetry(String message, String phoneNumber) {
-        String authToken = bizgoTokenHandler.getAuthToken();
-
-        try {
-            sendRequest(message, phoneNumber, authToken);
-        } catch (BizgoMessageSendException e) {
-            if (e.getStatusCode() == ResponseCode.EXPIRED_TOKEN.getCode()) {
-                authToken = bizgoTokenHandler.getAuthToken();
-                sendRequest(message, phoneNumber, authToken);
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    private void sendRequest(String message, String phoneNumber, String authToken) {
+    private void sendRequest(String message, String phoneNumber) {
         String requestURL = apiUrl + "/send/sms";
 
         restClient.post()
             .uri(requestURL)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header("Authorization", "Bearer " + authToken)
+            .header("Authorization", apiKey)
             .body(new BizgoMessageRequest(fromPhoneNumber, phoneNumber, message))
             .retrieve()
             .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
