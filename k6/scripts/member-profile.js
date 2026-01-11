@@ -3,10 +3,8 @@ import {check, sleep} from 'k6';
 import {config} from './lib/config.js';
 import {authHeaders, login} from './lib/auth.js';
 
-const TARGET_RPS = parseInt(__ENV.TARGET_RPS) || 100;
-const MAX_VUS = TARGET_RPS * 2;
-const MEMBER_OFFSET = 400000;
-const FEMALE_COUNT = 500000;
+const MAX_VUS = 1000;
+const MEMBER_COUNT = 1000000;
 const INTROS_PER_MEMBER = 30;
 
 export const options = {
@@ -18,11 +16,11 @@ export const options = {
             preAllocatedVUs: MAX_VUS,
             maxVUs: MAX_VUS,
             stages: [
-                {duration: '1m', target: Math.floor(TARGET_RPS * 0.1)},
-                {duration: '1m', target: Math.floor(TARGET_RPS * 0.5)},
-                {duration: '1m', target: TARGET_RPS},
-                {duration: '1m', target: TARGET_RPS * 2},
-                {duration: '1m', target: TARGET_RPS * 3},
+                {duration: '1m', target: 50},
+                {duration: '1m', target: 100},
+                {duration: '1m', target: 150},
+                {duration: '1m', target: 200},
+                {duration: '1m', target: 250},
             ],
         },
     },
@@ -32,8 +30,12 @@ export const options = {
     },
 };
 
-function getIntroducedFemaleId(maleId, introIndex) {
-    return 2 * ((Math.floor((maleId - 1) / 2) + introIndex * 7) % FEMALE_COUNT + 1);
+function getIntroducedMemberId(memberId, introIndex) {
+    const isMale = memberId % 2 === 1;
+    const memberIndex = Math.floor((memberId - 1) / 2);
+    const targetIndex = (memberIndex + introIndex * 7) % (MEMBER_COUNT / 2);
+    // 남성(홀수)은 여성(짝수)을, 여성(짝수)은 남성(홀수)을 조회
+    return isMale ? (targetIndex + 1) * 2 : targetIndex * 2 + 1;
 }
 
 export function setup() {
@@ -41,7 +43,7 @@ export function setup() {
 
     const tokens = [];
     for (let i = 0; i < MAX_VUS; i++) {
-        const memberId = MEMBER_OFFSET + (i * 2) + 1;
+        const memberId = i + 1; // 1 ~ 1000 (홀수=남성, 짝수=여성)
         const result = login(memberId);
         if (result) tokens.push(result);
     }
@@ -59,7 +61,7 @@ export default function (data) {
 
     const requester = tokens[__VU - 1];
     const introIndex = (__ITER % INTROS_PER_MEMBER) + 1;
-    const targetMemberId = getIntroducedFemaleId(requester.memberId, introIndex);
+    const targetMemberId = getIntroducedMemberId(requester.memberId, introIndex);
 
     const res = http.get(
         `${config.baseUrl}/member/${targetMemberId}`,
@@ -67,7 +69,7 @@ export default function (data) {
     );
 
     check(res, {
-        'status is 200': (r) => r.status === 200,
+        'status 200': (r) => r.status === 200,
     });
 
     sleep(Math.random() * 0.3 + 0.1);

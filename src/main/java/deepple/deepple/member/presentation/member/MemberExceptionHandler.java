@@ -77,9 +77,9 @@ public class MemberExceptionHandler {
             .body(BaseResponse.of(StatusType.BAD_REQUEST, e.getMessage()));
     }
 
-    @ExceptionHandler(PrimaryContactTypeSettingNeededException.class)
+    @ExceptionHandler(ContactTypeSettingNeededException.class)
     public ResponseEntity<BaseResponse<Void>> handlePrimaryContactTypeSettingNeededException(
-        PrimaryContactTypeSettingNeededException e) {
+        ContactTypeSettingNeededException e) {
         log.warn("매치 요청/응답에 실패하였습니다. {}", e.getMessage());
 
         return ResponseEntity.badRequest()

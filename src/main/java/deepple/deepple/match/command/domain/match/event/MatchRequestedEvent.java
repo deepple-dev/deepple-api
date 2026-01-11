@@ -13,9 +13,10 @@ public class MatchRequestedEvent extends Event {
     private final String requesterName;
     private final long responderId;
     private final String matchType;
+    private final String contactType;
 
     public static MatchRequestedEvent of(long requesterId, @NonNull String requesterName, long responderId,
-        String matchType) {
-        return new MatchRequestedEvent(requesterId, requesterName, responderId, matchType);
+        String matchType, String contactType) {
+        return new MatchRequestedEvent(requesterId, requesterName, responderId, matchType, contactType);
     }
 }

@@ -64,7 +64,7 @@ public class Match extends BaseEntity {
             .requesterContactType(contactType)
             .build();
 
-        Events.raise(MatchRequestedEvent.of(requesterId, requesterName, responderId, type.name()));
+        Events.raise(MatchRequestedEvent.of(requesterId, requesterName, responderId, type.name(), contactType.name()));
         Events.raise(MatchRequestCompletedEvent.of(requesterId, responderId));
 
         return match;
@@ -75,21 +75,21 @@ public class Match extends BaseEntity {
         status = MatchStatus.MATCHED;
         responseMessage = message;
         responderContactType = contactType;
-        Events.raise(MatchRespondedEvent.of(requesterId, responderId, status));
+        Events.raise(MatchRespondedEvent.of(requesterId, responderId, status, contactType.name()));
         Events.raise(MatchAcceptedEvent.of(requesterId, responderId, responderName));
     }
 
     public void reject(String responderName) {
         validateChangeStatus();
         status = MatchStatus.REJECTED;
-        Events.raise(MatchRespondedEvent.of(requesterId, responderId, status));
+        Events.raise(MatchRespondedEvent.of(requesterId, responderId, status, null));
         Events.raise(MatchRejectedEvent.of(requesterId, responderId, responderName));
     }
 
     public void expire() {
         validateChangeStatus();
         status = MatchStatus.EXPIRED;
-        Events.raise(MatchRespondedEvent.of(requesterId, responderId, status));
+        Events.raise(MatchRespondedEvent.of(requesterId, responderId, status, null));
     }
 
     public void checkRejected() {

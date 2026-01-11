@@ -69,6 +69,7 @@ payment:
 
 bizgo:
   api-url: api-url
+  api-key: api-key
   client-id: client-id
   client-password: client_password
   from-phone-number: from-phone-number
