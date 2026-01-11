@@ -19,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberProfileService {
 
     private final MemberCommandRepository memberCommandRepository;
-    private final static String PHONE_NUMBER = "PHONE_NUMBER";
-    private final static String KAKAO = "KAKAO";
 
     @Transactional
     public void updateMember(Long memberId, MemberProfileUpdateRequest request) {
@@ -49,9 +47,9 @@ public class MemberProfileService {
     @Transactional
     public void validateContactTypeSetting(Long memberId, String contactType) {
         Member member = getMemberById(memberId);
-        if (PHONE_NUMBER.equals(contactType) && member.getPhoneNumber() == null) {
+        if (PrimaryContactType.PHONE_NUMBER.name().equals(contactType) && member.getPhoneNumber() == null) {
             throw new ContactTypeSettingNeededException();
-        } else if (KAKAO.equals(contactType) && member.getKakaoId() == null) {
+        } else if (PrimaryContactType.KAKAO.name().equals(contactType) && member.getKakaoId() == null) {
             throw new ContactTypeSettingNeededException();
         }
     }
