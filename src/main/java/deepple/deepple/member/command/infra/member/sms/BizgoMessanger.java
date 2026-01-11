@@ -31,7 +31,7 @@ public class BizgoMessanger {
     }
 
     private void sendRequest(String message, String phoneNumber) {
-        String requestURL = apiUrl + "/send/sms";
+        String requestURL = apiUrl + "/api/comm/v1/send/omni";
 
         restClient.post()
             .uri(requestURL)
