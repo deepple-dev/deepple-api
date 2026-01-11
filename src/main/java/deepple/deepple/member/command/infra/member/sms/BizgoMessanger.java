@@ -3,14 +3,17 @@ package deepple.deepple.member.command.infra.member.sms;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageRequest;
 import deepple.deepple.member.command.infra.member.sms.exception.BizgoMessageSendException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BizgoMessanger {
     private final RestClient restClient;
 
@@ -33,7 +36,7 @@ public class BizgoMessanger {
     private void sendRequest(String message, String phoneNumber) {
         String requestURL = apiUrl + "/api/comm/v1/send/omni";
 
-        restClient.post()
+        ResponseEntity<String> response = restClient.post()
             .uri(requestURL)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -43,6 +46,10 @@ public class BizgoMessanger {
             .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
                     throw new BizgoMessageSendException(httpResponse.getStatusCode().value());
                 }
-            );
+            ).toEntity(String.class);
+
+        log.info("status = {}", response.getStatusCode());
+        log.info("headers = {}", response.getHeaders());
+        log.info("body = {}", response.getBody());
     }
 }
