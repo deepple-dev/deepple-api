@@ -38,7 +38,7 @@ public class BizgoMessanger {
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("Authorization", apiKey)
-            .body(new BizgoMessageRequest(fromPhoneNumber, phoneNumber, message))
+            .body(new BizgoMessageRequest(message, fromPhoneNumber, phoneNumber))
             .retrieve()
             .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
                     throw new BizgoMessageSendException(httpResponse.getStatusCode().value());
