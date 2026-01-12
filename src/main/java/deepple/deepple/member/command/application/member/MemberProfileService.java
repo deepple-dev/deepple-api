@@ -3,7 +3,7 @@ package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
 import deepple.deepple.member.command.application.member.exception.PermanentlySuspendedMemberException;
-import deepple.deepple.member.command.application.member.exception.PrimaryContactTypeSettingNeededException;
+import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -45,9 +45,12 @@ public class MemberProfileService {
     }
 
     @Transactional
-    public void validatePrimaryContactTypeSetting(Long memberId) {
-        if (getMemberById(memberId).getPrimaryContactType() == PrimaryContactType.NONE) {
-            throw new PrimaryContactTypeSettingNeededException();
+    public void validateContactTypeSetting(Long memberId, String contactType) {
+        Member member = getMemberById(memberId);
+        if (PrimaryContactType.PHONE_NUMBER.name().equals(contactType) && member.getPhoneNumber() == null) {
+            throw new ContactTypeSettingNeededException();
+        } else if (PrimaryContactType.KAKAO.name().equals(contactType) && member.getKakaoId() == null) {
+            throw new ContactTypeSettingNeededException();
         }
     }
 

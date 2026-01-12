@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.common.MockEventsExtension;
+import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
 import deepple.deepple.member.command.domain.member.*;
 import deepple.deepple.member.command.domain.member.exception.InvalidMemberEnumValueException;
@@ -11,15 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -197,6 +199,58 @@ class MemberProfileServiceTest {
             // Then
             verify(member, times(1)).changeActivityStatus(ActivityStatus.SUSPENDED_TEMPORARILY);
             verify(member, times(1)).nonPublishProfile();
+        }
+    }
+
+    @Nested
+    @DisplayName("validateContactTypeSetting 메소드 테스트.")
+    class ValidateContactTypeSettingTest {
+        @Test
+        @DisplayName("멤버가 존재하지 않으면, 예외를 던집니다.")
+        void throwExceptionWhenMemberNotFound() {
+            // Given
+            final Long memberId = 1L;
+            final String contactType = "PHONE_NUMBER";
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> memberProfileService.validateContactTypeSetting(memberId, contactType))
+                .isInstanceOf(MemberNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("ContactType이 Null 일 경우, 유효성을 검증하지 않는다.")
+        void shouldNotValidateWhenContactTypeIsNull() {
+            // Given
+            final Long memberId = 1L;
+            final String contactType = null;
+            Member member = Member.builder().build();
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+            // When
+            memberProfileService.validateContactTypeSetting(memberId, contactType);
+
+            // Then
+            assertThatNoException();
+        }
+
+        @Test
+        @DisplayName("ContactType 이 PHONE_NUMBER or KAKAO 일 경우, 유효성을 검증한다.")
+        void shouldValidateWhenContactTypeIsInKakaoOrPhonNumber() {
+            // Given
+            final Long memberId = 1L;
+            final List<String> contactTypes = List.of("PHONE_NUMBER","KAKAO");
+            Member member = Mockito.mock(Member.class);
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(member.getPhoneNumber()).thenReturn(null);
+            when(member.getKakaoId()).thenReturn(null);
+
+            // When & Then
+            for (String contactType : contactTypes) {
+                assertThatThrownBy(() -> memberProfileService.validateContactTypeSetting(memberId, contactType))
+                    .isInstanceOf(ContactTypeSettingNeededException.class);
+            }
+
         }
     }
 }
