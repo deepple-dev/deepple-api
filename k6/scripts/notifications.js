@@ -3,7 +3,7 @@ import {check, sleep} from 'k6';
 import {config} from './lib/config.js';
 import {authHeaders, login} from './lib/auth.js';
 
-const MAX_VUS = 100;
+const MAX_VUS = 500;
 const MEMBER_COUNT = 1000000;
 
 export const options = {

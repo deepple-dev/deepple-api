@@ -1,6 +1,9 @@
 package deepple.deepple.notification.command.application;
 
-import deepple.deepple.notification.command.domain.*;
+import deepple.deepple.notification.command.domain.DeviceRegistration;
+import deepple.deepple.notification.command.domain.Notification;
+import deepple.deepple.notification.command.domain.NotificationPreference;
+import deepple.deepple.notification.command.domain.NotificationSender;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,23 +18,18 @@ import static deepple.deepple.notification.command.domain.ChannelType.PUSH;
 import static deepple.deepple.notification.command.domain.NotificationStatus.*;
 import static deepple.deepple.notification.command.domain.NotificationType.LIKE;
 import static deepple.deepple.notification.command.domain.SenderType.SYSTEM;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationSendServiceTest {
 
     @Mock
-    NotificationCommandRepository notificationCommandRepository;
+    NotificationDataReader reader;
 
     @Mock
-    NotificationPreferenceCommandRepository notificationPreferenceCommandRepository;
-
-    @Mock
-    NotificationTemplateCommandRepository notificationTemplateCommandRepository;
-
-    @Mock
-    DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
+    NotificationDataWriter writer;
 
     @Mock
     NotificationSenderResolver notificationSenderResolver;
@@ -44,15 +42,16 @@ class NotificationSendServiceTest {
     void sendSavesFailedTemplate() {
         // given
         var req = new NotificationSendRequest(SYSTEM, 1L, 2L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.empty());
+        when(reader.findTemplate(LIKE)).thenReturn(Optional.empty());
 
         // when
         service.send(req);
 
         // then
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == FAILED_TEMPLATE_NOT_FOUND));
+        verify(writer).saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(2L), eq(LIKE),
+            any(), any(), eq(FAILED_TEMPLATE_NOT_FOUND)
+        );
     }
 
     @Test
@@ -60,17 +59,18 @@ class NotificationSendServiceTest {
     void sendSavesFailedPreference() {
         // given
         var req = new NotificationSendRequest(SYSTEM, 1L, 99L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.of(NotificationTemplate.of(LIKE, "", "")));
-        when(notificationPreferenceCommandRepository.findByMemberId(99L))
-            .thenReturn(Optional.empty());
+        when(reader.findTemplate(LIKE))
+            .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
+        when(reader.findPreference(99L)).thenReturn(Optional.empty());
 
         // when
         service.send(req);
 
         // then
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == FAILED_PREFERENCE_NOT_FOUND));
+        verify(writer).saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(99L), eq(LIKE),
+            any(), any(), eq(FAILED_PREFERENCE_NOT_FOUND)
+        );
     }
 
     @Test
@@ -78,20 +78,21 @@ class NotificationSendServiceTest {
     void sendSavesRejectedNotification() {
         // given
         var req = new NotificationSendRequest(SYSTEM, 1L, 1L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.of(NotificationTemplate.of(LIKE, "", "")));
+        when(reader.findTemplate(LIKE))
+            .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
 
         var pref = NotificationPreference.of(1L);
         pref.disableGlobally();
-        when(notificationPreferenceCommandRepository.findByMemberId(1L))
-            .thenReturn(Optional.of(pref));
+        when(reader.findPreference(1L)).thenReturn(Optional.of(pref));
 
         // when
         service.send(req);
 
         // then
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == REJECTED_BY_PREFERENCE));
+        verify(writer).saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(1L), eq(LIKE),
+            any(), any(), eq(REJECTED_BY_PREFERENCE)
+        );
     }
 
     @Test
@@ -99,24 +100,22 @@ class NotificationSendServiceTest {
     void sendSavesSentNotification() throws Exception {
         // given
         var req = new NotificationSendRequest(SYSTEM, 10L, 20L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.of(NotificationTemplate.of(LIKE, "t", "b")));
-        when(notificationPreferenceCommandRepository.findByMemberId(20L))
+        when(reader.findTemplate(LIKE))
+            .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
+        when(reader.findPreference(20L))
             .thenReturn(Optional.of(NotificationPreference.of(20L)));
-        when(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(20L))
+        when(reader.findActiveDevice(20L))
             .thenReturn(Optional.of(DeviceRegistration.of(20L, "device", "token")));
 
         var sender = mock(NotificationSender.class);
-        when(notificationSenderResolver.resolve(PUSH))
-            .thenReturn(Optional.of(sender));
+        when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));
 
         // when
         service.send(req);
 
         // then
         verify(sender).send(any(Notification.class), any(DeviceRegistration.class));
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == SENT));
+        verify(writer).save(argThat(n -> n.getStatus() == SENT));
     }
 
     @Test
@@ -124,19 +123,20 @@ class NotificationSendServiceTest {
     void sendSavesFailedDevice() {
         // given
         var req = new NotificationSendRequest(SYSTEM, 1L, 30L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.of(NotificationTemplate.of(LIKE, "", "")));
-        when(notificationPreferenceCommandRepository.findByMemberId(30L))
+        when(reader.findTemplate(LIKE))
+            .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
+        when(reader.findPreference(30L))
             .thenReturn(Optional.of(NotificationPreference.of(30L)));
-        when(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(30L))
-            .thenReturn(Optional.empty());
+        when(reader.findActiveDevice(30L)).thenReturn(Optional.empty());
 
         // when
         service.send(req);
 
         // then
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == FAILED_DEVICE_NOT_FOUND));
+        verify(writer).saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(30L), eq(LIKE),
+            any(), any(), eq(FAILED_DEVICE_NOT_FOUND)
+        );
     }
 
     @Test
@@ -144,21 +144,22 @@ class NotificationSendServiceTest {
     void sendSavesUnsupportedChannel() {
         // given
         var req = new NotificationSendRequest(SYSTEM, 10L, 20L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.of(NotificationTemplate.of(LIKE, "t", "b")));
-        when(notificationPreferenceCommandRepository.findByMemberId(20L))
+        when(reader.findTemplate(LIKE))
+            .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
+        when(reader.findPreference(20L))
             .thenReturn(Optional.of(NotificationPreference.of(20L)));
-        when(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(20L))
+        when(reader.findActiveDevice(20L))
             .thenReturn(Optional.of(DeviceRegistration.of(20L, "device", "token")));
-        when(notificationSenderResolver.resolve(PUSH))
-            .thenReturn(Optional.empty());
+        when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.empty());
 
         // when
         service.send(req);
 
         // then
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == FAILED_UNSUPPORTED_CHANNEL));
+        verify(writer).saveFailedNotification(
+            eq(SYSTEM), eq(10L), eq(20L), eq(LIKE),
+            any(), any(), eq(FAILED_UNSUPPORTED_CHANNEL)
+        );
     }
 
     @Test
@@ -166,16 +167,15 @@ class NotificationSendServiceTest {
     void sendSavesFailedException() throws Exception {
         // given
         var req = new NotificationSendRequest(SYSTEM, 10L, 20L, LIKE, Map.of(), PUSH);
-        when(notificationTemplateCommandRepository.findByType(LIKE))
-            .thenReturn(Optional.of(NotificationTemplate.of(LIKE, "t", "b")));
-        when(notificationPreferenceCommandRepository.findByMemberId(20L))
+        when(reader.findTemplate(LIKE))
+            .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
+        when(reader.findPreference(20L))
             .thenReturn(Optional.of(NotificationPreference.of(20L)));
-        when(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(20L))
+        when(reader.findActiveDevice(20L))
             .thenReturn(Optional.of(DeviceRegistration.of(20L, "device", "token")));
 
         var sender = mock(NotificationSender.class);
-        when(notificationSenderResolver.resolve(PUSH))
-            .thenReturn(Optional.of(sender));
+        when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));
         doThrow(new NotificationSendFailedException(new RuntimeException("FCM 전송 실패")))
             .when(sender).send(any(Notification.class), any(DeviceRegistration.class));
 
@@ -183,7 +183,9 @@ class NotificationSendServiceTest {
         service.send(req);
 
         // then
-        verify(notificationCommandRepository)
-            .save(argThat(n -> n.getStatus() == FAILED_EXCEPTION));
+        verify(writer).saveFailedNotification(
+            eq(SYSTEM), eq(10L), eq(20L), eq(LIKE),
+            any(), any(), eq(FAILED_EXCEPTION)
+        );
     }
 }

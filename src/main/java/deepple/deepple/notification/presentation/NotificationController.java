@@ -30,7 +30,6 @@ public class NotificationController {
     private final NotificationDeleteService notificationDeleteService;
     private final NotificationQueryService notificationQueryService;
 
-    // TODO: 삭제 필요(테스트 용도)
     private final NotificationSendService notificationSendService;
 
     @Operation(summary = "알림 읽기")
@@ -64,7 +63,6 @@ public class NotificationController {
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 
-    // TODO: 삭제 필요(테스트 용도)
     @Operation(summary = "(테스트) 알림 전송")
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> send(
@@ -74,8 +72,7 @@ public class NotificationController {
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 
-    // TODO: 삭제 필요(k6 부하 테스트 용도 - FCM 전송 제외, 50ms 대기)
-    @Operation(summary = "(테스트) 알림 전송 - k6 부하 테스트용 (FCM 전송 제외)")
+    @Operation(summary = "(테스트) 알림 전송 - k6 부하 테스트용")
     @PostMapping("/test")
     public ResponseEntity<BaseResponse<Void>> sendTestNotification(
         @AuthPrincipal AuthContext authContext,
@@ -92,7 +89,7 @@ public class NotificationController {
             Map.of("senderName", "테스트", "rejectionReason", "테스트 사유"),
             ChannelType.PUSH
         );
-        notificationSendService.sendWithoutPush(request);
+        notificationSendService.send(request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }

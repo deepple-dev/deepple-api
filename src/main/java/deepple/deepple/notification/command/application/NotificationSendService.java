@@ -1,10 +1,12 @@
 package deepple.deepple.notification.command.application;
 
-import deepple.deepple.notification.command.domain.*;
+import deepple.deepple.notification.command.domain.DeviceRegistration;
+import deepple.deepple.notification.command.domain.Notification;
+import deepple.deepple.notification.command.domain.NotificationSender;
+import deepple.deepple.notification.command.domain.NotificationStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import static deepple.deepple.notification.command.domain.NotificationStatus.*;
 
@@ -13,13 +15,10 @@ import static deepple.deepple.notification.command.domain.NotificationStatus.*;
 @RequiredArgsConstructor
 public class NotificationSendService {
 
-    private final NotificationCommandRepository notificationCommandRepository;
-    private final NotificationPreferenceCommandRepository notificationPreferenceRepository;
-    private final NotificationTemplateCommandRepository notificationTemplateRepository;
-    private final DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
+    private final NotificationDataReader reader;
+    private final NotificationDataWriter writer;
     private final NotificationSenderResolver notificationSenderResolver;
 
-    @Transactional
     public void send(NotificationSendRequest request) {
         // 1. 알림 생성
         var notification = createNotificationWithTemplate(request);
@@ -42,40 +41,8 @@ public class NotificationSendService {
         sendNotification(notification, device, request);
     }
 
-    // TODO: 삭제 필요(k6 부하 테스트 용도 - FCM 전송 제외)
-    @Transactional
-    public void sendWithoutPush(NotificationSendRequest request) {
-        // 1. 알림 생성
-        var notification = createNotificationWithTemplate(request);
-        if (notification == null) {
-            return;
-        }
-
-        // 2. 수신자 설정 확인
-        if (!canSendByPreference(notification)) {
-            return;
-        }
-
-        // 3. 수신자 기기 조회
-        var device = findReceiversActiveDevice(notification);
-        if (device == null) {
-            return;
-        }
-
-        // 4. FCM 전송 시간 시뮬레이션 (50ms)
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // 5. 저장
-        notification.markAsSent();
-        save(notification);
-    }
-
     private Notification createNotificationWithTemplate(NotificationSendRequest request) {
-        return notificationTemplateRepository.findByType(request.notificationType())
+        return reader.findTemplate(request.notificationType())
             .map(template -> Notification.create(
                 request.senderType(),
                 request.senderId(),
@@ -92,7 +59,7 @@ public class NotificationSendService {
     }
 
     private boolean canSendByPreference(Notification notification) {
-        return notificationPreferenceRepository.findByMemberId(notification.getReceiverId())
+        return reader.findPreference(notification.getReceiverId())
             .map(pref -> {
                 boolean canSend = pref.canReceive(notification.getType());
                 if (!canSend) {
@@ -108,7 +75,7 @@ public class NotificationSendService {
     }
 
     private DeviceRegistration findReceiversActiveDevice(Notification notification) {
-        return deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(notification.getReceiverId())
+        return reader.findActiveDevice(notification.getReceiverId())
             .orElseGet(() -> {
                 log.warn("[디바이스 정보 조회 실패] receiverId={}", notification.getReceiverId());
                 saveFailedNotification(notification, FAILED_DEVICE_NOT_FOUND);
@@ -132,7 +99,7 @@ public class NotificationSendService {
         try {
             sender.send(notification, deviceRegistration);
             notification.markAsSent();
-            save(notification);
+            writer.save(notification);
         } catch (Exception e) {
             log.warn("[알림 전송 실패] receiverId={}, type={}", notification.getReceiverId(), notification.getType(), e);
             saveFailedNotification(notification, FAILED_EXCEPTION);
@@ -145,7 +112,7 @@ public class NotificationSendService {
     }
 
     private void saveFailedNotification(NotificationSendRequest request, NotificationStatus status) {
-        var failedNotification = Notification.createFailed(
+        writer.saveFailedNotification(
             request.senderType(),
             request.senderId(),
             request.receiverId(),
@@ -154,11 +121,10 @@ public class NotificationSendService {
             "알림 전송에 실패했습니다.",
             status
         );
-        save(failedNotification);
     }
 
     private void saveFailedNotification(Notification notification, NotificationStatus status) {
-        var failedNotification = Notification.createFailed(
+        writer.saveFailedNotification(
             notification.getSenderType(),
             notification.getSenderId(),
             notification.getReceiverId(),
@@ -167,10 +133,5 @@ public class NotificationSendService {
             notification.getBody(),
             status
         );
-        save(failedNotification);
-    }
-
-    private void save(Notification notification) {
-        notificationCommandRepository.save(notification);
     }
 }
