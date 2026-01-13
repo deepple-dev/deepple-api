@@ -12,7 +12,10 @@ import java.util.Map;
 import static jakarta.persistence.EnumType.STRING;
 
 @Entity
-@Table(name = "notification_preferences")
+@Table(
+    name = "notification_preferences",
+    indexes = {@Index(name = "idx_notification_preferences_member_id", columnList = "memberId")}
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class NotificationPreference extends SoftDeleteBaseEntity {
 

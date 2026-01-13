@@ -1,6 +1,7 @@
 package deepple.deepple.notification.infra;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import deepple.deepple.notification.command.application.NotificationSendFailedException;
 import deepple.deepple.notification.command.domain.ChannelType;
@@ -53,6 +54,19 @@ public class FcmNotificationSender implements NotificationSender {
 
     @SuppressWarnings("unused")
     private void sendFallback(Notification notification, DeviceRegistration deviceRegistration, Exception exception) {
+        if (exception instanceof FirebaseMessagingException fme) {
+            log.warn("[FCM 전송 실패] receiverId={}, errorCode={}, message={}",
+                notification.getReceiverId(),
+                fme.getMessagingErrorCode(),
+                fme.getMessage()
+            );
+        } else {
+            log.warn("[FCM 전송 실패] receiverId={}, exceptionType={}, message={}",
+                notification.getReceiverId(),
+                exception.getClass().getSimpleName(),
+                exception.getMessage()
+            );
+        }
         throw new NotificationSendFailedException(exception);
     }
 }
