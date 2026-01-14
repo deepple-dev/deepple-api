@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 import static jakarta.persistence.EnumType.STRING;
 
 @Entity
-@Table(name = "notifications")
+@Table(
+    name = "notifications",
+    indexes = @Index(name = "idx_notifications_receiver_deleted_id", columnList = "receiverId, deletedAt, id")
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Notification extends SoftDeleteBaseEntity {
