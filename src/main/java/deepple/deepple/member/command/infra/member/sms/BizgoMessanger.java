@@ -44,6 +44,9 @@ public class BizgoMessanger {
             .body(new BizgoMessageRequest(message, fromPhoneNumber, phoneNumber))
             .retrieve()
             .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
+                    String responseBody = new String(httpResponse.getBody().readAllBytes());
+                    log.error("Bizgo API 에러 응답 - statusCode: {}, body: {}",
+                        httpResponse.getStatusCode().value(), responseBody);
                     throw new BizgoMessageSendException(httpResponse.getStatusCode().value());
                 }
             ).toEntity(String.class);
