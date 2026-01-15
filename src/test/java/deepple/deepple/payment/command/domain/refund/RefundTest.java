@@ -1,10 +1,11 @@
 package deepple.deepple.payment.command.domain.refund;
 
-import deepple.deepple.payment.command.domain.order.Order;
 import deepple.deepple.payment.command.domain.order.PaymentMethod;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,31 +20,40 @@ class RefundTest {
         @DisplayName("유효한 파라미터로 Refund 객체 생성 성공")
         void createRefundSuccessWhenParametersAreValid() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
+            Long orderId = 1L;
+            Long memberId = 1L;
+            String transactionId = "transaction123";
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
+            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
             NotificationType notificationType = NotificationType.REFUND;
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when
-            Refund refund = Refund.of(order, refundDetail, notificationType);
+            Refund refund = Refund.of(orderId, memberId, transactionId, refundDetail, paymentMethod, notificationType,
+                refundedAt);
 
             // then
             assertThat(refund).isNotNull();
-            assertThat(refund.getMemberId()).isEqualTo(1L);
-            assertThat(refund.getTransactionId()).isEqualTo("transaction123");
+            assertThat(refund.getOrderId()).isEqualTo(orderId);
+            assertThat(refund.getMemberId()).isEqualTo(memberId);
+            assertThat(refund.getTransactionId()).isEqualTo(transactionId);
             assertThat(refund.getPaymentMethod()).isEqualTo(PaymentMethod.APP_STORE);
             assertThat(refund.getNotificationType()).isEqualTo(NotificationType.REFUND);
-            assertThat(refund.getRefundedAt()).isNotNull();
+            assertThat(refund.getRefundedAt()).isEqualTo(refundedAt);
         }
 
         @Test
-        @DisplayName("Order가 null이면 NullPointerException 발생")
-        void throwsNullPointerExceptionWhenOrderIsNull() {
+        @DisplayName("orderId가 null이면 NullPointerException 발생")
+        void throwsNullPointerExceptionWhenOrderIdIsNull() {
             // given
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
             NotificationType notificationType = NotificationType.REFUND;
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when & then
-            assertThatThrownBy(() -> Refund.of(null, refundDetail, notificationType))
+            assertThatThrownBy(
+                () -> Refund.of(null, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE, notificationType,
+                    refundedAt))
                 .isInstanceOf(NullPointerException.class);
         }
 
@@ -51,11 +61,12 @@ class RefundTest {
         @DisplayName("RefundDetail이 null이면 NullPointerException 발생")
         void throwsNullPointerExceptionWhenRefundDetailIsNull() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             NotificationType notificationType = NotificationType.REFUND;
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when & then
-            assertThatThrownBy(() -> Refund.of(order, null, notificationType))
+            assertThatThrownBy(
+                () -> Refund.of(1L, 1L, "transaction123", null, PaymentMethod.APP_STORE, notificationType, refundedAt))
                 .isInstanceOf(NullPointerException.class);
         }
 
@@ -63,11 +74,12 @@ class RefundTest {
         @DisplayName("NotificationType이 null이면 NullPointerException 발생")
         void throwsNullPointerExceptionWhenNotificationTypeIsNull() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when & then
-            assertThatThrownBy(() -> Refund.of(order, refundDetail, null))
+            assertThatThrownBy(
+                () -> Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE, null, refundedAt))
                 .isInstanceOf(NullPointerException.class);
         }
     }
@@ -80,9 +92,10 @@ class RefundTest {
         @DisplayName("getProductId는 RefundDetail의 productId를 반환")
         void getProductIdReturnsProductIdFromRefundDetail() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 2, 2000L);
-            Refund refund = Refund.of(order, refundDetail, NotificationType.REFUND);
+            LocalDateTime refundedAt = LocalDateTime.now();
+            Refund refund = Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE,
+                NotificationType.REFUND, refundedAt);
 
             // when
             String productId = refund.getProductId();
@@ -95,9 +108,10 @@ class RefundTest {
         @DisplayName("getQuantity는 RefundDetail의 quantity를 반환")
         void getQuantityReturnsQuantityFromRefundDetail() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 3, 3000L);
-            Refund refund = Refund.of(order, refundDetail, NotificationType.REFUND);
+            LocalDateTime refundedAt = LocalDateTime.now();
+            Refund refund = Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE,
+                NotificationType.REFUND, refundedAt);
 
             // when
             Integer quantity = refund.getQuantity();
@@ -110,9 +124,10 @@ class RefundTest {
         @DisplayName("getRefundAmount는 RefundDetail의 refundAmount를 반환")
         void getRefundAmountReturnsRefundAmountFromRefundDetail() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 5000L);
-            Refund refund = Refund.of(order, refundDetail, NotificationType.REFUND);
+            LocalDateTime refundedAt = LocalDateTime.now();
+            Refund refund = Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE,
+                NotificationType.REFUND, refundedAt);
 
             // when
             Long refundAmount = refund.getRefundAmount();
@@ -122,19 +137,22 @@ class RefundTest {
         }
 
         @Test
-        @DisplayName("Order의 정보가 Refund 객체에 복사되어 저장됨")
-        void orderInformationIsCopiedToRefund() {
+        @DisplayName("파라미터 정보가 Refund 객체에 저장됨")
+        void parameterInformationIsSavedToRefund() {
             // given
+            Long orderId = 100L;
             Long memberId = 123L;
             String transactionId = "txn456";
             PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            Order order = Order.of(memberId, transactionId, paymentMethod);
             RefundDetail refundDetail = RefundDetail.of("product789", 1, 1000L);
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when
-            Refund refund = Refund.of(order, refundDetail, NotificationType.REFUND);
+            Refund refund = Refund.of(orderId, memberId, transactionId, refundDetail, paymentMethod,
+                NotificationType.REFUND, refundedAt);
 
             // then
+            assertThat(refund.getOrderId()).isEqualTo(orderId);
             assertThat(refund.getMemberId()).isEqualTo(memberId);
             assertThat(refund.getTransactionId()).isEqualTo(transactionId);
             assertThat(refund.getPaymentMethod()).isEqualTo(paymentMethod);
@@ -149,11 +167,12 @@ class RefundTest {
         @DisplayName("REFUND NotificationType으로 Refund 객체 생성")
         void createRefundWithRefundNotificationType() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when
-            Refund refund = Refund.of(order, refundDetail, NotificationType.REFUND);
+            Refund refund = Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE,
+                NotificationType.REFUND, refundedAt);
 
             // then
             assertThat(refund.getNotificationType()).isEqualTo(NotificationType.REFUND);
@@ -163,11 +182,12 @@ class RefundTest {
         @DisplayName("REFUND_DECLINED NotificationType으로 Refund 객체 생성")
         void createRefundWithRefundDeclinedNotificationType() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when
-            Refund refund = Refund.of(order, refundDetail, NotificationType.REFUND_DECLINED);
+            Refund refund = Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE,
+                NotificationType.REFUND_DECLINED, refundedAt);
 
             // then
             assertThat(refund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
@@ -177,11 +197,12 @@ class RefundTest {
         @DisplayName("UNKNOWN NotificationType으로 Refund 객체 생성")
         void createRefundWithUnknownNotificationType() {
             // given
-            Order order = Order.of(1L, "transaction123", PaymentMethod.APP_STORE);
             RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
+            LocalDateTime refundedAt = LocalDateTime.now();
 
             // when
-            Refund refund = Refund.of(order, refundDetail, NotificationType.UNKNOWN);
+            Refund refund = Refund.of(1L, 1L, "transaction123", refundDetail, PaymentMethod.APP_STORE,
+                NotificationType.UNKNOWN, refundedAt);
 
             // then
             assertThat(refund.getNotificationType()).isEqualTo(NotificationType.UNKNOWN);

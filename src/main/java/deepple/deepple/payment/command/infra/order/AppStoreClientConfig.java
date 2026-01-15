@@ -2,6 +2,7 @@ package deepple.deepple.payment.command.infra.order;
 
 import com.apple.itunes.storekit.model.Environment;
 import com.apple.itunes.storekit.verification.SignedDataVerifier;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Configuration
 public class AppStoreClientConfig {
 
@@ -30,17 +32,19 @@ public class AppStoreClientConfig {
                 }
             })
             .collect(Collectors.toSet());
-        if (environment.equals(Environment.SANDBOX)) {
-            appAppleId = null;
-        }
-        SignedDataVerifier verifier = new SignedDataVerifier(rootCAs, bundleId, appAppleId, environment, true);
-        rootCAs.forEach(is -> {
-            try {
-                is.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+        try {
+            if (environment.equals(Environment.SANDBOX)) {
+                appAppleId = null;
             }
-        });
-        return verifier;
+            return new SignedDataVerifier(rootCAs, bundleId, appAppleId, environment, true);
+        } finally {
+            rootCAs.forEach(is -> {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    log.warn("Failed to close InputStream", e);
+                }
+            });
+        }
     }
 }

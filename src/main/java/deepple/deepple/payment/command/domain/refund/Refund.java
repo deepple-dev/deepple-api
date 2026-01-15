@@ -1,7 +1,6 @@
 package deepple.deepple.payment.command.domain.refund;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.payment.command.domain.order.Order;
 import deepple.deepple.payment.command.domain.order.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,10 +11,14 @@ import lombok.NonNull;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "refunds", indexes = {
-    @Index(name = "idx_refunds_member_id", columnList = "memberId"),
-    @Index(name = "idx_refunds_transaction_id", columnList = "transactionId")
-})
+@Table(name = "refunds",
+    indexes = {
+        @Index(name = "idx_refunds_member_id", columnList = "memberId")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_refunds_transaction_id", columnNames = "transactionId")
+    }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Refund extends BaseEntity {
@@ -23,9 +26,8 @@ public class Refund extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    @Column(name = "order_id", nullable = false)
+    private Long orderId;
 
     @Column(nullable = false)
     private Long memberId;
@@ -48,21 +50,33 @@ public class Refund extends BaseEntity {
     private LocalDateTime refundedAt;
 
     private Refund(
-        @NonNull Order order,
+        @NonNull Long orderId,
+        @NonNull Long memberId,
+        @NonNull String transactionId,
         @NonNull RefundDetail refundDetail,
-        @NonNull NotificationType notificationType
+        @NonNull PaymentMethod paymentMethod,
+        @NonNull NotificationType notificationType,
+        @NonNull LocalDateTime refundedAt
     ) {
-        this.order = order;
-        this.memberId = order.getMemberId();
-        this.transactionId = order.getTransactionId();
+        this.orderId = orderId;
+        this.memberId = memberId;
+        this.transactionId = transactionId;
         this.refundDetail = refundDetail;
-        this.paymentMethod = order.getPaymentMethod();
+        this.paymentMethod = paymentMethod;
         this.notificationType = notificationType;
-        this.refundedAt = LocalDateTime.now();
+        this.refundedAt = refundedAt;
     }
 
-    public static Refund of(Order order, RefundDetail refundDetail, NotificationType notificationType) {
-        return new Refund(order, refundDetail, notificationType);
+    public static Refund of(
+        Long orderId,
+        Long memberId,
+        String transactionId,
+        RefundDetail refundDetail,
+        PaymentMethod paymentMethod,
+        NotificationType notificationType,
+        LocalDateTime refundedAt
+    ) {
+        return new Refund(orderId, memberId, transactionId, refundDetail, paymentMethod, notificationType, refundedAt);
     }
 
     public String getProductId() {

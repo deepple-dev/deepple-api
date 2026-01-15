@@ -15,6 +15,6 @@ CREATE TABLE refunds
     updated_at        DATETIME(6),
     PRIMARY KEY (id),
     INDEX             idx_refunds_member_id (member_id),
-    INDEX             idx_refunds_transaction_id (transaction_id),
+    CONSTRAINT uk_refunds_transaction_id UNIQUE (transaction_id),
     CONSTRAINT fk_refunds_order FOREIGN KEY (order_id) REFERENCES orders (id)
 ) ENGINE = InnoDB;

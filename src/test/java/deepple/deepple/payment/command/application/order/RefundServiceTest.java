@@ -60,8 +60,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
             Long heartAmount = 50L;
+            Long orderId = 1L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -110,8 +112,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
             Long heartAmount = 30L;
+            Long orderId = 1L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -121,15 +125,16 @@ class RefundServiceTest {
                 .thenReturn(Optional.of(heartPurchaseOption));
             when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
-            // when
-            refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
+            // when & then
+            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
 
-            // then
-            ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-            verify(refundCommandRepository).save(refundCaptor.capture());
+                ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+                verify(refundCommandRepository).save(refundCaptor.capture());
 
-            Refund savedRefund = refundCaptor.getValue();
-            assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
+                Refund savedRefund = refundCaptor.getValue();
+                assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
+            }
         }
     }
 
@@ -237,8 +242,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND_DECLINED;
             Long memberId = 100L;
             Long heartAmount = 50L;
+            Long orderId = 1L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -248,15 +255,16 @@ class RefundServiceTest {
                 .thenReturn(Optional.of(heartPurchaseOption));
             when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
-            // when
-            refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
+            // when & then
+            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
 
-            // then
-            ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-            verify(refundCommandRepository).save(refundCaptor.capture());
+                ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+                verify(refundCommandRepository).save(refundCaptor.capture());
 
-            Refund savedRefund = refundCaptor.getValue();
-            assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
+                Refund savedRefund = refundCaptor.getValue();
+                assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
+            }
         }
     }
 
@@ -275,8 +283,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
             Long heartAmount = 50L;
+            Long orderId = 1L;
 
             Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -286,11 +296,12 @@ class RefundServiceTest {
                 .thenReturn(Optional.of(heartPurchaseOption));
             when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
-            // when
-            refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
+            // when & then
+            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
 
-            // then
-            verify(order).refund();
+                verify(order).refund();
+            }
         }
     }
 }
