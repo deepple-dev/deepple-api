@@ -67,7 +67,7 @@ public class RefundQueryRepository {
     }
 
     private BooleanExpression refundedAtLoe(LocalDate refundedDateLoe) {
-        return refundedDateLoe != null ? refund.refundedAt.loe(
-            refundedDateLoe.plusDays(1).atStartOfDay().minusSeconds(1)) : null;
+        return refundedDateLoe != null ? refund.refundedAt.lt(
+            refundedDateLoe.plusDays(1).atStartOfDay()) : null;
     }
 }
