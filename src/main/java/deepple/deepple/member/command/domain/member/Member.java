@@ -158,6 +158,10 @@ public class Member extends SoftDeleteBaseEntity {
             heartBalance.getPurchaseHeartBalance(), actionType));
     }
 
+    public void refundPurchaseHeart(HeartAmount heartAmount) {
+        heartBalance = heartBalance.refundPurchaseHeart(heartAmount);
+    }
+
     public void updateGrade(@NonNull Grade grade) {
         this.grade = grade;
     }
