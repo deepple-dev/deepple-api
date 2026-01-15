@@ -26,10 +26,10 @@ class AppStorePaymentServiceTest {
     private AppStorePaymentService appStorePaymentService;
 
     @Test
-    @DisplayName("receiptToken이 검증되고, transactionInfo가 paid 상태이며, transactionId가 처리된 기록이 없는 경우 주문을 생성하고 하트 구매 옵션을 구매한다.")
-    void successWhenReceiptTokenIsVerifiedAndTransactionInfoIsPaidAndTransactionIdIsNotExists() {
+    @DisplayName("signedTransaction이 검증되고, transactionInfo가 paid 상태이며, transactionId가 처리된 기록이 없는 경우 주문을 생성하고 하트 구매 옵션을 구매한다.")
+    void successWhenSignedTransactionIsVerifiedAndTransactionInfoIsPaidAndTransactionIdIsNotExists() {
         // Given
-        String receiptToken = "receiptToken";
+        String signedTransaction = "signed.transaction.jws";
         long memberId = 1L;
         String transactionId = "transactionId";
         String productId = "productId";
@@ -41,11 +41,11 @@ class AppStorePaymentServiceTest {
         when(decodedPayload.getProductId()).thenReturn(productId);
         when(decodedPayload.getQuantity()).thenReturn(quantity);
 
-        when(appStoreClient.getTransactionDecodedPayload(receiptToken)).thenReturn(decodedPayload);
+        when(appStoreClient.verifyAndDecodeTransaction(signedTransaction)).thenReturn(decodedPayload);
 
         // When & Then
         try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-            appStorePaymentService.verifyReceipt(receiptToken, memberId);
+            appStorePaymentService.verifyReceipt(signedTransaction, memberId);
             eventsMockedStatic.verify(
                 () -> Events.raise(argThat(
                         event -> event instanceof AppStoreReceiptVerifiedEvent
@@ -60,21 +60,21 @@ class AppStorePaymentServiceTest {
     }
 
     @Test
-    @DisplayName("receiptToken이 검증되고, transactionInfo가 revoked 상태인 경우 InvalidOrderException을 발생시킨다.")
+    @DisplayName("signedTransaction이 검증되고, transactionInfo가 revoked 상태인 경우 InvalidOrderException을 발생시킨다.")
     void throwInvalidOrderExceptionWhenTransactionInfoIsRevoked() {
         // Given
-        String receiptToken = "receiptToken";
+        String signedTransaction = "signed.transaction.jws";
         Long memberId = 1L;
 
         JWSTransactionDecodedPayload decodedPayload = mock(JWSTransactionDecodedPayload.class);
         Long revocationDate = 123456789L;
         when(decodedPayload.getRevocationDate()).thenReturn(revocationDate);
 
-        when(appStoreClient.getTransactionDecodedPayload(receiptToken)).thenReturn(decodedPayload);
+        when(appStoreClient.verifyAndDecodeTransaction(signedTransaction)).thenReturn(decodedPayload);
 
         // When & Then
         assertThatThrownBy(() ->
-            appStorePaymentService.verifyReceipt(receiptToken, memberId))
+            appStorePaymentService.verifyReceipt(signedTransaction, memberId))
             .isInstanceOf(InvalidOrderException.class);
     }
 }

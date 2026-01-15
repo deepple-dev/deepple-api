@@ -1,85 +1,36 @@
 package deepple.deepple.payment.command.infra.order;
 
-import com.apple.itunes.storekit.migration.ReceiptUtility;
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
+import com.apple.itunes.storekit.model.ResponseBodyV2DecodedPayload;
 import com.apple.itunes.storekit.verification.SignedDataVerifier;
 import com.apple.itunes.storekit.verification.VerificationException;
 import deepple.deepple.payment.command.infra.order.exception.AppStoreClientException;
 import deepple.deepple.payment.command.infra.order.exception.InvalidAppReceiptException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidTransactionIdException;
-import feign.FeignException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
 public class AppStoreClient {
 
-    private final AppStoreFeignClient feignClient;
-    private final AppStoreTokenService appStoreTokenService;
-    private final ReceiptUtility receiptUtil;
     private final SignedDataVerifier signedDataVerifier;
 
-    @Retry(name = AppStoreQueryResilienceConfig.RETRY_POLICY_NAME, fallbackMethod = "getTransactionDecodedPayloadFallback")
-    @CircuitBreaker(name = AppStoreQueryResilienceConfig.CIRCUIT_BREAKER_POLICY_NAME)
-    public JWSTransactionDecodedPayload getTransactionDecodedPayload(@NonNull String appReceipt) {
-        String transactionId = extractTransactionIdFromReceipt(appReceipt);
-        AppStoreTransactionResponse response = fetchTransactionFromAppStore(transactionId);
-        return decodeTransactionPayload(response);
-    }
-
-    private String extractTransactionIdFromReceipt(String appReceipt) {
+    public JWSTransactionDecodedPayload verifyAndDecodeTransaction(@NonNull String signedTransaction) {
         try {
-            String transactionId = receiptUtil.extractTransactionIdFromAppReceipt(appReceipt);
-            if (transactionId == null) {
-                throw new InvalidAppReceiptException("앱 영수증에 TransactionId가 없습니다.");
-            }
-            return transactionId;
-        } catch (IllegalArgumentException exception) {
-            throw new InvalidAppReceiptException(exception);
-        } catch (IOException exception) {
-            throw new AppStoreClientException(exception);
-        }
-    }
-
-    private AppStoreTransactionResponse fetchTransactionFromAppStore(String transactionId) {
-        try {
-            String bearerToken = appStoreTokenService.generateToken();
-            return feignClient.getTransactionInfo(transactionId, bearerToken);
-        } catch (FeignException exception) {
-            handleTokenExpirationIfNeeded(exception);
-            throw exception;
-        }
-    }
-
-    private void handleTokenExpirationIfNeeded(FeignException exception) {
-        if (exception instanceof FeignException.Unauthorized) {
-            appStoreTokenService.forceRefreshToken();
-        }
-    }
-
-
-    private JWSTransactionDecodedPayload decodeTransactionPayload(AppStoreTransactionResponse response) {
-        String signedTransactionInfo = response.getSignedTransactionInfo();
-        try {
-            return signedDataVerifier.verifyAndDecodeTransaction(signedTransactionInfo);
+            return signedDataVerifier.verifyAndDecodeTransaction(signedTransaction);
         } catch (VerificationException exception) {
-            throw new AppStoreClientException(exception);
+            throw new InvalidAppReceiptException(exception);
         }
     }
 
-    public JWSTransactionDecodedPayload getTransactionDecodedPayloadFallback(String appReceipt, Exception exception) {
-        if (exception instanceof FeignException) {
-            if (exception instanceof FeignException.BadRequest || exception instanceof FeignException.NotFound) {
-                throw new InvalidTransactionIdException(exception);
-            }
+    public ResponseBodyV2DecodedPayload verifyAndDecodeNotification(@NonNull String signedPayload) {
+        try {
+            return signedDataVerifier.verifyAndDecodeNotification(signedPayload);
+        } catch (VerificationException exception) {
+            throw new InvalidAppReceiptException(exception);
+        } catch (Exception exception) {
             throw new AppStoreClientException(exception);
         }
-        throw new AppStoreClientException(exception);
     }
 }
