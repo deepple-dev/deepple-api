@@ -65,7 +65,7 @@ public class Screening extends BaseEntity {
         setAdminId(adminId);
         changeScreeningStatus(ScreeningStatus.REJECTED);
         setRejectionReason(rejectionReason);
-        Events.raise(ScreeningRejectedEvent.of(adminId, memberId, rejectionReason.toString()));
+        Events.raise(ScreeningRejectedEvent.of(adminId, memberId, rejectionReason.getDescription()));
     }
 
     private void setAdminId(long adminId) {
