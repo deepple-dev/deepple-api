@@ -14,7 +14,8 @@ public enum TransactionSubtype {
     SAME_ANSWER("연애 고사 답변 일치"),
     IDEAL("이상형"),
     MATCH("매칭"),
-    MATCH_ACCEPTED("매칭 수락");
+    MATCH_ACCEPTED("매칭 수락"),
+    PROFILE_EXCHANGE("프로필 교환");
 
     private final String description;
 
