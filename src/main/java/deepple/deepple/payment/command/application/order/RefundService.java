@@ -19,6 +19,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -83,7 +85,15 @@ public class RefundService {
         NotificationType notificationType
     ) {
         RefundDetail refundDetail = RefundDetail.of(productId, quantity, refundAmount);
-        Refund refund = Refund.of(order, refundDetail, notificationType);
+        Refund refund = Refund.of(
+            order.getId(),
+            order.getMemberId(),
+            order.getTransactionId(),
+            refundDetail,
+            order.getPaymentMethod(),
+            notificationType,
+            LocalDateTime.now()
+        );
         refundCommandRepository.save(refund);
     }
 

@@ -60,8 +60,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
             Long heartAmount = 50L;
+            Long orderId = 1L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -110,8 +112,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
             Long heartAmount = 30L;
+            Long orderId = 1L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -237,8 +241,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND_DECLINED;
             Long memberId = 100L;
             Long heartAmount = 50L;
+            Long orderId = 1L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
@@ -275,8 +281,10 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
             Long heartAmount = 50L;
+            Long orderId = 1L;
 
             Order order = spy(Order.of(memberId, transactionId, paymentMethod));
+            when(order.getId()).thenReturn(orderId);
             HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
