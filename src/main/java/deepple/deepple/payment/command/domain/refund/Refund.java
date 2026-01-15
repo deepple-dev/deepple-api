@@ -12,10 +12,14 @@ import lombok.NonNull;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "refunds", indexes = {
-    @Index(name = "idx_refunds_member_id", columnList = "memberId"),
-    @Index(name = "idx_refunds_transaction_id", columnList = "transactionId")
-})
+@Table(name = "refunds",
+    indexes = {
+        @Index(name = "idx_refunds_member_id", columnList = "memberId")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_refunds_transaction_id", columnNames = "transactionId")
+    }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Refund extends BaseEntity {

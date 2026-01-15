@@ -15,6 +15,7 @@ import deepple.deepple.payment.command.domain.refund.RefundCommandRepository;
 import deepple.deepple.payment.command.domain.refund.RefundDetail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,19 +36,23 @@ public class RefundService {
         NotificationType notificationType
     ) {
         if (isDuplicateRefund(transactionId)) {
-            log.warn("이미 환불 처리된 거래입니다. transactionId: {}", transactionId);
+            log.info("이미 환불 처리된 거래입니다. transactionId: {}", transactionId);
             return;
         }
 
-        Order order = findOrder(transactionId, paymentMethod);
-        order.refund();
+        try {
+            Order order = findOrder(transactionId, paymentMethod);
+            order.refund();
 
-        Long refundAmount = calculateRefundAmount(productId, quantity);
-        saveRefund(order, productId, quantity, refundAmount, notificationType);
-        raiseRefundEvent(order.getMemberId(), refundAmount, transactionId);
+            Long refundAmount = calculateRefundAmount(productId, quantity);
+            saveRefund(order, productId, quantity, refundAmount, notificationType);
+            raiseRefundEvent(order.getMemberId(), refundAmount, transactionId);
 
-        log.info("환불 처리 완료. transactionId: {}, memberId: {}, amount: {}",
-            transactionId, order.getMemberId(), refundAmount);
+            log.info("환불 처리 완료. transactionId: {}, memberId: {}, amount: {}",
+                transactionId, order.getMemberId(), refundAmount);
+        } catch (DataIntegrityViolationException e) {
+            log.info("이미 환불 처리된 거래입니다 (동시 요청). transactionId: {}", transactionId);
+        }
     }
 
     private boolean isDuplicateRefund(String transactionId) {
