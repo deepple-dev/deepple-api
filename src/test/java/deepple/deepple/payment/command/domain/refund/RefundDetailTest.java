@@ -238,7 +238,7 @@ class RefundDetailTest {
 
     @Nested
     @DisplayName("여러 필드 조합 테스트")
-    class MultiplFieldsCombinationTest {
+    class MultipleFieldsCombinationTest {
 
         @Test
         @DisplayName("모든 필드가 최소값일 때 객체 생성 성공")
