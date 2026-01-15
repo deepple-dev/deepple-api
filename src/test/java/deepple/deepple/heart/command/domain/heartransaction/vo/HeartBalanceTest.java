@@ -40,7 +40,7 @@ class HeartBalanceTest {
             // when
             HeartBalance updatedBalance = heartBalance.gainPurchaseHeart(heartAmount);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(10L);
             assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
@@ -123,7 +123,7 @@ class HeartBalanceTest {
             // when
             HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(50L);
             assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
