@@ -57,6 +57,18 @@ public final class HeartBalance {
         return new HeartBalance(this.purchaseHeartBalance, missionHeartBalanceAfterGaining);
     }
 
+    public HeartBalance refundPurchaseHeart(HeartAmount heartChangeAmount) {
+        validateRefundAmount(heartChangeAmount);
+        Long purchaseHeartBalanceAfterRefund = Math.max(this.purchaseHeartBalance + heartChangeAmount.getAmount(), 0L);
+        return new HeartBalance(purchaseHeartBalanceAfterRefund, this.missionHeartBalance);
+    }
+
+    private void validateRefundAmount(HeartAmount heartChangeAmount) {
+        if (heartChangeAmount.isZero() || !heartChangeAmount.isUsingAmount()) {
+            throw new InvalidHeartAmountException("잘못된 환불 금액입니다. amount: " + heartChangeAmount.getAmount());
+        }
+    }
+
     private void validateBalanceIsUsable(HeartAmount heartChangeAmount) {
         Long totalHeartBalance = this.purchaseHeartBalance + this.missionHeartBalance;
         if (totalHeartBalance + heartChangeAmount.getAmount() < MIN_HEART_BALANCE) {

@@ -23,8 +23,8 @@ class HeartBalanceTest {
             HeartBalance heartBalance = HeartBalance.init();
             // then
             assertThat(heartBalance).isNotNull();
-            assertThat(heartBalance.getPurchaseHeartBalance()).isEqualTo(0L);
-            assertThat(heartBalance.getMissionHeartBalance()).isEqualTo(0L);
+            assertThat(heartBalance.getPurchaseHeartBalance()).isZero();
+            assertThat(heartBalance.getMissionHeartBalance()).isZero();
         }
     }
 
@@ -41,7 +41,7 @@ class HeartBalanceTest {
             HeartBalance updatedBalance = heartBalance.gainPurchaseHeart(heartAmount);
             // then
             assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(10L);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(0L);
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
         @Test
@@ -81,7 +81,7 @@ class HeartBalanceTest {
             // when
             HeartBalance updatedBalance = heartBalance.gainMissionHeart(heartAmount);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(0L);
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
             assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(10L);
         }
 
@@ -107,6 +107,90 @@ class HeartBalanceTest {
             // then
             assertThatThrownBy(() -> heartBalance.gainMissionHeart(heartAmount))
                 .isInstanceOf(InvalidHeartAmountException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("refundPurchaseHeart 메서드 테스트")
+    class RefundPurchaseHeartTest {
+        @Test
+        @DisplayName("amount 값 음수로 purchaseHeartBalance 환불 성공")
+        void refundPurchaseHeartTestWithNegativeValue() {
+            // given
+            HeartBalance heartBalance = HeartBalance.init()
+                .gainPurchaseHeart(HeartAmount.from(100L));
+            HeartAmount refundAmount = HeartAmount.from(-50L);
+            // when
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            // then
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(50L);
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
+        }
+
+        @Test
+        @DisplayName("amount 값 음수이고 purchaseHeartBalance보다 큰 경우 0으로 제한")
+        void refundPurchaseHeartTestWithNegativeValueGreaterThanBalance() {
+            // given
+            HeartBalance heartBalance = HeartBalance.init()
+                .gainPurchaseHeart(HeartAmount.from(30L));
+            HeartAmount refundAmount = HeartAmount.from(-50L);
+            // when
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            // then
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
+        }
+
+        @Test
+        @DisplayName("purchaseHeartBalance가 0일 때 음수 환불 시도하면 0 유지")
+        void refundPurchaseHeartTestWithZeroBalance() {
+            // given
+            HeartBalance heartBalance = HeartBalance.init();
+            HeartAmount refundAmount = HeartAmount.from(-10L);
+            // when
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            // then
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
+        }
+
+        @Test
+        @DisplayName("amount 값 양수로 purchaseHeartBalance 환불 실패")
+        void refundPurchaseHeartTestWithPositiveValue() {
+            // given
+            HeartBalance heartBalance = HeartBalance.init()
+                .gainPurchaseHeart(HeartAmount.from(100L));
+            HeartAmount refundAmount = HeartAmount.from(10L);
+            // when & then
+            assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(refundAmount))
+                .isInstanceOf(InvalidHeartAmountException.class);
+        }
+
+        @Test
+        @DisplayName("amount 값 0으로 purchaseHeartBalance 환불 실패")
+        void refundPurchaseHeartTestWithZeroValue() {
+            // given
+            HeartBalance heartBalance = HeartBalance.init()
+                .gainPurchaseHeart(HeartAmount.from(100L));
+            HeartAmount refundAmount = HeartAmount.from(0L);
+            // when & then
+            assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(refundAmount))
+                .isInstanceOf(InvalidHeartAmountException.class);
+        }
+
+        @Test
+        @DisplayName("missionHeartBalance는 환불에 영향을 받지 않음")
+        void refundPurchaseHeartTestDoesNotAffectMissionHeartBalance() {
+            // given
+            HeartBalance heartBalance = HeartBalance.init()
+                .gainPurchaseHeart(HeartAmount.from(100L))
+                .gainMissionHeart(HeartAmount.from(50L));
+            HeartAmount refundAmount = HeartAmount.from(-30L);
+            // when
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            // then
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(70L);
+            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(50L);
         }
     }
 
