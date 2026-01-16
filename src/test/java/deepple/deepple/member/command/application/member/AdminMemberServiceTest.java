@@ -1,7 +1,6 @@
 package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
-import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Grade;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -33,7 +32,7 @@ class AdminMemberServiceTest {
         // given
         long memberId = 1L;
         AdminMemberSettingUpdateRequest request = new AdminMemberSettingUpdateRequest(
-            Grade.SILVER.name(), true, ActivityStatus.ACTIVE.name(), true, true
+            Grade.SILVER.name(), true, true
         );
         final Member member = mock(Member.class);
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
@@ -42,8 +41,7 @@ class AdminMemberServiceTest {
         adminMemberService.updateMemberSetting(memberId, request);
 
         // then
-        verify(member).updateSetting(Grade.from(request.grade()), request.isProfilePublic(),
-            ActivityStatus.from(request.activityStatus()), request.isVip(), request.isPushNotificationEnabled());
+        verify(member).updateSetting(Grade.from(request.grade()), request.isVip(), request.isPushNotificationEnabled());
     }
 
     @Test
@@ -52,7 +50,7 @@ class AdminMemberServiceTest {
         // given
         long memberId = 1L;
         AdminMemberSettingUpdateRequest request = new AdminMemberSettingUpdateRequest(
-            Grade.SILVER.name(), true, ActivityStatus.ACTIVE.name(), true, true
+            Grade.SILVER.name(), true, true
         );
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 

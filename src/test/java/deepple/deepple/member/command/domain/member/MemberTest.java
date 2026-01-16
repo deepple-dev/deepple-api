@@ -4,6 +4,7 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
+import deepple.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
@@ -172,24 +173,27 @@ class MemberTest {
         @Test
         @DisplayName("멤버의 설정을 업데이트합니다.")
         void shouldUpdateMemberSettings() {
-            // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            Long memberId = 1L;
-            setField(member, "id", memberId);
-            Grade grade = Grade.GOLD;
-            final boolean isProfilePublic = true;
-            ActivityStatus activityStatus = ActivityStatus.DORMANT;
-            final boolean isVip = true;
-            final boolean isPushNotificationEnabled = false;
+            try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
+                // Given
+                Member member = Member.fromPhoneNumber("01012345678");
+                Long memberId = 1L;
+                setField(member, "id", memberId);
+                Grade grade = Grade.GOLD;
+                final boolean isVip = true;
+                final boolean isPushNotificationEnabled = false;
 
-            // When
-            member.updateSetting(grade, isProfilePublic, activityStatus, isVip, isPushNotificationEnabled);
+                // When
+                member.updateSetting(grade, isVip, isPushNotificationEnabled);
 
-            // Then
-            Assertions.assertThat(member.getGrade()).isEqualTo(grade);
-            Assertions.assertThat(member.isProfilePublic()).isEqualTo(isProfilePublic);
-            Assertions.assertThat(member.getActivityStatus()).isEqualTo(activityStatus);
-            Assertions.assertThat(member.isVip()).isEqualTo(isVip);
+                // Then
+                Assertions.assertThat(member.getGrade()).isEqualTo(grade);
+                Assertions.assertThat(member.isVip()).isEqualTo(isVip);
+                eventsMock.verify(() -> Events.raise(argThat(event ->
+                    event instanceof MemberSettingUpdatedEvent &&
+                        ((MemberSettingUpdatedEvent) event).getMemberId() == memberId &&
+                        !((MemberSettingUpdatedEvent) event).isPushNotificationEnabled()
+                )));
+            }
         }
     }
 
