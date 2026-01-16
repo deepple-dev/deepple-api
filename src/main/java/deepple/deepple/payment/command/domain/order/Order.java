@@ -16,6 +16,7 @@ import lombok.NonNull;
     }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -92,4 +92,72 @@ class MemberHeartBalanceServiceTest {
             verify(member).gainMissionHeart(heartAmount, actionType);
         }
     }
+
+    @Nested
+    @DisplayName("구매한 하트를 환불할 때")
+    class RefundPurchasedHeartsTests {
+        @Test
+        @DisplayName("멤버가 존재하지 않으면 예외를 던집니다.")
+        void shouldThrowExceptionWhenMemberNotFound() {
+            // given
+            Long memberId = 1L;
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> memberHeartBalanceService.refundPurchasedHearts(memberId, 100L))
+                .isInstanceOf(MemberNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("멤버가 존재하면 구매한 하트를 환불합니다.")
+        void shouldRefundPurchasedHeartsWhenMemberExists() {
+            // given
+            Long memberId = 1L;
+            Member member = mock(Member.class);
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            Long amount = 100L;
+            HeartAmount heartAmount = HeartAmount.from(amount);
+
+            // when
+            memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
+
+            // then
+            verify(member).refundPurchaseHeart(heartAmount);
+        }
+
+        @Test
+        @DisplayName("환불 금액이 0보다 큰 경우 정상적으로 처리됩니다.")
+        void shouldRefundPurchasedHeartsWithPositiveAmount() {
+            // given
+            Long memberId = 1L;
+            Member member = mock(Member.class);
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            Long amount = 50L;
+            HeartAmount heartAmount = HeartAmount.from(amount);
+
+            // when
+            memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
+
+            // then
+            verify(memberCommandRepository).findById(memberId);
+            verify(member).refundPurchaseHeart(heartAmount);
+        }
+
+        @Test
+        @DisplayName("큰 금액의 하트를 환불할 때 정상적으로 처리됩니다.")
+        void shouldRefundLargeAmountOfPurchasedHearts() {
+            // given
+            Long memberId = 1L;
+            Member member = mock(Member.class);
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            Long amount = 1000L;
+            HeartAmount heartAmount = HeartAmount.from(amount);
+
+            // when
+            memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
+
+            // then
+            verify(member).refundPurchaseHeart(heartAmount);
+        }
+    }
 }

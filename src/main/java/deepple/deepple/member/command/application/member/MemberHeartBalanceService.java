@@ -27,8 +27,15 @@ public class MemberHeartBalanceService {
         member.gainMissionHeart(heartAmount, actionType);
     }
 
+    @Transactional
+    public void refundPurchasedHearts(Long memberId, Long amount) {
+        Member member = getMemberById(memberId);
+        HeartAmount heartAmount = HeartAmount.from(amount);
+        member.refundPurchaseHeart(heartAmount);
+    }
+
     private Member getMemberById(Long memberId) {
         return memberCommandRepository.findById(memberId)
-            .orElseThrow(() -> new MemberNotFoundException());
+            .orElseThrow(MemberNotFoundException::new);
     }
 }

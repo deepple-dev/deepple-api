@@ -1,5 +1,6 @@
 package deepple.deepple.heart.command.infra.heartusagepolicy;
 
+import deepple.deepple.community.command.domain.profileexchange.event.ProfileExchangeRequestedEvent;
 import deepple.deepple.heart.command.application.heartusagepolicy.HeartUsagePolicyService;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionSubtype;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
@@ -31,5 +32,11 @@ public class HeartUsageEventHandler {
     public void handle(MatchAcceptedEvent event) {
         heartUsageService.useHeart(event.getRequesterId(), TransactionType.MESSAGE_ACCEPTED,
             TransactionType.MESSAGE_ACCEPTED.getDescription(), TransactionSubtype.MATCH_ACCEPTED.name());
+    }
+
+    @EventListener(value = ProfileExchangeRequestedEvent.class)
+    public void handle(ProfileExchangeRequestedEvent event) {
+        heartUsageService.useHeart(event.getRequesterId(), TransactionType.PROFILE_EXCHANGE,
+            TransactionType.PROFILE_EXCHANGE.getDescription(), TransactionSubtype.PROFILE_EXCHANGE.name());
     }
 }

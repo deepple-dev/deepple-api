@@ -13,14 +13,10 @@ import org.springframework.stereotype.Service;
 public class AppStorePaymentService {
     private final AppStoreClient appStoreClient;
 
-    public void verifyReceipt(String appReceipt, Long memberId) {
-        JWSTransactionDecodedPayload decodedPayload = getTransactionDecodedPayload(appReceipt);
+    public void verifyReceipt(String signedTransaction, Long memberId) {
+        JWSTransactionDecodedPayload decodedPayload = appStoreClient.verifyAndDecodeTransaction(signedTransaction);
         verifyPayload(decodedPayload);
         raiseReceiptVerifiedEvent(memberId, decodedPayload);
-    }
-
-    private JWSTransactionDecodedPayload getTransactionDecodedPayload(String appReceipt) {
-        return appStoreClient.getTransactionDecodedPayload(appReceipt);
     }
 
     private void verifyPayload(JWSTransactionDecodedPayload decodedPayload) {
