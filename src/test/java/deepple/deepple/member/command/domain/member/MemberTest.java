@@ -177,18 +177,14 @@ class MemberTest {
             Long memberId = 1L;
             setField(member, "id", memberId);
             Grade grade = Grade.GOLD;
-            final boolean isProfilePublic = true;
-            ActivityStatus activityStatus = ActivityStatus.DORMANT;
             final boolean isVip = true;
             final boolean isPushNotificationEnabled = false;
 
             // When
-            member.updateSetting(grade, isProfilePublic, activityStatus, isVip, isPushNotificationEnabled);
+            member.updateSetting(grade, isVip, isPushNotificationEnabled);
 
             // Then
             Assertions.assertThat(member.getGrade()).isEqualTo(grade);
-            Assertions.assertThat(member.isProfilePublic()).isEqualTo(isProfilePublic);
-            Assertions.assertThat(member.getActivityStatus()).isEqualTo(activityStatus);
             Assertions.assertThat(member.isVip()).isEqualTo(isVip);
         }
     }
