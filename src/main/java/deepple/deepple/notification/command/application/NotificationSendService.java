@@ -134,4 +134,30 @@ public class NotificationSendService {
             status
         );
     }
+
+    public void sendWithoutPush(NotificationSendRequest request) {
+        var notification = createNotificationWithTemplate(request);
+        if (notification == null) {
+            return;
+        }
+
+        if (!canSendByPreference(notification)) {
+            return;
+        }
+
+        var device = findReceiversActiveDevice(notification);
+        if (device == null) {
+            return;
+        }
+
+        // FCM 전송 시간 시뮬레이션
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        notification.markAsSent();
+        writer.save(notification);
+    }
 }

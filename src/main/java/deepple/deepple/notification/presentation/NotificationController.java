@@ -89,7 +89,7 @@ public class NotificationController {
             Map.of("senderName", "테스트", "rejectionReason", "테스트 사유"),
             ChannelType.PUSH
         );
-        notificationSendService.send(request);
+        notificationSendService.sendWithoutPush(request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }
