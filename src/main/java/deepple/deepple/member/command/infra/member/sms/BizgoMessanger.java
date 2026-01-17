@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.infra.member.sms;
 
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageRequest;
+import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageResponse;
 import deepple.deepple.member.command.infra.member.sms.exception.BizgoMessageSendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,7 @@ public class BizgoMessanger {
     private void sendRequest(String message, String phoneNumber) {
         String requestURL = apiUrl + "/api/comm/v1/send/omni";
 
-        ResponseEntity<String> response = restClient.post()
+        ResponseEntity<BizgoMessageResponse> response = restClient.post()
             .uri(requestURL)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -49,7 +50,7 @@ public class BizgoMessanger {
                         httpResponse.getStatusCode().value(), responseBody);
                     throw new BizgoMessageSendException(httpResponse.getStatusCode().value());
                 }
-            ).toEntity(String.class);
+            ).toEntity(BizgoMessageResponse.class);
 
         log.info("status = {}", response.getStatusCode());
         log.info("headers = {}", response.getHeaders());
