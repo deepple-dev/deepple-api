@@ -1,7 +1,6 @@
 package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
-import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Grade;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -19,12 +18,9 @@ public class AdminMemberService {
     @Transactional
     public void updateMemberSetting(long memberId, AdminMemberSettingUpdateRequest request) {
         Grade grade = Grade.from(request.grade());
-        ActivityStatus activityStatus = ActivityStatus.from(request.activityStatus());
         Member member = getMember(memberId);
         member.updateSetting(
             grade,
-            request.isProfilePublic(),
-            activityStatus,
             request.isVip(),
             request.isPushNotificationEnabled()
         );
