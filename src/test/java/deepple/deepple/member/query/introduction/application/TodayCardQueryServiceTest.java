@@ -1,6 +1,5 @@
 package deepple.deepple.member.query.introduction.application;
 
-import deepple.deepple.member.query.introduction.intra.InterviewAnswerQueryResult;
 import deepple.deepple.member.query.introduction.intra.IntroductionQueryRepository;
 import deepple.deepple.member.query.introduction.intra.MemberIntroductionProfileQueryResult;
 import org.junit.jupiter.api.DisplayName;
@@ -68,16 +67,11 @@ class TodayCardQueryServiceTest {
                 todayCardMemberIds))
                 .thenReturn(memberIntroductionProfileQueryResults);
 
-            final List<InterviewAnswerQueryResult> interviewAnswerQueryResults = List.of(
-                mock(InterviewAnswerQueryResult.class));
-            when(introductionQueryRepository.findAllInterviewAnswerInfoByMemberIds(todayCardMemberIds))
-                .thenReturn(interviewAnswerQueryResults);
-
             try (MockedStatic<MemberIntroductionProfileViewMapper> mockedMapper = mockStatic(
                 MemberIntroductionProfileViewMapper.class)) {
                 List<MemberIntroductionProfileView> views = List.of(mock(MemberIntroductionProfileView.class));
-                mockedMapper.when(() -> MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-                        memberIntroductionProfileQueryResults, interviewAnswerQueryResults))
+                mockedMapper.when(
+                        () -> MemberIntroductionProfileViewMapper.mapWithDefaultTag(memberIntroductionProfileQueryResults))
                     .thenReturn(views);
 
                 // When
