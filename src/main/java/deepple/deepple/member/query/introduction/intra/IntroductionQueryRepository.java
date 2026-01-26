@@ -15,7 +15,6 @@ import java.util.*;
 
 import static com.querydsl.core.types.dsl.Expressions.enumPath;
 import static deepple.deepple.block.domain.QBlock.block;
-import static deepple.deepple.interview.command.domain.answer.QInterviewAnswer.interviewAnswer;
 import static deepple.deepple.like.command.domain.QLike.like;
 import static deepple.deepple.match.command.domain.match.QMatch.match;
 import static deepple.deepple.member.command.domain.introduction.QMemberIntroduction.memberIntroduction;
@@ -92,6 +91,10 @@ public class IntroductionQueryRepository {
                 new QMemberIntroductionProfileQueryResult(
                     member.id,
                     profileImage.imageUrl.value,
+                    member.profile.yearOfBirth.value,
+                    member.profile.nickname.value,
+                    member.profile.region.city.stringValue(),
+                    member.profile.region.district.stringValue(),
                     GroupBy.set(hobby.stringValue()),
                     member.profile.religion.stringValue(),
                     member.profile.mbti.stringValue(),
@@ -99,18 +102,6 @@ public class IntroductionQueryRepository {
                     memberIntroduction.introducedMemberId.isNotNull()
                 )
             )).values());
-    }
-
-    public List<InterviewAnswerQueryResult> findAllInterviewAnswerInfoByMemberIds(Set<Long> memberIds) {
-        return queryFactory
-            .select(new QInterviewAnswerQueryResult(
-                interviewAnswer.memberId,
-                interviewAnswer.content
-            ))
-            .from(interviewAnswer)
-            .where(interviewAnswer.memberId.in(memberIds))
-            .orderBy(interviewAnswer.id.asc())
-            .fetch();
     }
 
     private BooleanExpression idsNotIn(Set<Long> id) {
