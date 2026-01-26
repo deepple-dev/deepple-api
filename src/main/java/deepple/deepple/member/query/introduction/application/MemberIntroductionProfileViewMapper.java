@@ -1,30 +1,29 @@
 package deepple.deepple.member.query.introduction.application;
 
-import deepple.deepple.member.query.introduction.intra.InterviewAnswerQueryResult;
 import deepple.deepple.member.query.introduction.intra.MemberIntroductionProfileQueryResult;
+import deepple.deepple.member.query.member.AgeConverter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberIntroductionProfileViewMapper {
 
     public static List<MemberIntroductionProfileView> mapWithDefaultTag(
-        List<MemberIntroductionProfileQueryResult> profileResults,
-        List<InterviewAnswerQueryResult> interviewResults
+        List<MemberIntroductionProfileQueryResult> profileResults
     ) {
-        Map<Long, String> interviewAnswerMap = getFirstInterviewAnswerMap(interviewResults);
         return profileResults.stream()
             .map(result -> new MemberIntroductionProfileView(
                 result.memberId(),
                 result.profileImageUrl(),
+                AgeConverter.toAge(result.yearOfBirth()),
+                result.nickname(),
+                result.city(),
+                result.district(),
                 result.hobbies().stream().toList(),
                 result.mbti(),
                 result.religion(),
-                interviewAnswerMap.get(result.memberId()),
                 result.likeLevel(),
                 result.isIntroduced()
             ))
@@ -32,18 +31,19 @@ public class MemberIntroductionProfileViewMapper {
     }
 
     public static List<MemberIntroductionProfileView> mapWithSameHobbyTag(
-        List<MemberIntroductionProfileQueryResult> profileResults,
-        List<InterviewAnswerQueryResult> interviewResults
+        List<MemberIntroductionProfileQueryResult> profileResults
     ) {
-        Map<Long, String> interviewAnswerMap = getFirstInterviewAnswerMap(interviewResults);
         return profileResults.stream()
             .map(result -> new MemberIntroductionProfileView(
                 result.memberId(),
                 result.profileImageUrl(),
+                AgeConverter.toAge(result.yearOfBirth()),
+                result.nickname(),
+                result.city(),
+                result.district(),
                 List.of(),
                 result.mbti(),
                 result.religion(),
-                interviewAnswerMap.get(result.memberId()),
                 result.likeLevel(),
                 result.isIntroduced()
             ))
@@ -51,30 +51,22 @@ public class MemberIntroductionProfileViewMapper {
     }
 
     public static List<MemberIntroductionProfileView> mapWithSameReligionTag(
-        List<MemberIntroductionProfileQueryResult> profileResults,
-        List<InterviewAnswerQueryResult> interviewResults
+        List<MemberIntroductionProfileQueryResult> profileResults
     ) {
-        Map<Long, String> interviewAnswerMap = getFirstInterviewAnswerMap(interviewResults);
         return profileResults.stream()
             .map(result -> new MemberIntroductionProfileView(
                 result.memberId(),
                 result.profileImageUrl(),
+                AgeConverter.toAge(result.yearOfBirth()),
+                result.nickname(),
+                result.city(),
+                result.district(),
                 result.hobbies().stream().toList(),
                 result.mbti(),
                 null,
-                interviewAnswerMap.get(result.memberId()),
                 result.likeLevel(),
                 result.isIntroduced()
             ))
             .toList();
-    }
-
-    private static Map<Long, String> getFirstInterviewAnswerMap(List<InterviewAnswerQueryResult> interviewResults) {
-        return interviewResults.stream()
-            .collect(Collectors.toMap(
-                InterviewAnswerQueryResult::memberId,
-                InterviewAnswerQueryResult::content,
-                (existing, replacement) -> existing
-            ));
     }
 }
