@@ -26,8 +26,11 @@ import java.io.IOException;
 @Order(2)
 public class TokenFilter extends OncePerRequestFilter {
 
-    private static final String AUTHORIZATION = "Authorization";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String TOKEN_REISSUED_HEADER = "Token-Reissued";
+    private static final String TOKEN_REISSUED_VALUE = "true";
+    private static final int TOKEN_REISSUED_STATUS = 205;
 
     private final PathMatcherHelper pathMatcherHelper;
     private final TokenExtractor tokenExtractor;
@@ -56,8 +59,7 @@ public class TokenFilter extends OncePerRequestFilter {
         }
 
         if (authResponse.isReissued()) {
-            addAccessTokenToHeader(response, authResponse.getAccessToken());
-            addRefreshTokenToCookie(response, authResponse.getRefreshToken());
+            setTokenReissuedResponse(response, authResponse.getAccessToken(), authResponse.getRefreshToken());
             return;
         }
 
@@ -74,8 +76,15 @@ public class TokenFilter extends OncePerRequestFilter {
         authContext.authenticate(id, role);
     }
 
+    private void setTokenReissuedResponse(HttpServletResponse response, String accessToken, String refreshToken) {
+        response.setStatus(TOKEN_REISSUED_STATUS);
+        response.setHeader(TOKEN_REISSUED_HEADER, TOKEN_REISSUED_VALUE);
+        addAccessTokenToHeader(response, accessToken);
+        addRefreshTokenToCookie(response, refreshToken);
+    }
+
     private void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {
-        response.setHeader(AUTHORIZATION, BEARER_PREFIX + accessToken);
+        response.setHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken);
     }
 
     private void addRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
