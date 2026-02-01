@@ -62,4 +62,9 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
     public void deleteBefore(final LocalDateTime dateTime) {
         memberCommandJpaRepository.deleteAllBefore(dateTime);
     }
+
+    @Override
+    public List<Member> findAll() {
+        memberCommandJpaRepository.findAll();
+    }
 }
