@@ -113,7 +113,7 @@ public enum District {
     PYEONGCHANG_GUN(City.GANGWON, "평창군"),
     HONGCHEON_GUN(City.GANGWON, "홍천군"),
     HWACHEON_GUN(City.GANGWON, "화천군"),
-    HWANGSEONG_GUN(City.GANGWON, "횡성군"),
+    HOENGSEONG_GUN(City.GANGWON, "횡성군"),
 
     // 경기도
     GAPYEONG_GUN(City.GYEONGGI, "가평군"),
@@ -197,7 +197,7 @@ public enum District {
     GYERYONG_SI(City.CHUNGCHEONGNAM, "계룡시"),
     GONGJU_SI(City.CHUNGCHEONGNAM, "공주시"),
     GEUMSAN_GUN(City.CHUNGCHEONGNAM, "금산군"),
-    NONGSAN_SI(City.CHUNGCHEONGNAM, "논산시"),
+    NONSAN_SI(City.CHUNGCHEONGNAM, "논산시"),
     DANGJIN_SI(City.CHUNGCHEONGNAM, "당진시"),
     BORYEONG_SI(City.CHUNGCHEONGNAM, "보령시"),
     BUYEO_GUN(City.CHUNGCHEONGNAM, "부여군"),
@@ -227,7 +227,7 @@ public enum District {
     GOHEUNG_GUN(City.JEOLLANAM, "고흥군"),
     GOKSEONG_GUN(City.JEOLLANAM, "곡성군"),
     GWANGYANG_SI(City.JEOLLANAM, "광양시"),
-    GURAE_GUN(City.JEOLLANAM, "구례군"),
+    GURYE_GUN(City.JEOLLANAM, "구례군"),
     NAJU_SI(City.JEOLLANAM, "나주시"),
     DAMYANG_GUN(City.JEOLLANAM, "담양군"),
     MOKPO_SI(City.JEOLLANAM, "목포시"),
