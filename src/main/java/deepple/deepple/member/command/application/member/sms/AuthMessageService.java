@@ -30,7 +30,7 @@ public class AuthMessageService {
     }
 
     private String getMessage(String code) {
-        return "[에이투지] 인증번호 [" + code + "]를 입력해주세요.";
+        return "[Deepple] 인증번호 [" + code + "]를 입력해주세요.";
     }
 
     private String generateNumber() {
