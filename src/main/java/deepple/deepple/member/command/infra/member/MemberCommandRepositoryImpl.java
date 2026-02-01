@@ -65,6 +65,6 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
 
     @Override
     public List<Member> findAll() {
-        memberCommandJpaRepository.findAll();
+        return memberCommandJpaRepository.findAll();
     }
 }
