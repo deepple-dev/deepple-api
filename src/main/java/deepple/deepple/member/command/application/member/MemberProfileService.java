@@ -4,15 +4,16 @@ package deepple.deepple.member.command.application.member;
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
 import deepple.deepple.member.command.application.member.exception.PermanentlySuspendedMemberException;
 import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
-import deepple.deepple.member.command.domain.member.ActivityStatus;
-import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.PrimaryContactType;
+import deepple.deepple.member.command.domain.member.*;
+import deepple.deepple.member.command.domain.member.vo.Region;
 import deepple.deepple.member.presentation.member.MemberMapper;
 import deepple.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -102,6 +103,20 @@ public class MemberProfileService {
     public void markDatingExamSubmitted(Long memberId) {
         Member member = getMemberById(memberId);
         member.markDatingExamSubmitted();
+    }
+
+    @Transactional
+    public void t() {
+        List<Member> members = memberCommandRepository.findAll();
+
+        District[] districts = District.values();
+        int size = districts.length;
+
+        for (Member member : members) {
+            District district =
+                districts[ThreadLocalRandom.current().nextInt(size)];
+            member.getProfile().setRegion(Region.of(district));
+        }
     }
 
     private void publish(Member member) {

@@ -8,6 +8,7 @@ import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
 import deepple.deepple.member.command.application.member.MemberContactService;
 import deepple.deepple.member.command.application.member.MemberProfileService;
+import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.presentation.member.dto.MemberChangeToActiveRequest;
 import deepple.deepple.member.presentation.member.dto.MemberMyProfileResponse;
 import deepple.deepple.member.presentation.member.dto.MemberProfileResponse;
@@ -24,6 +25,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "회원 정보 조회 및 변경 API")
 @RestController
@@ -125,5 +128,10 @@ public class MemberController {
             .path(refreshTokenCookieProperties.path())
             .maxAge(0)
             .build();
+    }
+
+    @GetMapping("/random")
+    public void suffle() {
+        memberProfileService.t();
     }
 }

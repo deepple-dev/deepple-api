@@ -2,10 +2,7 @@ package deepple.deepple.member.command.domain.member.vo;
 
 import deepple.deepple.member.command.domain.member.*;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -42,6 +39,7 @@ public class MemberProfile {
     private Mbti mbti;
 
     @Embedded
+    @Setter
     private Region region;
 
     @Enumerated(EnumType.STRING)
