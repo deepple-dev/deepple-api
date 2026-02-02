@@ -7,6 +7,10 @@ import java.util.Set;
 public record MemberIntroductionProfileQueryResult(
     long memberId,
     String profileImageUrl,
+    Integer yearOfBirth,
+    String nickname,
+    String city,
+    String district,
     Set<String> hobbies,
     String religion,
     String mbti,
