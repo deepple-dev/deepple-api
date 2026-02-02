@@ -20,6 +20,9 @@ public enum StatusType {
     INVALID_DUPLICATE_VALUE(400, "400004", " Invalid Duplicate Value"),
     INVALID_UNKNOWN_FIELD(400, "400005", " Invalid Unknown field"),
     SIGN_IN_BAD_REQUEST(400, "400100", "SignIn Bad Request"),
+
+    PROCESSED_ORDER(400, "400102", "Processed Order"),
+
     REISSUE_BAD_REQUEST(400, "400200", "Reissue Bad Request"),
     ACCESS_TOKEN_NOT_EXPIRED(400, "400300", "The access token has not expired"),
     CANNOT_BE_DELETED(400, "400400", "Cannot be deleted"),
