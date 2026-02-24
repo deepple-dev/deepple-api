@@ -9,6 +9,7 @@ import deepple.deepple.auth.domain.TokenRepository;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
+import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
 import deepple.deepple.member.command.application.member.exception.*;
 import deepple.deepple.member.command.application.member.sms.AuthMessageService;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
@@ -81,6 +82,33 @@ public class MemberAuthService {
     public void logout(long memberId, String token) {
         Events.raise(MemberLoggedOutEvent.from(memberId));
         deleteToken(token);
+    }
+
+    public TokenPairResponse refresh(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new MissingRefreshTokenException();
+        }
+
+        if (tokenParser.isExpired(refreshToken)) {
+            tokenRepository.delete(refreshToken);
+            throw new ExpiredRefreshTokenException();
+        }
+
+        if (!tokenParser.isValid(refreshToken) || !tokenRepository.exists(refreshToken)) {
+            throw new InvalidRefreshTokenException();
+        }
+
+        tokenRepository.delete(refreshToken);
+
+        long memberId = tokenParser.getId(refreshToken);
+        Role role = tokenParser.getRole(refreshToken);
+        Instant issuedAt = Instant.now();
+
+        String newAccessToken = tokenProvider.createAccessToken(memberId, role, issuedAt);
+        String newRefreshToken = tokenProvider.createRefreshToken(memberId, role, issuedAt);
+        tokenRepository.save(newRefreshToken);
+
+        return new TokenPairResponse(newAccessToken, newRefreshToken);
     }
 
     @Transactional
