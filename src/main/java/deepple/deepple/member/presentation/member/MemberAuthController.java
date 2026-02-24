@@ -7,10 +7,8 @@ import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
-import deepple.deepple.member.presentation.member.dto.MemberCodeRequest;
-import deepple.deepple.member.presentation.member.dto.MemberLoginRequest;
-import deepple.deepple.member.presentation.member.dto.MemberLoginResponse;
-import deepple.deepple.member.presentation.member.dto.MemberTestLoginRequest;
+import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
+import deepple.deepple.member.presentation.member.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -59,6 +57,24 @@ public class MemberAuthController {
         return ResponseEntity.ok()
             .headers(headers)
             .body(BaseResponse.of(StatusType.OK, loginResponse));
+    }
+
+    @Operation(summary = "토큰 갱신")
+    @PostMapping("/refresh")
+    public ResponseEntity<BaseResponse<TokenRefreshResponse>> refresh(
+        @CookieValue(value = "refresh_token", required = false) String refreshToken
+    ) {
+        TokenPairResponse tokenPair = memberAuthService.refresh(refreshToken);
+
+        HttpHeaders headers = new HttpHeaders();
+        ResponseCookie refreshTokenCookie = getResponseCookieCreatedRefreshToken(tokenPair.refreshToken());
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        TokenRefreshResponse response = new TokenRefreshResponse(tokenPair.accessToken());
+
+        return ResponseEntity.ok()
+            .headers(headers)
+            .body(BaseResponse.of(StatusType.OK, response));
     }
 
     @Operation(summary = "멤버 로그아웃")

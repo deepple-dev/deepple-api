@@ -118,4 +118,28 @@ public class MemberExceptionHandler {
         return ResponseEntity.badRequest()
             .body(BaseResponse.of(StatusType.DORMANT_STATUS, e.getMessage()));
     }
+
+    @ExceptionHandler(MissingRefreshTokenException.class)
+    public ResponseEntity<BaseResponse<Void>> handleMissingRefreshTokenException(MissingRefreshTokenException e) {
+        log.warn("리프레시 토큰이 누락되었습니다. {}", e.getMessage());
+
+        return ResponseEntity.status(401)
+            .body(BaseResponse.of(StatusType.MISSING_REFRESH_TOKEN, e.getMessage()));
+    }
+
+    @ExceptionHandler(ExpiredRefreshTokenException.class)
+    public ResponseEntity<BaseResponse<Void>> handleExpiredRefreshTokenException(ExpiredRefreshTokenException e) {
+        log.warn("리프레시 토큰이 만료되었습니다. {}", e.getMessage());
+
+        return ResponseEntity.status(401)
+            .body(BaseResponse.of(StatusType.EXPIRED_REFRESH_TOKEN, e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<BaseResponse<Void>> handleInvalidRefreshTokenException(InvalidRefreshTokenException e) {
+        log.warn("유효하지 않은 리프레시 토큰입니다. {}", e.getMessage());
+
+        return ResponseEntity.status(401)
+            .body(BaseResponse.of(StatusType.INVALID_REFRESH_TOKEN, e.getMessage()));
+    }
 }
