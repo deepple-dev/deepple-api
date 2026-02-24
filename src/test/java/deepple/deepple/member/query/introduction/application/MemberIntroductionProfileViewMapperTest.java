@@ -1,7 +1,6 @@
 package deepple.deepple.member.query.introduction.application;
 
 import deepple.deepple.member.command.domain.member.Hobby;
-import deepple.deepple.member.query.introduction.intra.InterviewAnswerQueryResult;
 import deepple.deepple.member.query.introduction.intra.MemberIntroductionProfileQueryResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MemberIntroductionProfileViewMapperTest {
     private final Long memberId = 1L;
     private final String profileImageUrl = "imageUrl";
+    private final Integer yearOfBirth = 1997;
+    private final String nickname = "nickname";
+    private final String city = "city";
+    private final String district = "district";
     private final Set<String> hobbies = Set.of(Hobby.CAMPING.name(), Hobby.WINE.name());
     private final String religion = "Buddhist";
     private final String mbti = "INFJ";
@@ -30,11 +33,10 @@ class MemberIntroductionProfileViewMapperTest {
         String expectedMbti = mbti;
 
         List<MemberIntroductionProfileQueryResult> profileResults = getProfileQueryResults();
-        List<InterviewAnswerQueryResult> interviewResults = getInterviewResults();
 
         // when
         List<MemberIntroductionProfileView> views =
-            MemberIntroductionProfileViewMapper.mapWithDefaultTag(profileResults, interviewResults);
+            MemberIntroductionProfileViewMapper.mapWithDefaultTag(profileResults);
 
         // then
         assertProfileView(views, expectedHobbies, expectedReligion, expectedMbti);
@@ -49,11 +51,10 @@ class MemberIntroductionProfileViewMapperTest {
         String expectedMbti = mbti;
 
         List<MemberIntroductionProfileQueryResult> profileResults = getProfileQueryResults();
-        List<InterviewAnswerQueryResult> interviewResults = getInterviewResults();
 
         // when
         List<MemberIntroductionProfileView> views =
-            MemberIntroductionProfileViewMapper.mapWithSameHobbyTag(profileResults, interviewResults);
+            MemberIntroductionProfileViewMapper.mapWithSameHobbyTag(profileResults);
 
         // then
         assertProfileView(views, expectedHobbies, expectedReligion, expectedMbti);
@@ -68,11 +69,10 @@ class MemberIntroductionProfileViewMapperTest {
         String expectedMbti = mbti;
 
         List<MemberIntroductionProfileQueryResult> profileResults = getProfileQueryResults();
-        List<InterviewAnswerQueryResult> interviewResults = getInterviewResults();
 
         // when
         List<MemberIntroductionProfileView> views =
-            MemberIntroductionProfileViewMapper.mapWithSameReligionTag(profileResults, interviewResults);
+            MemberIntroductionProfileViewMapper.mapWithSameReligionTag(profileResults);
 
         // then
         assertProfileView(views, expectedHobbies, expectedReligion, expectedMbti);
@@ -83,6 +83,10 @@ class MemberIntroductionProfileViewMapperTest {
         MemberIntroductionProfileQueryResult profileResult = new MemberIntroductionProfileQueryResult(
             memberId,
             profileImageUrl,
+            yearOfBirth,
+            nickname,
+            city,
+            district,
             hobbies,
             religion,
             mbti,
@@ -93,22 +97,12 @@ class MemberIntroductionProfileViewMapperTest {
         return List.of(profileResult);
     }
 
-    private List<InterviewAnswerQueryResult> getInterviewResults() {
-        InterviewAnswerQueryResult interviewResult = new InterviewAnswerQueryResult(
-            memberId,
-            interviewAnswer
-        );
-
-        return List.of(interviewResult);
-    }
-
     private void assertProfileView(List<MemberIntroductionProfileView> views, List<String> expectedHobbies,
         String expectedReligion, String expectedMbti) {
         assertThat(views).hasSize(1);
         MemberIntroductionProfileView view = views.get(0);
         assertThat(view.memberId()).isEqualTo(memberId);
         assertThat(view.profileImageUrl()).isEqualTo(profileImageUrl);
-        assertThat(view.interviewAnswerContent()).isEqualTo(interviewAnswer);
         assertThat(view.likeLevel()).isEqualTo(likeLevel);
         assertThat(view.isIntroduced()).isEqualTo(isIntroduced);
 

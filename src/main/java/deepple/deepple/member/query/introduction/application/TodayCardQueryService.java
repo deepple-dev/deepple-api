@@ -1,6 +1,5 @@
 package deepple.deepple.member.query.introduction.application;
 
-import deepple.deepple.member.query.introduction.intra.InterviewAnswerQueryResult;
 import deepple.deepple.member.query.introduction.intra.IntroductionQueryRepository;
 import deepple.deepple.member.query.introduction.intra.MemberIntroductionProfileQueryResult;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +25,6 @@ public class TodayCardQueryService {
         List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
             introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(memberId,
                 todayCardMemberIds);
-        List<InterviewAnswerQueryResult> interviewAnswerQueryResults =
-            introductionQueryRepository.findAllInterviewAnswerInfoByMemberIds(todayCardMemberIds);
-        return MemberIntroductionProfileViewMapper.mapWithDefaultTag(memberIntroductionProfileQueryResults,
-            interviewAnswerQueryResults);
+        return MemberIntroductionProfileViewMapper.mapWithDefaultTag(memberIntroductionProfileQueryResults);
     }
 }

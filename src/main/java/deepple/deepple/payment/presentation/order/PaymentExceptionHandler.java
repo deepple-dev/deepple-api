@@ -30,8 +30,8 @@ public class PaymentExceptionHandler {
     public ResponseEntity<BaseResponse<Void>> handleOrderAlreadyExistsException(OrderAlreadyExistsException e) {
         log.warn("이미 처리된 주문입니다. {}", e.getMessage());
 
-        return ResponseEntity.status(400)
-            .body(BaseResponse.of(StatusType.BAD_REQUEST, e.getMessage()));
+        return ResponseEntity.status(StatusType.PROCESSED_ORDER.getStatus())
+            .body(BaseResponse.of(StatusType.PROCESSED_ORDER, e.getMessage()));
     }
 
     @ExceptionHandler(InvalidAppReceiptException.class)
