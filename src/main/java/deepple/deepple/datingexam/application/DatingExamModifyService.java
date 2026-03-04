@@ -78,7 +78,7 @@ public class DatingExamModifyService implements DatingExamSubmitter {
                 Collectors.summingInt(e -> 1)
             ));
 
-        DatingExamSubmitResult result = datingExamSubmitResultRepository.findByMemberId(memberId)
+        DatingExamSubmitResult result = datingExamSubmitResultRepository.findByMemberIdForUpdate(memberId)
             .orElseGet(() -> DatingExamSubmitResult.create(memberId));
         result.addCounts(counts);
         datingExamSubmitResultRepository.save(result);
