@@ -3,13 +3,9 @@ package deepple.deepple.datingexam.application;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
-import deepple.deepple.datingexam.application.required.DatingExamQueryRepository;
-import deepple.deepple.datingexam.application.required.DatingExamSubjectRepository;
-import deepple.deepple.datingexam.application.required.DatingExamSubmitRepository;
-import deepple.deepple.datingexam.domain.DatingExamAnswerEncoder;
-import deepple.deepple.datingexam.domain.DatingExamSubject;
-import deepple.deepple.datingexam.domain.DatingExamSubmit;
-import deepple.deepple.datingexam.domain.SubjectType;
+import deepple.deepple.datingexam.application.required.*;
+import deepple.deepple.datingexam.domain.*;
+import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -44,6 +41,12 @@ class DatingExamModifyServiceTest {
     @Mock
     private DatingExamAnswerEncoder answerEncoder;
 
+    @Mock
+    private DatingExamAnswerRepository datingExamAnswerRepository;
+
+    @Mock
+    private DatingExamSubmitResultRepository datingExamSubmitResultRepository;
+
     @Nested
     @DisplayName("submitSubject 메서드 테스트")
     class SubmitSubjectTests {
@@ -54,8 +57,10 @@ class DatingExamModifyServiceTest {
             // Given
             Long memberId = 1L;
             Long subjectId = 2L;
+            Long answerId = 10L;
             DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
             when(request.subjectId()).thenReturn(subjectId);
+            when(request.answers()).thenReturn(List.of(new AnswerSubmitRequest(1L, answerId)));
 
             DatingExamSubject subject = mock(DatingExamSubject.class);
             when(subject.getType()).thenReturn(SubjectType.REQUIRED);
@@ -65,6 +70,11 @@ class DatingExamModifyServiceTest {
 
             DatingExamInfoResponse infoResponse = mock(DatingExamInfoResponse.class);
             when(datingExamQueryRepository.findDatingExamInfo(SubjectType.REQUIRED)).thenReturn(infoResponse);
+
+            DatingExamAnswer mockAnswer = mock(DatingExamAnswer.class);
+            when(mockAnswer.getPersonalityType()).thenReturn(AnswerPersonalityType.DECISIVE_INDEPENDENT);
+            when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(mockAnswer));
+            when(datingExamSubmitResultRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
             try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit = mockStatic(DatingExamSubmit.class);
                 MockedStatic<DatingExamSubmitRequestValidator> mockedValidator = mockStatic(
@@ -83,6 +93,7 @@ class DatingExamModifyServiceTest {
                 // Then
                 mockedDatingExamSubmit.verify(() -> DatingExamSubmit.from(request, answerEncoder, memberId));
                 verify(datingExamSubmitRepository).save(mockSubmit);
+                verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
             }
         }
 
@@ -126,8 +137,10 @@ class DatingExamModifyServiceTest {
             // Given
             Long memberId = 1L;
             Long subjectId = 2L;
+            Long answerId = 10L;
             DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
             when(request.subjectId()).thenReturn(subjectId);
+            when(request.answers()).thenReturn(List.of(new AnswerSubmitRequest(1L, answerId)));
 
             DatingExamSubject subject = mock(DatingExamSubject.class);
             when(subject.getType()).thenReturn(SubjectType.REQUIRED);
@@ -139,6 +152,11 @@ class DatingExamModifyServiceTest {
 
             DatingExamInfoResponse infoResponse = mock(DatingExamInfoResponse.class);
             when(datingExamQueryRepository.findDatingExamInfo(SubjectType.REQUIRED)).thenReturn(infoResponse);
+
+            DatingExamAnswer mockAnswer = mock(DatingExamAnswer.class);
+            when(mockAnswer.getPersonalityType()).thenReturn(AnswerPersonalityType.DECISIVE_INDEPENDENT);
+            when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(mockAnswer));
+            when(datingExamSubmitResultRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
             try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit = mockStatic(DatingExamSubmit.class);
                 MockedStatic<DatingExamSubmitRequestValidator> mockedValidator = mockStatic(
@@ -163,6 +181,7 @@ class DatingExamModifyServiceTest {
                 // Then
                 mockedDatingExamSubmit.verify(() -> DatingExamSubmit.from(request, answerEncoder, memberId));
                 verify(datingExamSubmitRepository).save(mockSubmit);
+                verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
                 mockedEvents.verify(() -> Events.raise(eq(AllRequiredSubjectSubmittedEvent.of(memberId))));
             }
         }

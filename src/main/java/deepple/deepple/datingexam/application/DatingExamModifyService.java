@@ -4,20 +4,19 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.provided.DatingExamSubmitter;
-import deepple.deepple.datingexam.application.required.DatingExamQueryRepository;
-import deepple.deepple.datingexam.application.required.DatingExamSubjectRepository;
-import deepple.deepple.datingexam.application.required.DatingExamSubmitRepository;
-import deepple.deepple.datingexam.domain.DatingExamAnswerEncoder;
-import deepple.deepple.datingexam.domain.DatingExamSubject;
-import deepple.deepple.datingexam.domain.DatingExamSubmit;
-import deepple.deepple.datingexam.domain.SubjectType;
+import deepple.deepple.datingexam.application.required.*;
+import deepple.deepple.datingexam.domain.*;
+import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -28,6 +27,8 @@ public class DatingExamModifyService implements DatingExamSubmitter {
     private final DatingExamSubmitRepository datingExamSubmitRepository;
     private final DatingExamQueryRepository datingExamQueryRepository;
     private final DatingExamAnswerEncoder answerEncoder;
+    private final DatingExamAnswerRepository datingExamAnswerRepository;
+    private final DatingExamSubmitResultRepository datingExamSubmitResultRepository;
 
     @Override
     @Transactional
@@ -36,6 +37,7 @@ public class DatingExamModifyService implements DatingExamSubmitter {
         validateSubmit(submitRequest, subject, memberId);
         DatingExamSubmit datingExamSubmit = DatingExamSubmit.from(submitRequest, answerEncoder, memberId);
         datingExamSubmitRepository.save(datingExamSubmit);
+        updateSubmitResult(submitRequest, memberId);
         checkAndPublishAllRequiredSubjectsSubmitted(subject, memberId);
     }
 
@@ -61,6 +63,25 @@ public class DatingExamModifyService implements DatingExamSubmitter {
         if (isAllRequiredSubjectsSubmitted(memberId)) {
             Events.raise(AllRequiredSubjectSubmittedEvent.of(memberId));
         }
+    }
+
+    private void updateSubmitResult(DatingExamSubmitRequest submitRequest, long memberId) {
+        List<Long> answerIds = submitRequest.answers().stream()
+            .map(AnswerSubmitRequest::answerId)
+            .toList();
+
+        List<DatingExamAnswer> answers = datingExamAnswerRepository.findAllByIdIn(answerIds);
+
+        Map<AnswerPersonalityType, Integer> counts = answers.stream()
+            .collect(Collectors.groupingBy(
+                DatingExamAnswer::getPersonalityType,
+                Collectors.summingInt(e -> 1)
+            ));
+
+        DatingExamSubmitResult result = datingExamSubmitResultRepository.findByMemberId(memberId)
+            .orElseGet(() -> DatingExamSubmitResult.create(memberId));
+        result.addCounts(counts);
+        datingExamSubmitResultRepository.save(result);
     }
 
     private boolean isAllRequiredSubjectsSubmitted(Long memberId) {
