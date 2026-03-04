@@ -6,10 +6,7 @@ import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamQuestionInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamSubjectInfo;
 import deepple.deepple.datingexam.application.required.DatingExamQueryRepository;
-import deepple.deepple.datingexam.domain.DatingExamAnswer;
-import deepple.deepple.datingexam.domain.DatingExamQuestion;
-import deepple.deepple.datingexam.domain.DatingExamSubject;
-import deepple.deepple.datingexam.domain.SubjectType;
+import deepple.deepple.datingexam.domain.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,9 +41,9 @@ class DatingExamQueryRepositoryImplTest {
         em.persist(q11);
         em.persist(q12);
 
-        a111 = DatingExamAnswer.create(q11.getId(), "ans111");
-        a112 = DatingExamAnswer.create(q11.getId(), "ans112");
-        a113 = DatingExamAnswer.create(q12.getId(), "ans113");
+        a111 = DatingExamAnswer.create(q11.getId(), "ans111", AnswerPersonalityType.DECISIVE_INDEPENDENT);
+        a112 = DatingExamAnswer.create(q11.getId(), "ans112", AnswerPersonalityType.GROWING_RUNNING_MATE);
+        a113 = DatingExamAnswer.create(q12.getId(), "ans113", AnswerPersonalityType.DEVOTED_ROMANTIC);
         em.persist(a111);
         em.persist(a112);
         em.persist(a113);
@@ -99,7 +96,7 @@ class DatingExamQueryRepositoryImplTest {
 
         DatingExamQuestion q21 = DatingExamQuestion.create(subj2.getId(), "q21");
         em.persist(q21);
-        DatingExamAnswer a211 = DatingExamAnswer.create(q21.getId(), "ans211");
+        DatingExamAnswer a211 = DatingExamAnswer.create(q21.getId(), "ans211", AnswerPersonalityType.REALISTIC_SHELTER);
         em.persist(a211);
 
         em.flush();
