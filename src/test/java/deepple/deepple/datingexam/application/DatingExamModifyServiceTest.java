@@ -74,7 +74,7 @@ class DatingExamModifyServiceTest {
             DatingExamAnswer mockAnswer = mock(DatingExamAnswer.class);
             when(mockAnswer.getPersonalityType()).thenReturn(AnswerPersonalityType.DECISIVE_INDEPENDENT);
             when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(mockAnswer));
-            when(datingExamSubmitResultRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
+            when(datingExamSubmitResultRepository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit = mockStatic(DatingExamSubmit.class);
                 MockedStatic<DatingExamSubmitRequestValidator> mockedValidator = mockStatic(
@@ -156,7 +156,7 @@ class DatingExamModifyServiceTest {
             DatingExamAnswer mockAnswer = mock(DatingExamAnswer.class);
             when(mockAnswer.getPersonalityType()).thenReturn(AnswerPersonalityType.DECISIVE_INDEPENDENT);
             when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(mockAnswer));
-            when(datingExamSubmitResultRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
+            when(datingExamSubmitResultRepository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit = mockStatic(DatingExamSubmit.class);
                 MockedStatic<DatingExamSubmitRequestValidator> mockedValidator = mockStatic(
