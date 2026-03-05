@@ -2,10 +2,7 @@ package deepple.deepple.datingexam.domain;
 
 import deepple.deepple.common.entity.BaseEntity;
 import deepple.deepple.datingexam.domain.exception.InvalidDatingExamAnswerContentException;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -27,13 +24,18 @@ public class DatingExamAnswer extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
-    private DatingExamAnswer(Long questionId, String content) {
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(50)", nullable = false)
+    private AnswerPersonalityType personalityType;
+
+    private DatingExamAnswer(Long questionId, String content, AnswerPersonalityType personalityType) {
         setQuestionId(questionId);
         setContent(content);
+        setPersonalityType(personalityType);
     }
 
-    public static DatingExamAnswer create(Long questionId, String content) {
-        return new DatingExamAnswer(questionId, content);
+    public static DatingExamAnswer create(Long questionId, String content, AnswerPersonalityType personalityType) {
+        return new DatingExamAnswer(questionId, content, personalityType);
     }
 
     private void setQuestionId(@NonNull Long questionId) {
@@ -45,5 +47,9 @@ public class DatingExamAnswer extends BaseEntity {
             throw new InvalidDatingExamAnswerContentException("Content cannot be null or blank");
         }
         this.content = content;
+    }
+
+    private void setPersonalityType(@NonNull AnswerPersonalityType personalityType) {
+        this.personalityType = personalityType;
     }
 }
