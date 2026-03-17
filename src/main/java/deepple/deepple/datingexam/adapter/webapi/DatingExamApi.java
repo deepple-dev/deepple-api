@@ -5,6 +5,7 @@ import deepple.deepple.auth.presentation.AuthPrincipal;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmissionResponse;
+import deepple.deepple.datingexam.application.dto.DominantPersonalityTypeResponse;
 import deepple.deepple.datingexam.application.provided.DatingExamFinder;
 import deepple.deepple.datingexam.application.provided.DatingExamSubmitter;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
@@ -51,5 +52,15 @@ public class DatingExamApi {
         final DatingExamInfoWithSubjectSubmissionResponse optionalExamInfo = datingExamFinder.findOptionalExamInfo(
             authContext.getId());
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, optionalExamInfo));
+    }
+
+    @Operation(summary = "대표 성격 유형 조회 API")
+    @GetMapping("/personality-type")
+    public ResponseEntity<BaseResponse<DominantPersonalityTypeResponse>> getDominantPersonalityType(
+        @AuthPrincipal AuthContext authContext
+    ) {
+        final DominantPersonalityTypeResponse response = datingExamFinder.findDominantPersonalityType(
+            authContext.getId());
+        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, response));
     }
 }

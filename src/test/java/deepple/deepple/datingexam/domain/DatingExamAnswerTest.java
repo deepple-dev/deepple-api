@@ -16,12 +16,13 @@ class DatingExamAnswerTest {
         Long questionId = 1L;
         String nullContent = null;
         String emptyContent = "";
+        AnswerPersonalityType personalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
 
         // When & Then
-        assertThatThrownBy(() -> DatingExamAnswer.create(questionId, nullContent))
+        assertThatThrownBy(() -> DatingExamAnswer.create(questionId, nullContent, personalityType))
             .isInstanceOf(NullPointerException.class);
 
-        assertThatThrownBy(() -> DatingExamAnswer.create(questionId, emptyContent))
+        assertThatThrownBy(() -> DatingExamAnswer.create(questionId, emptyContent, personalityType))
             .isInstanceOf(InvalidDatingExamAnswerContentException.class);
     }
 
@@ -31,9 +32,23 @@ class DatingExamAnswerTest {
         // Given
         String content = "Valid Answer Content";
         Long nullQuestionId = null;
+        AnswerPersonalityType personalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
 
         // When & Then
-        assertThatThrownBy(() -> DatingExamAnswer.create(nullQuestionId, content))
+        assertThatThrownBy(() -> DatingExamAnswer.create(nullQuestionId, content, personalityType))
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("personalityType이 null인 경우 예외가 발생한다.")
+    void createWithNullPersonalityType() {
+        // Given
+        Long questionId = 1L;
+        String content = "Valid Answer Content";
+        AnswerPersonalityType nullPersonalityType = null;
+
+        // When & Then
+        assertThatThrownBy(() -> DatingExamAnswer.create(questionId, content, nullPersonalityType))
             .isInstanceOf(NullPointerException.class);
     }
 
@@ -43,12 +58,14 @@ class DatingExamAnswerTest {
         // Given
         Long questionId = 1L;
         String content = "Valid Answer Content";
+        AnswerPersonalityType personalityType = AnswerPersonalityType.DEVOTED_ROMANTIC;
 
         // When
-        DatingExamAnswer answer = DatingExamAnswer.create(questionId, content);
+        DatingExamAnswer answer = DatingExamAnswer.create(questionId, content, personalityType);
 
         // Then
         assertThat(answer.getQuestionId()).isEqualTo(questionId);
         assertThat(answer.getContent()).isEqualTo(content);
+        assertThat(answer.getPersonalityType()).isEqualTo(personalityType);
     }
 }
