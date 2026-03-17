@@ -44,6 +44,6 @@ public class DatingExamQueryService implements DatingExamFinder {
     public DominantPersonalityTypeResponse findDominantPersonalityType(Long memberId) {
         DatingExamSubmitResult result = datingExamSubmitResultRepository.findByMemberId(memberId)
             .orElseThrow(() -> new IllegalStateException("연애고사 제출 결과가 없습니다. memberId: " + memberId));
-        return new DominantPersonalityTypeResponse(result.getDominantPersonalityType().name());
+        return DominantPersonalityTypeResponse.from(result);
     }
 }
