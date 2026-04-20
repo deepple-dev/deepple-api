@@ -26,6 +26,7 @@ build/
 *.key
 secrets/
 !secrets/deepple-firebase.json
+!secrets/deepple-google-play.json
 certs/
 !certs/appstore/
 
