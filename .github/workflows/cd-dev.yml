@@ -1,18 +1,56 @@
 name: CD - Development
 
 on:
-  workflow_run:
-    workflows: [ "CI" ]
+  push:
     branches: [ "develop" ]
-    types: [ completed ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.env.example'
 
 concurrency:
   group: deploy-dev
   cancel-in-progress: false
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            build/reports/tests/
+            build/test-results/
+          retention-days: 7
+
   deploy:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: development
@@ -22,8 +60,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
@@ -41,11 +77,6 @@ jobs:
           mkdir -p secrets
           echo "${{ secrets.FIREBASE_JSON }}" | base64 -d > secrets/deepple-firebase.json
           echo "${{ secrets.GOOGLE_PLAY_JSON }}" | base64 -d > secrets/deepple-google-play.json
-          echo "[DEBUG] secrets/ directory contents:"
-          ls -la secrets/
-          echo "[DEBUG] GOOGLE_PLAY_JSON secret length: ${#GOOGLE_PLAY_JSON_DEBUG}"
-        env:
-          GOOGLE_PLAY_JSON_DEBUG: ${{ secrets.GOOGLE_PLAY_JSON }}
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -57,7 +88,7 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:dev-${{ github.event.workflow_run.head_sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:dev-${{ github.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:dev-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -66,10 +97,10 @@ jobs:
         run: |
           # 배포 스크립트 base64 인코딩
           DEPLOY_SCRIPT_B64=$(base64 -w 0 .github/scripts/deploy-dev.sh)
-          
+
           # 환경변수 파일 base64 인코딩
           ENV_CONTENT_B64=$(echo -n '${{ secrets.ENV }}' | base64 -w 0)
-          
+
           # SSM 명령 실행
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
@@ -78,24 +109,24 @@ jobs:
             --parameters commands="[
               \"echo ${DEPLOY_SCRIPT_B64} | base64 -d > /tmp/deploy.sh\",
               \"chmod +x /tmp/deploy.sh\",
-              \"/tmp/deploy.sh '${ENV_CONTENT_B64}' '${{ vars.AWS_REGION }}' '${{ steps.login-ecr.outputs.registry }}' '${{ vars.ECR_REPOSITORY }}' 'dev-${{ github.event.workflow_run.head_sha }}' '${{ vars.CONTAINER_NAME }}' '${{ vars.BLUE_PORT }}' '${{ vars.GREEN_PORT }}' '${{ vars.HEALTH_CHECK_MAX_RETRIES }}' '${{ vars.HEALTH_CHECK_INTERVAL }}'\"
+              \"/tmp/deploy.sh '${ENV_CONTENT_B64}' '${{ vars.AWS_REGION }}' '${{ steps.login-ecr.outputs.registry }}' '${{ vars.ECR_REPOSITORY }}' 'dev-${{ github.sha }}' '${{ vars.CONTAINER_NAME }}' '${{ vars.BLUE_PORT }}' '${{ vars.GREEN_PORT }}' '${{ vars.HEALTH_CHECK_MAX_RETRIES }}' '${{ vars.HEALTH_CHECK_INTERVAL }}'\"
             ]" \
             --query "Command.CommandId" \
             --output text)
-          
+
           echo "Command ID: $COMMAND_ID"
           echo "Waiting for deployment..."
-          
+
           # 결과 폴링
           for i in {1..120}; do
             sleep 5
-          
+
             RESULT=$(aws ssm get-command-invocation \
               --command-id "$COMMAND_ID" \
               --instance-id "${{ secrets.EC2_INSTANCE_ID }}" 2>/dev/null) || continue
-          
+
             STATUS=$(echo "$RESULT" | jq -r '.Status')
-          
+
             case "$STATUS" in
               Success)
                 echo ""
@@ -123,6 +154,6 @@ jobs:
                 ;;
             esac
           done
-          
+
           echo "Timeout waiting for deployment result"
           exit 1
