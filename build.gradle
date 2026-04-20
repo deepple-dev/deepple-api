@@ -75,6 +75,10 @@ dependencies {
     // Apple App Store
     implementation 'com.apple.itunes.storekit:app-store-server-library:3.3.0'
 
+    // Google Play Billing Verification
+    implementation 'com.google.apis:google-api-services-androidpublisher:v3-rev20250602-2.0.0'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.35.0'
+
     // Resilience
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
 

@@ -66,6 +66,10 @@ payment:
     app-apple-id: 0000000000
     root-ca-paths: certs/appstore/AppleRootCA-G2.pem,certs/appstore/AppleRootCA-G3.pem
     base-url: https://api.storekit-sandbox.itunes.apple.com
+  google-play:
+    package-name: "com.example.test"
+    service-account-key-path: src/test/resources/certs/google-play/service-account.json
+    application-name: deepple-api-test
 
 bizgo:
   api-url: api-url

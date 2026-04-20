@@ -25,6 +25,7 @@ class OrderServiceTest {
     final long memberId = 1L;
     final String transactionId = "transactionId";
     final String productId = "productId";
+    final String normalizedProductId = productId.toUpperCase();
     final int quantity = 1;
     final PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
 
@@ -56,7 +57,7 @@ class OrderServiceTest {
         // given
         when(orderCommandRepository.existsByTransactionIdAndPaymentMethod(transactionId, paymentMethod)).thenReturn(
             false);
-        when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId)).thenReturn(
+        when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(normalizedProductId)).thenReturn(
             Optional.empty());
 
         // when & then
@@ -74,7 +75,7 @@ class OrderServiceTest {
             false);
         HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
 
-        when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId)).thenReturn(
+        when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(normalizedProductId)).thenReturn(
             Optional.of(heartPurchaseOption));
 
         // when

@@ -32,6 +32,9 @@ COPY certs /etc/certs
 # Firebase 서비스 계정 키 복사
 COPY secrets/deepple-firebase.json /etc/secrets/deepple-firebase.json
 
+# Google Play 서비스 계정 키 복사
+COPY secrets/deepple-google-play.json /etc/secrets/deepple-google-play.json
+
 # 빌드 아티팩트 복사
 COPY --from=build /workspace/app/build/libs/*.jar app.jar
 

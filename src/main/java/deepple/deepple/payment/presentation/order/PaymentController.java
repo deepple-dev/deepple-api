@@ -6,7 +6,9 @@ import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.payment.command.application.order.AppStoreNotificationService;
 import deepple.deepple.payment.command.application.order.AppStorePaymentService;
+import deepple.deepple.payment.command.application.order.GooglePlayPaymentService;
 import deepple.deepple.payment.presentation.order.dto.AppleNotificationRequest;
+import deepple.deepple.payment.presentation.order.dto.GooglePlayVerifyReceiptRequest;
 import deepple.deepple.payment.presentation.order.dto.VerifyReceiptRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,19 +23,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@Tag(name = "앱스토어 결제 영수증 인증 API")
+@Tag(name = "결제 영수증 인증 API")
 @RestController
 @RequestMapping("/payment")
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentController {
     private final AppStorePaymentService appStorePaymentService;
     private final AppStoreNotificationService appStoreNotificationService;
+    private final GooglePlayPaymentService googlePlayPaymentService;
 
     @Operation(summary = "앱스토어 결제 영수증 인증")
     @PostMapping("/app-store/verify-receipt")
     public ResponseEntity<BaseResponse<Void>> verifyReceipt(@Valid @RequestBody VerifyReceiptRequest request,
         @AuthPrincipal AuthContext authContext) {
         appStorePaymentService.verifyReceipt(request.appReceipt(), authContext.getId());
+        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+    }
+
+    @Operation(summary = "Google Play 결제 영수증 인증")
+    @PostMapping("/google-play/verify-receipt")
+    public ResponseEntity<BaseResponse<Void>> verifyGooglePlayReceipt(
+        @Valid @RequestBody GooglePlayVerifyReceiptRequest request,
+        @AuthPrincipal AuthContext authContext) {
+        googlePlayPaymentService.verifyReceipt(request.productId(), request.purchaseToken(), authContext.getId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 

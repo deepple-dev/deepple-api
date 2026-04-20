@@ -86,6 +86,10 @@ payment:
     app-apple-id: ${APP_STORE_APP_APPLE_ID:0000000000}
     root-ca-paths: ${APP_STORE_ROOT_CA_G2_PATH:/etc/certs/appstore/AppleRootCA-G2.pem}, ${APP_STORE_ROOT_CA_G3_PATH:/etc/certs/appstore/AppleRootCA-G3.pem}
     base-url: ${APP_STORE_BASE_URL:https://api.storekit-sandbox.itunes.apple.com}
+  google-play:
+    package-name: ${GOOGLE_PLAY_PACKAGE_NAME:com.goodmeet.deepple}
+    service-account-key-path: ${GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_PATH:/etc/certs/google-play/service-account.json}
+    application-name: ${GOOGLE_PLAY_APPLICATION_NAME:deepple-api}
 
 bizgo:
   api-url: ${BIZGO_API_URL:api-url}
