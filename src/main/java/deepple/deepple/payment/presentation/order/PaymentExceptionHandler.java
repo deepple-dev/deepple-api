@@ -4,9 +4,7 @@ import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.payment.command.application.order.exception.InvalidOrderException;
 import deepple.deepple.payment.command.application.order.exception.OrderAlreadyExistsException;
-import deepple.deepple.payment.command.infra.order.exception.AppStoreClientException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidAppReceiptException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidTransactionIdException;
+import deepple.deepple.payment.command.infra.order.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -53,6 +51,23 @@ public class PaymentExceptionHandler {
     @ExceptionHandler(AppStoreClientException.class)
     public ResponseEntity<BaseResponse<Void>> handleAppStoreClientException(AppStoreClientException e) {
         log.error("앱스토어 서버와 통신 중 오류가 발생했습니다. {}", e.getMessage(), e);
+
+        return ResponseEntity.status(500)
+            .body(BaseResponse.from(StatusType.INTERNAL_SERVER_ERROR));
+    }
+
+    @ExceptionHandler(InvalidGooglePlayReceiptException.class)
+    public ResponseEntity<BaseResponse<Void>> handleInvalidGooglePlayReceiptException(
+        InvalidGooglePlayReceiptException e) {
+        log.warn("잘못된 Google Play 영수증입니다. {}", e.getMessage());
+
+        return ResponseEntity.status(400)
+            .body(BaseResponse.of(StatusType.BAD_REQUEST, e.getMessage()));
+    }
+
+    @ExceptionHandler(GooglePlayClientException.class)
+    public ResponseEntity<BaseResponse<Void>> handleGooglePlayClientException(GooglePlayClientException e) {
+        log.error("Google Play 서버와 통신 중 오류가 발생했습니다. {}", e.getMessage(), e);
 
         return ResponseEntity.status(500)
             .body(BaseResponse.from(StatusType.INTERNAL_SERVER_ERROR));

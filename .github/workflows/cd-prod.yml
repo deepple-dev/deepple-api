@@ -50,6 +50,7 @@ jobs:
         run: |
           mkdir -p secrets
           echo "${{ secrets.FIREBASE_JSON }}" | base64 -d > secrets/deepple-firebase.json
+          echo "${{ secrets.GOOGLE_PLAY_JSON }}" | base64 -d > secrets/deepple-google-play.json
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
