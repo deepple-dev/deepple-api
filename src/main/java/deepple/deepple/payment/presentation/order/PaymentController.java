@@ -45,7 +45,11 @@ public class PaymentController {
     public ResponseEntity<BaseResponse<Void>> verifyGooglePlayReceipt(
         @Valid @RequestBody GooglePlayVerifyReceiptRequest request,
         @AuthPrincipal AuthContext authContext) {
+        log.info("[GooglePlay] 영수증 인증 요청 수신. memberId={}, productId={}",
+            authContext.getId(), request.productId());
         googlePlayPaymentService.verifyReceipt(request.productId(), request.purchaseToken(), authContext.getId());
+        log.info("[GooglePlay] 영수증 인증 응답 반환. memberId={}, productId={}",
+            authContext.getId(), request.productId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 

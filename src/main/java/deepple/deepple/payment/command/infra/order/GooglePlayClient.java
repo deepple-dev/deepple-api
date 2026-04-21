@@ -6,11 +6,13 @@ import deepple.deepple.payment.command.infra.order.exception.GooglePlayClientExc
 import deepple.deepple.payment.command.infra.order.exception.InvalidGooglePlayReceiptException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GooglePlayClient {
@@ -32,11 +34,16 @@ public class GooglePlayClient {
     }
 
     public void consumePurchase(@NonNull String productId, @NonNull String purchaseToken) {
+        long start = System.currentTimeMillis();
+        log.info("[GooglePlay] purchases.products.consume 호출. packageName={}, productId={}", packageName, productId);
         try {
             androidPublisher.purchases().products()
                 .consume(packageName, productId, purchaseToken)
                 .execute();
+            log.info("[GooglePlay] purchases.products.consume 응답. elapsedMs={}", System.currentTimeMillis() - start);
         } catch (IOException e) {
+            log.error("[GooglePlay] purchases.products.consume 실패. elapsedMs={}, packageName={}, productId={}",
+                System.currentTimeMillis() - start, packageName, productId, e);
             throw new GooglePlayClientException(e);
         }
     }
@@ -47,11 +54,18 @@ public class GooglePlayClient {
     }
 
     private ProductPurchase getProductPurchase(String productId, String purchaseToken) {
+        long start = System.currentTimeMillis();
+        log.info("[GooglePlay] purchases.products.get 호출. packageName={}, productId={}", packageName, productId);
         try {
-            return androidPublisher.purchases().products()
+            ProductPurchase response = androidPublisher.purchases().products()
                 .get(packageName, productId, purchaseToken)
                 .execute();
+            log.info("[GooglePlay] purchases.products.get 응답. elapsedMs={}, orderId={}",
+                System.currentTimeMillis() - start, response.getOrderId());
+            return response;
         } catch (IOException e) {
+            log.error("[GooglePlay] purchases.products.get 실패. elapsedMs={}, packageName={}, productId={}",
+                System.currentTimeMillis() - start, packageName, productId, e);
             throw new GooglePlayClientException(e);
         }
     }
