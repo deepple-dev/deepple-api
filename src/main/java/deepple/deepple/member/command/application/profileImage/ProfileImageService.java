@@ -1,13 +1,13 @@
 package deepple.deepple.member.command.application.profileImage;
 
+import deepple.deepple.common.infra.s3.S3Uploader;
+import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import deepple.deepple.member.command.application.profileImage.dto.ProfileImageUploadResponse;
 import deepple.deepple.member.command.application.profileImage.exception.ExceedProfileImageCountException;
 import deepple.deepple.member.command.application.profileImage.exception.InvalidProfileImageExtensionException;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
 import deepple.deepple.member.command.domain.profileImage.ProfileImageCommandRepository;
 import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
-import deepple.deepple.member.command.infra.profileImage.S3Uploader;
-import deepple.deepple.member.command.infra.profileImage.dto.PresignedUrlResponse;
 import deepple.deepple.member.presentation.profileimage.dto.ProfileImageUploadRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -11,6 +11,7 @@ public record SelfIntroductionSummaryView(
     Integer yearOfBirth,
     String title,
     String content,
+    String imageUrl,
     LocalDateTime createdAt
 ) {
     @QueryProjection

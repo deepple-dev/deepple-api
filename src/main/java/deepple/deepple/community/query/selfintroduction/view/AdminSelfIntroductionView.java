@@ -14,6 +14,7 @@ public record AdminSelfIntroductionView(
     String gender,
     boolean isOpened,
     String content,
+    String imageUrl,
     String createdDate,
     String updatedDate,
     String deletedDate
@@ -25,6 +26,7 @@ public record AdminSelfIntroductionView(
         String gender,
         boolean isOpened,
         String content,
+        String imageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         LocalDateTime deletedAt
@@ -35,6 +37,7 @@ public record AdminSelfIntroductionView(
             gender,
             isOpened,
             content,
+            imageUrl,
             formatDate(createdAt),
             formatDate(updatedAt),
             formatDate(deletedAt)

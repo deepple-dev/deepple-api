@@ -3,6 +3,7 @@ package deepple.deepple.community.command.domain.selfintroduction;
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
 import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionContentException;
 import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionTitleException;
+import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,22 +34,29 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
     private String content;
 
     @Getter
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Getter
     private boolean isOpened;
 
-    private SelfIntroduction(@NonNull Long memberId, @NonNull String title, @NonNull String content, boolean isOpened) {
+    private SelfIntroduction(@NonNull Long memberId, @NonNull String title, @NonNull String content, String imageUrl,
+        boolean isOpened) {
         this.isOpened = isOpened;
         this.memberId = memberId;
         setTitle(title);
         setContent(content);
+        setImageUrl(imageUrl);
     }
 
-    public static SelfIntroduction write(Long memberId, String title, String content) {
-        return new SelfIntroduction(memberId, title, content, false);
+    public static SelfIntroduction write(Long memberId, String title, String content, String imageUrl) {
+        return new SelfIntroduction(memberId, title, content, imageUrl, false);
     }
 
-    public void update(String title, String content) {
+    public void update(String title, String content, String imageUrl) {
         setTitle(title);
         setContent(content);
+        setImageUrl(imageUrl);
     }
 
     public void close() {
@@ -67,6 +75,13 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
     private void setContent(@NonNull String content) {
         validateContent(content);
         this.content = content;
+    }
+
+    private void setImageUrl(String imageUrl) {
+        if (imageUrl != null && imageUrl.isEmpty()) {
+            throw new InvalidImageUrlException();
+        }
+        this.imageUrl = imageUrl;
     }
 
     private void validateContent(String content) {

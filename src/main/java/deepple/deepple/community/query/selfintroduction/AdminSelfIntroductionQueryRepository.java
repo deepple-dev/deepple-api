@@ -38,6 +38,7 @@ public class AdminSelfIntroductionQueryRepository {
                     member.profile.gender.stringValue(),
                     selfIntroduction.isOpened,
                     selfIntroduction.content,
+                    selfIntroduction.imageUrl,
                     selfIntroduction.createdAt,
                     selfIntroduction.updatedAt,
                     selfIntroduction.deletedAt

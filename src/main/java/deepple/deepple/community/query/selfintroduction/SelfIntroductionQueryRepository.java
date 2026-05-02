@@ -49,6 +49,7 @@ public class SelfIntroductionQueryRepository {
                     member.profile.yearOfBirth.value,
                     selfIntroduction.title,
                     selfIntroduction.content,
+                    selfIntroduction.imageUrl,
                     selfIntroduction.createdAt
                 )
             )
@@ -77,6 +78,7 @@ public class SelfIntroductionQueryRepository {
                     member.profile.yearOfBirth.value,
                     selfIntroduction.title,
                     selfIntroduction.content,
+                    selfIntroduction.imageUrl,
                     selfIntroduction.createdAt
                 )
             )
@@ -118,6 +120,7 @@ public class SelfIntroductionQueryRepository {
                         like.level.stringValue(),
                         selfIntroduction.title,
                         selfIntroduction.content,
+                        selfIntroduction.imageUrl,
                         profileExchange.status.stringValue(),
                         selfIntroduction.createdAt
                     )
