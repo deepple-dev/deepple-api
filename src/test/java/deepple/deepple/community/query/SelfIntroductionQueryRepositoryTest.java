@@ -103,9 +103,9 @@ public class SelfIntroductionQueryRepositoryTest {
             // 남자 6개, 여자 6개
             for (int i = 0; i < 6; i++) {
                 SelfIntroduction maleSelfIntroduction = SelfIntroduction.write(maleMember.getId(), "제목" + i,
-                    "내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i);
+                    "내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i, null);
                 SelfIntroduction femaleSelfIntroduction = SelfIntroduction.write(femaleMember.getId(), "제목" + i,
-                    "내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i);
+                    "내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i, null);
 
                 selfIntroductions.add(maleSelfIntroduction);
                 selfIntroductions.add(femaleSelfIntroduction);
@@ -359,7 +359,7 @@ public class SelfIntroductionQueryRepositoryTest {
 
             // 셀프 소개 데이터 생성.
             selfIntroduction = SelfIntroduction.write(
-                targetMember.getId(), "제목", "내용은 50자를 넘어야합니다. 50자를 넘어야 합니다. 50자를 넘어야.."
+                targetMember.getId(), "제목", "내용은 50자를 넘어야합니다. 50자를 넘어야 합니다. 50자를 넘어야..", null
             );
 
 

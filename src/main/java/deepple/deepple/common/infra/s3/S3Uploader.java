@@ -1,6 +1,6 @@
-package deepple.deepple.member.command.infra.profileImage;
+package deepple.deepple.common.infra.s3;
 
-import deepple.deepple.member.command.infra.profileImage.dto.PresignedUrlResponse;
+import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import io.awspring.cloud.s3.S3Template;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,6 +28,18 @@ public class S3Uploader {
 
     public PresignedUrlResponse getPresignedUrl(String fileName, Long memberId) {
         String key = generateUniqueKey(fileName, memberId);
+        URL presignedUrl = s3Template.createSignedPutURL(
+            bucket,
+            key,
+            Duration.ofMinutes(PRESIGNED_URL_EXPIRATION_MINUTES)
+        );
+        String objectUrl = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
+
+        return new PresignedUrlResponse(presignedUrl.toString(), objectUrl);
+    }
+
+    public PresignedUrlResponse getPresignedUrl(String fileName, Long memberId, String pathPrefix) {
+        String key = pathPrefix + "/" + generateUniqueKey(fileName, memberId);
         URL presignedUrl = s3Template.createSignedPutURL(
             bucket,
             key,

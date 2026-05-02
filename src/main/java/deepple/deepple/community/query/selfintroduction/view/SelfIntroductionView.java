@@ -14,6 +14,7 @@ public record SelfIntroductionView(
     String like,
     String title,
     String content,
+    String imageUrl,
     String profileExchangeStatus,
     LocalDateTime createdAt
 ) {
@@ -30,10 +31,11 @@ public record SelfIntroductionView(
         String like,
         String title,
         String content,
+        String imageUrl,
         String profileExchangeStatus,
         LocalDateTime createdAt
     ) {
         this(new MemberBasicInfo(memberId, nickname, AgeConverter.toAge(yearOfBirth), profileImageUrl, city, district,
-            mbti, hobbies, gender), like, title, content, profileExchangeStatus, createdAt);
+            mbti, hobbies, gender), like, title, content, imageUrl, profileExchangeStatus, createdAt);
     }
 }

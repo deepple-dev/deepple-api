@@ -81,9 +81,9 @@ class AdminSelfIntroductionQueryRepositoryTest {
 
         for (int i = 0; i < 5; i++) {
             SelfIntroduction selfIntroductionByMan = SelfIntroduction.write(manMember.getId(), "제목" + i,
-                "내용은 30자 이상이어야합니다... 30자를 채우자!! " + i);
+                "내용은 30자 이상이어야합니다... 30자를 채우자!! " + i, null);
             SelfIntroduction selfIntroductionByWoman = SelfIntroduction.write(womanMember.getId(), "제목입니다." + i,
-                "내용입니다. 내용은 30자 이상이어야합니다... 30자를 채우자!! " + i);
+                "내용입니다. 내용은 30자 이상이어야합니다... 30자를 채우자!! " + i, null);
 
             if (i % 2 == 0) {
                 selfIntroductionByMan.close();

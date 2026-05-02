@@ -1,4 +1,4 @@
-package deepple.deepple.member.command.infra.profileImage.exception;
+package deepple.deepple.common.infra.s3.exception;
 
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 

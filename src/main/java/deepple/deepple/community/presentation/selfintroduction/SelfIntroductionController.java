@@ -3,6 +3,7 @@ package deepple.deepple.community.presentation.selfintroduction;
 import deepple.deepple.auth.presentation.AuthContext;
 import deepple.deepple.auth.presentation.AuthPrincipal;
 import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.community.command.application.selfintroduction.SelfIntroductionService;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchCondition;
@@ -11,6 +12,7 @@ import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroduct
 import deepple.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionView;
+import deepple.deepple.member.presentation.profileimage.dto.PresignedUrlPostRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -36,6 +38,17 @@ public class SelfIntroductionController {
         @AuthPrincipal AuthContext authContext) {
         selfIntroductionService.write(request, authContext.getId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+    }
+
+    @Operation(summary = "셀프 소개 이미지 업로드용 preSignedUrl 생성")
+    @PostMapping("/presigned-url")
+    public ResponseEntity<BaseResponse<PresignedUrlResponse>> getPresignedUrl(
+        @RequestBody @Valid PresignedUrlPostRequest request,
+        @AuthPrincipal AuthContext authContext) {
+        return ResponseEntity.ok(
+            BaseResponse.of(StatusType.OK,
+                selfIntroductionService.getPresignedUrl(request.fileName(), authContext.getId()))
+        );
     }
 
     @Operation(summary = "셀프 소개 수정 API")

@@ -1,10 +1,10 @@
 package deepple.deepple.member.command.application.profileimage;
 
+import deepple.deepple.common.infra.s3.S3Uploader;
 import deepple.deepple.member.command.application.profileImage.ProfileImageService;
 import deepple.deepple.member.command.application.profileImage.exception.ExceedProfileImageCountException;
 import deepple.deepple.member.command.application.profileImage.exception.InvalidProfileImageExtensionException;
 import deepple.deepple.member.command.domain.profileImage.ProfileImageCommandRepository;
-import deepple.deepple.member.command.infra.profileImage.S3Uploader;
 import deepple.deepple.member.presentation.profileimage.dto.ProfileImageUploadRequest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
