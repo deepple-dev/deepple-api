@@ -1,6 +1,7 @@
 package deepple.deepple.heart.command.infra.hearttransaction;
 
 import deepple.deepple.heart.command.application.hearttransaction.HeartTransactionService;
+import deepple.deepple.member.command.domain.member.event.AdminHeartGrantedEvent;
 import deepple.deepple.member.command.domain.member.event.MissionHeartGainedEvent;
 import deepple.deepple.member.command.domain.member.event.PurchaseHeartGainedEvent;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,12 @@ public class HeartTransactionEventHandler {
     public void handle(MissionHeartGainedEvent event) {
         heartTransactionService.createHeartMissionTransaction(event.getMemberId(), event.getAmount(),
             event.getMissionHeartBalance(), event.getPurchaseHeartBalance(), event.getActionType());
+    }
+
+    @Async
+    @TransactionalEventListener(value = AdminHeartGrantedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    public void handle(AdminHeartGrantedEvent event) {
+        heartTransactionService.createAdminGrantTransaction(event.getMemberId(), event.getAmount(),
+            event.getMissionHeartBalance(), event.getPurchaseHeartBalance(), event.getReason());
     }
 }

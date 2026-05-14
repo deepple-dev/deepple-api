@@ -38,4 +38,14 @@ public class HeartTransactionService {
             actionType, heartAmount, heartBalance);
         heartTransactionCommandRepository.save(heartTransaction);
     }
+
+    @Transactional
+    public void createAdminGrantTransaction(Long memberId, Long amount, Long missionHeartBalance,
+        Long purchaseHeartBalance, String reason) {
+        HeartBalance heartBalance = HeartBalance.of(missionHeartBalance, purchaseHeartBalance);
+        HeartAmount heartAmount = HeartAmount.from(amount);
+        HeartTransaction heartTransaction = HeartTransaction.of(memberId, TransactionType.ADMIN_GRANT,
+            reason, heartAmount, heartBalance);
+        heartTransactionCommandRepository.save(heartTransaction);
+    }
 }

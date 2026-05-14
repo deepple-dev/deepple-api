@@ -158,6 +158,12 @@ public class Member extends SoftDeleteBaseEntity {
             heartBalance.getPurchaseHeartBalance(), actionType));
     }
 
+    public void gainAdminGrantedHeart(HeartAmount heartAmount, Long adminId, String reason) {
+        heartBalance = heartBalance.gainMissionHeart(heartAmount);
+        Events.raise(AdminHeartGrantedEvent.of(id, adminId, heartAmount.getAmount(),
+            heartBalance.getMissionHeartBalance(), heartBalance.getPurchaseHeartBalance(), reason));
+    }
+
     public void refundPurchaseHeart(HeartAmount heartAmount) {
         heartBalance = heartBalance.refundPurchaseHeart(heartAmount);
     }
