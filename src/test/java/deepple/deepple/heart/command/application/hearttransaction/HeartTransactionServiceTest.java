@@ -67,4 +67,29 @@ class HeartTransactionServiceTest {
                 heartTransaction.getHeartBalance().getPurchaseHeartBalance().equals(purchaseHeartBalance)
         ));
     }
+
+    @Test
+    @DisplayName("관리자 지급 트랜잭션을 생성합니다.")
+    void createAdminGrantTransaction() {
+        // given
+        Long memberId = 1L;
+        Long amount = 30L;
+        Long missionHeartBalance = 130L;
+        Long purchaseHeartBalance = 50L;
+        String reason = "CS 보상";
+
+        // when
+        heartTransactionService.createAdminGrantTransaction(memberId, amount, missionHeartBalance,
+            purchaseHeartBalance, reason);
+
+        // then
+        verify(heartTransactionCommandRepository).save(argThat(heartTransaction ->
+            heartTransaction.getMemberId().equals(memberId) &&
+                heartTransaction.getTransactionType() == TransactionType.ADMIN_GRANT &&
+                heartTransaction.getContent().equals(reason) &&
+                heartTransaction.getHeartAmount().getAmount().equals(amount) &&
+                heartTransaction.getHeartBalance().getMissionHeartBalance().equals(missionHeartBalance) &&
+                heartTransaction.getHeartBalance().getPurchaseHeartBalance().equals(purchaseHeartBalance)
+        ));
+    }
 }

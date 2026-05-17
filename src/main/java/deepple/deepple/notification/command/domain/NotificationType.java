@@ -25,6 +25,8 @@ public enum NotificationType {
     SCREENING_APPROVED("심사 승인"),
     SCREENING_REJECTED("심사 반려"),
 
+    HEART_GRANTED("하트 지급"),
+
     INACTIVITY_REMINDER("장기 미로그인 알림");
 
     private final String description;

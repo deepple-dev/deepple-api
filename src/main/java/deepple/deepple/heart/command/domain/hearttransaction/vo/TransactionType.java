@@ -10,7 +10,8 @@ public enum TransactionType {
     DATING_EXAM("연애 모의고사 다시보기"),
     PROFILE_EXCHANGE("프로필 교환 신청"),
     INTRODUCTION("소개 받기"),
-    PURCHASE("하트 구매");
+    PURCHASE("하트 구매"),
+    ADMIN_GRANT("관리자 지급");
 
     @Getter
     private final String description;
@@ -25,6 +26,6 @@ public enum TransactionType {
     }
 
     public boolean isGainingType() {
-        return this == MISSION || this == PURCHASE;
+        return this == MISSION || this == PURCHASE || this == ADMIN_GRANT;
     }
 }

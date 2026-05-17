@@ -10,6 +10,7 @@ import deepple.deepple.like.command.domain.LikeSentEvent;
 import deepple.deepple.match.command.domain.match.event.MatchAcceptedEvent;
 import deepple.deepple.match.command.domain.match.event.MatchRejectedEvent;
 import deepple.deepple.match.command.domain.match.event.MatchRequestedEvent;
+import deepple.deepple.member.command.domain.member.event.AdminHeartGrantedEvent;
 import deepple.deepple.notification.command.application.NotificationSendRequest;
 import deepple.deepple.notification.command.application.NotificationSendService;
 import deepple.deepple.notification.command.domain.ChannelType;
@@ -168,6 +169,20 @@ public class NotificationEventHandler {
             event.getMemberId(),
             NotificationType.SCREENING_REJECTED,
             Map.of("rejectionReason", event.getRejectionReason()),
+            ChannelType.PUSH
+        );
+        notificationSendService.send(request);
+    }
+
+    @Async
+    @TransactionalEventListener(value = AdminHeartGrantedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    public void handleAdminHeartGrantedEvent(AdminHeartGrantedEvent event) {
+        var request = new NotificationSendRequest(
+            SenderType.ADMIN,
+            event.getAdminId(),
+            event.getMemberId(),
+            NotificationType.HEART_GRANTED,
+            Map.of("amount", String.valueOf(event.getAmount())),
             ChannelType.PUSH
         );
         notificationSendService.send(request);
