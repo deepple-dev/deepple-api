@@ -10,6 +10,8 @@ import deepple.deepple.member.query.member.application.event.MemberProfileRetrie
 import deepple.deepple.member.query.member.application.exception.ProfileAccessDeniedException;
 import deepple.deepple.member.query.member.infra.MemberQueryRepository;
 import deepple.deepple.member.query.member.view.*;
+import deepple.deepple.member.query.profileimage.ProfileImageQueryRepository;
+import deepple.deepple.member.query.profileimage.view.ProfileImageView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class MemberQueryService {
     private final MemberQueryRepository memberQueryRepository;
+    private final ProfileImageQueryRepository profileImageQueryRepository;
 
 
     public MemberInfoView getInfoCache(Long memberId) {
@@ -49,10 +52,12 @@ public class MemberQueryService {
 
         List<InterviewResultView> interviewResultViews = memberQueryRepository.findInterviewsByMemberId(otherMemberId);
 
+        List<ProfileImageView> profileImages = profileImageQueryRepository.findByMemberId(otherMemberId);
+
         Events.raise(MemberProfileRetrievedEvent.of(memberId, otherMemberId,
             profileAccessView.matchRequesterId(), profileAccessView.matchResponderId()));
 
-        return new MemberProfileResponse(MemberMapper.toBasicInfo(profileView.basicMemberInfo()),
+        return new MemberProfileResponse(MemberMapper.toBasicInfo(profileView.basicMemberInfo(), profileImages),
             profileView.matchInfo(),
             MemberMapper.toContactInfo(profileView.contactView(), profileView.matchInfo(), otherMemberId),
             profileView.profileExchangeInfo(),
