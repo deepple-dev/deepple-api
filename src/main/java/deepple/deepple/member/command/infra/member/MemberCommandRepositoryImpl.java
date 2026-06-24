@@ -6,6 +6,7 @@ import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,6 +65,7 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
     }
 
     @Override
+    @Transactional
     public void updateLastAccessedAt(Long memberId, LocalDateTime accessedAt) {
         memberCommandJpaRepository.updateLastAccessedAt(memberId, accessedAt);
     }
