@@ -52,7 +52,8 @@ public class MemberMapper {
             basicMemberInfo.job(), basicMemberInfo.hobbies(), basicMemberInfo.mbti(), basicMemberInfo.city(),
             basicMemberInfo.district(),
             basicMemberInfo.smokingStatus(), basicMemberInfo.drinkingStatus(), basicMemberInfo.highestEducation(),
-            basicMemberInfo.religion(), basicMemberInfo.like(), additionalProfileImages);
+            basicMemberInfo.religion(), basicMemberInfo.like(), basicMemberInfo.lastAccessedAt(),
+            additionalProfileImages);
     }
 
     public static MemberMyProfileResponse toMemberMyProfileResponse(MemberProfileView view) {

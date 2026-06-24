@@ -22,4 +22,8 @@ public interface MemberCommandJpaRepository extends JpaRepository<Member, Long> 
     @Query("DELETE FROM Member m WHERE m.deletedAt <= :deletedAt")
     @Modifying(clearAutomatically = true)
     void deleteAllBefore(LocalDateTime deletedAt);
+
+    @Query("UPDATE Member m SET m.lastAccessedAt = :accessedAt WHERE m.id = :memberId")
+    @Modifying
+    void updateLastAccessedAt(Long memberId, LocalDateTime accessedAt);
 }
