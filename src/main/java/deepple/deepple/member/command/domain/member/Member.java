@@ -11,6 +11,8 @@ import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "members", indexes = {
     @Index(name = "idx_deleted_at", columnList = "deletedAt")
@@ -64,6 +66,9 @@ public class Member extends SoftDeleteBaseEntity {
     @Getter
     @Builder.Default
     private boolean isDatingExamSubmitted = false;
+
+    @Getter
+    private LocalDateTime lastAccessedAt;
 
     public static Member fromPhoneNumber(@NonNull String phoneNumber) {
         return Member.builder()

@@ -106,6 +106,7 @@ public class MemberQueryRepository {
                     member.profile.smokingStatus.stringValue(), member.profile.drinkingStatus.stringValue(),
                     member.profile.highestEducation.stringValue(), member.profile.religion.stringValue(),
                     like.level.stringValue(),
+                    member.lastAccessedAt,
                     match.id, match.requesterId, match.responderId, match.requestMessage.value,
                     match.responseMessage.value, match.status.stringValue(), match.requesterContactType.stringValue(),
                     match.responderContactType.stringValue(),

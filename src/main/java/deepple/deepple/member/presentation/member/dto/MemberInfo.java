@@ -4,6 +4,7 @@ import deepple.deepple.like.command.domain.LikeLevel;
 import deepple.deepple.member.command.domain.member.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -35,6 +36,7 @@ public record MemberInfo(
     String religion,
     @Schema(implementation = LikeLevel.class)
     String likeLevel,
+    LocalDateTime lastAccessedAt,
     @Schema(description = "메인 이미지를 제외한 추가 프로필 이미지 목록 (order 오름차순)")
     List<ProfileImageInfo> additionalProfileImages
 ) {

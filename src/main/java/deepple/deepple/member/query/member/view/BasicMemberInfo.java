@@ -1,5 +1,6 @@
 package deepple.deepple.member.query.member.view;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 public record BasicMemberInfo(
@@ -18,6 +19,7 @@ public record BasicMemberInfo(
     String drinkingStatus,
     String highestEducation,
     String religion,
-    String like
+    String like,
+    LocalDateTime lastAccessedAt
 ) {
 }

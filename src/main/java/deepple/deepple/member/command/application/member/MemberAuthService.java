@@ -61,6 +61,9 @@ public class MemberAuthService {
 
         Events.raise(MemberLoggedInEvent.from(member.getId()));
 
+        memberCommandRepository.updateLastAccessedAt(member.getId(),
+            LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
+
         return new MemberLoginServiceDto(accessToken, refreshToken, member.isProfileSettingNeeded(),
             member.getActivityStatus() != null ? member.getActivityStatus().name() : null);
     }
@@ -107,6 +110,9 @@ public class MemberAuthService {
         String newAccessToken = tokenProvider.createAccessToken(memberId, role, issuedAt);
         String newRefreshToken = tokenProvider.createRefreshToken(memberId, role, issuedAt);
         tokenRepository.save(newRefreshToken);
+
+        memberCommandRepository.updateLastAccessedAt(memberId,
+            LocalDateTime.ofInstant(issuedAt, ZoneId.systemDefault()));
 
         return new TokenPairResponse(newAccessToken, newRefreshToken);
     }
