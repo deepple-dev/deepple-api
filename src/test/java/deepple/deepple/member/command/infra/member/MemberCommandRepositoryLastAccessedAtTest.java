@@ -33,7 +33,9 @@ class MemberCommandRepositoryLastAccessedAtTest {
         Member member = Member.fromPhoneNumber("01012345678");
         entityManager.persist(member);
         entityManager.flush();
-        LocalDateTime originalUpdatedAt = member.getUpdatedAt();
+        entityManager.clear();
+        // DB를 거친 값으로 비교해야 reloaded 값과 정밀도가 동일하다 (LocalDateTime 나노초 vs DB 정밀도 차이로 인한 flaky 방지)
+        LocalDateTime originalUpdatedAt = entityManager.find(Member.class, member.getId()).getUpdatedAt();
         LocalDateTime accessedAt = LocalDateTime.of(2026, 1, 1, 12, 0);
 
         // When
