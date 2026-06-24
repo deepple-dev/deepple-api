@@ -55,6 +55,14 @@ public class MatchController {
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
+    @Operation(summary = "받은 매칭 메시지 읽음 처리")
+    @PatchMapping("/{matchId}/read")
+    public ResponseEntity<BaseResponse<Void>> readMatch(@PathVariable Long matchId,
+        @AuthPrincipal AuthContext authContext) {
+        matchService.readReceivedMatch(matchId, authContext.getId());
+        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+    }
+
     @Operation(summary = "내가 보낸 매칭 메세지")
     @GetMapping("/sent")
     public ResponseEntity<BaseResponse<MatchViews>> getSentMatch(@RequestParam(required = false) Long lastMatchId,

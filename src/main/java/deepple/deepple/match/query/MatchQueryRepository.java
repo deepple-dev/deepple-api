@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,7 +47,11 @@ public class MatchQueryRepository {
                     .when(match.requesterId.eq(userId)).then(match.requestMessage.value)
                     .otherwise(match.responseMessage.value),
                 match.status.stringValue(),
-                match.createdAt
+                match.createdAt,
+                // 상대가 내 요청 메시지를 읽은 시각: 내가 요청자일 때만 readByResponderAt, 아니면 null
+                Expressions.cases()
+                    .when(match.requesterId.eq(userId)).then(match.readByResponderAt)
+                    .otherwise(Expressions.nullExpression(LocalDateTime.class))
             ))
             .from(match)
             .join(member).on(
@@ -90,7 +95,8 @@ public class MatchQueryRepository {
                     .when(match.responderId.eq(userId)).then(match.responseMessage.value)
                     .otherwise(match.requestMessage.value),
                 match.status.stringValue(),
-                match.createdAt
+                match.createdAt,
+                Expressions.nullExpression(LocalDateTime.class)
             ))
             .from(match)
             .join(member).on(
