@@ -367,6 +367,45 @@ class MatchServiceTest {
     }
 
     @Nested
+    @DisplayName("받은 매치 읽음 처리 테스트")
+    class ReadReceivedMatch {
+
+        @Test
+        @DisplayName("응답자가 아니어서 매치를 찾지 못하면 예외 발생")
+        void throwsExceptionWhenNotResponder() {
+            // Given
+            Long matchId = 1L;
+            Long readerId = 99L;
+            when(matchRepository.findByIdAndResponderId(matchId, readerId))
+                .thenReturn(Optional.empty());
+
+            // When & Then
+            Assertions.assertThatThrownBy(() -> matchService.readReceivedMatch(matchId, readerId))
+                .isInstanceOf(MatchNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("응답자가 호출하면 읽음 시각이 기록된다")
+        void readReceivedMatch() {
+            // Given
+            Long requesterId = 1L;
+            Long responderId = 2L;
+            Long matchId = 3L;
+            Match match = Match.request(requesterId, responderId, Message.from("매칭을 요청합니다."),
+                "name", MatchType.MATCH, MatchContactType.PHONE_NUMBER);
+
+            when(matchRepository.findByIdAndResponderId(matchId, responderId))
+                .thenReturn(Optional.of(match));
+
+            // When
+            matchService.readReceivedMatch(matchId, responderId);
+
+            // Then
+            Assertions.assertThat(match.getReadByResponderAt()).isNotNull();
+        }
+    }
+
+    @Nested
     @DisplayName("매치 읽음 처리 테스트")
     class Read {
         @Test

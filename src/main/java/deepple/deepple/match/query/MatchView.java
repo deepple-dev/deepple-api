@@ -13,7 +13,8 @@ public record MatchView(
     String city,
     String myMessage,
     String matchStatus,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime readAt   // 상대가 내 요청을 읽은 시각, null이면 안읽음
 ) {
     @QueryProjection
     public MatchView {
