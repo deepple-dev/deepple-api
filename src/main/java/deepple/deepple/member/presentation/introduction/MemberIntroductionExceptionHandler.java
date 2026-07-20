@@ -67,4 +67,22 @@ public class MemberIntroductionExceptionHandler {
         return ResponseEntity.status(400)
             .body(BaseResponse.of(StatusType.BAD_REQUEST, e.getMessage()));
     }
+
+    @ExceptionHandler(PersonalityIntroductionAlreadyOpenedException.class)
+    public ResponseEntity<BaseResponse<Void>> handlePersonalityIntroductionAlreadyOpenedException(
+        PersonalityIntroductionAlreadyOpenedException e) {
+        log.warn(e.getMessage());
+
+        return ResponseEntity.status(409)
+            .body(BaseResponse.of(StatusType.CONFLICT, e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidPersonalityIntroductionUnlockException.class)
+    public ResponseEntity<BaseResponse<Void>> handleInvalidPersonalityIntroductionUnlockException(
+        InvalidPersonalityIntroductionUnlockException e) {
+        log.warn(e.getMessage());
+
+        return ResponseEntity.status(400)
+            .body(BaseResponse.of(StatusType.BAD_REQUEST, e.getMessage()));
+    }
 }
