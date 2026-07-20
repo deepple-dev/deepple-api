@@ -11,7 +11,8 @@ public enum IntroductionType {
     TODAY_CARD("오늘의 카드"),
     SOULMATE("소울 메이트"),
     SAME_ANSWER("연애 고사 답변 일치"),
-    IDEAL("이상형");
+    IDEAL("이상형"),
+    PERSONALITY("유형별 이상형");
 
     @Getter
     private final String description;

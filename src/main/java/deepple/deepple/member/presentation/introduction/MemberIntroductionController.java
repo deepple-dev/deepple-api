@@ -5,11 +5,14 @@ import deepple.deepple.auth.presentation.AuthPrincipal;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.datingexam.application.provided.SoulmateFinder;
+import deepple.deepple.datingexam.domain.AnswerPersonalityType;
 import deepple.deepple.member.command.application.introduction.MemberIntroductionService;
+import deepple.deepple.member.command.application.introduction.PersonalityIntroductionUnlockService;
 import deepple.deepple.member.command.application.introduction.TodayCardService;
 import deepple.deepple.member.presentation.introduction.dto.MemberIntroductionCreateRequest;
 import deepple.deepple.member.query.introduction.application.IntroductionQueryService;
 import deepple.deepple.member.query.introduction.application.MemberIntroductionProfileView;
+import deepple.deepple.member.query.introduction.application.PersonalityIntroductionQueryService;
 import deepple.deepple.member.query.introduction.application.TodayCardQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +34,8 @@ public class MemberIntroductionController {
     private final IntroductionQueryService introductionQueryService;
     private final MemberIntroductionService memberIntroductionService;
     private final SoulmateFinder soulmateFinder;
+    private final PersonalityIntroductionQueryService personalityIntroductionQueryService;
+    private final PersonalityIntroductionUnlockService personalityIntroductionUnlockService;
 
     @Operation(summary = "다이아 등급 이성 조회")
     @GetMapping("/grade")
@@ -192,6 +197,28 @@ public class MemberIntroductionController {
         @AuthPrincipal AuthContext authContext) {
         long memberId = authContext.getId();
         memberIntroductionService.createIdealIntroduction(memberId, request.introducedMemberId());
+        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+    }
+
+    @Operation(summary = "유형별 이상형 조회 (하루 1회 오픈, 최대 3명)")
+    @GetMapping("/{personalityType}")
+    public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findPersonalityTypeIntroductions(
+        @PathVariable AnswerPersonalityType personalityType,
+        @AuthPrincipal AuthContext authContext) {
+        long memberId = authContext.getId();
+        List<MemberIntroductionProfileView> introductionProfileViews =
+            personalityIntroductionQueryService.open(memberId, personalityType);
+        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
+    }
+
+    @Operation(summary = "유형별 이상형 프로필 상세 언락 (첫 상대 무료, 이후 하트 차감)")
+    @PostMapping("/{personalityType}/{targetMemberId}")
+    public ResponseEntity<BaseResponse<Void>> unlockPersonalityTypeIntroduction(
+        @PathVariable AnswerPersonalityType personalityType,
+        @PathVariable long targetMemberId,
+        @AuthPrincipal AuthContext authContext) {
+        long memberId = authContext.getId();
+        personalityIntroductionUnlockService.unlock(memberId, personalityType, targetMemberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 }
