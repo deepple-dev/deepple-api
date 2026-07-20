@@ -102,6 +102,39 @@ class DatingExamSubmitResultTest {
         }
 
         @Test
+        @DisplayName("신규 유형(STIMULATING_ADVENTURER)도 최다 카운트면 dominant가 된다.")
+        void newTypeCanBecomeDominant() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+
+            // When
+            result.addCounts(Map.of(
+                AnswerPersonalityType.STIMULATING_ADVENTURER, 4,
+                AnswerPersonalityType.DECISIVE_INDEPENDENT, 2
+            ));
+
+            // Then
+            assertThat(result.getStimulatingAdventurerCount()).isEqualTo(4);
+            assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER);
+        }
+
+        @Test
+        @DisplayName("신규 유형이 기존 유형과 동점이면 ordinal이 작은 기존 유형이 우선한다.")
+        void tieBreaksToExistingTypeOverNewType() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+
+            // When
+            result.addCounts(Map.of(
+                AnswerPersonalityType.REALISTIC_SHELTER, 3,
+                AnswerPersonalityType.RATIONAL_REALIST, 3
+            ));
+
+            // Then
+            assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.REALISTIC_SHELTER);
+        }
+
+        @Test
         @DisplayName("빈 맵으로 addCounts를 호출해도 정상 동작한다.")
         void addCountsWithEmptyMap() {
             // Given

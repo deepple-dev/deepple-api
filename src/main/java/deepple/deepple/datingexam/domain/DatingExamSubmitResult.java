@@ -40,6 +40,12 @@ public class DatingExamSubmitResult extends BaseEntity {
     @Column(nullable = false)
     private int realisticShelterCount;
 
+    @Column(nullable = false)
+    private int stimulatingAdventurerCount;
+
+    @Column(nullable = false)
+    private int rationalRealistCount;
+
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(50)", nullable = false)
     private AnswerPersonalityType dominantPersonalityType;
@@ -50,6 +56,8 @@ public class DatingExamSubmitResult extends BaseEntity {
         this.growingRunningMateCount = 0;
         this.devotedRomanticCount = 0;
         this.realisticShelterCount = 0;
+        this.stimulatingAdventurerCount = 0;
+        this.rationalRealistCount = 0;
         this.dominantPersonalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
     }
 
@@ -62,6 +70,8 @@ public class DatingExamSubmitResult extends BaseEntity {
         this.growingRunningMateCount += counts.getOrDefault(AnswerPersonalityType.GROWING_RUNNING_MATE, 0);
         this.devotedRomanticCount += counts.getOrDefault(AnswerPersonalityType.DEVOTED_ROMANTIC, 0);
         this.realisticShelterCount += counts.getOrDefault(AnswerPersonalityType.REALISTIC_SHELTER, 0);
+        this.stimulatingAdventurerCount += counts.getOrDefault(AnswerPersonalityType.STIMULATING_ADVENTURER, 0);
+        this.rationalRealistCount += counts.getOrDefault(AnswerPersonalityType.RATIONAL_REALIST, 0);
         recalculateDominant();
     }
 
@@ -79,6 +89,14 @@ public class DatingExamSubmitResult extends BaseEntity {
         }
         if (this.realisticShelterCount > maxCount) {
             dominant = AnswerPersonalityType.REALISTIC_SHELTER;
+            maxCount = this.realisticShelterCount;
+        }
+        if (this.stimulatingAdventurerCount > maxCount) {
+            dominant = AnswerPersonalityType.STIMULATING_ADVENTURER;
+            maxCount = this.stimulatingAdventurerCount;
+        }
+        if (this.rationalRealistCount > maxCount) {
+            dominant = AnswerPersonalityType.RATIONAL_REALIST;
         }
 
         this.dominantPersonalityType = dominant;
