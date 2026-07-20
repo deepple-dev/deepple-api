@@ -76,27 +76,28 @@ public class DatingExamSubmitResult extends BaseEntity {
     }
 
     private void recalculateDominant() {
+        // 동률 시 우선순위: 자기주도형 > 자극모험형 > 동반성장형 > 현실안정형 > 이성중심형 > 정서교감형
         AnswerPersonalityType dominant = AnswerPersonalityType.DECISIVE_INDEPENDENT;
         int maxCount = this.decisiveIndependentCount;
 
+        if (this.stimulatingAdventurerCount > maxCount) {
+            dominant = AnswerPersonalityType.STIMULATING_ADVENTURER;
+            maxCount = this.stimulatingAdventurerCount;
+        }
         if (this.growingRunningMateCount > maxCount) {
             dominant = AnswerPersonalityType.GROWING_RUNNING_MATE;
             maxCount = this.growingRunningMateCount;
-        }
-        if (this.devotedRomanticCount > maxCount) {
-            dominant = AnswerPersonalityType.DEVOTED_ROMANTIC;
-            maxCount = this.devotedRomanticCount;
         }
         if (this.realisticShelterCount > maxCount) {
             dominant = AnswerPersonalityType.REALISTIC_SHELTER;
             maxCount = this.realisticShelterCount;
         }
-        if (this.stimulatingAdventurerCount > maxCount) {
-            dominant = AnswerPersonalityType.STIMULATING_ADVENTURER;
-            maxCount = this.stimulatingAdventurerCount;
-        }
         if (this.rationalRealistCount > maxCount) {
             dominant = AnswerPersonalityType.RATIONAL_REALIST;
+            maxCount = this.rationalRealistCount;
+        }
+        if (this.devotedRomanticCount > maxCount) {
+            dominant = AnswerPersonalityType.DEVOTED_ROMANTIC;
         }
 
         this.dominantPersonalityType = dominant;
