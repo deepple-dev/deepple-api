@@ -10,7 +10,9 @@ public record DominantPersonalityTypeResponse(
     int decisiveIndependentCount,
     int growingRunningMateCount,
     int devotedRomanticCount,
-    int realisticShelterCount
+    int realisticShelterCount,
+    int stimulatingAdventurerCount,
+    int rationalRealistCount
 ) {
     public static DominantPersonalityTypeResponse from(DatingExamSubmitResult result) {
         return new DominantPersonalityTypeResponse(
@@ -18,7 +20,9 @@ public record DominantPersonalityTypeResponse(
             result.getDecisiveIndependentCount(),
             result.getGrowingRunningMateCount(),
             result.getDevotedRomanticCount(),
-            result.getRealisticShelterCount()
+            result.getRealisticShelterCount(),
+            result.getStimulatingAdventurerCount(),
+            result.getRationalRealistCount()
         );
     }
 }
