@@ -44,16 +44,6 @@ public class DatingExamApi {
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, requiredExamInfo));
     }
 
-    @Operation(summary = "선택 과목 정보 조회 API")
-    @GetMapping("/optional")
-    public ResponseEntity<BaseResponse<DatingExamInfoWithSubjectSubmissionResponse>> getOptionalExamInfo(
-        @AuthPrincipal AuthContext authContext
-    ) {
-        final DatingExamInfoWithSubjectSubmissionResponse optionalExamInfo = datingExamFinder.findOptionalExamInfo(
-            authContext.getId());
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, optionalExamInfo));
-    }
-
     @Operation(summary = "대표 성격 유형 조회 API")
     @GetMapping("/personality-type")
     public ResponseEntity<BaseResponse<DominantPersonalityTypeResponse>> getDominantPersonalityType(

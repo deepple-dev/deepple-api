@@ -34,13 +34,6 @@ public class DatingExamQueryService implements DatingExamFinder {
     }
 
     @Override
-    public DatingExamInfoWithSubjectSubmissionResponse findOptionalExamInfo(Long memberId) {
-        DatingExamInfoResponse datingExamInfo = datingExamQueryRepository.findDatingExamInfo(SubjectType.OPTIONAL);
-        Set<DatingExamSubmit> submittedExams = datingExamSubmitRepository.findAllByMemberId(memberId);
-        return new DatingExamInfoWithSubjectSubmissionResponse(datingExamInfo, submittedExams);
-    }
-
-    @Override
     public DominantPersonalityTypeResponse findDominantPersonalityType(Long memberId) {
         DatingExamSubmitResult result = datingExamSubmitResultRepository.findByMemberId(memberId)
             .orElseThrow(() -> new IllegalStateException("연애고사 제출 결과가 없습니다. memberId: " + memberId));
