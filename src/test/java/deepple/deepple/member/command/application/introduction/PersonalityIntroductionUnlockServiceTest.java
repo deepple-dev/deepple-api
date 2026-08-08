@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -59,7 +60,7 @@ class PersonalityIntroductionUnlockServiceTest {
         long memberId = 1L;
         long targetMemberId = 99L;
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
-            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L))));
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
 
         assertThatThrownBy(() -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
             .isInstanceOf(InvalidPersonalityIntroductionUnlockException.class);
@@ -72,7 +73,7 @@ class PersonalityIntroductionUnlockServiceTest {
         long targetMemberId = 2L;
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
             .thenReturn(Optional.of(new PersonalityIntroductionOpenState(AnswerPersonalityType.RATIONAL_REALIST,
-                List.of(2L, 3L, 4L))));
+                List.of(2L, 3L, 4L), LocalDateTime.now())));
 
         assertThatThrownBy(() -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
             .isInstanceOf(InvalidPersonalityIntroductionUnlockException.class);
@@ -84,7 +85,7 @@ class PersonalityIntroductionUnlockServiceTest {
         long memberId = 1L;
         long targetMemberId = 2L;
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
-            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L))));
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
         when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId)).thenReturn(Set.of(2L));
 
         personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
@@ -99,7 +100,7 @@ class PersonalityIntroductionUnlockServiceTest {
         long memberId = 1L;
         long targetMemberId = 2L;
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
-            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L))));
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
         when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId)).thenReturn(Set.of());
         when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(memberId, targetMemberId))
             .thenReturn(true);
@@ -116,7 +117,7 @@ class PersonalityIntroductionUnlockServiceTest {
         long targetMemberId = 2L;
         givenValidTarget(memberId, targetMemberId);
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
-            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L))));
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
         when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId)).thenReturn(Set.of());
 
         try (MockedStatic<MemberIntroduction> mocked = mockStatic(MemberIntroduction.class)) {
@@ -141,7 +142,7 @@ class PersonalityIntroductionUnlockServiceTest {
         long targetMemberId = 3L;
         givenValidTarget(memberId, targetMemberId);
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
-            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L))));
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
         when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId)).thenReturn(Set.of(2L));
 
         try (MockedStatic<MemberIntroduction> mocked = mockStatic(MemberIntroduction.class)) {

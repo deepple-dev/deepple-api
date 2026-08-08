@@ -12,6 +12,7 @@ import deepple.deepple.member.command.application.introduction.TodayCardService;
 import deepple.deepple.member.presentation.introduction.dto.MemberIntroductionCreateRequest;
 import deepple.deepple.member.query.introduction.application.IntroductionQueryService;
 import deepple.deepple.member.query.introduction.application.MemberIntroductionProfileView;
+import deepple.deepple.member.query.introduction.application.PersonalityIntroductionOpenStatusView;
 import deepple.deepple.member.query.introduction.application.PersonalityIntroductionQueryService;
 import deepple.deepple.member.query.introduction.application.TodayCardQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -198,6 +199,17 @@ public class MemberIntroductionController {
         long memberId = authContext.getId();
         memberIntroductionService.createIdealIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+    }
+
+    @Operation(summary = "유형별 이상형 오픈 상태 조회 (오픈한 유형, 오픈 시각)")
+    @GetMapping("/personality-status")
+    public ResponseEntity<BaseResponse<PersonalityIntroductionOpenStatusView>> findPersonalityIntroductionOpenStatus(
+        @AuthPrincipal AuthContext authContext) {
+        long memberId = authContext.getId();
+        PersonalityIntroductionOpenStatusView openStatusView = personalityIntroductionQueryService
+            .findOpenStatus(memberId)
+            .orElse(null);
+        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, openStatusView));
     }
 
     @Operation(summary = "유형별 이상형 조회 (하루 1회 오픈, 최대 3명)")

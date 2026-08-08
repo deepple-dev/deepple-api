@@ -23,6 +23,7 @@
 포함:
 - `GET /member/introduction/{personalityType}` — 유형 오픈 / 목록 조회
 - `POST /member/introduction/{personalityType}/{targetMemberId}` — 상세 언락(순번별 과금)
+- `GET /member/introduction/personality-status` — 오픈 상태 조회(오픈된 유형 + 오픈 시각, 부수효과 없음)
 
 제외(별도/기존 재사용):
 - 프로필 상세 렌더링 자체(기존 `GET /member/{memberId}` 재사용)
@@ -95,7 +96,7 @@ POST /member/introduction/{type}/{targetMemberId}
 ### 6.3 Redis 키
 | 키 | 값 | TTL | 용도 |
 |---|---|---|---|
-| `intro:personality:open:{memberId}` | `{type, [id1,id2,id3]}` | 24h(롤링) | 오픈 상태 + 고정 목록 |
+| `intro:personality:open:{memberId}` | `{type, [id1,id2,id3], openedAt}` | 24h(롤링) | 오픈 상태 + 고정 목록 + 오픈 시각(`GET /personality-status`가 노출) |
 | `intro:personality:unlocked:{memberId}` | Set&lt;targetId&gt; | 24h(롤링) | 첫 언락 판정 |
 
 > 두 키의 TTL은 오픈 시점에 함께 설정하여 동일 창(window)에서 만료되게 한다.

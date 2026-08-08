@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +48,7 @@ class PersonalityIntroductionQueryServiceTest {
     void returnsFrozenListWhenSameTypeOpened() {
         long memberId = 1L;
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
-            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L))));
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
 
         personalityIntroductionQueryService.open(memberId, TYPE);
 
@@ -61,7 +63,7 @@ class PersonalityIntroductionQueryServiceTest {
         long memberId = 1L;
         when(personalityIntroductionRedisRepository.findOpenState(memberId))
             .thenReturn(Optional.of(new PersonalityIntroductionOpenState(AnswerPersonalityType.RATIONAL_REALIST,
-                List.of(2L, 3L, 4L))));
+                List.of(2L, 3L, 4L), LocalDateTime.now())));
 
         assertThatThrownBy(() -> personalityIntroductionQueryService.open(memberId, TYPE))
             .isInstanceOf(PersonalityIntroductionAlreadyOpenedException.class);
@@ -78,8 +80,12 @@ class PersonalityIntroductionQueryServiceTest {
 
         personalityIntroductionQueryService.open(memberId, TYPE);
 
-        verify(personalityIntroductionRedisRepository)
-            .saveOpenState(eq(memberId), eq(new PersonalityIntroductionOpenState(TYPE, List.of(10L, 9L, 8L))));
+        ArgumentCaptor<PersonalityIntroductionOpenState> stateCaptor =
+            ArgumentCaptor.forClass(PersonalityIntroductionOpenState.class);
+        verify(personalityIntroductionRedisRepository).saveOpenState(eq(memberId), stateCaptor.capture());
+        assertThat(stateCaptor.getValue().type()).isEqualTo(TYPE);
+        assertThat(stateCaptor.getValue().memberIds()).isEqualTo(List.of(10L, 9L, 8L));
+        assertThat(stateCaptor.getValue().openedAt()).isNotNull();
         verify(introductionQueryService).findMemberIntroductionProfileViews(eq(memberId), eq(Set.of(10L, 9L, 8L)));
     }
 
@@ -110,8 +116,37 @@ class PersonalityIntroductionQueryServiceTest {
 
         personalityIntroductionQueryService.open(memberId, TYPE);
 
-        verify(personalityIntroductionRedisRepository)
-            .saveOpenState(eq(memberId), eq(new PersonalityIntroductionOpenState(TYPE, List.of(10L, 8L, 7L))));
+        ArgumentCaptor<PersonalityIntroductionOpenState> stateCaptor =
+            ArgumentCaptor.forClass(PersonalityIntroductionOpenState.class);
+        verify(personalityIntroductionRedisRepository).saveOpenState(eq(memberId), stateCaptor.capture());
+        assertThat(stateCaptor.getValue().type()).isEqualTo(TYPE);
+        assertThat(stateCaptor.getValue().memberIds()).isEqualTo(List.of(10L, 8L, 7L));
+    }
+
+    @Test
+    @DisplayName("오픈 이력이 있으면 오픈된 유형과 오픈 시각을 반환한다.")
+    void returnsOpenStatusWhenOpened() {
+        long memberId = 1L;
+        LocalDateTime openedAt = LocalDateTime.of(2026, 8, 8, 12, 0);
+        when(personalityIntroductionRedisRepository.findOpenState(memberId))
+            .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), openedAt)));
+
+        Optional<PersonalityIntroductionOpenStatusView> openStatus =
+            personalityIntroductionQueryService.findOpenStatus(memberId);
+
+        assertThat(openStatus).contains(new PersonalityIntroductionOpenStatusView(TYPE, openedAt));
+    }
+
+    @Test
+    @DisplayName("오픈 이력이 없으면 빈 값을 반환한다.")
+    void returnsEmptyOpenStatusWhenNotOpened() {
+        long memberId = 1L;
+        when(personalityIntroductionRedisRepository.findOpenState(memberId)).thenReturn(Optional.empty());
+
+        Optional<PersonalityIntroductionOpenStatusView> openStatus =
+            personalityIntroductionQueryService.findOpenStatus(memberId);
+
+        assertThat(openStatus).isEmpty();
     }
 
     private void givenNoExclusions(long memberId) {

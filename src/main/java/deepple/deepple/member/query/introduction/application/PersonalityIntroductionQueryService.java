@@ -9,6 +9,7 @@ import deepple.deepple.member.query.introduction.intra.PersonalityIntroductionRe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,8 +47,16 @@ public class PersonalityIntroductionQueryService {
             return List.of();
         }
         personalityIntroductionRedisRepository.saveOpenState(memberId,
-            new PersonalityIntroductionOpenState(type, candidateMemberIds));
+            new PersonalityIntroductionOpenState(type, candidateMemberIds, LocalDateTime.now()));
         return toProfileViews(memberId, candidateMemberIds);
+    }
+
+    /**
+     * 현재 오픈되어 있는 유형과 오픈 시각을 조회한다. 오픈 이력이 없으면 빈 값을 반환한다.
+     */
+    public Optional<PersonalityIntroductionOpenStatusView> findOpenStatus(long memberId) {
+        return personalityIntroductionRedisRepository.findOpenState(memberId)
+            .map(state -> new PersonalityIntroductionOpenStatusView(state.type(), state.openedAt()));
     }
 
     private List<Long> computeCandidateMemberIds(long memberId, AnswerPersonalityType type) {
