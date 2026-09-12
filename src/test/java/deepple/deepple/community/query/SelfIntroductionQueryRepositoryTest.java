@@ -9,6 +9,8 @@ import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroduct
 import deepple.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionView;
+import deepple.deepple.datingexam.domain.AnswerPersonalityType;
+import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
 import deepple.deepple.member.command.domain.member.*;
@@ -30,6 +32,7 @@ import org.springframework.context.annotation.Import;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -176,6 +179,38 @@ public class SelfIntroductionQueryRepositoryTest {
                 assertThat(view.nickname()).isEqualTo(maleMember.getProfile().getNickname().getValue());
                 assertThat(view.profileUrl()).isEqualTo(maleMemberProfileImageUrl);
                 assertThat(view.yearOfBirth()).isEqualTo(maleMember.getProfile().getYearOfBirth().getValue());
+            }
+        }
+
+        @Test
+        @DisplayName("연애가치관 테스트를 완료한 멤버의 글은 유형 정보를 포함하고, 완료하지 않은 멤버의 글은 유형 정보가 없다.")
+        void getSelfIntroductionsWithPersonalityType() {
+            // Given
+            DatingExamSubmitResult maleResult = DatingExamSubmitResult.create(maleMember.getId());
+            maleResult.addCounts(Map.of(AnswerPersonalityType.STIMULATING_ADVENTURER, 5));
+            entityManager.persist(maleResult);
+            entityManager.flush();
+
+            SelfIntroductionSearchCondition searchCondition = new SelfIntroductionSearchCondition(
+                null, null, null, Gender.MALE
+            );
+
+            // When
+            List<SelfIntroductionSummaryView> maleIntroductions = selfIntroductionQueryRepository
+                .findSelfIntroductions(searchCondition, null, femaleMember.getId());
+            List<SelfIntroductionSummaryView> femaleIntroductions = selfIntroductionQueryRepository
+                .findSelfIntroductions(new SelfIntroductionSearchCondition(null, null, null, Gender.FEMALE), null,
+                    maleMember.getId());
+
+            // Then
+            assertThat(maleIntroductions).isNotEmpty();
+            for (SelfIntroductionSummaryView view : maleIntroductions) {
+                assertThat(view.personalityType()).isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER.name());
+            }
+
+            assertThat(femaleIntroductions).isNotEmpty();
+            for (SelfIntroductionSummaryView view : femaleIntroductions) {
+                assertThat(view.personalityType()).isNull();
             }
         }
 

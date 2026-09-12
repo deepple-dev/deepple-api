@@ -24,6 +24,7 @@ import static com.querydsl.core.types.dsl.Expressions.enumPath;
 import static deepple.deepple.block.domain.QBlock.block;
 import static deepple.deepple.community.command.domain.profileexchange.QProfileExchange.profileExchange;
 import static deepple.deepple.community.command.domain.selfintroduction.QSelfIntroduction.selfIntroduction;
+import static deepple.deepple.datingexam.domain.QDatingExamSubmitResult.datingExamSubmitResult;
 import static deepple.deepple.like.command.domain.QLike.like;
 import static deepple.deepple.member.command.domain.member.QMember.member;
 import static deepple.deepple.member.command.domain.profileImage.QProfileImage.profileImage;
@@ -50,12 +51,14 @@ public class SelfIntroductionQueryRepository {
                     selfIntroduction.title,
                     selfIntroduction.content,
                     selfIntroduction.imageUrl,
-                    selfIntroduction.createdAt
+                    selfIntroduction.createdAt,
+                    datingExamSubmitResult.dominantPersonalityType.stringValue()
                 )
             )
             .from(selfIntroduction)
             .join(member).on(member.id.eq(selfIntroduction.memberId))
             .leftJoin(profileImage).on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
+            .leftJoin(datingExamSubmitResult).on(datingExamSubmitResult.memberId.eq(member.id))
             .where(condition)
             .limit(PAGE_SIZE)
             .orderBy(selfIntroduction.id.desc())
@@ -79,12 +82,14 @@ public class SelfIntroductionQueryRepository {
                     selfIntroduction.title,
                     selfIntroduction.content,
                     selfIntroduction.imageUrl,
-                    selfIntroduction.createdAt
+                    selfIntroduction.createdAt,
+                    datingExamSubmitResult.dominantPersonalityType.stringValue()
                 )
             )
             .from(selfIntroduction)
             .join(member).on(member.id.eq(selfIntroduction.memberId))
             .leftJoin(profileImage).on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
+            .leftJoin(datingExamSubmitResult).on(datingExamSubmitResult.memberId.eq(member.id))
             .where(condition)
             .limit(PAGE_SIZE)
             .orderBy(selfIntroduction.id.desc())
