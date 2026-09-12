@@ -109,6 +109,7 @@ public class SelfIntroductionQueryRepository {
             .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
             .leftJoin(member.profile.hobbies, hobby)
             .leftJoin(profileExchange).on(getProfileExchangeJoinCondition(memberId))
+            .leftJoin(datingExamSubmitResult).on(datingExamSubmitResult.memberId.eq(member.id))
             .where(selfIntroduction.id.eq(id).and(selfIntroduction.deletedAt.isNull()))
             .transform(
                 groupBy(member.id).as(
@@ -122,6 +123,7 @@ public class SelfIntroductionQueryRepository {
                         member.profile.mbti.stringValue(),
                         set(hobby.stringValue()),
                         member.profile.gender.stringValue(),
+                        datingExamSubmitResult.dominantPersonalityType.stringValue(),
                         like.level.stringValue(),
                         selfIntroduction.title,
                         selfIntroduction.content,

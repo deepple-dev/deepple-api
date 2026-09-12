@@ -28,6 +28,7 @@ public record SelfIntroductionView(
         String mbti,
         Set<String> hobbies,
         String gender,
+        String personalityType,
         String like,
         String title,
         String content,
@@ -36,6 +37,7 @@ public record SelfIntroductionView(
         LocalDateTime createdAt
     ) {
         this(new MemberBasicInfo(memberId, nickname, AgeConverter.toAge(yearOfBirth), profileImageUrl, city, district,
-            mbti, hobbies, gender), like, title, content, imageUrl, profileExchangeStatus, createdAt);
+            mbti, hobbies, gender, personalityType), like, title, content, imageUrl, profileExchangeStatus,
+            createdAt);
     }
 }

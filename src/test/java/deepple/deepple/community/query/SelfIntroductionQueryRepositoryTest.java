@@ -438,6 +438,25 @@ public class SelfIntroductionQueryRepositoryTest {
                 .hasSameSizeAs(targetMember.getProfile().getHobbies());
             assertThat(view.memberBasicInfo().profileImageUrl()).isEqualTo(profileImage.getUrl());
             assertThat(view.profileExchangeStatus()).isEqualTo(ProfileExchangeStatus.APPROVE.name());
+            assertThat(view.memberBasicInfo().personalityType()).isNull();
+        }
+
+        @Test
+        @DisplayName("작성자가 연애가치관 테스트를 완료한 경우, 상세 조회에 유형 정보가 포함됩니다.")
+        void findSelfIntroductionWithPersonalityType() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(targetMember.getId());
+            result.addCounts(Map.of(AnswerPersonalityType.REALISTIC_SHELTER, 5));
+            entityManager.persist(result);
+            entityManager.flush();
+
+            // When
+            SelfIntroductionView view = selfIntroductionQueryRepository.findSelfIntroductionByIdWithMemberId(
+                selfIntroduction.getId(), member.getId()).orElse(null);
+
+            // Then
+            assertThat(view.memberBasicInfo().personalityType())
+                .isEqualTo(AnswerPersonalityType.REALISTIC_SHELTER.name());
         }
 
         @Test
