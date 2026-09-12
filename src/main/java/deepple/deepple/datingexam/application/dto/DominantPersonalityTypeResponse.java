@@ -5,7 +5,7 @@ import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record DominantPersonalityTypeResponse(
-    @Schema(implementation = AnswerPersonalityType.class)
+    @Schema(implementation = AnswerPersonalityType.class, description = AnswerPersonalityType.SCHEMA_DESCRIPTION)
     String personalityType,
     int decisiveIndependentCount,
     int growingRunningMateCount,
