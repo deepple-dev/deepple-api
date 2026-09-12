@@ -9,6 +9,7 @@ import deepple.deepple.community.command.application.selfintroduction.SelfIntrod
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchCondition;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchRequest;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
+import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteResponse;
 import deepple.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionView;
@@ -34,10 +35,12 @@ public class SelfIntroductionController {
 
     @Operation(summary = "셀프 소개 작성 API")
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> write(@RequestBody @Valid SelfIntroductionWriteRequest request,
+    public ResponseEntity<BaseResponse<SelfIntroductionWriteResponse>> write(
+        @RequestBody @Valid SelfIntroductionWriteRequest request,
         @AuthPrincipal AuthContext authContext) {
-        selfIntroductionService.write(request, authContext.getId());
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        boolean hasProcessedMission = selfIntroductionService.write(request, authContext.getId());
+        return ResponseEntity.ok(
+            BaseResponse.of(StatusType.OK, new SelfIntroductionWriteResponse(hasProcessedMission)));
     }
 
     @Operation(summary = "셀프 소개 이미지 업로드용 preSignedUrl 생성")

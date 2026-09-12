@@ -28,4 +28,9 @@ public class SelfIntroductionCommandRepositoryImpl implements SelfIntroductionCo
     public void deleteById(Long id) {
         selfIntroductionJpaRepository.deleteById(id);
     }
+
+    @Override
+    public boolean existsByMemberId(Long memberId) {
+        return selfIntroductionJpaRepository.existsByMemberId(memberId);
+    }
 }
