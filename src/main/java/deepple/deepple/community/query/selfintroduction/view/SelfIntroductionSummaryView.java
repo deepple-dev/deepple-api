@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 public record SelfIntroductionSummaryView(
     Long id,
     String nickname,
-    String profileUrl,
     Integer yearOfBirth,
     String title,
     String content,

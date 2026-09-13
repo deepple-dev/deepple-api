@@ -22,7 +22,6 @@ public record SelfIntroductionView(
     public SelfIntroductionView(Long memberId,
         String nickname,
         Integer yearOfBirth,
-        String profileImageUrl,
         String city,
         String district,
         String mbti,
@@ -36,7 +35,7 @@ public record SelfIntroductionView(
         String profileExchangeStatus,
         LocalDateTime createdAt
     ) {
-        this(new MemberBasicInfo(memberId, nickname, AgeConverter.toAge(yearOfBirth), profileImageUrl, city, district,
+        this(new MemberBasicInfo(memberId, nickname, AgeConverter.toAge(yearOfBirth), city, district,
             mbti, hobbies, gender, personalityType), like, title, content, imageUrl, profileExchangeStatus,
             createdAt);
     }

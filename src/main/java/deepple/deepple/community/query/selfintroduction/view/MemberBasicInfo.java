@@ -11,7 +11,6 @@ public record MemberBasicInfo(
     Long memberId,
     String nickname,
     Integer age,
-    String profileImageUrl,
     @Schema(implementation = City.class)
     String city,
     @Schema(implementation = District.class)
