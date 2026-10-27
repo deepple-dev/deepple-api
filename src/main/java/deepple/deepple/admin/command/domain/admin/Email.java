@@ -21,7 +21,7 @@ public class Email {
     private static final String EMAIL_REGEX = "^[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,}$";
     private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private final String address;
 
     private Email(@NonNull String address) {
