@@ -1,0 +1,14 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfplan
+# 비밀 값이 들어갈 수 있는 로컬 변수 파일
+*.auto.tfvars
+secret.tfvars
