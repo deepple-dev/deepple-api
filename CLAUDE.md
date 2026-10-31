@@ -1,139 +1,72 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+데이팅 서비스 딥플의 백엔드 API. Java 21, Spring Boot 3, JPA + QueryDSL, MySQL, Redis(Redisson), Flyway.
 
-## Development Commands
-
-This is a Java 21 Spring Boot 3 project using Gradle as the build system.
-
-### Core Commands
-
-- `./gradlew build` - Build the project
-- `./gradlew test` - Run all tests using JUnit Platform
-- `./gradlew bootRun` - Run the Spring Boot application locally
-
-### Docker Development
-
-- `docker compose --env-file .env up -d` - Start all services (app, MySQL, Redis)
-- Set up `.env` file from `.env.example` before running Docker
-
-### Environment Setup
-
-- Copy `.env.example` to `.env` and configure environment variables
-- Requires MySQL, Redis, AWS S3, Firebase, and App Store configurations
-- Application runs on configurable port (default 8080)
-- Swagger UI available at `/swagger-ui.html` when enabled
-
-### Deployment (CI/CD)
-
-This project uses GitHub Actions for automated deployment with zero-downtime Blue-Green strategy.
-
-#### Development Server (dev-api.deepple.co.kr)
-
-- **Trigger**: Push to `develop` branch (CI 성공 후 자동)
-- **Workflow**: `.github/workflows/cd-dev.yml`
-- **Strategy**: Blue-Green deployment with nginx (zero downtime)
-- **Process**:
-    1. Build Docker image and push to AWS ECR
-    2. Deploy to inactive slot (Blue:8081 or Green:8082)
-    3. Health check new container (100 retries × 3초)
-    4. Switch nginx proxy_pass to new port
-    5. Graceful nginx reload (no dropped connections)
-    6. Remove old container
-- **Rollback**: Automatic on health check failure - old container keeps running
-- **Monitoring**: GitHub Actions logs at `https://github.com/deepple-dev/deepple-api/actions`
-
-#### Production Server
-
-- **Trigger**: Manual (workflow_dispatch)
-- **Workflow**: `.github/workflows/cd-prod.yml`
-- **Strategy**: ECS Rolling Update
-- **Process**:
-    1. Build Docker image and push to AWS ECR
-    2. Update ECS Task Definition with new image
-    3. ECS performs rolling update
-    4. Wait for service stability
-- **Rollback**: ECS automatic rollback on unhealthy tasks, or manually deploy previous commit SHA
-
-#### Manual Deployment
+## 명령어
 
 ```bash
-# Development: Push to develop branch triggers CI → CD automatically
-git push origin develop
-
-# Production: Manual trigger from GitHub Actions UI
-# 1. Go to Actions → CD - Production
-# 2. Click "Run workflow"
-# 3. Select branch and optionally enter commit SHA or tag
-# 4. Click "Run workflow"
-
-# Check deployment status
-gh run list --workflow=cd-dev.yml
-gh run list --workflow=cd-prod.yml
-gh run view <run-id> --log
+./gradlew build                                        # 빌드 + 테스트
+./gradlew test                                         # 전체 테스트
+./gradlew test --tests "deepple.deepple.member.*"      # 일부 테스트
+docker compose --env-file .env up -d                   # 로컬 실행 (app, MySQL, Redis)
 ```
 
-## Architecture Overview
+## 구조
 
-This is a dating/matching service backend built with Domain-Driven Design (DDD) principles and code-level CQRS.
+`src/main/java/deepple/deepple/<도메인>` 단위로 나뉜다. 공통 코드는 `common`.
 
-### Domain Structure
+도메인마다 두 가지 스타일이 있다. 새 코드는 해당 도메인의 기존 스타일을 따른다.
 
-The codebase is organized by bounded contexts (subdomains):
+- CQRS 스타일 (대부분의 도메인)
+  ```
+  presentation/        컨트롤러, 요청·응답 DTO, 도메인별 ExceptionHandler
+  command/application  쓰기 서비스
+  command/domain       엔티티, 값 객체, 도메인 이벤트, 리포지토리 인터페이스
+  command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
+  query/               읽기 전용 조회 (QueryDSL)
+  ```
+- 헥사고날 스타일 (`block`, `datingexam`)
+  ```
+  adapter/             webapi, database, listener 등 입출력
+  application/         provided(제공 포트), required(필요 포트), 서비스
+  domain/              엔티티, 값 객체
+  ```
 
-- `member` - User profiles, authentication, introductions
-- `match` - Matching logic and communication
-- `heart` - In-app currency system and transactions
-- `payment` - In-app purchases via App Store
-- `notification` - Push notifications via Firebase
-- `admin` - Administrative functions and screening
-- `community` - Self-introductions and profile exchanges
-- `interview` - User questionnaires and answers
-- `like` - Like/dislike functionality
-- `mission` - User missions and rewards
-- `block` - User blocking functionality
-- `report` - User reporting system
-- `datingexam` - Dating compatibility tests
+## 코딩 규칙
 
-### Package Structure (DDD + CQRS)
+- 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 응답은 `BaseResponse`로 감싼다.
+- 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
+  - 발행: `Events.raise(event)` (`common/event`), 이벤트는 `Event`를 상속
+  - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`
+- 동시성이 필요한 처리는 `LockRepository`(Redisson 분산락)를 쓴다.
+- 엔티티는 `BaseEntity` 또는 `SoftDeleteBaseEntity`를 상속한다.
+- 주석과 예외 메시지는 한국어.
 
-Each domain follows this structure:
+## DB
 
-```
-domain_name/
-├── presentation/     # API controllers and DTOs
-├── command/          # Write operations
-│   ├── application/  # Application services
-│   ├── domain/       # Domain entities and business logic
-│   └── infra/        # Infrastructure (JPA repositories, external APIs)
-└── query/            # Read operations (separate from commands)
-```
+- 스키마 변경은 Flyway 마이그레이션으로만 한다: `src/main/resources/db/migration/V{다음번호}__설명.sql`
+- 이미 머지된 마이그레이션 파일은 수정하지 않는다. 새 파일을 추가한다.
+- FK 제약조건은 만들지 않는다.
+- PK와 `*_id` 컬럼은 `bigint`.
+- dev·prod는 `ddl-auto: validate`라서 엔티티와 마이그레이션이 일치해야 한다. (local은 `update`, Flyway 꺼짐)
 
-### Key Technologies
+## 테스트
 
-- **Persistence**: JPA with QueryDSL, MySQL with Flyway migrations
-- **Security**: JWT tokens, Spring Security
-- **Caching**: Redis with Redisson
-- **External Integrations**: AWS S3, Firebase, Apple App Store Server API
-- **Architecture Patterns**: Domain Events, Local Events, CQRS separation
+- 서비스·도메인: JUnit 5 + Mockito (`@ExtendWith(MockitoExtension.class)`)
+- 리포지토리: `@DataJpaTest` (H2 인메모리)
+- 테스트 패키지는 main과 같은 구조로 둔다.
+- 코드를 바꾸면 관련 테스트를 추가·수정하고 `./gradlew test`로 확인한다.
 
-### Event System
+## 개발 플로우
 
-The application uses a local event system (`Events.java`) for domain event handling. Events are published within the
-same process and handled by event handlers in the infrastructure layer.
+- 트렁크 기반: `main` 단일 브랜치, squash merge. `develop`은 사용하지 않는다.
+- 이슈 → 브랜치 `이슈번호-짧은설명` → 커밋 `타입(범위): 설명` → PR(`Closes #이슈번호`)
+- 타입: `feat` `fix` `refactor` `test` `docs` `chore` `infra` / 범위: 도메인 이름(생략 가능)
+- 브랜치·커밋·PR은 `/branch`, `/commit`, `/pr` 스킬 규칙을 따른다.
 
-### Testing Structure
+## 하지 말 것
 
-- Unit tests for domain objects and value objects
-- Integration tests for repositories using `@DataJpaTest`
-- Service tests using mocks and test slices
-- Tests follow the same package structure as main code
-
-## Important Notes
-
-- This is a Korean dating service ("연애의 모든 것") with Korean language in comments and some naming
-- Uses Java 21 language features
-- Planned migration to MSA (microservices) architecture
-- Domain entities use Lombok for reducing boilerplate
-- Heavy use of value objects for domain modeling
-- All external API calls are abstracted through domain interfaces
+- `main`에 직접 커밋·push
+- `.env`, `secrets/`, `certs/google-play/`의 키 파일 커밋
+- 머지된 Flyway 마이그레이션 수정
+- 테스트를 끄거나 지워서 빌드 통과시키기

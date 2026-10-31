@@ -1,6 +1,7 @@
-@coderabbitai summary
+Closes #
 
-## 참고 자료
+## 변경 사항
 - 
 
-## 노트
+## 참고 사항
+- 
