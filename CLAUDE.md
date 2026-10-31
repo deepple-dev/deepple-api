@@ -24,7 +24,17 @@ This is a Java 21 Spring Boot 3 project using Gradle as the build system.
 - Application runs on configurable port (default 8080)
 - Swagger UI available at `/swagger-ui.html` when enabled
 
+### Development Workflow
+
+- Trunk-based: `main` 단일 브랜치, squash merge
+- 이슈 → 브랜치 `이슈번호-짧은설명` → 커밋 `타입(범위): 설명` → PR(제목도 커밋 컨벤션, 본문 `Closes #이슈번호`)
+- 타입: `feat` `fix` `refactor` `test` `docs` `chore` `infra` / 범위: 도메인 이름(생략 가능)
+- 브랜치·커밋·PR 작업은 `/branch`, `/commit`, `/pr` 스킬 규칙을 따른다
+- `develop` 브랜치는 더 이상 사용하지 않는다
+
 ### Deployment (CI/CD)
+
+> 트렁크 기반 전환 중. 아래는 현재 워크플로 기준이며, 개발은 `main` 병합 시·운영은 태그 push 시 배포되도록 변경 예정.
 
 This project uses GitHub Actions for automated deployment with zero-downtime Blue-Green strategy.
 
