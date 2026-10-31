@@ -2,7 +2,8 @@
 name: 버그
 about: 버그 수정
 title: ''
-labels: fix
+labels: ''
+type: Bug
 assignees: ''
 ---
 
