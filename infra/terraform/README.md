@@ -9,7 +9,7 @@ infra/terraform/
 ├── bootstrap/   # state 저장용 S3 버킷. 계정당 1회, 완료됨
 ├── modules/     # 직접 작성한 재사용 모듈 (ECS, RDS 등)
 └── envs/
-    ├── shared/  # 환경 공통 (ECR, GitHub OIDC 등)
+    ├── shared/  # 계정 공통 (ECR, GitHub OIDC, Route 53, 알림, CloudTrail)
     ├── dev/
     └── prod/
 ```
@@ -30,6 +30,17 @@ infra/terraform/
    ```
 
 `bootstrap/`은 실행하지 않는다. (아래 [bootstrap](#bootstrap) 참고)
+
+## 알림
+
+계정 알림(예산 초과, 루트 계정 사용)은 SNS 토픽 `deepple-alerts` → Lambda → Discord `#alerts-account`로 온다.
+
+- 웹훅 URL은 Secrets Manager `deepple/alerts/discord-webhook`에 있다. Terraform은 빈 비밀만 만들고 값은 직접 넣는다. 웹훅을 새로 만들면 Discord에서 URL을 복사한 뒤 실행한다.
+  ```bash
+  aws secretsmanager put-secret-value --secret-id deepple/alerts/discord-webhook --secret-string "$(pbpaste)"
+  ```
+- 멘션 역할은 `envs/shared/variables.tf`의 `discord_mention_role_id`.
+- 경보(CloudWatch Alarm)의 `alarm_description`은 첫 줄이 Discord 메시지 제목, 나머지가 본문이 된다.
 
 ## 작업 흐름
 
@@ -74,6 +85,7 @@ state 버킷을 만드는 설정이다. **2026-11-01에 적용 완료됐고, 다
   terraform providers lock -platform=darwin_arm64 -platform=linux_amd64
   ```
 - 비밀 값은 코드나 tfvars에 넣지 않는다. Secrets Manager를 쓴다.
+- IAM 역할·정책의 `description`은 영문으로 쓴다. 한글은 apply 때 AWS가 거부한다.
 - 커뮤니티 모듈은 버전을 고정한다. (VPC는 `terraform-aws-modules/vpc/aws`)
 - AWS 콘솔에서 Terraform이 관리하는 리소스를 직접 수정하지 않는다. 다음 apply 때 코드 상태로 되돌아간다.
 - 모든 리소스에는 provider의 `default_tags`로 `Project`, `Stack`, `ManagedBy` 태그가 붙는다.

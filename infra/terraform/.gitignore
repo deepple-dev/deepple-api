@@ -12,3 +12,5 @@ override.tf.json
 # 비밀 값이 들어갈 수 있는 로컬 변수 파일
 *.auto.tfvars
 secret.tfvars
+# Lambda 배포 패키지
+build/
