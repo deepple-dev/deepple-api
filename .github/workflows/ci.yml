@@ -8,7 +8,6 @@ on:
       - 'docs/**'
       - '.gitignore'
       - 'LICENSE'
-      - '.env.example'
 
   push:
     branches: [ "main" ]
@@ -17,7 +16,6 @@ on:
       - 'docs/**'
       - '.gitignore'
       - 'LICENSE'
-      - '.env.example'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

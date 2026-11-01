@@ -5,21 +5,24 @@
 ## 요구 사항
 
 - JDK 21
-- Docker, Docker Compose
+- Docker (Docker Desktop 등)
 
 ## 시작하기
 
+Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일은 필요 없다.
+
 ```bash
-cp .env.example .env      # 값 채우기
-docker compose --env-file .env up -d
+./gradlew bootRun    # 또는 IntelliJ에서 DeeppleApplication 실행
 ```
 
-- 앱 `http://localhost:8080`, MySQL `3308`, Redis `6381` (기본 포트, `.env`에서 변경 가능)
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- 외부 연동 값(App Store, Google Play, Firebase, Bizgo, S3)은 내부 공유 값을 받아 `.env`에 채운다.
-- 키 파일은 아래 위치에 둔다. 둘 다 `.gitignore`에 포함되어 커밋되지 않는다.
-  - Firebase 서비스 계정 키: `secrets/` (컨테이너의 `/etc/credentials`에 마운트)
-  - Google Play 서비스 계정 키: `certs/google-play/service-account.json`
+- 기본 프로필은 `local`이다. 앱이 `compose.yml`의 MySQL, Valkey, S3Mock을 자동으로 띄우고, 앱을 꺼도 컨테이너는 남는다.
+- 앱 `http://localhost:8080`, Swagger UI `http://localhost:8080/swagger-ui.html`
+- 포트: MySQL `3306`(DB·계정·비밀번호 `deepple`), Valkey `6379`, S3Mock `9090`(버킷 `deepple-local`)
+- 스키마는 Flyway 마이그레이션으로 만들어진다. 데이터를 지우려면 `docker compose down -v`
+- 로컬에서는 외부 연동을 가짜 구현으로 대신한다. (`application-local.yml`의 `bizgo.enabled`, `firebase.enabled`, `payment.google-play.enabled`가 `false`)
+  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력. 고정 코드 `008008`로도 로그인 가능
+  - 푸시(FCM), Google Play 결제 검증: 요청하지 않고 로그만 남김. Google Play 구매는 항상 유효로 처리
+  - 이미지 업로드: S3Mock에 저장
 
 ### IntelliJ
 

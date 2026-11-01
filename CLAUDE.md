@@ -8,7 +8,7 @@
 ./gradlew build                                        # 빌드 + 테스트
 ./gradlew test                                         # 전체 테스트
 ./gradlew test --tests "deepple.deepple.member.*"      # 일부 테스트
-docker compose --env-file .env up -d                   # 로컬 실행 (app, MySQL, Redis)
+./gradlew bootRun                                      # 로컬 실행 (MySQL·Valkey·S3Mock 자동 시작)
 ```
 
 ## 구조
@@ -66,7 +66,7 @@ docker compose --env-file .env up -d                   # 로컬 실행 (app, MyS
 - 이미 머지된 마이그레이션 파일은 수정하지 않는다. 새 파일을 추가한다.
 - FK 제약조건은 만들지 않는다.
 - PK와 `*_id` 컬럼은 `bigint`.
-- dev·prod는 `ddl-auto: validate`라서 엔티티와 마이그레이션이 일치해야 한다. (local은 `update`, Flyway 꺼짐)
+- local·dev·prod 모두 Flyway + `ddl-auto: validate`라서 엔티티와 마이그레이션이 일치해야 한다. 로컬 실행에서 바로 확인된다.
 
 ## 테스트
 
