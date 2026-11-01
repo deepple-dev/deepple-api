@@ -1,11 +1,13 @@
 package deepple.deepple.member.command.infra.member.sms;
 
+import deepple.deepple.member.command.domain.sms.SmsSender;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageRequest;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageResponse;
 import deepple.deepple.member.command.infra.member.sms.exception.BizgoMessageSendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,9 +15,10 @@ import org.springframework.web.client.RestClient;
 
 
 @Service
+@ConditionalOnProperty(name = "bizgo.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
-public class BizgoMessanger {
+public class BizgoMessenger implements SmsSender {
     private final RestClient restClient;
 
     @Value("${bizgo.from-phone-number}")
@@ -27,6 +30,7 @@ public class BizgoMessanger {
     @Value("${bizgo.api-key}")
     private String apiKey;
 
+    @Override
     public void sendMessage(String message, String phoneNumber) {
         /**
          * TODO : 타임아웃 에러에 대해서, Fallback 으로 재시도하는 로직 추가.

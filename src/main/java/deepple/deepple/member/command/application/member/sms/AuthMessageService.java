@@ -3,7 +3,7 @@ package deepple.deepple.member.command.application.member.sms;
 import deepple.deepple.member.command.application.member.exception.CodeNotExistsException;
 import deepple.deepple.member.command.application.member.exception.CodeNotMatchException;
 import deepple.deepple.member.command.infra.member.AuthMessageRedisRepository;
-import deepple.deepple.member.command.infra.member.sms.BizgoMessanger;
+import deepple.deepple.member.command.domain.sms.SmsSender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +15,12 @@ import java.util.Random;
 public class AuthMessageService {
     private static final Random generator = new SecureRandom();
     private final AuthMessageRedisRepository authMessageRedisRepository;
-    private final BizgoMessanger bizgoMessanger;
+    private final SmsSender smsSender;
 
     public void sendAndSaveCode(String phoneNumber) {
         String code = generateNumber();
         authMessageRedisRepository.save(phoneNumber, code);
-        bizgoMessanger.sendMessage(getMessage(code), phoneNumber);
+        smsSender.sendMessage(getMessage(code), phoneNumber);
     }
 
     public void authenticate(String phoneNumber, String code) {
