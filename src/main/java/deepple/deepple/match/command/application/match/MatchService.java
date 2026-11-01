@@ -95,6 +95,13 @@ public class MatchService {
     }
 
     @Transactional
+    public void readReceivedMatch(Long matchId, Long readerId) {
+        Match match = matchRepository.findByIdAndResponderId(matchId, readerId)
+            .orElseThrow(MatchNotFoundException::new);
+        match.read(readerId);
+    }
+
+    @Transactional
     public void read(Long readerId, Long matchRequesterId, Long matchResponderId) {
         validateReader(readerId, matchRequesterId, matchResponderId);
         Match match = matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId)

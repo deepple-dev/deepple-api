@@ -2,6 +2,7 @@ package deepple.deepple.member.query.member.view;
 
 import com.querydsl.core.annotations.QueryProjection;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 public record OtherMemberProfileView(
@@ -27,6 +28,7 @@ public record OtherMemberProfileView(
         String highestEducation,
         String religion,
         String like,
+        LocalDateTime lastAccessedAt,
         Long matchId,
         Long requesterId,
         Long responderId,
@@ -45,7 +47,7 @@ public record OtherMemberProfileView(
     ) {
         this(
             new BasicMemberInfo(id, nickname, profileImageUrl, yearOfBirth, gender, height, job, hobbies, mbti, city,
-                district, smokingStatus, drinkingStatus, highestEducation, religion, like),
+                district, smokingStatus, drinkingStatus, highestEducation, religion, like, lastAccessedAt),
             matchId == null ? null
                 : new MatchInfo(matchId, requesterId, responderId, requestMessage, responseMessage, matchStatus,
                     requesterContactType, responderContactType),

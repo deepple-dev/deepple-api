@@ -6,7 +6,5 @@ import deepple.deepple.datingexam.application.dto.DominantPersonalityTypeRespons
 public interface DatingExamFinder {
     DatingExamInfoWithSubjectSubmissionResponse findRequiredExamInfo(Long memberId);
 
-    DatingExamInfoWithSubjectSubmissionResponse findOptionalExamInfo(Long memberId);
-
     DominantPersonalityTypeResponse findDominantPersonalityType(Long memberId);
 }

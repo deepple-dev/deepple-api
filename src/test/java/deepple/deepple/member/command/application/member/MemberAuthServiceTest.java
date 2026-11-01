@@ -240,6 +240,64 @@ class MemberAuthServiceTest {
             Assertions.assertThatThrownBy(() -> memberAuthService.login(phoneNumber, code))
                 .isInstanceOf(MemberLoginConflictException.class);
         }
+
+        @Test
+        @DisplayName("로그인 성공 시 마지막 접속 시각을 갱신한다")
+        void updatesLastAccessedAtOnLogin() {
+            String phoneNumber = "01012345678";
+            String code = "01012345678";
+            Instant fixedInstant = Instant.parse("2024-01-01T00:00:00Z");
+
+            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class)) {
+                mockedInstant.when(Instant::now).thenReturn(fixedInstant);
+
+                when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(member));
+                when(
+                    jwtProvider.createAccessToken(Mockito.anyLong(), Mockito.eq(Role.MEMBER), Mockito.eq(fixedInstant)))
+                    .thenReturn("accessToken");
+                when(jwtProvider.createRefreshToken(Mockito.anyLong(), Mockito.eq(Role.MEMBER),
+                    Mockito.eq(fixedInstant)))
+                    .thenReturn("refreshToken");
+                Mockito.doNothing().when(authMessageService).authenticate(phoneNumber, code);
+
+                // When
+                memberAuthService.login(phoneNumber, code);
+
+                // Then
+                Mockito.verify(memberCommandRepository)
+                    .updateLastAccessedAt(Mockito.eq(memberId), Mockito.any(LocalDateTime.class));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("토큰 갱신 테스트")
+    class Refresh {
+
+        @Test
+        @DisplayName("토큰 갱신 성공 시 마지막 접속 시각을 갱신한다")
+        void updatesLastAccessedAtOnRefresh() {
+            // Given
+            String refreshToken = "refreshToken";
+            long memberId = 1L;
+
+            when(tokenParser.isExpired(refreshToken)).thenReturn(false);
+            when(tokenParser.isValid(refreshToken)).thenReturn(true);
+            when(tokenRepository.exists(refreshToken)).thenReturn(true);
+            when(tokenParser.getId(refreshToken)).thenReturn(memberId);
+            when(tokenParser.getRole(refreshToken)).thenReturn(Role.MEMBER);
+            when(jwtProvider.createAccessToken(Mockito.eq(memberId), Mockito.eq(Role.MEMBER), Mockito.any()))
+                .thenReturn("newAccessToken");
+            when(jwtProvider.createRefreshToken(Mockito.eq(memberId), Mockito.eq(Role.MEMBER), Mockito.any()))
+                .thenReturn("newRefreshToken");
+
+            // When
+            memberAuthService.refresh(refreshToken);
+
+            // Then
+            Mockito.verify(memberCommandRepository)
+                .updateLastAccessedAt(Mockito.eq(memberId), Mockito.any(LocalDateTime.class));
+        }
     }
 
     @Nested

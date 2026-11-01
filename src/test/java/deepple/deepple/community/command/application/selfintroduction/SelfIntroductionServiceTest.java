@@ -1,11 +1,13 @@
 package deepple.deepple.community.command.application.selfintroduction;
 
+import deepple.deepple.common.event.Events;
 import deepple.deepple.common.infra.s3.S3Uploader;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import deepple.deepple.community.command.application.selfintroduction.exception.NotSelfIntroductionAuthorException;
 import deepple.deepple.community.command.application.selfintroduction.exception.SelfIntroductionNotFoundException;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroductionCommandRepository;
+import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
 import deepple.deepple.member.command.domain.member.Member;
@@ -17,12 +19,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -102,6 +106,52 @@ public class SelfIntroductionServiceTest {
             verify(selfIntroductionCommandRepository).save(argThat(selfIntroduction ->
                 imageUrl.equals(selfIntroduction.getImageUrl())
             ));
+        }
+
+        @DisplayName("최초로 셀프 소개를 작성하는 경우, 셀프 소개 작성 완료 이벤트를 발행한다.")
+        @Test
+        void raiseEventWhenFirstSelfIntroduction() {
+            // Given
+            Long memberId = 1L;
+            String title = "셀프 소개 제목";
+            String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
+
+            Mockito.when(memberCommandRepository.findById(memberId))
+                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+            Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(false);
+
+            try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
+                // When
+                boolean hasProcessedMission = selfIntroductionService.write(
+                    new SelfIntroductionWriteRequest(title, content, null), memberId);
+
+                // Then
+                Assertions.assertThat(hasProcessedMission).isTrue();
+                mockedEvents.verify(() -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.of(memberId))));
+            }
+        }
+
+        @DisplayName("이미 셀프 소개를 작성한 적이 있는 경우, 셀프 소개 작성 완료 이벤트를 발행하지 않는다.")
+        @Test
+        void notRaiseEventWhenNotFirstSelfIntroduction() {
+            // Given
+            Long memberId = 1L;
+            String title = "셀프 소개 제목";
+            String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
+
+            Mockito.when(memberCommandRepository.findById(memberId))
+                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+            Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(true);
+
+            try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
+                // When
+                boolean hasProcessedMission = selfIntroductionService.write(
+                    new SelfIntroductionWriteRequest(title, content, null), memberId);
+
+                // Then
+                Assertions.assertThat(hasProcessedMission).isFalse();
+                mockedEvents.verifyNoInteractions();
+            }
         }
     }
 

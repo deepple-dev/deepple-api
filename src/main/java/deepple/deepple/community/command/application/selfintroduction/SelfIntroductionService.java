@@ -23,11 +23,17 @@ public class SelfIntroductionService {
     private final S3Uploader s3Uploader;
 
     @Transactional
-    public void write(SelfIntroductionWriteRequest request, Long memberId) {
+    public boolean write(SelfIntroductionWriteRequest request, Long memberId) {
         validateMemberId(memberId);
+        boolean isFirstSelfIntroduction = isFirstSelfIntroduction(memberId);
         SelfIntroduction selfIntroduction = SelfIntroduction.write(memberId, request.title(), request.content(),
-            request.imageUrl());
+            request.imageUrl(), isFirstSelfIntroduction);
         selfIntroductionCommandRepository.save(selfIntroduction);
+        return isFirstSelfIntroduction;
+    }
+
+    private boolean isFirstSelfIntroduction(Long memberId) {
+        return !selfIntroductionCommandRepository.existsByMemberId(memberId);
     }
 
     @Transactional

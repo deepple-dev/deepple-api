@@ -5,12 +5,14 @@ import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record DominantPersonalityTypeResponse(
-    @Schema(implementation = AnswerPersonalityType.class)
+    @Schema(implementation = AnswerPersonalityType.class, description = AnswerPersonalityType.SCHEMA_DESCRIPTION)
     String personalityType,
     int decisiveIndependentCount,
     int growingRunningMateCount,
     int devotedRomanticCount,
-    int realisticShelterCount
+    int realisticShelterCount,
+    int stimulatingAdventurerCount,
+    int rationalRealistCount
 ) {
     public static DominantPersonalityTypeResponse from(DatingExamSubmitResult result) {
         return new DominantPersonalityTypeResponse(
@@ -18,7 +20,9 @@ public record DominantPersonalityTypeResponse(
             result.getDecisiveIndependentCount(),
             result.getGrowingRunningMateCount(),
             result.getDevotedRomanticCount(),
-            result.getRealisticShelterCount()
+            result.getRealisticShelterCount(),
+            result.getStimulatingAdventurerCount(),
+            result.getRationalRealistCount()
         );
     }
 }

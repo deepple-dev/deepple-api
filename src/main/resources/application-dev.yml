@@ -56,12 +56,12 @@ jwt:
   access-token:
     expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:1800}  # 30분
   refresh-token:
-    expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:1209600}  # 2주
+    expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:2592000}  # 30일
 
 auth:
   refresh-token-cookie:
     name: refresh_token
-    max-age: 2419200  # 4주
+    max-age: 2592000  # 30일
     path: /
     same-site: None
     secure: true

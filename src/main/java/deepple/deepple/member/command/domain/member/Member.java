@@ -11,6 +11,8 @@ import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "members", indexes = {
     @Index(name = "idx_deleted_at", columnList = "deletedAt")
@@ -64,6 +66,9 @@ public class Member extends SoftDeleteBaseEntity {
     @Getter
     @Builder.Default
     private boolean isDatingExamSubmitted = false;
+
+    @Getter
+    private LocalDateTime lastAccessedAt;
 
     public static Member fromPhoneNumber(@NonNull String phoneNumber) {
         return Member.builder()
@@ -156,6 +161,12 @@ public class Member extends SoftDeleteBaseEntity {
         heartBalance = heartBalance.gainMissionHeart(heartAmount);
         Events.raise(MissionHeartGainedEvent.of(id, heartAmount.getAmount(), heartBalance.getMissionHeartBalance(),
             heartBalance.getPurchaseHeartBalance(), actionType));
+    }
+
+    public void gainAdminGrantedHeart(HeartAmount heartAmount, Long adminId, String reason) {
+        heartBalance = heartBalance.gainMissionHeart(heartAmount);
+        Events.raise(AdminHeartGrantedEvent.of(id, adminId, heartAmount.getAmount(),
+            heartBalance.getMissionHeartBalance(), heartBalance.getPurchaseHeartBalance(), reason));
     }
 
     public void refundPurchaseHeart(HeartAmount heartAmount) {
