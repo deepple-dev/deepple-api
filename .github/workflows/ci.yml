@@ -29,8 +29,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      pull-requests: write
-      checks: write
 
     steps:
       - uses: actions/checkout@v4
@@ -49,14 +47,6 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
-
-      - name: Publish test results to PR
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && github.event_name == 'pull_request'
-        with:
-          files: build/test-results/test/TEST-*.xml
-          comment_mode: always
-          check_name: Test results
 
       - name: Upload test reports on failure
         if: failure()
