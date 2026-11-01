@@ -62,7 +62,7 @@ docker compose --env-file .env up -d                   # 로컬 실행 (app, MyS
 - 트렁크 기반: `main` 단일 브랜치, squash merge. `develop`은 사용하지 않는다.
 - 이슈 → 브랜치 `이슈번호-짧은설명` → 커밋 `타입(범위): 설명` → PR(`Closes #이슈번호`)
 - 타입: `feat` `fix` `refactor` `test` `docs` `chore` `infra` / 범위: 도메인 이름(생략 가능)
-- 브랜치·커밋·PR은 `/branch`, `/commit`, `/pr` 스킬 규칙을 따른다.
+- 이슈·브랜치·커밋·PR은 `/issue`, `/branch`, `/commit`, `/pr` 스킬 규칙을 따른다.
 
 ## 하지 말 것
 
