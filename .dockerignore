@@ -25,8 +25,6 @@ build/
 *.pem
 *.key
 secrets/
-!secrets/deepple-firebase.json
-!secrets/deepple-google-play.json
 certs/
 !certs/appstore/
 
@@ -47,7 +45,7 @@ Thumbs.db
 docs/
 
 # Docker 관련
-docker-compose.yml
+compose.yml
 Dockerfile*
 
 # 기타

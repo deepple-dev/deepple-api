@@ -1,45 +1,29 @@
-# 빌드를 위한 베이스 이미지
 FROM eclipse-temurin:21-jdk-jammy AS build
+WORKDIR /workspace
 
-# 작업 디렉토리 설정
-WORKDIR /workspace/app
-
-# Gradle Wrapper와 빌드 스크립트 복사
-COPY gradlew .
+# 빌드 스크립트만 먼저 복사해 의존성 레이어를 소스 변경과 분리한다
+COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
+RUN ./gradlew dependencies --no-daemon > /dev/null
 
-RUN chmod +x gradlew
-
-# Gradle 의존성 다운로드
-RUN ./gradlew --no-daemon dependencies
-
-# 소스 코드와 나머지 프로젝트 파일 복사
 COPY src src
+RUN ./gradlew bootJar --no-daemon \
+    && java -Djarmode=tools -jar build/libs/*.jar extract --layers --launcher --destination extracted
 
-# 애플리케이션 빌드
-RUN ./gradlew build -x test --no-daemon
-
-# 런타임을 위한 새로운 베이스 이미지
 FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
 
-VOLUME /tmp
+RUN useradd --system --uid 1001 app
 
-# Apple Root CA 인증서 복사
-COPY certs /etc/certs
+COPY certs/appstore /etc/certs/appstore
 
-# Firebase 서비스 계정 키 복사
-COPY secrets/deepple-firebase.json /etc/secrets/deepple-firebase.json
+# 자주 바뀌지 않는 레이어부터 복사해 이미지 레이어 캐시를 살린다
+COPY --from=build /workspace/extracted/dependencies/ ./
+COPY --from=build /workspace/extracted/spring-boot-loader/ ./
+COPY --from=build /workspace/extracted/snapshot-dependencies/ ./
+COPY --from=build /workspace/extracted/application/ ./
 
-# Google Play 서비스 계정 키 복사
-COPY secrets/deepple-google-play.json /etc/secrets/deepple-google-play.json
-
-# 빌드 아티팩트 복사
-COPY --from=build /workspace/app/build/libs/*.jar app.jar
-
-# 8080 포트 노출
+USER app
 EXPOSE 8080
 
-# 애플리케이션 실행
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
