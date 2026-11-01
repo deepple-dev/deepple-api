@@ -3,7 +3,7 @@ paths:
   - "**/*.java"
 ---
 
-# Java 스타일
+# Java
 
 들여쓰기·공백·줄 길이(120자) 같은 서식은 IntelliJ 코드 스타일(`.idea/codeStyles`)을 따른다. 아래는 포맷터가 잡지 못하는 규칙이다.
 

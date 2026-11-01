@@ -58,7 +58,7 @@ docker compose --env-file .env up -d                   # 로컬 실행 (app, MyS
 - 동시성이 필요한 처리는 `LockRepository`(Redisson 분산락)를 쓴다.
 - 엔티티는 `BaseEntity` 또는 `SoftDeleteBaseEntity`를 상속한다.
 - 주석과 예외 메시지는 한국어.
-- 세부 규칙은 `.claude/rules/`: Java 스타일(`java-style.md`), Swagger 문서화(`swagger.md`), 외부 API 연동(`resilience.md`)
+- 세부 규칙은 `.claude/rules/`: Java(`java.md`), Swagger 문서화(`swagger.md`), 외부 API 연동(`resilience.md`)
 
 ## DB
 
