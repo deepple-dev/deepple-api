@@ -4,4 +4,5 @@ import deepple.deepple.community.command.domain.selfintroduction.SelfIntroductio
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SelfIntroductionJpaRepository extends JpaRepository<SelfIntroduction, Long> {
+    boolean existsByMemberId(Long memberId);
 }

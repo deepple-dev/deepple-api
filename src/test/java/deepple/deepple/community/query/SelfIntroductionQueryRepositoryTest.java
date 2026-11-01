@@ -9,14 +9,14 @@ import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroduct
 import deepple.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionView;
+import deepple.deepple.datingexam.domain.AnswerPersonalityType;
+import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
 import deepple.deepple.member.command.domain.member.*;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
 import deepple.deepple.member.command.domain.member.vo.Region;
-import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import deepple.deepple.member.query.member.AgeConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Import;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,10 +50,8 @@ public class SelfIntroductionQueryRepositoryTest {
     @DisplayName("셀프 소개 페이지네이션 테스트")
     class selfIntroductionPaginationTest {
         Member maleMember;
-        String maleMemberProfileImageUrl = "imageUrl1";
 
         Member femaleMember;
-        String femaleMemberProfileImageUrl = "imageUrl2";
 
         List<SelfIntroduction> selfIntroductions = new ArrayList<>();
 
@@ -79,24 +78,6 @@ public class SelfIntroductionQueryRepositoryTest {
 
             maleMember.updateProfile(maleMemberProfile);
             femaleMember.updateProfile(femaleMemberProfile);
-            entityManager.flush();
-
-            // 프로필 이미지 설정.
-            ProfileImage maleMemberProfileImage = ProfileImage.builder()
-                .isPrimary(true)
-                .order(1)
-                .imageUrl(ImageUrl.from(maleMemberProfileImageUrl))
-                .memberId(maleMember.getId())
-                .build();
-
-            ProfileImage femaleMemberProfileImage = ProfileImage.builder()
-                .isPrimary(true)
-                .imageUrl(ImageUrl.from(femaleMemberProfileImageUrl))
-                .memberId(femaleMember.getId())
-                .build();
-
-            entityManager.persist(maleMemberProfileImage);
-            entityManager.persist(femaleMemberProfileImage);
             entityManager.flush();
 
             // 셀프 소개 글 작성.
@@ -174,8 +155,39 @@ public class SelfIntroductionQueryRepositoryTest {
                 assertThat(view.id()).isEqualTo(selfIntroduction.getId());
                 assertThat(view.title()).isEqualTo(selfIntroduction.getTitle());
                 assertThat(view.nickname()).isEqualTo(maleMember.getProfile().getNickname().getValue());
-                assertThat(view.profileUrl()).isEqualTo(maleMemberProfileImageUrl);
                 assertThat(view.yearOfBirth()).isEqualTo(maleMember.getProfile().getYearOfBirth().getValue());
+            }
+        }
+
+        @Test
+        @DisplayName("연애가치관 테스트를 완료한 멤버의 글은 유형 정보를 포함하고, 완료하지 않은 멤버의 글은 유형 정보가 없다.")
+        void getSelfIntroductionsWithPersonalityType() {
+            // Given
+            DatingExamSubmitResult maleResult = DatingExamSubmitResult.create(maleMember.getId());
+            maleResult.addCounts(Map.of(AnswerPersonalityType.STIMULATING_ADVENTURER, 5));
+            entityManager.persist(maleResult);
+            entityManager.flush();
+
+            SelfIntroductionSearchCondition searchCondition = new SelfIntroductionSearchCondition(
+                null, null, null, Gender.MALE
+            );
+
+            // When
+            List<SelfIntroductionSummaryView> maleIntroductions = selfIntroductionQueryRepository
+                .findSelfIntroductions(searchCondition, null, femaleMember.getId());
+            List<SelfIntroductionSummaryView> femaleIntroductions = selfIntroductionQueryRepository
+                .findSelfIntroductions(new SelfIntroductionSearchCondition(null, null, null, Gender.FEMALE), null,
+                    maleMember.getId());
+
+            // Then
+            assertThat(maleIntroductions).isNotEmpty();
+            for (SelfIntroductionSummaryView view : maleIntroductions) {
+                assertThat(view.personalityType()).isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER.name());
+            }
+
+            assertThat(femaleIntroductions).isNotEmpty();
+            for (SelfIntroductionSummaryView view : femaleIntroductions) {
+                assertThat(view.personalityType()).isNull();
             }
         }
 
@@ -301,7 +313,6 @@ public class SelfIntroductionQueryRepositoryTest {
     class selfIntroductionFindTest {
         Member member;
         Member targetMember;
-        ProfileImage profileImage;
         Like like;
         Set<Hobby> hobbies;
         SelfIntroduction selfIntroduction;
@@ -331,27 +342,6 @@ public class SelfIntroductionQueryRepositoryTest {
             targetMember.updateProfile(memberProfile);
 
             entityManager.flush();
-
-            // 프로필 이미지 설정.
-            profileImage = ProfileImage.builder()
-                .imageUrl(ImageUrl.from("imageUrl1"))
-                .memberId(targetMember.getId())
-                .isPrimary(true)
-                .order(1)
-                .build();
-
-            ProfileImage subImage = ProfileImage.builder()
-                .imageUrl(ImageUrl.from("imageUrl2"))
-                .memberId(targetMember.getId())
-                .isPrimary(false)
-                .order(2)
-                .build();
-
-
-            entityManager.persist(profileImage);
-            entityManager.persist(subImage);
-            entityManager.flush();
-
 
             // 좋아요 데이터 생성
             like = Like.of(member.getId(), targetMember.getId(), LikeLevel.HIGHLY_INTERESTED);
@@ -401,8 +391,26 @@ public class SelfIntroductionQueryRepositoryTest {
                 .isEqualTo(targetMember.getProfile().getRegion().getDistrict().toString());
             assertThat(view.memberBasicInfo().hobbies())
                 .hasSameSizeAs(targetMember.getProfile().getHobbies());
-            assertThat(view.memberBasicInfo().profileImageUrl()).isEqualTo(profileImage.getUrl());
             assertThat(view.profileExchangeStatus()).isEqualTo(ProfileExchangeStatus.APPROVE.name());
+            assertThat(view.memberBasicInfo().personalityType()).isNull();
+        }
+
+        @Test
+        @DisplayName("작성자가 연애가치관 테스트를 완료한 경우, 상세 조회에 유형 정보가 포함됩니다.")
+        void findSelfIntroductionWithPersonalityType() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(targetMember.getId());
+            result.addCounts(Map.of(AnswerPersonalityType.REALISTIC_SHELTER, 5));
+            entityManager.persist(result);
+            entityManager.flush();
+
+            // When
+            SelfIntroductionView view = selfIntroductionQueryRepository.findSelfIntroductionByIdWithMemberId(
+                selfIntroduction.getId(), member.getId()).orElse(null);
+
+            // Then
+            assertThat(view.memberBasicInfo().personalityType())
+                .isEqualTo(AnswerPersonalityType.REALISTIC_SHELTER.name());
         }
 
         @Test

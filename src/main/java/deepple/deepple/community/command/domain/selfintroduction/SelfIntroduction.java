@@ -1,6 +1,8 @@
 package deepple.deepple.community.command.domain.selfintroduction;
 
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
+import deepple.deepple.common.event.Events;
+import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionContentException;
 import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionTitleException;
 import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
@@ -51,6 +53,15 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
 
     public static SelfIntroduction write(Long memberId, String title, String content, String imageUrl) {
         return new SelfIntroduction(memberId, title, content, imageUrl, false);
+    }
+
+    public static SelfIntroduction write(Long memberId, String title, String content, String imageUrl,
+        boolean isFirstWrite) {
+        SelfIntroduction selfIntroduction = write(memberId, title, content, imageUrl);
+        if (isFirstWrite) {
+            Events.raise(SelfIntroductionFirstWrittenEvent.of(memberId));
+        }
+        return selfIntroduction;
     }
 
     public void update(String title, String content, String imageUrl) {

@@ -68,7 +68,7 @@ class DatingExamSubmitResultTest {
         }
 
         @Test
-        @DisplayName("동점 시 ordinal이 작은 타입이 dominant가 된다 (A>B>C>D 우선순위).")
+        @DisplayName("4개 유형 동점 시 우선순위 최상위인 자기주도형(DECISIVE_INDEPENDENT)이 dominant가 된다.")
         void tieBreaksToSmallerOrdinal() {
             // Given
             DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
@@ -86,7 +86,7 @@ class DatingExamSubmitResultTest {
         }
 
         @Test
-        @DisplayName("B와 C가 동점이면 B가 우선한다.")
+        @DisplayName("동반성장형과 정서교감형이 동점이면 우선순위가 높은 동반성장형이 우선한다.")
         void tieBreakBOverC() {
             // Given
             DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
@@ -99,6 +99,71 @@ class DatingExamSubmitResultTest {
 
             // Then
             assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.GROWING_RUNNING_MATE);
+        }
+
+        @Test
+        @DisplayName("신규 유형(STIMULATING_ADVENTURER)도 최다 카운트면 dominant가 된다.")
+        void newTypeCanBecomeDominant() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+
+            // When
+            result.addCounts(Map.of(
+                AnswerPersonalityType.STIMULATING_ADVENTURER, 4,
+                AnswerPersonalityType.DECISIVE_INDEPENDENT, 2
+            ));
+
+            // Then
+            assertThat(result.getStimulatingAdventurerCount()).isEqualTo(4);
+            assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER);
+        }
+
+        @Test
+        @DisplayName("현실안정형과 이성중심형이 동점이면 우선순위가 높은 현실안정형이 우선한다.")
+        void tieBreaksRealisticOverRational() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+
+            // When
+            result.addCounts(Map.of(
+                AnswerPersonalityType.REALISTIC_SHELTER, 3,
+                AnswerPersonalityType.RATIONAL_REALIST, 3
+            ));
+
+            // Then
+            assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.REALISTIC_SHELTER);
+        }
+
+        @Test
+        @DisplayName("자극모험형은 동점 시 동반성장형보다 우선한다 (신규 유형이 기존 유형보다 앞선 우선순위).")
+        void tieBreaksStimulatingOverGrowing() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+
+            // When
+            result.addCounts(Map.of(
+                AnswerPersonalityType.STIMULATING_ADVENTURER, 3,
+                AnswerPersonalityType.GROWING_RUNNING_MATE, 3
+            ));
+
+            // Then
+            assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER);
+        }
+
+        @Test
+        @DisplayName("이성중심형은 동점 시 정서교감형보다 우선한다.")
+        void tieBreaksRationalOverDevoted() {
+            // Given
+            DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+
+            // When
+            result.addCounts(Map.of(
+                AnswerPersonalityType.RATIONAL_REALIST, 2,
+                AnswerPersonalityType.DEVOTED_ROMANTIC, 2
+            ));
+
+            // Then
+            assertThat(result.getDominantPersonalityType()).isEqualTo(AnswerPersonalityType.RATIONAL_REALIST);
         }
 
         @Test

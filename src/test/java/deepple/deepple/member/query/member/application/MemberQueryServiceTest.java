@@ -4,10 +4,14 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
+import deepple.deepple.member.presentation.member.dto.MemberProfileResponse;
+import deepple.deepple.member.presentation.member.dto.ProfileImageInfo;
 import deepple.deepple.member.query.member.application.event.MemberProfileRetrievedEvent;
 import deepple.deepple.member.query.member.application.exception.ProfileAccessDeniedException;
 import deepple.deepple.member.query.member.infra.MemberQueryRepository;
 import deepple.deepple.member.query.member.view.*;
+import deepple.deepple.member.query.profileimage.ProfileImageQueryRepository;
+import deepple.deepple.member.query.profileimage.view.ProfileImageView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,9 +24,12 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
@@ -30,6 +37,9 @@ import static org.mockito.Mockito.*;
 class MemberQueryServiceTest {
     @Mock
     private MemberQueryRepository memberQueryRepository;
+
+    @Mock
+    private ProfileImageQueryRepository profileImageQueryRepository;
 
     @InjectMocks
     private MemberQueryService memberQueryService;
@@ -199,6 +209,70 @@ class MemberQueryServiceTest {
                 // Then
                 mockEvents.verify(() -> Events.raise(memberProfileRetrievedEvent));
             }
+        }
+
+        @DisplayName("상대방 프로필 조회 시 메인 이미지를 제외한 추가 이미지를 순서대로 반환한다.")
+        @Test
+        void returnsAdditionalProfileImagesExcludingPrimary() {
+            // Given
+            ProfileAccessView profileAccessView = new ProfileAccessView(true, null, null, null, null, null, false,
+                false,
+                ActivityStatus.ACTIVE.name());
+            OtherMemberProfileView view = new OtherMemberProfileView(mock(BasicMemberInfo.class), mock(MatchInfo.class),
+                mock(ContactView.class), mock(ProfileExchangeInfo.class), mock(IntroductionInfo.class));
+            when(memberQueryRepository.findProfileAccessViewByMemberId(memberId, otherMemberId)).thenReturn(
+                Optional.of(profileAccessView));
+            when(memberQueryRepository.findOtherProfileByMemberId(memberId, otherMemberId)).thenReturn(
+                Optional.of(view));
+            when(profileImageQueryRepository.findByMemberId(otherMemberId)).thenReturn(List.of(
+                new ProfileImageView(1L, "https://image/main.jpg", true, 0),
+                new ProfileImageView(2L, "https://image/sub1.jpg", false, 1),
+                new ProfileImageView(3L, "https://image/sub2.jpg", false, 2)
+            ));
+
+            // When
+            MemberProfileResponse response;
+            try (MockedStatic<Events> mockEvents = mockStatic(Events.class);
+                MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent = mockStatic(
+                    MemberProfileRetrievedEvent.class)) {
+                response = memberQueryService.getMemberProfile(memberId, otherMemberId);
+            }
+
+            // Then
+            assertThat(response.memberInfo().additionalProfileImages())
+                .extracting(ProfileImageInfo::url, ProfileImageInfo::order)
+                .containsExactly(
+                    tuple("https://image/sub1.jpg", 1),
+                    tuple("https://image/sub2.jpg", 2));
+        }
+
+        @DisplayName("메인 이미지만 존재하는 경우, 추가 이미지 목록은 비어 있다.")
+        @Test
+        void returnsEmptyAdditionalProfileImagesWhenOnlyPrimaryExists() {
+            // Given
+            ProfileAccessView profileAccessView = new ProfileAccessView(true, null, null, null, null, null, false,
+                false,
+                ActivityStatus.ACTIVE.name());
+            OtherMemberProfileView view = new OtherMemberProfileView(mock(BasicMemberInfo.class), mock(MatchInfo.class),
+                mock(ContactView.class), mock(ProfileExchangeInfo.class), mock(IntroductionInfo.class));
+            when(memberQueryRepository.findProfileAccessViewByMemberId(memberId, otherMemberId)).thenReturn(
+                Optional.of(profileAccessView));
+            when(memberQueryRepository.findOtherProfileByMemberId(memberId, otherMemberId)).thenReturn(
+                Optional.of(view));
+            when(profileImageQueryRepository.findByMemberId(otherMemberId)).thenReturn(List.of(
+                new ProfileImageView(1L, "https://image/main.jpg", true, 0)
+            ));
+
+            // When
+            MemberProfileResponse response;
+            try (MockedStatic<Events> mockEvents = mockStatic(Events.class);
+                MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent = mockStatic(
+                    MemberProfileRetrievedEvent.class)) {
+                response = memberQueryService.getMemberProfile(memberId, otherMemberId);
+            }
+
+            // Then
+            assertThat(response.memberInfo().additionalProfileImages()).isEmpty();
         }
     }
 }

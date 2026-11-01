@@ -1,14 +1,19 @@
 package deepple.deepple.community.command.domain.selfintroduction;
 
+import deepple.deepple.common.event.Events;
+import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionContentException;
 import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionTitleException;
 import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 
 public class SelfIntroductionTest {
 
@@ -44,6 +49,40 @@ public class SelfIntroductionTest {
 
         // Then
         assertThat(selfIntroduction.getImageUrl()).isEqualTo(imageUrl);
+    }
+
+    @Test
+    @DisplayName("최초로 작성하는 셀프 소개인 경우, 셀프 소개 작성 완료 이벤트를 발행한다.")
+    void raiseEventWhenFirstWrite() {
+        // Given
+        Long memberId = 1L;
+        String title = "셀프 소개 제목";
+        String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
+
+        try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
+            // When
+            SelfIntroduction.write(memberId, title, content, null, true);
+
+            // Then
+            mockedEvents.verify(() -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.of(memberId))));
+        }
+    }
+
+    @Test
+    @DisplayName("최초로 작성하는 셀프 소개가 아닌 경우, 셀프 소개 작성 완료 이벤트를 발행하지 않는다.")
+    void notRaiseEventWhenNotFirstWrite() {
+        // Given
+        Long memberId = 1L;
+        String title = "셀프 소개 제목";
+        String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
+
+        try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
+            // When
+            SelfIntroduction.write(memberId, title, content, null, false);
+
+            // Then
+            mockedEvents.verifyNoInteractions();
+        }
     }
 
     @Nested

@@ -17,6 +17,7 @@ import org.mockito.MockedStatic;
 
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -163,6 +164,40 @@ class MemberTest {
 
             // Then
             Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
+        }
+    }
+
+    @Nested
+    @DisplayName("gainAdminGrantedHeart 메서드 테스트")
+    class GainAdminGrantedHeartMethodTest {
+        @Test
+        @DisplayName("관리자가 하트를 지급하면 미션 하트 잔액이 증가하고 AdminHeartGrantedEvent 가 발행됩니다.")
+        void shouldIncreaseMissionHeartBalanceAndRaiseEventWhenAdminGrants() {
+            try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
+                // Given
+                Member member = Member.fromPhoneNumber("01012345678");
+                Long memberId = 1L;
+                setField(member, "id", memberId);
+                HeartAmount grantAmount = HeartAmount.from(50L);
+                Long adminId = 99L;
+                String reason = "CS 보상";
+                HeartBalance expectedHeartBalance = HeartBalance.init().gainMissionHeart(grantAmount);
+
+                // When
+                member.gainAdminGrantedHeart(grantAmount, adminId, reason);
+
+                // Then
+                Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
+                eventsMock.verify(() -> Events.raise(argThat(event ->
+                    event instanceof deepple.deepple.member.command.domain.member.event.AdminHeartGrantedEvent e
+                        && e.getMemberId().equals(memberId)
+                        && e.getAdminId().equals(adminId)
+                        && e.getAmount().equals(50L)
+                        && e.getReason().equals(reason)
+                        && e.getMissionHeartBalance().equals(expectedHeartBalance.getMissionHeartBalance())
+                        && e.getPurchaseHeartBalance().equals(expectedHeartBalance.getPurchaseHeartBalance())
+                )));
+            }
         }
     }
 
