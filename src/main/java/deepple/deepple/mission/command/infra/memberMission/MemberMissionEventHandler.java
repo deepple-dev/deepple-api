@@ -1,5 +1,6 @@
 package deepple.deepple.mission.command.infra.memberMission;
 
+import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import deepple.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import deepple.deepple.mission.command.application.memberMission.MemberMissionService;
 import deepple.deepple.mission.command.domain.mission.ActionType;
@@ -19,5 +20,11 @@ public class MemberMissionEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(AllRequiredSubjectSubmittedEvent event) {
         memberMissionService.executeMissionsByAction(event.getMemberId(), ActionType.FIRST_DATE_EXAM.name());
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handle(SelfIntroductionFirstWrittenEvent event) {
+        memberMissionService.executeMissionsByAction(event.getMemberId(), ActionType.SELF_INTRODUCTION.name());
     }
 }

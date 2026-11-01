@@ -33,7 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -567,6 +569,38 @@ class MemberQueryRepositoryTest {
             assertThat(view.profileExchangeInfo().responderId()).isEqualTo(otherMember.getId());
             assertThat(view.profileExchangeInfo().profileExchangeStatus()).isEqualTo(
                 profileExchange.getStatus().name());
+        }
+
+        @Test
+        @DisplayName("상대방의 마지막 접속 시각을 함께 조회한다")
+        void getLastAccessedAt() {
+            // Given
+            LocalDateTime accessedAt = LocalDateTime.of(2026, 1, 1, 12, 0);
+            ReflectionTestUtils.setField(otherMember, "lastAccessedAt", accessedAt);
+            entityManager.persist(otherMember);
+            entityManager.flush();
+
+            // When
+            OtherMemberProfileView view = memberQueryRepository.findOtherProfileByMemberId(member.getId(),
+                    otherMember.getId())
+                .orElse(null);
+
+            // Then
+            assertThat(view).isNotNull();
+            assertThat(view.basicMemberInfo().lastAccessedAt()).isEqualTo(accessedAt);
+        }
+
+        @Test
+        @DisplayName("접속 기록이 없는 회원은 lastAccessedAt이 null로 조회된다")
+        void getNullLastAccessedAtWhenNeverAccessed() {
+            // When
+            OtherMemberProfileView view = memberQueryRepository.findOtherProfileByMemberId(member.getId(),
+                    otherMember.getId())
+                .orElse(null);
+
+            // Then
+            assertThat(view).isNotNull();
+            assertThat(view.basicMemberInfo().lastAccessedAt()).isNull();
         }
 
         private void assertionsBasicInfo(BasicMemberInfo basicMemberInfo, MemberProfile otherMemberProfile) {

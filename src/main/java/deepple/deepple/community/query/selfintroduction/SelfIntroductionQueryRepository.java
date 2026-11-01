@@ -24,9 +24,9 @@ import static com.querydsl.core.types.dsl.Expressions.enumPath;
 import static deepple.deepple.block.domain.QBlock.block;
 import static deepple.deepple.community.command.domain.profileexchange.QProfileExchange.profileExchange;
 import static deepple.deepple.community.command.domain.selfintroduction.QSelfIntroduction.selfIntroduction;
+import static deepple.deepple.datingexam.domain.QDatingExamSubmitResult.datingExamSubmitResult;
 import static deepple.deepple.like.command.domain.QLike.like;
 import static deepple.deepple.member.command.domain.member.QMember.member;
-import static deepple.deepple.member.command.domain.profileImage.QProfileImage.profileImage;
 
 @Repository
 @RequiredArgsConstructor
@@ -45,17 +45,17 @@ public class SelfIntroductionQueryRepository {
                 new QSelfIntroductionSummaryView(
                     selfIntroduction.id,
                     member.profile.nickname.value,
-                    profileImage.imageUrl.value,
                     member.profile.yearOfBirth.value,
                     selfIntroduction.title,
                     selfIntroduction.content,
                     selfIntroduction.imageUrl,
-                    selfIntroduction.createdAt
+                    selfIntroduction.createdAt,
+                    datingExamSubmitResult.dominantPersonalityType.stringValue()
                 )
             )
             .from(selfIntroduction)
             .join(member).on(member.id.eq(selfIntroduction.memberId))
-            .leftJoin(profileImage).on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
+            .leftJoin(datingExamSubmitResult).on(datingExamSubmitResult.memberId.eq(member.id))
             .where(condition)
             .limit(PAGE_SIZE)
             .orderBy(selfIntroduction.id.desc())
@@ -74,17 +74,17 @@ public class SelfIntroductionQueryRepository {
                 new QSelfIntroductionSummaryView(
                     selfIntroduction.id,
                     member.profile.nickname.value,
-                    profileImage.imageUrl.value,
                     member.profile.yearOfBirth.value,
                     selfIntroduction.title,
                     selfIntroduction.content,
                     selfIntroduction.imageUrl,
-                    selfIntroduction.createdAt
+                    selfIntroduction.createdAt,
+                    datingExamSubmitResult.dominantPersonalityType.stringValue()
                 )
             )
             .from(selfIntroduction)
             .join(member).on(member.id.eq(selfIntroduction.memberId))
-            .leftJoin(profileImage).on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
+            .leftJoin(datingExamSubmitResult).on(datingExamSubmitResult.memberId.eq(member.id))
             .where(condition)
             .limit(PAGE_SIZE)
             .orderBy(selfIntroduction.id.desc())
@@ -100,10 +100,9 @@ public class SelfIntroductionQueryRepository {
             .on(member.id.eq(selfIntroduction.memberId))
             .leftJoin(like)
             .on(like.senderId.eq(memberId).and(like.receiverId.eq(member.id)))
-            .leftJoin(profileImage)
-            .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
             .leftJoin(member.profile.hobbies, hobby)
             .leftJoin(profileExchange).on(getProfileExchangeJoinCondition(memberId))
+            .leftJoin(datingExamSubmitResult).on(datingExamSubmitResult.memberId.eq(member.id))
             .where(selfIntroduction.id.eq(id).and(selfIntroduction.deletedAt.isNull()))
             .transform(
                 groupBy(member.id).as(
@@ -111,12 +110,12 @@ public class SelfIntroductionQueryRepository {
                         member.id,
                         member.profile.nickname.value,
                         member.profile.yearOfBirth.value,
-                        profileImage.imageUrl.value,
                         member.profile.region.city.stringValue(),
                         member.profile.region.district.stringValue(),
                         member.profile.mbti.stringValue(),
                         set(hobby.stringValue()),
                         member.profile.gender.stringValue(),
+                        datingExamSubmitResult.dominantPersonalityType.stringValue(),
                         like.level.stringValue(),
                         selfIntroduction.title,
                         selfIntroduction.content,

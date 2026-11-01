@@ -128,6 +128,35 @@ public class MatchQueryRepositoryTest {
     }
 
 
+    @Test
+    @DisplayName("보낸 매칭 메세지 조회 시, 응답자가 읽은 요청은 readAt이 채워지고 안 읽은 요청은 null이다.")
+    void findSentMatchesWithReadAt() {
+        // given
+        Member requester = members.get(0);
+        Member readResponder = members.get(1);
+        Member unreadResponder = members.get(2);
+
+        Match readMatch = Match.request(requester.getId(), readResponder.getId(), Message.from("Hello"),
+            "알림용이름", MatchType.MATCH, MatchContactType.PHONE_NUMBER);
+        readMatch.read(readResponder.getId());
+        em.persist(readMatch);
+
+        Match unreadMatch = Match.request(requester.getId(), unreadResponder.getId(), Message.from("Hello"),
+            "알림용이름", MatchType.MATCH, MatchContactType.PHONE_NUMBER);
+        em.persist(unreadMatch);
+
+        // when
+        List<MatchView> matchViews = matchQueryRepository.findSentMatches(requester.getId(), null);
+
+        // then
+        MatchView readView = matchViews.stream()
+            .filter(v -> v.opponentId() == readResponder.getId()).findFirst().orElseThrow();
+        MatchView unreadView = matchViews.stream()
+            .filter(v -> v.opponentId() == unreadResponder.getId()).findFirst().orElseThrow();
+        Assertions.assertThat(readView.readAt()).isNotNull();
+        Assertions.assertThat(unreadView.readAt()).isNull();
+    }
+
     private void createMembers() {
         members = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

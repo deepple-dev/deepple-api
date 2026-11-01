@@ -8,4 +8,6 @@ public interface SelfIntroductionCommandRepository {
     Optional<SelfIntroduction> findById(Long id);
 
     void deleteById(Long id);
+
+    boolean existsByMemberId(Long memberId);
 }

@@ -1,0 +1,17 @@
+INSERT INTO notification_templates (type, title_template, body_template, is_active)
+VALUES ('MATCH_REQUEST', '매치 요청', '{senderName}님에게 메시지가 도착하였습니다.', 1),
+       ('MATCH_ACCEPT', '매치 수락', '{senderName}님과 매칭되었습니다. 축하합니다!', 1),
+       ('MATCH_REJECT', '매치 거절', '{senderName}님이 데이트 신청을 거절하셨습니다.', 1),
+       ('PROFILE_EXCHANGE_REQUEST', '프로필 교환 요청', '{senderName}님이 프로필 교환을 요청하였습니다.', 1),
+       ('PROFILE_EXCHANGE_ACCEPT', '프로필 교환 수락', '{senderName}님이 프로필 교환을 수락하셨습니다!', 1),
+       ('PROFILE_EXCHANGE_REJECT', '프로필 교환 거절', '{senderName}님이 프로필 교환을 거절하셨습니다.', 1),
+       ('LIKE', '좋아요', '{senderName}님이 회원님의 프로필을 좋아합니다.', 1),
+       ('PROFILE_IMAGE_CHANGE_REQUEST', '프로필 이미지 변경 요청', '나를 더 잘 표현할 수 있는 프로필 이미지로 설정해보세요!', 1),
+       ('INTERVIEW_WRITE_REQUEST', '인터뷰 작성 요청', '아직 인터뷰를 작성하지 않으셨어요! 인터뷰 작성하고 무료 하트 받아 가세요.', 1),
+       ('INAPPROPRIATE_PROFILE', '부적절한 프로필 경고', '등록하신 프로필 정보를 변경해 주세요. 개인 정보 혹은 부적절한 내용 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INAPPROPRIATE_PROFILE_IMAGE', '부적절한 프로필 사진 경고', '등록하신 프로필 사진을 변경해 주세요. 부적절한 사진 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INAPPROPRIATE_INTERVIEW', '부적절한 인터뷰 경고', '등록하신 인터뷰를 변경해 주세요. 개인 정보 혹은 부적절한 내용 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INAPPROPRIATE_SELF_INTRODUCTION', '부적절한 셀프소개 게시글 경고', '작성하신 게시글에 부적절한 내용이 포함되어 있습니다. 부적절한 내용 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INACTIVITY_REMINDER', '다시 방문해보세요', '장기간 접속이 없으시네요! 다시 연애를 시작해 볼까요?', 1),
+       ('SCREENING_APPROVED', '심사 승인', '프로필 심사가 완료되었어요!\n안전하고 진정성 있는 만남을 시작해 보세요.', 1),
+       ('SCREENING_REJECTED', '심사 반려', '심사가 반려되었습니다. 등록하신 프로필을 변경해주세요. (반려 사유: {rejectionReason})', 1);
