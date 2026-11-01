@@ -15,6 +15,23 @@ docker compose --env-file .env up -d                   # 로컬 실행 (app, MyS
 
 `src/main/java/deepple/deepple/<도메인>` 단위로 나뉜다. 공통 코드는 `common`.
 
+| 도메인 | 역할 |
+|---|---|
+| `auth` | JWT 발급·검증·재발급, 인증 필터, CORS |
+| `member` | SMS 인증, 프로필·이미지, 이상형, 이성 소개, 프로필 블러 해제 |
+| `match` | 매칭 요청 메시지, 수락·거절, 메시지 내역 |
+| `heart` | 하트 보유량, 하트 거래 내역 |
+| `payment` | App Store·Google Play 결제, 영수증 검증, 하트 패키지 |
+| `notification` | FCM 기기 등록, 알림 조회·읽음·삭제, 수신 설정 |
+| `admin` | 관리자 인증, 회원 관리, 프로필 심사, 정지·경고, 신고 처리 |
+| `community` | 셀프 소개, 프로필 교환 신청·수락·거절 |
+| `interview` | 인터뷰 질문, 사용자 답변 |
+| `like` | 좋아요 전송, 보낸·받은 목록 |
+| `mission` | 일일·도전 미션, 완료 시 하트 보상 |
+| `block` | 사용자 차단 |
+| `report` | 사용자 신고 |
+| `datingexam` | 연애고사(가치관 테스트), 결과 기반 매칭 |
+
 도메인마다 두 가지 스타일이 있다. 새 코드는 해당 도메인의 기존 스타일을 따른다.
 
 - CQRS 스타일 (대부분의 도메인)
@@ -41,6 +58,7 @@ docker compose --env-file .env up -d                   # 로컬 실행 (app, MyS
 - 동시성이 필요한 처리는 `LockRepository`(Redisson 분산락)를 쓴다.
 - 엔티티는 `BaseEntity` 또는 `SoftDeleteBaseEntity`를 상속한다.
 - 주석과 예외 메시지는 한국어.
+- 세부 규칙은 `.claude/rules/`: Java(`java.md`), Swagger 문서화(`swagger.md`), 외부 API 연동(`resilience.md`)
 
 ## DB
 
@@ -62,7 +80,7 @@ docker compose --env-file .env up -d                   # 로컬 실행 (app, MyS
 - 트렁크 기반: `main` 단일 브랜치, squash merge. `develop`은 사용하지 않는다.
 - 이슈 → 브랜치 `이슈번호-짧은설명` → 커밋 `타입(범위): 설명` → PR(`Closes #이슈번호`)
 - 타입: `feat` `fix` `refactor` `test` `docs` `chore` `infra` / 범위: 도메인 이름(생략 가능)
-- 브랜치·커밋·PR은 `/branch`, `/commit`, `/pr` 스킬 규칙을 따른다.
+- 이슈·브랜치·커밋·PR은 `/issue`, `/branch`, `/commit`, `/pr` 스킬 규칙을 따른다.
 
 ## 하지 말 것
 
