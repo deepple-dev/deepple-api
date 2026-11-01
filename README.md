@@ -60,7 +60,7 @@ Claude Code를 쓰면 `/branch <이슈번호>`, `/commit`, `/pr` 스킬로 위 �
 
 | 환경 | 방식 |
 |---|---|
-| 개발 (`dev-api.deepple.co.kr`) | `main` 병합 시 자동 배포 (Blue-Green) |
+| 개발 | 없음 (Terraform으로 재구축 중) |
 | 운영 | 없음 (Terraform으로 재구축 중) |
 
 > 인프라 재구축 중. 완료 후 개발은 `main` 병합 시, 운영은 태그 push 시 ECS로 배포 예정.
