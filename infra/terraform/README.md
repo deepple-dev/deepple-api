@@ -29,7 +29,7 @@ terraform init
 terraform apply
 ```
 
-출력된 `state_bucket` 이름을 각 환경의 backend 설정에 사용한다.
+출력된 `state_bucket` 이름을 각 환경의 backend 설정에 사용한다. 현재 버킷: `deepple-terraform-state-339713092351` (2026-11-01 생성)
 
 ## 규칙
 
