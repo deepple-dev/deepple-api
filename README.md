@@ -54,7 +54,7 @@ docker compose --env-file .env up -d
 4. PR 생성: 제목은 커밋 컨벤션 형식, 본문에 `Closes #이슈번호`
 5. CI 통과 후 squash merge
 
-Claude Code를 쓰면 `/branch <이슈번호>`, `/commit`, `/pr` 스킬로 위 과정을 처리할 수 있다.
+Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/commit`, `/pr` 스킬로 위 과정을 처리할 수 있다.
 
 ## 배포
 
