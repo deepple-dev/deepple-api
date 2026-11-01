@@ -11,6 +11,7 @@ import deepple.deepple.notification.command.domain.NotificationSender;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import static deepple.deepple.notification.command.infra.FcmResilienceConfig.CIRCUIT_BREAKER_POLICY_NAME;
@@ -18,6 +19,7 @@ import static deepple.deepple.notification.command.infra.FcmResilienceConfig.RET
 
 @Slf4j
 @Service
+@ConditionalOnProperty(name = "firebase.enabled", havingValue = "true", matchIfMissing = true)
 public class FcmNotificationSender implements NotificationSender {
 
     private static final String KEY_SENDER_ID = "senderId";

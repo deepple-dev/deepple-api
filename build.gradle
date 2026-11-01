@@ -34,68 +34,63 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
-    // Spring Security
-    implementation 'org.springframework.security:spring-security-crypto'
 
     // Spring Cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
-    // Database - QueryDSL
+    // Persistence
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api:2.1.1'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
 
-    // Database - Migration
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-mysql'
-
-    // Database - Drivers
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    runtimeOnly 'com.h2database:h2'
-
-    // Redis - Distributed Lock
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.redisson:redisson-spring-boot-starter:3.45.1'
 
-    // AWS
-    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.4.0')
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
-
-    // Firebase
-    implementation 'com.google.firebase:firebase-admin:9.4.3'
-
-    // JWT
+    // Auth
+    implementation 'org.springframework.security:spring-security-crypto'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
-    // Apple App Store
-    implementation 'com.apple.itunes.storekit:app-store-server-library:3.3.0'
+    // External - AWS
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.4.0')
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
-    // Google Play Billing Verification
+    // External - Firebase
+    implementation 'com.google.firebase:firebase-admin:9.4.3'
+
+    // External - App Store, Google Play
+    implementation 'com.apple.itunes.storekit:app-store-server-library:3.3.0'
     implementation 'com.google.apis:google-api-services-androidpublisher:v3-rev20250602-2.0.0'
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.35.0'
 
     // Resilience
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
 
-    // API Documentation
+    // API Docs
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    // Monitoring
+    implementation 'org.hibernate.orm:hibernate-micrometer'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Local
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // Monitoring
-    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.hibernate.orm:hibernate-micrometer'
 }
 
 tasks.named('test') {

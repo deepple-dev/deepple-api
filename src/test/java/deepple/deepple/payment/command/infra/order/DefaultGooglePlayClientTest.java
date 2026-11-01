@@ -25,8 +25,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("GooglePlayClient 단위 테스트")
-class GooglePlayClientTest {
+@DisplayName("DefaultGooglePlayClient 단위 테스트")
+class DefaultGooglePlayClientTest {
 
     private static final String PACKAGE_NAME = "com.deepple.app";
     private static final String PRODUCT_ID = "heart_pack_100";
@@ -52,7 +52,7 @@ class GooglePlayClientTest {
 
     @BeforeEach
     void setUp() {
-        googlePlayClient = new GooglePlayClient(androidPublisher);
+        googlePlayClient = new DefaultGooglePlayClient(androidPublisher);
         ReflectionTestUtils.setField(googlePlayClient, "packageName", PACKAGE_NAME);
     }
 
