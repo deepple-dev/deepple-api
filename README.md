@@ -21,6 +21,12 @@ docker compose --env-file .env up -d
   - Firebase 서비스 계정 키: `secrets/` (컨테이너의 `/etc/credentials`에 마운트)
   - Google Play 서비스 계정 키: `certs/google-play/service-account.json`
 
+### IntelliJ
+
+- `Settings > Editor > Code Style > Scheme`을 `Project`로 설정 (저장소의 `.idea/codeStyles` 사용)
+- `Settings > Tools > Actions on Save`에서 `Reformat code`, `Optimize imports`, `Rearrange code` 켜기
+- (선택) SonarQube for IDE 플러그인 설치
+
 ## 테스트
 
 ```bash
@@ -67,7 +73,5 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 
 ## 문서
 
-- [Wiki](https://github.com/deepple-dev/deepple-api/wiki)
-  - [시스템 아키텍처](https://github.com/deepple-dev/deepple-api/wiki/시스템-아키텍처)
-  - [소프트웨어 아키텍처](https://github.com/deepple-dev/deepple-api/wiki/소프트웨어-아키텍처)
-  - [CI/CD 파이프라인](https://github.com/deepple-dev/deepple-api/wiki/CI-CD-파이프라인)
+- [CLAUDE.md](CLAUDE.md): 구조, 도메인, 코딩 규칙
+- [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동 규칙
