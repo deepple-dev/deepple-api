@@ -77,7 +77,7 @@ resource "aws_s3_bucket_policy" "state" {
   depends_on = [aws_s3_bucket_public_access_block.state]
 }
 
-# 오래된 state 버전 정리
+# 오래된 state 버전 정리. 최근 이전 버전 10개는 기간과 관계없이 남긴다.
 resource "aws_s3_bucket_lifecycle_configuration" "state" {
   bucket = aws_s3_bucket.state.id
 
@@ -88,7 +88,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "state" {
     filter {}
 
     noncurrent_version_expiration {
-      noncurrent_days = 90
+      noncurrent_days           = 90
+      newer_noncurrent_versions = 10
     }
 
     abort_incomplete_multipart_upload {
