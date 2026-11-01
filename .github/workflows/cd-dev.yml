@@ -2,7 +2,7 @@ name: CD - Development
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "main" ]
     paths-ignore:
       - '**.md'
       - 'docs/**'

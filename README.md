@@ -60,10 +60,10 @@ Claude Code를 쓰면 `/branch <이슈번호>`, `/commit`, `/pr` 스킬로 위 �
 
 | 환경 | 방식 |
 |---|---|
-| 개발 (`dev-api.deepple.co.kr`) | `develop` push 시 자동 배포 (Blue-Green) |
-| 운영 | GitHub Actions `CD - Production` 수동 실행 (ECS 롤링 업데이트) |
+| 개발 (`dev-api.deepple.co.kr`) | `main` 병합 시 자동 배포 (Blue-Green) |
+| 운영 | 없음 (Terraform으로 재구축 중) |
 
-> 트렁크 기반 전환 중. 개발은 `main` 병합 시, 운영은 태그 push 시 배포되도록 변경 예정.
+> 인프라 재구축 중. 완료 후 개발은 `main` 병합 시, 운영은 태그 push 시 ECS로 배포 예정.
 
 ## 문서
 
