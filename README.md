@@ -67,7 +67,6 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 
 ## 문서
 
-- [Wiki](https://github.com/deepple-dev/deepple-api/wiki)
-  - [시스템 아키텍처](https://github.com/deepple-dev/deepple-api/wiki/시스템-아키텍처)
-  - [소프트웨어 아키텍처](https://github.com/deepple-dev/deepple-api/wiki/소프트웨어-아키텍처)
-  - [CI/CD 파이프라인](https://github.com/deepple-dev/deepple-api/wiki/CI-CD-파이프라인)
+- [CLAUDE.md](CLAUDE.md): 구조, 도메인, 코딩 규칙
+- [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동 규칙
+- [Wiki](https://github.com/deepple-dev/deepple-api/wiki): 소프트웨어 아키텍처, IntelliJ 설정 가이드
