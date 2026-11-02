@@ -190,8 +190,14 @@ resource "aws_cloudwatch_log_metric_filter" "root_usage" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "root_usage" {
-  alarm_name          = "deepple-root-account-usage"
-  alarm_description   = "루트 계정 알림\n루트 계정으로 로그인하거나 작업한 기록이 감지되었습니다. 본인이 아니라면 즉시 비밀번호를 변경하세요."
+  alarm_name = "deepple-root-account-usage"
+  alarm_description = jsonencode({
+    title = "Root account used"
+    what  = "루트 계정 로그인 또는 작업 감지 (5분 동안 {value})"
+    why   = ["본인이 직접 로그인", "계정 탈취"]
+    how   = ["본인이 아니면 즉시 비밀번호 변경", "CloudTrail에서 기록 확인"]
+    unit  = "count"
+  })
   namespace           = aws_cloudwatch_log_metric_filter.root_usage.metric_transformation[0].namespace
   metric_name         = aws_cloudwatch_log_metric_filter.root_usage.metric_transformation[0].name
   statistic           = "Sum"

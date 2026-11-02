@@ -87,6 +87,12 @@ data "aws_iam_policy_document" "lambda" {
   }
 
   statement {
+    sid       = "ReadAlarmHistory"
+    actions   = ["cloudwatch:DescribeAlarmHistory"]
+    resources = ["arn:aws:cloudwatch:*:${local.account_id}:alarm:*"]
+  }
+
+  statement {
     sid       = "ReadWebhook"
     actions   = ["secretsmanager:GetSecretValue"]
     resources = [aws_secretsmanager_secret.webhook.arn]
@@ -113,6 +119,7 @@ resource "aws_lambda_function" "this" {
     variables = {
       WEBHOOK_SECRET_ARN = aws_secretsmanager_secret.webhook.arn
       MENTION_ROLE_ID    = var.mention_role_id
+      ENVIRONMENT        = var.environment
     }
   }
 

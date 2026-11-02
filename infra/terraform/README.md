@@ -113,11 +113,13 @@ aws secretsmanager put-secret-value --secret-id <웹훅 secret> --secret-string 
 
 | 환경 | 채널 | 내용 | 웹훅 secret |
 |---|---|---|---|
-| shared | `#alerts-account` | 예산 초과, 루트 계정 사용 | `deepple/alerts/discord-webhook` |
-| dev | `#alerts-dev` | dev 서버 오류·메모리, DB 저장 공간, ECS task 시작 실패·배포 실패, 배포 성공 | `deepple-dev/alerts/discord-webhook` |
+| shared | `#alerts-account` | 예산 초과, 루트 계정 사용, dev 알림 전송 실패 | `deepple/alerts/discord-webhook` |
+| dev | `#alerts-dev` | 서버 오류(5xx), 메모리, DB 저장 공간, ECS task 시작·배치 실패, 배포 실패·성공 | `deepple-dev/alerts/discord-webhook` |
 
 - 멘션 역할은 각 환경 `variables.tf`의 `discord_mention_role_id`로 정한다.
-- CloudWatch alarm의 `alarm_description`은 첫 줄이 Discord 메시지 제목, 나머지가 본문이 된다.
+- 메시지 형식은 Datadog을 따른다. 제목은 `[Triggered on dev] High memory usage`처럼 상태·환경·영문 제목이고(복구는 `Recovered`, 배포는 `Deployed`), 본문은 What's happening? / Possible causes / How to troubleshoot? 칸에 한글로 쓴다.
+- CloudWatch alarm의 `alarm_description`은 JSON(`title`, `what`, `why`, `how`, `unit`)이다. `what`의 `{value}`는 측정값, `{condition}`은 `> 90%` 같은 조건으로 채워진다. `why`, `how`는 목록이면 불릿으로 표시된다. 환경 이름은 모듈의 `environment`로 붙는다.
+- 환경 알림 Lambda가 오류를 내면 `#alerts-account`로 알린다. 고장 난 Lambda는 자기 고장을 알릴 수 없기 때문이다.
 
 ## state
 
