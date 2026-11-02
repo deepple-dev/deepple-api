@@ -1,6 +1,6 @@
 # deepple-api
 
-데이팅 서비스 딥플의 백엔드 API 서버.
+데이팅 서비스 딥플의 백엔드 API 서버이다.
 
 ## 요구 사항
 
@@ -18,10 +18,10 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 - 기본 프로필은 `local`이다. 앱이 `compose.yml`의 MySQL, Valkey, S3Mock을 자동으로 띄우고, 앱을 꺼도 컨테이너는 남는다.
 - 앱 `http://localhost:8080`, Swagger UI `http://localhost:8080/swagger-ui.html`
 - 포트: MySQL `3306`(DB·계정·비밀번호 `deepple`), Valkey `6379`, S3Mock `9090`(버킷 `deepple-local`)
-- 스키마는 Flyway 마이그레이션으로 만들어진다. 데이터를 지우려면 `docker compose down -v`
-- 로컬에서는 외부 연동을 가짜 구현으로 대신한다. (`application-local.yml`의 `bizgo.enabled`, `firebase.enabled`, `payment.google-play.enabled`가 `false`)
-  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력. 고정 코드 `008008`로도 로그인 가능
-  - 푸시(FCM), Google Play 결제 검증: 요청하지 않고 로그만 남김. Google Play 구매는 항상 유효로 처리
+- 스키마는 Flyway 마이그레이션으로 만들어진다. 데이터를 지우려면 `docker compose down -v`를 실행한다.
+- 로컬에서는 외부 연동을 가짜 구현으로 대신한다(`application-local.yml`의 `bizgo.enabled`, `firebase.enabled`, `payment.google-play.enabled`가 `false`).
+  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력, 고정 코드 `008008`로도 로그인 가능
+  - 푸시(FCM), Google Play 결제 검증: 요청하지 않고 로그만 남김, Google Play 구매는 항상 유효로 처리
   - 이미지 업로드: S3Mock에 저장
 
 ### IntelliJ
@@ -31,6 +31,8 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 - (선택) SonarQube for IDE 플러그인 설치
 
 ## 테스트
+
+Docker를 켠 상태에서 실행한다. 테스트가 MySQL·Valkey·S3Mock 컨테이너를 직접 띄운다.
 
 ```bash
 ./gradlew test
@@ -48,11 +50,11 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 ```
 
 - 도메인: `member`, `match`, `heart`, `payment`, `notification`, `admin`, `community`, `interview`, `like`, `mission`, `block`, `report`, `datingexam`, `auth`
-- DB 스키마는 Flyway로 관리 (`src/main/resources/db/migration`)
+- DB 스키마: Flyway(`src/main/resources/db/migration`)
 
 ## 개발 플로우
 
-트렁크 기반. `main` 하나만 사용하고 squash merge로 병합한다.
+트렁크 기반으로 `main` 하나만 사용하고 squash merge로 병합한다.
 
 1. GitHub 이슈 생성 (이슈 타입: Feature, Bug, Task / 라벨: 도메인)
 2. 브랜치 생성: `이슈번호-짧은설명` (예: `123-dating-exam-image`)
@@ -72,9 +74,9 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 | 개발 | 없음 (Terraform으로 재구축 중) |
 | 운영 | 없음 (Terraform으로 재구축 중) |
 
-> 인프라 재구축 중. 완료 후 개발은 `main` 병합 시, 운영은 태그 push 시 ECS로 배포 예정.
+> 인프라를 재구축하고 있다. 완료되면 개발 서버는 `main` 병합 시, 운영 서버는 태그 push 시 ECS로 배포한다.
 
 ## 문서
 
 - [CLAUDE.md](CLAUDE.md): 구조, 도메인, 코딩 규칙
-- [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동 규칙
+- [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동, DB, 테스트, 빌드 규칙

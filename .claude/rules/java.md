@@ -18,10 +18,10 @@ paths:
 
 ## 이름
 
-- 한글 발음을 영어로 옮겨 쓰지 않는다. (나쁜 예: `moohyungJasan`, 좋은 예: `intangibleAssets`) 한국어 고유명사는 예외.
-- 약어도 카멜 표기법을 따른다. (나쁜 예: `HTTPAPIURL`, 좋은 예: `HttpApiUrl`)
-- 메서드 이름은 동사로 시작한다. 변환 메서드(`toString`)와 빌더 메서드(`withUserId`)는 예외.
-- 메서드 범위를 넘는 변수에 한 글자 이름을 쓰지 않는다. 반복문 인덱스·람다 파라미터는 허용.
+- 한글 발음을 영어로 옮겨 쓰지 않는다(나쁜 예: `moohyungJasan`, 좋은 예: `intangibleAssets`). 한국어 고유명사는 예외다.
+- 약어도 카멜 표기법을 따른다(나쁜 예: `HTTPAPIURL`, 좋은 예: `HttpApiUrl`).
+- 메서드 이름은 동사로 시작한다. 변환 메서드(`toString`)와 빌더 메서드(`withUserId`)는 예외다.
+- 메서드 범위를 넘는 변수에 한 글자 이름을 쓰지 않는다. 반복문 인덱스·람다 파라미터는 허용한다.
 
 ## 작성
 
@@ -29,3 +29,4 @@ paths:
 - `var`는 오른쪽 식에서 타입이 바로 보일 때만 쓴다.
 - 스트림·메서드 체이닝이 2단계 이상이면 메서드마다 줄을 바꾼다.
 - `long` 리터럴에는 대문자 `L`을 붙인다.
+- 생성자·getter·로거처럼 Lombok으로 대신할 수 있는 코드는 직접 쓰지 않고 Lombok을 쓴다. 테스트 코드도 같다. 예를 들어 유틸 클래스의 private 생성자는 `@NoArgsConstructor(access = AccessLevel.PRIVATE)`로 만든다.
