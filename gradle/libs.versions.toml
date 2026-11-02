@@ -13,6 +13,8 @@ resilience4j = "2.4.0"
 springdoc = "3.2.0"
 guava = "33.7.2-jre"
 bouncycastle = "1.86"
+sentry = "8.62.0"
+gradle-git-properties = "4.0.1"
 
 [libraries]
 spring-cloud-aws-bom = { module = "io.awspring.cloud:spring-cloud-aws-dependencies", version.ref = "spring-cloud-aws" }
@@ -33,9 +35,14 @@ google-auth = { module = "com.google.auth:google-auth-library-oauth2-http", vers
 resilience4j-spring-boot = { module = "io.github.resilience4j:resilience4j-spring-boot4", version.ref = "resilience4j" }
 springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
 
+sentry-bom = { module = "io.sentry:sentry-bom", version.ref = "sentry" }
+sentry-spring-boot = { module = "io.sentry:sentry-spring-boot-4" }
+sentry-logback = { module = "io.sentry:sentry-logback" }
+
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+gradle-git-properties = { id = "com.gorylenko.gradle-git-properties", version.ref = "gradle-git-properties" }

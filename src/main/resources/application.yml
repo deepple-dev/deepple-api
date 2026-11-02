@@ -53,3 +53,14 @@ management:
     key-values:
       application:
         ${APP_NAME:deepple-api-service}-${SPRING_PROFILES_ACTIVE:local}
+
+sentry:
+  environment: ${spring.profiles.active}
+  data-collection:
+    user-info: false
+    cookies:
+      mode: "off"
+    http-headers:
+      request:
+        mode: deny-list
+        terms: forwarded,-ip,remote-,via,-user

@@ -6,6 +6,7 @@ COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
 RUN ./gradlew dependencies --no-daemon > /dev/null
 
+COPY .git .git
 COPY src src
 RUN ./gradlew bootJar --no-daemon \
     && java -Djarmode=tools -jar build/libs/*.jar extract --layers --launcher --destination extracted
