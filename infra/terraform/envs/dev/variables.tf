@@ -1,0 +1,51 @@
+variable "region" {
+  description = "AWS 리전"
+  type        = string
+  default     = "ap-northeast-2"
+}
+
+variable "account_id" {
+  description = "AWS 계정 ID"
+  type        = string
+  default     = "339713092351"
+}
+
+variable "domain" {
+  description = "API 도메인"
+  type        = string
+  default     = "dev-api.deepple.co.kr"
+}
+
+variable "image_tag" {
+  description = "처음 만들 때 쓸 앱 이미지 태그(커밋 SHA). 이후 배포는 CD가 task definition을 갱신한다"
+  type        = string
+}
+
+variable "discord_mention_role_id" {
+  description = "알림 메시지에서 멘션할 Discord 역할 ID"
+  type        = string
+  default     = "1394957566953652256"
+}
+
+variable "gcp_workload_identity_provider" {
+  description = "Google Cloud Workload Identity 공급자 전체 이름 (projects/<번호>/locations/global/workloadIdentityPools/<풀>/providers/<공급자>)"
+  type        = string
+}
+
+variable "firebase_project_id" {
+  description = "Firebase 프로젝트 ID"
+  type        = string
+  default     = "atwoz-d63ef"
+}
+
+variable "firebase_service_account" {
+  description = "앱이 impersonate할 Firebase 서비스 계정"
+  type        = string
+  default     = "firebase-adminsdk-ox847@atwoz-d63ef.iam.gserviceaccount.com"
+}
+
+variable "google_play_service_account" {
+  description = "앱이 impersonate할 Google Play 서비스 계정"
+  type        = string
+  default     = "deepple-play-verifier@deepple-c5416.iam.gserviceaccount.com"
+}
