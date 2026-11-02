@@ -1,26 +1,91 @@
--- #452 필수 과목 문항 15개 → 9문항 변경 + 답변 6유형 재매핑
--- 문항/유형 매핑이 바뀌므로 기존 제출/집계 결과를 초기화하고 전원 재응시를 유도한다.
+-- 인터뷰 질문
+INSERT INTO interview_questions (created_at, updated_at, category, content, is_public)
+VALUES (NOW(6), NOW(6), 'PERSONAL', '내가 생각하는 나의 장점과 단점', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '현재 하고 있는 일', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '나의 평일/주말 생활 패턴', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '일상에서 느끼는 나의 소소한 행복', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '내가 생각하는 나의 반전 매력', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '나만의 스트레스 해소 방법', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '좋아하는 음식/싫어하는 음식', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '배우고 싶은 분야/언어', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '10년 후 나의 모습', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '요즘 하고 있는 자기관리', 1),
+       (NOW(6), NOW(6), 'PERSONAL', '내 삶의 우선 순위(나, 가족, 연인, 친구, 커리어 등)', 1),
 
+       (NOW(6), NOW(6), 'SOCIAL', '남사친/여사친에 대한 나의 생각', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '나의 인간관계 스타일', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '호감을 느끼는 사람의 유형/타입', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '인간관계에서 가장 중요한 것', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '썸에 대한 나의 생각(기준, 적정 기간, 스킨십)', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '사랑하는 사람이 생겼을 때 결혼에 대한 고려', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '내 주변의 이성 친구들', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '나는 인싸?/아싸?', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '매일 연락하고 지내는 사람의 수', 1),
+       (NOW(6), NOW(6), 'SOCIAL', '주변 사람들이 말하는 나의 모습', 1),
+
+       (NOW(6), NOW(6), 'ROMANTIC', '추구하는 만남 횟수와 연락 빈도', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '내가 연인을 사랑하는 방식', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인에게 바라는 점', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인 관계에서 가장 중요하다고 생각하는 것', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '선호하는 데이트 스타일', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인 사이의 갈등 해소 방법', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인에게만 보여줄 수 있는 나의 모습', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인을 위해 내가 할 수 있는 것', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인에게 들려주고 싶은 노래', 1),
+       (NOW(6), NOW(6), 'ROMANTIC', '연인과 함께 가보고 싶은 장소', 1);
+
+-- 미션
+INSERT INTO missions (created_at, updated_at, action_type, frequency_type, target_gender, required_attempt,
+                      repeatable_count, rewarded_heart, is_public)
+VALUES (NOW(6), NOW(6), 'LIKE', 'DAILY', 'MALE', 1, 2, 2, 1),
+       (NOW(6), NOW(6), 'LIKE', 'DAILY', 'FEMALE', 1, 3, 2, 1),
+       (NOW(6), NOW(6), 'INTERVIEW', 'CHALLENGE', 'ALL', 1, 1, 30, 1),
+       (NOW(6), NOW(6), 'FIRST_DATE_EXAM', 'CHALLENGE', 'ALL', 1, 1, 15, 1),
+       (NOW(6), NOW(6), 'SELF_INTRODUCTION', 'CHALLENGE', 'ALL', 1, 1, 100, 1);
+
+-- 하트 사용 정책
+INSERT INTO heart_usage_policies (created_at, updated_at, gender, price, transaction_type)
+VALUES (NOW(6), NOW(6), 'MALE', 10, 'INTRODUCTION'),
+       (NOW(6), NOW(6), 'FEMALE', 4, 'INTRODUCTION'),
+       (NOW(6), NOW(6), 'MALE', 20, 'MESSAGE'),
+       (NOW(6), NOW(6), 'FEMALE', 10, 'MESSAGE'),
+       (NOW(6), NOW(6), 'MALE', 3, 'PROFILE_EXCHANGE'),
+       (NOW(6), NOW(6), 'FEMALE', 3, 'PROFILE_EXCHANGE'),
+       (NOW(6), NOW(6), 'MALE', 20, 'MESSAGE_ACCEPTED'),
+       (NOW(6), NOW(6), 'FEMALE', 10, 'MESSAGE_ACCEPTED');
+
+-- 하트 구매 옵션
+INSERT INTO heart_purchase_options (created_at, updated_at, deleted_at, amount, name, price, product_id)
+VALUES (NOW(6), NOW(6), NULL, 45, '45하트', 9900, 'APP_ITEM_HEART_45'),
+       (NOW(6), NOW(6), NULL, 90, '90하트', 15000, 'APP_ITEM_HEART_90'),
+       (NOW(6), NOW(6), NULL, 110, '110하트', 22000, 'APP_ITEM_HEART_110'),
+       (NOW(6), NOW(6), NULL, 350, '350하트', 59000, 'APP_ITEM_HEART_350'),
+       (NOW(6), NOW(6), NULL, 550, '550하트', 88000, 'APP_ITEM_HEART_550');
+
+-- 알림 템플릿
+INSERT INTO notification_templates (type, title_template, body_template, is_active)
+VALUES ('MATCH_REQUEST', '매치 요청', '{senderName}님에게 메시지가 도착하였습니다.', 1),
+       ('MATCH_ACCEPT', '매치 수락', '{senderName}님과 매칭되었습니다. 축하합니다!', 1),
+       ('MATCH_REJECT', '매치 거절', '{senderName}님이 데이트 신청을 거절하셨습니다.', 1),
+       ('PROFILE_EXCHANGE_REQUEST', '프로필 교환 요청', '{senderName}님이 프로필 교환을 요청하였습니다.', 1),
+       ('PROFILE_EXCHANGE_ACCEPT', '프로필 교환 수락', '{senderName}님이 프로필 교환을 수락하셨습니다!', 1),
+       ('PROFILE_EXCHANGE_REJECT', '프로필 교환 거절', '{senderName}님이 프로필 교환을 거절하셨습니다.', 1),
+       ('LIKE', '좋아요', '{senderName}님이 회원님의 프로필을 좋아합니다.', 1),
+       ('PROFILE_IMAGE_CHANGE_REQUEST', '프로필 이미지 변경 요청', '나를 더 잘 표현할 수 있는 프로필 이미지로 설정해보세요!', 1),
+       ('INTERVIEW_WRITE_REQUEST', '인터뷰 작성 요청', '아직 인터뷰를 작성하지 않으셨어요! 인터뷰 작성하고 무료 하트 받아 가세요.', 1),
+       ('INAPPROPRIATE_PROFILE', '부적절한 프로필 경고', '등록하신 프로필 정보를 변경해 주세요. 개인 정보 혹은 부적절한 내용 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INAPPROPRIATE_PROFILE_IMAGE', '부적절한 프로필 사진 경고', '등록하신 프로필 사진을 변경해 주세요. 부적절한 사진 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INAPPROPRIATE_INTERVIEW', '부적절한 인터뷰 경고', '등록하신 인터뷰를 변경해 주세요. 개인 정보 혹은 부적절한 내용 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INAPPROPRIATE_SELF_INTRODUCTION', '부적절한 셀프소개 게시글 경고', '작성하신 게시글에 부적절한 내용이 포함되어 있습니다. 부적절한 내용 등록 시 서비스 이용이 제한될 수 있습니다.', 1),
+       ('INACTIVITY_REMINDER', '다시 방문해보세요', '장기간 접속이 없으시네요! 다시 연애를 시작해 볼까요?', 1),
+       ('SCREENING_APPROVED', '심사 승인', '프로필 심사가 완료되었어요!\n안전하고 진정성 있는 만남을 시작해 보세요.', 1),
+       ('SCREENING_REJECTED', '심사 반려', '심사가 반려되었습니다. 등록하신 프로필을 변경해주세요. (반려 사유: {rejectionReason})', 1);
+
+-- =============================================================================
+-- 연애고사
+-- =============================================================================
 SET
 @now = NOW(6);
-
--- -----------------------------------------------------------------------------
--- 0) 기존 연애고사 데이터 리셋 (submit → answer → question → subject 순서)
--- -----------------------------------------------------------------------------
-DELETE
-FROM dating_exam_submit;
-DELETE
-FROM dating_exam_answer;
-DELETE
-FROM dating_exam_question;
-DELETE
-FROM dating_exam_subject;
-
--- 과거 집계 결과 및 제출 플래그 초기화 (과거 15문항·구 매핑 기준이라 무의미)
-DELETE
-FROM dating_exam_submit_result;
-UPDATE members
-SET is_dating_exam_submitted = FALSE;
 
 -- -----------------------------------------------------------------------------
 -- 1) 과목 4개 INSERT (모두 REQUIRED)

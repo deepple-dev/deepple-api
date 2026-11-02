@@ -31,6 +31,7 @@ create table dating_exam_answer
     question_id bigint       not null,
     updated_at  datetime(6),
     content     varchar(255) not null,
+    personality_type varchar(50) not null,
     primary key (id)
 ) engine=InnoDB;
 
@@ -63,6 +64,22 @@ create table dating_exam_submit
     subject_id bigint       not null,
     updated_at datetime(6),
     answers    varchar(255) not null,
+    primary key (id)
+) engine=InnoDB;
+
+create table dating_exam_submit_result
+(
+    id                           bigint      not null auto_increment,
+    member_id                    bigint      not null,
+    decisive_independent_count   integer     not null default 0,
+    growing_running_mate_count   integer     not null default 0,
+    devoted_romantic_count       integer     not null default 0,
+    realistic_shelter_count      integer     not null default 0,
+    dominant_personality_type    varchar(50) not null,
+    created_at                   datetime(6) not null,
+    updated_at                   datetime(6),
+    stimulating_adventurer_count integer     not null default 0,
+    rational_realist_count       integer     not null default 0,
     primary key (id)
 ) engine=InnoDB;
 
@@ -255,6 +272,7 @@ create table members
     primary_contact_type     varchar(50),
     religion                 varchar(50),
     smoking_status           varchar(50),
+    last_accessed_at         datetime(6),
     primary key (id)
 ) engine=InnoDB;
 
@@ -346,6 +364,23 @@ create table profile_images
     primary key (id)
 ) engine=InnoDB;
 
+create table refunds
+(
+    id                bigint       not null auto_increment,
+    order_id          bigint       not null,
+    member_id         bigint       not null,
+    transaction_id    varchar(255) not null,
+    product_id        varchar(255) not null,
+    quantity          integer      not null,
+    refund_amount     bigint       not null,
+    payment_method    varchar(50)  not null,
+    notification_type varchar(50)  not null,
+    refunded_at       datetime(6)  not null,
+    created_at        datetime(6)  not null,
+    updated_at        datetime(6),
+    primary key (id)
+) engine=InnoDB;
+
 create table reports
 (
     admin_id    bigint,
@@ -384,6 +419,7 @@ create table self_introductions
     updated_at datetime(6),
     content    varchar(255),
     title      varchar(255),
+    image_url  varchar(255),
     primary key (id)
 ) engine=InnoDB;
 
@@ -416,6 +452,9 @@ create table warnings
     primary key (id)
 ) engine=InnoDB;
 
+alter table admins
+    add constraint uk_admins_email unique (email);
+
 create index idx_block_blocked_id
     on blocks (blocked_id);
 
@@ -425,6 +464,9 @@ alter table blocks
 alter table dating_exam_submit
     add constraint uk_dating_exam_submit_member_subject unique (member_id, subject_id);
 
+alter table dating_exam_submit_result
+    add constraint uk_dating_exam_submit_result_member unique (member_id);
+
 alter table device_registrations
     add constraint uk_member_id unique (member_id);
 
@@ -432,7 +474,7 @@ create index idx_receiver_id
     on likes (receiver_id);
 
 alter table likes
-    add constraint UKr7tda4tud26t5ybryolk9105x unique (sender_id, receiver_id);
+    add constraint uk_likes_sender_id_receiver_id unique (sender_id, receiver_id);
 
 create index idx_responder_id
     on matches (responder_id);
@@ -440,17 +482,38 @@ create index idx_responder_id
 create index idx_requester_id_responder_id
     on matches (requester_id, responder_id);
 
+create index idx_member_hobbies_member_id
+    on member_hobbies (member_id);
+
+create index idx_member_ideal_cities_member_ideal_id
+    on member_ideal_cities (member_ideal_id);
+
+create index idx_member_ideal_hobbies_member_ideal_id
+    on member_ideal_hobbies (member_ideal_id);
+
 alter table member_ideals
-    add constraint UK3e1lp5igxl6cxxdipej09phe6 unique (member_id);
+    add constraint uk_member_ideals_member_id unique (member_id);
+
+create index idx_member_introductions_member_introduced
+    on member_introductions (member_id, introduced_member_id);
+
+create index idx_member_notification_preferences_member_id
+    on member_notification_preferences (member_id);
 
 create index idx_deleted_at
     on members (deleted_at);
 
 alter table members
-    add constraint UK99xbxdwmyun0ehfiwpbntlqs5 unique (phone_number);
+    add constraint uk_members_phone_number unique (phone_number);
+
+create index idx_notification_preferences_member_id
+    on notification_preferences (member_id);
+
+create index idx_notifications_receiver_deleted_id
+    on notifications (receiver_id, deleted_at, id);
 
 alter table orders
-    add constraint UKx21diseqfw2bofpm4opvb6go unique (transaction_id, payment_method);
+    add constraint uk_orders_transaction_id_payment_method unique (transaction_id, payment_method);
 
 create index idx_responder_id
     on profile_exchanges (responder_id);
@@ -461,36 +524,23 @@ create index idx_requester_id_responder_id
 create index idx_member_id_is_primary
     on profile_images (member_id, is_primary);
 
+create index idx_refunds_member_id
+    on refunds (member_id);
+
+create index idx_refunds_order_id
+    on refunds (order_id);
+
+alter table refunds
+    add constraint uk_refunds_transaction_id unique (transaction_id);
+
 create index idx_member_id
     on self_introductions (member_id);
 
 alter table suspensions
-    add constraint UKbe4hjk4livshyt1rnk4el2f7p unique (member_id);
+    add constraint uk_suspensions_member_id unique (member_id);
+
+create index idx_warning_reasons_warning_id
+    on warning_reasons (warning_id);
 
 create index idx_member_id
     on warnings (member_id);
-
-alter table member_hobbies
-    add constraint FKs3rargk4m22bjg2tjhpc0ctt7
-        foreign key (member_id)
-            references members (id);
-
-alter table member_ideal_cities
-    add constraint FKo4hxe41a3bnikkcgnidgvlnsv
-        foreign key (member_ideal_id)
-            references member_ideals (id);
-
-alter table member_ideal_hobbies
-    add constraint FKi1nsyie3isud83mj5j77grkgr
-        foreign key (member_ideal_id)
-            references member_ideals (id);
-
-alter table member_notification_preferences
-    add constraint FK7b63dmtnmrxxvjs21pwto5dt6
-        foreign key (member_id)
-            references notification_preferences (id);
-
-alter table warning_reasons
-    add constraint FKouk9oiltck8uud2at58kqrjlx
-        foreign key (warning_id)
-            references warnings (id);
