@@ -1,11 +1,12 @@
 ---
 name: commit
-description: 변경 사항을 커밋 컨벤션에 맞춰 커밋한다.
-disable-model-invocation: true
+description: 변경 사항을 커밋 컨벤션(`타입(범위): 설명`)에 맞춰 커밋한다. 사용자가 커밋을 요청할 때는 항상 사용.
 ---
 
+현재 브랜치: !`git branch --show-current`
+
 1. `main` 브랜치면 커밋하지 말고 `/branch`로 브랜치를 먼저 만들라고 안내한다.
-2. `git status`, `git diff --staged`로 변경을 확인한다. staged가 비어 있으면 변경 파일 목록을 보여주고 관련 파일만 stage한다. `.env`, 인증서, 비밀 값은 절대 stage하지 않는다.
+2. `git status`, `git diff --staged`로 변경을 확인한다. staged가 비어 있으면 변경 파일 목록을 보여주고 관련 파일만 stage한다. `.env`, 인증서, secret 값은 절대 stage하지 않는다.
 3. 서로 관련 없는 변경이 섞여 있으면 커밋을 나누자고 제안한다.
 4. 메시지 형식: `타입(범위): 설명`
    - 타입: `feat` 기능, `fix` 버그, `refactor` 리팩터링, `test` 테스트, `docs` 문서, `chore` 기타, `infra` 인프라·CI/CD

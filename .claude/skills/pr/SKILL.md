@@ -1,15 +1,21 @@
 ---
 name: pr
-description: 현재 브랜치를 push하고 main으로 PR을 만든다.
-disable-model-invocation: true
+description: 현재 브랜치를 push하고 main으로 PR을 만든다. 연결된 이슈의 타입·라벨로 제목과 라벨을 정한다. 사용자가 PR 생성이나 push를 요청할 때는 항상 사용.
 ---
+
+현재 브랜치: !`git branch --show-current`
 
 1. `main` 브랜치면 멈추고 알린다. 커밋하지 않은 변경이 있으면 먼저 `/commit`을 하라고 안내한다.
 2. 브랜치 이름(`이슈번호-설명`)에서 이슈 번호를 꺼내고, `gh issue view <번호> --json labels`로 이슈의 도메인 라벨을, `gh api repos/:owner/:repo/issues/<번호> -q .type.name`으로 이슈 타입을 가져온다.
 3. `git log origin/main..HEAD`, `git diff origin/main...HEAD`로 PR 전체 변경을 파악한다.
-4. PR 제목: 커밋 컨벤션 `타입(범위): 설명` 형식으로 PR 전체를 요약한다. 타입은 이슈 타입 Feature → `feat`, Bug → `fix`, Task → 변경 내용을 보고 `refactor` `test` `docs` `chore` `infra` 중 선택. squash merge로 이 제목이 `main`의 커밋 메시지가 된다.
+4. PR 제목: 커밋 컨벤션 `타입(범위): 설명` 형식으로 PR 전체를 요약한다. squash merge로 이 제목이 `main`의 커밋 메시지가 된다.
+   - 타입: 이슈 타입 Feature → `feat`, Bug → `fix`, Task → 변경 내용을 보고 `refactor` `test` `docs` `chore` `infra` 중 선택
 5. PR 본문: `.github/pull_request_template.md` 형식을 따르고, `Closes #` 뒤에 이슈 번호를 채운다.
    - 불릿 포인트로 핵심만 간결하게 쓴다. 문장은 명사형 어미로 끝낸다(예: `- 안드로이드 영수증 검증 API 추가`).
    - 참고할 내용이 없으면 `참고` 섹션은 지운다.
-6. `git push -u origin HEAD` 후 `gh pr create --base main --title "<제목>" --body "<본문>" --assignee @me --label "<도메인 라벨1>" --label "<도메인 라벨2>"` (이슈에 라벨이 없으면 `--label` 생략)
+6. 본문을 파일로 쓰고, `git push -u origin HEAD` 후 PR을 만든다. 이슈에 라벨이 없으면 `--label`은 생략한다.
+   ```
+   gh pr create --base main --title "<제목>" --body-file <본문 파일> --assignee @me \
+     --label "<도메인 라벨1>" --label "<도메인 라벨2>"
+   ```
 7. PR 링크를 알려준다.

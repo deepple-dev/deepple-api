@@ -94,3 +94,4 @@
 | `db.md` | 마이그레이션, 컬럼 타입 | 마이그레이션, 엔티티(`domain`) |
 | `test.md` | 테스트 종류별 작성 방식 | `src/test` |
 | `build.md` | 의존성 버전 관리 | `build.gradle`, `gradle/` |
+| `claude-config.md` | Claude Code 설정 작성 기준 | `CLAUDE.md`, `.claude/` |
