@@ -7,16 +7,16 @@ import com.google.api.services.androidpublisher.AndroidPublisher;
 import com.google.api.services.androidpublisher.AndroidPublisherScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.ServiceAccountCredentials;
+import deepple.deepple.common.infra.google.GoogleWorkloadIdentityCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
@@ -27,12 +27,21 @@ public class GooglePlayClientConfig {
 
     @Bean
     public AndroidPublisher androidPublisher(
-        @Value("${payment.google-play.service-account-key-path}") String serviceAccountKeyPath,
+        AwsCredentialsProvider awsCredentialsProvider,
+        AwsRegionProvider awsRegionProvider,
+        @Value("${google.workload-identity.audience}") String audience,
+        @Value("${payment.google-play.service-account}") String serviceAccount,
         @Value("${payment.google-play.application-name}") String applicationName
     ) {
-        try (FileInputStream keyStream = new FileInputStream(serviceAccountKeyPath)) {
-            GoogleCredentials credentials = ServiceAccountCredentials.fromStream(keyStream)
-                .createScoped(List.of(AndroidPublisherScopes.ANDROIDPUBLISHER));
+        GoogleCredentials credentials = GoogleWorkloadIdentityCredentials.create(
+                audience,
+                serviceAccount,
+                awsCredentialsProvider,
+                awsRegionProvider.getRegion()
+            )
+            .createScoped(List.of(AndroidPublisherScopes.ANDROIDPUBLISHER));
+
+        try {
             HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
 
             return new AndroidPublisher.Builder(
@@ -42,9 +51,7 @@ public class GooglePlayClientConfig {
             )
                 .setApplicationName(applicationName)
                 .build();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Google Play Service Account 키 파일을 읽을 수 없습니다: " + e.getMessage(), e);
-        } catch (GeneralSecurityException e) {
+        } catch (IOException | GeneralSecurityException e) {
             throw new IllegalStateException("Google Play 클라이언트 초기화 실패: " + e.getMessage(), e);
         }
     }
