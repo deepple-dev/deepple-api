@@ -14,6 +14,7 @@ GRAY = 0x95A5A6
 TITLE_LIMIT = 256
 DESCRIPTION_LIMIT = 4096
 BUDGETS_CONSOLE_URL = "https://console.aws.amazon.com/costmanagement/home#/budgets"
+ENVIRONMENT_NAMES = {"dev": "개발 서버", "prod": "운영 서버"}
 
 _webhook_url = None
 
@@ -83,6 +84,20 @@ def ecs_embed(event):
     }, True
 
 
+# CD 워크플로가 배포를 마친 뒤 발행하는 메시지
+def deploy_embed(message):
+    commit = message["commit"]
+    environment = ENVIRONMENT_NAMES.get(message["environment"], message["environment"])
+    return {
+        "title": f"{environment} 배포 성공",
+        "description": message.get("message", "").partition("\n")[0],
+        "url": message.get("url"),
+        "color": GREEN,
+        "footer": {"text": commit[:7]},
+        "timestamp": message.get("time"),
+    }, False
+
+
 # Budgets 메시지 형식이 바뀌어 값을 못 찾으면 None을 돌려 원문을 보내게 한다
 def budget_embed(message, timestamp):
     fields = dict(re.findall(r"^(Budget Name|Budgeted Amount|Alert Threshold|ACTUAL Amount|FORECASTED Amount): (.+)$", message, re.MULTILINE))
@@ -125,6 +140,8 @@ def to_embed(sns):
         return alarm_embed(message)
     if isinstance(message, dict) and message.get("source") == "aws.ecs":
         return ecs_embed(message)
+    if isinstance(message, dict) and message.get("source") == "deepple.deploy":
+        return deploy_embed(message)
 
     subject = sns.get("Subject") or "AWS 알림"
     if subject.startswith("AWS Budgets"):
