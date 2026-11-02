@@ -1,0 +1,30 @@
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  # GitHub Actions의 patch·minor만 자동 병합한다. 실제 병합은 필수 체크(ci-passed)가 통과한 뒤에 된다
+  auto-merge:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]' &&
+      github.repository == 'deepple-dev/deepple-api'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      - name: Enable auto-merge
+        if: >-
+          steps.metadata.outputs.package-ecosystem == 'github_actions' &&
+          steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
