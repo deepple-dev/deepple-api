@@ -18,3 +18,9 @@ variable "publisher_services" {
   type        = list(string)
   default     = ["cloudwatch.amazonaws.com"]
 }
+
+variable "environment" {
+  description = "알림 제목 앞에 [ ]로 붙일 환경 이름 (예: dev). 비우면 붙이지 않는다"
+  type        = string
+  default     = ""
+}
