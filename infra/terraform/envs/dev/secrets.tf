@@ -27,7 +27,7 @@ resource "aws_secretsmanager_secret_version" "app" {
 
 resource "aws_secretsmanager_secret" "external" {
   name        = "${local.name}/external"
-  description = "dev 외부 연동 키 (App Store, Bizgo)"
+  description = "dev 외부 연동 키 (App Store, Bizgo, Sentry)"
 }
 
 locals {
@@ -41,5 +41,6 @@ locals {
     "BIZGO_CLIENT_ID",
     "BIZGO_CLIENT_PASSWORD",
     "BIZGO_FROM_PHONE_NUMBER",
+    "SENTRY_DSN",
   ]
 }

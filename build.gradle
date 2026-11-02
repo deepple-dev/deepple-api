@@ -2,6 +2,7 @@ plugins {
     id 'java'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.gradle.git.properties)
 }
 
 group = 'deepple'
@@ -26,6 +27,7 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom libs.spring.cloud.aws.bom.get().toString()
+        mavenBom libs.sentry.bom.get().toString()
     }
     // 다른 라이브러리가 끌어오는 취약한 버전을 고친 버전으로 올린다. 상위 라이브러리가 이 버전 이상을 쓰면 지운다
     // guava: CVE-2026-102554 (Google 라이브러리), bcprov: CVE-2026-8763·CVE-2026-13506 (app-store-server-library)
@@ -76,9 +78,11 @@ dependencies {
     // API Docs
     implementation libs.springdoc.webmvc.ui
 
-    // Monitoring
+    // Observability
     implementation 'org.hibernate.orm:hibernate-micrometer'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    implementation libs.sentry.spring.boot
+    implementation libs.sentry.logback
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -95,6 +99,10 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-mysql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+gitProperties {
+    keys = ['git.commit.id', 'git.commit.time', 'git.branch']
 }
 
 tasks.named('test') {
