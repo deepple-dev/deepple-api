@@ -20,7 +20,7 @@ output "route53_zone_id" {
 
 output "alerts_topic_arn" {
   description = "알림 SNS 토픽 ARN. 환경별 알람의 대상으로 쓴다"
-  value       = aws_sns_topic.alerts.arn
+  value       = module.alerts.topic_arn
 }
 
 output "cloudtrail_bucket" {

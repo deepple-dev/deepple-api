@@ -200,5 +200,5 @@ resource "aws_cloudwatch_metric_alarm" "root_usage" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
+  alarm_actions       = [module.alerts.topic_arn]
 }

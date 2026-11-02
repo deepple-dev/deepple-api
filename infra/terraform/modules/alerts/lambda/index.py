@@ -8,6 +8,7 @@ from datetime import datetime
 import boto3
 
 RED = 0xE74C3C
+GREEN = 0x2ECC71
 ORANGE = 0xE67E22
 GRAY = 0x95A5A6
 TITLE_LIMIT = 256
@@ -39,17 +40,47 @@ def alarm_console_url(alarm_name):
     return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#alarmsV2:alarm/{urllib.parse.quote(alarm_name)}"
 
 
-# 경보 설명의 첫 줄은 제목, 나머지는 본문으로 쓴다
+# alarm 설명의 첫 줄은 제목, 나머지는 본문으로 쓴다
+# alarm을 처음 만들 때도 OK로 바뀌므로 ALARM에서 돌아온 경우만 복구로 보낸다
 def alarm_embed(alarm):
     title, _, body = (alarm.get("AlarmDescription") or alarm["AlarmName"]).partition("\n")
+    recovered = alarm.get("NewStateValue") == "OK"
+    if recovered and alarm.get("OldStateValue") != "ALARM":
+        return None
     return {
         "title": title,
-        "description": body,
+        "description": "정상으로 돌아왔습니다." if recovered else body,
         "url": alarm_console_url(alarm["AlarmName"]),
-        "color": RED,
+        "color": GREEN if recovered else RED,
         "footer": {"text": alarm["AlarmName"]},
         "timestamp": iso_timestamp(alarm.get("StateChangeTime")),
-    }
+    }, not recovered
+
+
+ECS_EVENT_TITLES = {
+    "SERVICE_TASK_START_IMPAIRED": ("task 시작 실패", "task가 계속 시작하지 못하고 있습니다. 로그와 secret 값을 확인하세요."),
+    "SERVICE_DEPLOYMENT_FAILED": ("배포 실패", "배포가 실패해 이전 버전으로 되돌렸습니다."),
+}
+
+
+def ecs_service_console_url(service_arn):
+    region = os.environ.get("AWS_REGION", "ap-northeast-2")
+    cluster, service = service_arn.split(":service/")[1].split("/")
+    return f"https://{region}.console.aws.amazon.com/ecs/v2/clusters/{cluster}/services/{service}/events?region={region}"
+
+
+def ecs_embed(event):
+    detail = event["detail"]
+    title, description = ECS_EVENT_TITLES.get(detail["eventName"], (detail["eventName"], ""))
+    service_arn = event["resources"][0]
+    return {
+        "title": title,
+        "description": "\n".join(filter(None, [description, detail.get("reason")])),
+        "url": ecs_service_console_url(service_arn),
+        "color": RED,
+        "footer": {"text": service_arn.rsplit("/", 1)[-1]},
+        "timestamp": event.get("time"),
+    }, True
 
 
 # Budgets 메시지 형식이 바뀌어 값을 못 찾으면 None을 돌려 원문을 보내게 한다
@@ -82,31 +113,34 @@ def budget_embed(message, timestamp):
     }
 
 
+# (embed, 멘션 여부)를 돌려준다. 문제가 생겼을 때만 멘션하고, 보낼 필요가 없으면 None
 def to_embed(sns):
     timestamp = iso_timestamp(sns.get("Timestamp"))
     try:
-        alarm = json.loads(sns["Message"])
+        message = json.loads(sns["Message"])
     except json.JSONDecodeError:
-        alarm = None
+        message = None
 
-    if isinstance(alarm, dict) and "AlarmName" in alarm:
-        return alarm_embed(alarm)
+    if isinstance(message, dict) and "AlarmName" in message:
+        return alarm_embed(message)
+    if isinstance(message, dict) and message.get("source") == "aws.ecs":
+        return ecs_embed(message)
 
     subject = sns.get("Subject") or "AWS 알림"
     if subject.startswith("AWS Budgets"):
         embed = budget_embed(sns["Message"], timestamp)
         if embed:
-            return embed
+            return embed, True
 
-    return {"title": subject, "description": sns["Message"], "color": GRAY, "timestamp": timestamp}
+    return {"title": subject, "description": sns["Message"], "color": GRAY, "timestamp": timestamp}, True
 
 
-def post(embed):
+def post(embed, mention):
     embed["title"] = embed["title"][:TITLE_LIMIT]
     embed["description"] = embed.get("description", "")[:DESCRIPTION_LIMIT]
     embed = {key: value for key, value in embed.items() if value}
 
-    role_id = os.environ.get("MENTION_ROLE_ID")
+    role_id = os.environ.get("MENTION_ROLE_ID") if mention else None
     payload = {
         "content": f"<@&{role_id}>" if role_id else "",
         "embeds": [embed],
@@ -127,4 +161,6 @@ def post(embed):
 
 def handler(event, context):
     for record in event["Records"]:
-        post(to_embed(record["Sns"]))
+        result = to_embed(record["Sns"])
+        if result:
+            post(*result)
