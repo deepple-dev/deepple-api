@@ -11,31 +11,17 @@ resource "aws_ecr_repository" "this" {
   }
 }
 
+# 태그 없는 것 삭제 규칙은 두지 않는다. 증명(태그 없음)이 지워지고, 증명은 이미지와 함께 ECR이 정리한다
 data "aws_ecr_lifecycle_policy_document" "this" {
   rule {
     priority    = 1
-    description = "태그 없는 이미지는 7일 뒤 삭제"
-
-    selection {
-      tag_status   = "untagged"
-      count_type   = "sinceImagePushed"
-      count_unit   = "days"
-      count_number = 7
-    }
-
-    action {
-      type = "expire"
-    }
-  }
-
-  rule {
-    priority    = 2
     description = "최근 이미지 30개만 보관"
 
     selection {
-      tag_status   = "any"
-      count_type   = "imageCountMoreThan"
-      count_number = 30
+      tag_status       = "tagged"
+      tag_pattern_list = ["*"]
+      count_type       = "imageCountMoreThan"
+      count_number     = 30
     }
 
     action {

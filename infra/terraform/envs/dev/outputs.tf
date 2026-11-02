@@ -13,6 +13,16 @@ output "ecs_service" {
   value       = aws_ecs_service.app.name
 }
 
+output "deploy_role_arn" {
+  description = "GitHub Actions dev 배포 역할 ARN"
+  value       = aws_iam_role.deploy.arn
+}
+
+output "alerts_topic_arn" {
+  description = "알림 SNS 토픽 ARN. 배포 완료 알림을 발행한다"
+  value       = module.alerts.topic_arn
+}
+
 output "db_address" {
   description = "RDS 주소. SSM 포트 포워딩의 대상 호스트"
   value       = aws_db_instance.this.address
