@@ -25,6 +25,28 @@ variable "github_repository" {
 variable "image_tag" {
   description = "처음 만들 때 쓸 앱 이미지 태그(커밋 SHA). 이후 배포는 CD가 task definition을 갱신한다"
   type        = string
+  default     = "84d340e00ebc77054b39ace23090fd606774983a"
+}
+
+variable "nightly_shutdown" {
+  description = "야간 중지 설정. 시각은 KST 정시이고, 앱은 DB보다 5분 먼저 끄고 DB가 켜진 15분 뒤에 켠다"
+  type = object({
+    enabled    = bool
+    stop_hour  = number
+    start_hour = number
+  })
+  default = {
+    enabled    = true
+    stop_hour  = 2
+    start_hour = 8
+  }
+
+  validation {
+    condition = alltrue([
+      for hour in [var.nightly_shutdown.stop_hour, var.nightly_shutdown.start_hour] : hour >= 0 && hour <= 23 && floor(hour) == hour
+    ]) && var.nightly_shutdown.stop_hour != var.nightly_shutdown.start_hour
+    error_message = "stop_hour와 start_hour는 0~23의 서로 다른 정수여야 한다."
+  }
 }
 
 variable "discord_mention_role_id" {

@@ -1,5 +1,8 @@
 locals {
   schedule_timezone = "Asia/Seoul"
+  schedule_state    = var.nightly_shutdown.enabled ? "ENABLED" : "DISABLED"
+  stop_hour         = var.nightly_shutdown.stop_hour
+  start_hour        = var.nightly_shutdown.start_hour
 }
 
 data "aws_iam_policy_document" "scheduler_trust" {
@@ -45,8 +48,9 @@ resource "aws_iam_role_policy" "scheduler" {
 
 resource "aws_scheduler_schedule" "ecs_stop" {
   name                         = "${local.name}-ecs-stop"
-  schedule_expression          = "cron(0 2 * * ? *)"
+  schedule_expression          = "cron(0 ${local.stop_hour} * * ? *)"
   schedule_expression_timezone = local.schedule_timezone
+  state                        = local.schedule_state
 
   flexible_time_window {
     mode = "OFF"
@@ -65,8 +69,9 @@ resource "aws_scheduler_schedule" "ecs_stop" {
 
 resource "aws_scheduler_schedule" "rds_stop" {
   name                         = "${local.name}-rds-stop"
-  schedule_expression          = "cron(5 2 * * ? *)"
+  schedule_expression          = "cron(5 ${local.stop_hour} * * ? *)"
   schedule_expression_timezone = local.schedule_timezone
+  state                        = local.schedule_state
 
   flexible_time_window {
     mode = "OFF"
@@ -82,8 +87,9 @@ resource "aws_scheduler_schedule" "rds_stop" {
 # RDS가 켜지는 데 몇 분 걸려서 앱은 15분 뒤에 켠다
 resource "aws_scheduler_schedule" "rds_start" {
   name                         = "${local.name}-rds-start"
-  schedule_expression          = "cron(0 8 * * ? *)"
+  schedule_expression          = "cron(0 ${local.start_hour} * * ? *)"
   schedule_expression_timezone = local.schedule_timezone
+  state                        = local.schedule_state
 
   flexible_time_window {
     mode = "OFF"
@@ -98,8 +104,9 @@ resource "aws_scheduler_schedule" "rds_start" {
 
 resource "aws_scheduler_schedule" "ecs_start" {
   name                         = "${local.name}-ecs-start"
-  schedule_expression          = "cron(15 8 * * ? *)"
+  schedule_expression          = "cron(15 ${local.start_hour} * * ? *)"
   schedule_expression_timezone = local.schedule_timezone
+  state                        = local.schedule_state
 
   flexible_time_window {
     mode = "OFF"
