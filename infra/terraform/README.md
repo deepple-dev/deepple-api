@@ -31,23 +31,22 @@ infra/terraform/
 
 `bootstrap/`은 실행하지 않는다. state 버킷은 이미 만들어져 있고, 다시 실행하면 같은 버킷을 새로 만들려다 실패한다.
 
-## 알림
+## 작업 흐름
 
-알림은 `modules/alerts`(SNS 토픽 → Lambda → Discord 웹훅)로 환경마다 따로 보낸다.
+```bash
+terraform fmt -recursive   # 포맷
+terraform validate         # 문법 검사
+terraform plan             # 변경 미리보기 (AWS는 바뀌지 않음)
+terraform apply            # 실제 적용
+```
 
-| 환경 | 채널 | 내용 | 웹훅 secret |
-|---|---|---|---|
-| shared | `#alerts-account` | 예산 초과, 루트 계정 사용 | `deepple/alerts/discord-webhook` |
-| dev | `#alerts-dev` | dev 서버 오류·메모리, DB 저장 공간, ECS task 시작 실패·배포 실패 | `deepple-dev/alerts/discord-webhook` |
+- 코드 변경은 다른 코드와 같이 이슈 → 브랜치 → PR로 올린다.
+- `apply` 전에 plan 결과의 생성·변경·삭제 수를 반드시 확인한다. 특히 삭제(`destroy`)와 교체(`replace`)가 있으면 이유를 확인한다.
+- 환경은 `shared` → `dev` → `prod` 순서로 적용한다. dev에서 먼저 확인하고 prod에 적용한다.
 
-- Terraform은 빈 secret만 만들고 웹훅 URL은 직접 넣는다. Discord에서 URL을 복사한 뒤 실행한다.
-  ```bash
-  aws secretsmanager put-secret-value --secret-id <웹훅 secret> --secret-string "$(pbpaste)"
-  ```
-- 멘션 역할은 각 환경 `variables.tf`의 `discord_mention_role_id`로 정한다.
-- CloudWatch alarm의 `alarm_description`은 첫 줄이 Discord 메시지 제목, 나머지가 본문이 된다.
+## 환경
 
-## dev 환경
+### dev
 
 구성은 ALB(`dev-api.deepple.co.kr`) → ECS Fargate Spot 앱 task 1개 → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
 
@@ -57,8 +56,13 @@ infra/terraform/
   - 꺼져 있는 시간에 사용을 끄면 앱과 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
 - 이미지 버킷 `deepple-dev-storage`는 읽기 공개다.
 - Valkey task가 바뀌면(Spot 회수, 장애) 데이터(인증번호, refresh token)가 사라진다.
+- DB·캐시 접속: RDS와 Valkey는 비공개라 앱 task를 거쳐 SSM 포트 포워딩으로 붙는다. 절차는 `/dev-connect` 스킬(`.claude/skills/dev-connect/SKILL.md`)에 있다.
 
-### Secrets
+## apply 전 준비물
+
+Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코드와 state에 남지 않게 하려는 것이다. 처음 apply할 때는 secret만 먼저 만들고(`-target`) 값을 넣은 뒤 나머지를 apply한다. 값이 없으면 ECS task가 시작하지 못한다.
+
+### Secret 값
 
 | Secret | 내용 | 관리 |
 |---|---|---|
@@ -72,6 +76,12 @@ set -a; source .env; set +a
 jq -n 'env | {APP_STORE_KEY_ID, APP_STORE_PRIVATE_KEY_STRING, APP_STORE_ISSUER_ID, APP_STORE_APP_APPLE_ID,
   BIZGO_API_URL, BIZGO_API_KEY, BIZGO_CLIENT_ID, BIZGO_CLIENT_PASSWORD, BIZGO_FROM_PHONE_NUMBER}' \
   | aws secretsmanager put-secret-value --secret-id deepple-dev/external --secret-string file:///dev/stdin
+```
+
+Discord 웹훅 URL은 채널에서 복사한 뒤 넣는다. secret 이름은 아래 알림 표에 있다.
+
+```bash
+aws secretsmanager put-secret-value --secret-id <웹훅 secret> --secret-string "$(pbpaste)"
 ```
 
 ### Google (Firebase, Google Play)
@@ -97,34 +107,17 @@ jq -n 'env | {APP_STORE_KEY_ID, APP_STORE_PRIVATE_KEY_STRING, APP_STORE_ISSUER_I
    ```
 3. `variables.tf`의 `gcp_workload_identity_provider`에 `projects/<번호>/locations/global/workloadIdentityPools/aws/providers/deepple`을 넣는다.
 
-### DB 접속
+## 알림
 
-RDS는 인터넷에 열려 있지 않다. 실행 중인 앱 태스크를 거쳐 로컬 포트로 연결한다([Session Manager 플러그인](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html)이 필요하다).
+알림은 `modules/alerts`(SNS 토픽 → Lambda → Discord 웹훅)로 환경마다 따로 보낸다.
 
-```bash
-CLUSTER=deepple-dev
-TASK=$(aws ecs list-tasks --cluster $CLUSTER --service-name deepple-dev-api --query 'taskArns[0]' --output text | cut -d/ -f3)
-RUNTIME=$(aws ecs describe-tasks --cluster $CLUSTER --tasks $TASK --query "tasks[0].containers[?name=='app'].runtimeId" --output text)
-DB=$(terraform -chdir=infra/terraform/envs/dev output -raw db_address)
-aws ssm start-session --target "ecs:${CLUSTER}_${TASK}_${RUNTIME}" \
-  --document-name AWS-StartPortForwardingSessionToRemoteHost \
-  --parameters "{\"host\":[\"$DB\"],\"portNumber\":[\"3306\"],\"localPortNumber\":[\"13306\"]}"
-```
+| 환경 | 채널 | 내용 | 웹훅 secret |
+|---|---|---|---|
+| shared | `#alerts-account` | 예산 초과, 루트 계정 사용 | `deepple/alerts/discord-webhook` |
+| dev | `#alerts-dev` | dev 서버 오류·메모리, DB 저장 공간, ECS task 시작 실패·배포 실패, 배포 성공 | `deepple-dev/alerts/discord-webhook` |
 
-접속 주소는 `localhost:13306`, 계정은 `deepple`이다. 비밀번호는 `aws secretsmanager get-secret-value --secret-id deepple-dev/app`의 `MYSQL_PASSWORD` 값이다.
-
-## 작업 흐름
-
-```bash
-terraform fmt -recursive   # 포맷
-terraform validate         # 문법 검사
-terraform plan             # 변경 미리보기 (AWS는 바뀌지 않음)
-terraform apply            # 실제 적용
-```
-
-- 코드 변경은 다른 코드와 같이 이슈 → 브랜치 → PR로 올린다.
-- `apply` 전에 plan 결과의 생성·변경·삭제 수를 반드시 확인한다. 특히 삭제(`destroy`)와 교체(`replace`)가 있으면 이유를 확인한다.
-- 환경은 `shared` → `dev` → `prod` 순서로 적용한다. dev에서 먼저 확인하고 prod에 적용한다.
+- 멘션 역할은 각 환경 `variables.tf`의 `discord_mention_role_id`로 정한다.
+- CloudWatch alarm의 `alarm_description`은 첫 줄이 Discord 메시지 제목, 나머지가 본문이 된다.
 
 ## state
 
