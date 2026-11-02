@@ -52,6 +52,9 @@ infra/terraform/
 구성은 ALB(`dev-api.deepple.co.kr`) → ECS Fargate Spot 앱 task 1개 → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
 
 - 매일 02~08시(KST)에 앱과 RDS를 끈다. RDS는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
+  - 시각과 사용 여부는 `variables.tf`의 `nightly_shutdown` 기본값을 바꿔 apply한다.
+  - 한 번만 바꿀 때는 `terraform apply -var 'nightly_shutdown={enabled=false,stop_hour=2,start_hour=8}'`처럼 넘긴다. 다음 apply 때 기본값으로 돌아간다.
+  - 꺼져 있는 시간에 사용을 끄면 앱과 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
 - 이미지 버킷 `deepple-dev-storage`는 읽기 공개다.
 - Valkey task가 바뀌면(Spot 회수, 장애) 데이터(인증번호, refresh token)가 사라진다.
 
