@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:deepple}
-    username: ${MYSQL_USER:user}
-    password: ${MYSQL_PASSWORD:1234}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -52,7 +52,7 @@ server:
     max-http-form-post-size: 50MB
 
 jwt:
-  secret: ${JWT_SECRET:this-is-secret-key-value-at-least-128-bytes}
+  secret: ${JWT_SECRET}
   access-token:
     expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:1800}  # 30분
   refresh-token:
@@ -66,7 +66,7 @@ auth:
     same-site: None
     secure: true
     http-only: true
-  prefix-code: ${AUTH_PREFIX_CODE:008008}
+  prefix-code: ${AUTH_PREFIX_CODE}
 
 springdoc:
   api-docs:
@@ -78,25 +78,33 @@ springdoc:
 
 payment:
   app-store:
-    key-id: ${APP_STORE_KEY_ID:key-id}
-    private-key-string: ${APP_STORE_PRIVATE_KEY_STRING:private-key-string}
-    issuer-id: ${APP_STORE_ISSUER_ID:issuer-id}
+    key-id: ${APP_STORE_KEY_ID}
+    private-key-string: ${APP_STORE_PRIVATE_KEY_STRING}
+    issuer-id: ${APP_STORE_ISSUER_ID}
     environment: ${APP_STORE_ENVIRONMENT:Sandbox}
-    bundle-id: ${APP_STORE_BUNDLE_ID:bundle-id}
-    app-apple-id: ${APP_STORE_APP_APPLE_ID:0000000000}
+    bundle-id: ${APP_STORE_BUNDLE_ID}
+    app-apple-id: ${APP_STORE_APP_APPLE_ID}
     root-ca-paths: ${APP_STORE_ROOT_CA_G2_PATH:/etc/certs/appstore/AppleRootCA-G2.pem}, ${APP_STORE_ROOT_CA_G3_PATH:/etc/certs/appstore/AppleRootCA-G3.pem}
     base-url: ${APP_STORE_BASE_URL:https://api.storekit-sandbox.itunes.apple.com}
   google-play:
     package-name: ${GOOGLE_PLAY_PACKAGE_NAME:com.goodmeet.deepple}
-    service-account-key-path: ${GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_PATH:/etc/certs/google-play/service-account.json}
+    service-account: ${GOOGLE_PLAY_SERVICE_ACCOUNT}
     application-name: ${GOOGLE_PLAY_APPLICATION_NAME:deepple-api}
 
+firebase:
+  project-id: ${FIREBASE_PROJECT_ID}
+  service-account: ${FIREBASE_SERVICE_ACCOUNT}
+
+google:
+  workload-identity:
+    audience: ${GOOGLE_WORKLOAD_IDENTITY_AUDIENCE}
+
 bizgo:
-  api-url: ${BIZGO_API_URL:api-url}
-  api-key: ${BIZGO_API_KEY:api-key}
-  client-id: ${BIZGO_CLIENT_ID:client-id}
-  client-password: ${BIZGO_CLIENT_PASSWORD:client_password}
-  from-phone-number: ${BIZGO_FROM_PHONE_NUMBER:from-phone-number}
+  api-url: ${BIZGO_API_URL}
+  api-key: ${BIZGO_API_KEY}
+  client-id: ${BIZGO_CLIENT_ID}
+  client-password: ${BIZGO_CLIENT_PASSWORD}
+  from-phone-number: ${BIZGO_FROM_PHONE_NUMBER}
 
 scheduler:
   cron: "0 0 0 * * *"
