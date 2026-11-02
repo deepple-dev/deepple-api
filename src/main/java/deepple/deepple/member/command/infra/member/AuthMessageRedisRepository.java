@@ -4,20 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 @Repository
 @RequiredArgsConstructor
 public class AuthMessageRedisRepository {
     private static final String PREFIX = "authMessage:";
-    private static final int EXPIRE_TIME_MINUTE = 5;
+    private static final Duration EXPIRE_TIME = Duration.ofMinutes(5);
 
     private final RedisTemplate<String, String> redisTemplate;
 
     public void save(String key, String message) {
         String fullKey = getFullKey(key);
         redisTemplate.opsForValue().set(fullKey, message);
-        redisTemplate.expire(fullKey, EXPIRE_TIME_MINUTE, TimeUnit.MINUTES);
+        redisTemplate.expire(fullKey, EXPIRE_TIME);
     }
 
     public String getByKey(String key) {

@@ -1,16 +1,15 @@
 package deepple.deepple.interview.query.question;
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
 import deepple.deepple.interview.query.question.view.AdminInterviewQuestionView;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -23,15 +22,18 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, AdminInterviewQuestionQueryRepository.class})
-class AdminInterviewQuestionQueryRepositoryTest {
+class AdminInterviewQuestionQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private AdminInterviewQuestionQueryRepository adminInterviewQuestionQueryRepository;
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @BeforeEach
+    void deleteSeedData() {
+        entityManager.getEntityManager().createNativeQuery("delete from interview_questions").executeUpdate();
+    }
 
     @Nested
     @DisplayName("인터뷰 질문 페이지네이션 조회 테스트")

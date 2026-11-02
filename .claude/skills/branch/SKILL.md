@@ -9,6 +9,6 @@ disable-model-invocation: true
 
 1. `gh issue view $ARGUMENTS --json title`로 이슈를 읽는다. 이슈가 없으면 멈추고 알린다.
 2. 브랜치 이름: `이슈번호-짧은설명`
-   - 짧은설명: 이슈 제목을 영어 kebab-case 2~4단어로. 예: `123-dating-exam-image`
+   - 짧은설명: 이슈 제목을 영어 kebab-case 2~4단어로 줄인다(예: `123-dating-exam-image`).
 3. 커밋하지 않은 변경이 있으면 멈추고 알린다.
 4. `git fetch origin main && git switch -c <브랜치> origin/main`

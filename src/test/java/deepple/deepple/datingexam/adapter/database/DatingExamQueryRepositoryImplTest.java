@@ -1,6 +1,6 @@
 package deepple.deepple.datingexam.adapter.database;
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.datingexam.application.dto.DatingExamAnswerInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamQuestionInfo;
@@ -11,15 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import({QueryDslConfig.class, DatingExamQueryRepositoryImpl.class})
-@DataJpaTest
-class DatingExamQueryRepositoryImplTest {
+class DatingExamQueryRepositoryImplTest extends RepositoryTestSupport {
 
     @Autowired
     private TestEntityManager em;
@@ -33,6 +29,10 @@ class DatingExamQueryRepositoryImplTest {
 
     @BeforeEach
     void setUp() {
+        em.getEntityManager().createNativeQuery("delete from dating_exam_answer").executeUpdate();
+        em.getEntityManager().createNativeQuery("delete from dating_exam_question").executeUpdate();
+        em.getEntityManager().createNativeQuery("delete from dating_exam_subject").executeUpdate();
+
         subj1 = DatingExamSubject.create("Subj1", SubjectType.OPTIONAL);
         em.persist(subj1);
 

@@ -2,38 +2,30 @@ spring:
   profiles:
     active: test
 
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
         show_sql: true
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      ssl:
-        enabled: false
   servlet:
     multipart:
       max-request-size: 50MB
 
   flyway:
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration, classpath:db/test-migration
 
   cloud:
     aws:
       region:
         static: ap-northeast-2
+      credentials:
+        access-key: test
+        secret-key: test
       s3:
-        enabled: false
-        bucket: test-bucket
+        path-style-access-enabled: true
 
 jwt:
   secret: this-is-secret-key-value-at-least-128-bytes

@@ -1,6 +1,14 @@
 # CLAUDE.md
 
-데이팅 서비스 딥플의 백엔드 API. Java 21, Spring Boot 3, JPA + QueryDSL, MySQL, Redis(Redisson), Flyway.
+데이팅 서비스 딥플의 백엔드 API이다.
+
+## 기술 스택
+
+- Java 21, Spring Boot 4, Gradle (Version Catalog)
+- JPA(Hibernate) + QueryDSL(OpenFeign fork), MySQL 8.4, Flyway
+- Redis(Valkey) + Redisson
+- AWS(ECS Fargate, RDS, S3), Terraform, GitHub Actions
+- 테스트: JUnit 6, Mockito, Testcontainers
 
 ## 명령어
 
@@ -57,30 +65,15 @@
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`
 - 동시성이 필요한 처리는 `LockRepository`(Redisson 분산락)를 쓴다.
 - 엔티티는 `BaseEntity` 또는 `SoftDeleteBaseEntity`를 상속한다.
-- 주석과 예외 메시지는 한국어.
-- 세부 규칙은 `.claude/rules/`: Java(`java.md`), Swagger 문서화(`swagger.md`), 외부 API 연동(`resilience.md`)
-
-## DB
-
-- 스키마 변경은 Flyway 마이그레이션으로만 한다: `src/main/resources/db/migration/V{다음번호}__설명.sql`
-- 이미 머지된 마이그레이션 파일은 수정하지 않는다. 새 파일을 추가한다.
-- FK 제약조건은 만들지 않는다.
-- PK와 `*_id` 컬럼은 `bigint`.
-- local·dev·prod 모두 Flyway + `ddl-auto: validate`라서 엔티티와 마이그레이션이 일치해야 한다. 로컬 실행에서 바로 확인된다.
-
-## 테스트
-
-- 서비스·도메인: JUnit 5 + Mockito (`@ExtendWith(MockitoExtension.class)`)
-- 리포지토리: `@DataJpaTest` (H2 인메모리)
-- 테스트 패키지는 main과 같은 구조로 둔다.
-- 코드를 바꾸면 관련 테스트를 추가·수정하고 `./gradlew test`로 확인한다.
+- 스키마 변경은 Flyway 마이그레이션으로만 한다. 엔티티와 마이그레이션이 일치해야 한다.
+- 주석과 예외 메시지는 한국어로 쓴다.
 
 ## 개발 플로우
 
-- 트렁크 기반: `main` 단일 브랜치, squash merge. `develop`은 사용하지 않는다.
-- 이슈(`/issue`) → 브랜치(`/branch`) → 구현 → 코드 리뷰 → 커밋(`/commit`) → PR(`/pr`). 각 단계는 해당 스킬로 한다.
+- 트렁크 기반으로 `main` 브랜치 하나만 쓰고 squash merge한다. `develop`은 사용하지 않는다.
+- 이슈(`/issue`) → 브랜치(`/branch`) → 구현 → 테스트 → 코드 리뷰 → 커밋(`/commit`) → PR(`/pr`). 각 단계는 해당 스킬로 한다.
+- 테스트: 코드를 바꾸면 관련 테스트를 추가·수정하고 `./gradlew test`로 확인한다. Docker가 켜져 있어야 한다.
 - 코드 리뷰: 커밋 전에 별도 에이전트(`/code-review` 등)로 전체 변경을 리뷰하고, 지적 사항을 반영한 뒤 커밋한다.
-- 타입: `feat` `fix` `refactor` `test` `docs` `chore` `infra` / 범위: 도메인 이름(생략 가능)
 
 ## 하지 말 것
 
@@ -88,3 +81,16 @@
 - `.env`, `secrets/`, `certs/google-play/`의 키 파일 커밋
 - 머지된 Flyway 마이그레이션 수정
 - 테스트를 끄거나 지워서 빌드 통과시키기
+
+## 세부 규칙
+
+`.claude/rules/`에 있고, 해당 파일을 다룰 때 읽힌다.
+
+| 파일 | 내용 | 적용 대상 |
+|---|---|---|
+| `java.md` | 타입·이름·작성 규칙, Lombok | 모든 Java 파일 |
+| `swagger.md` | API 문서화 | `presentation`, `adapter/webapi`, `query` |
+| `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `infra`, `adapter`, `common/config` |
+| `db.md` | 마이그레이션, 컬럼 타입 | 마이그레이션, 엔티티(`domain`) |
+| `test.md` | 테스트 종류별 작성 방식 | `src/test` |
+| `build.md` | 의존성 버전 관리 | `build.gradle`, `gradle/` |

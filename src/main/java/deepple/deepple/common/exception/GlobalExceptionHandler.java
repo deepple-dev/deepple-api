@@ -1,6 +1,5 @@
 package deepple.deepple.common.exception;
 
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import jakarta.persistence.EntityNotFoundException;
@@ -14,6 +13,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 import java.util.List;
 

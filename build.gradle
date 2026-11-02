@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.3.5'
-    id 'io.spring.dependency-management' version '1.1.6'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
 }
 
 group = 'deepple'
@@ -25,56 +25,56 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.6"
+        mavenBom libs.spring.cloud.aws.bom.get().toString()
+    }
+    // 다른 라이브러리가 끌어오는 취약한 버전을 고친 버전으로 올린다. 상위 라이브러리가 이 버전 이상을 쓰면 지운다
+    // guava: CVE-2026-102554 (Google 라이브러리), bcprov: CVE-2026-8763·CVE-2026-13506 (app-store-server-library)
+    dependencies {
+        dependency libs.guava.get().toString()
+        dependency libs.bouncycastle.bcprov.get().toString()
     }
 }
 
 dependencies {
     // Spring Boot
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // Spring Cloud
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-
     // Persistence
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    implementation 'org.flywaydb:flyway-core'
+    implementation libs.querydsl.jpa
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.flywaydb:flyway-mysql'
     runtimeOnly 'com.mysql:mysql-connector-j'
-    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
-    annotationProcessor 'jakarta.annotation:jakarta.annotation-api:2.1.1'
-    annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+    annotationProcessor variantOf(libs.querydsl.apt) { classifier('jpa') }
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.redisson:redisson-spring-boot-starter:3.45.1'
+    implementation libs.redisson.spring.boot.starter
 
     // Auth
     implementation 'org.springframework.security:spring-security-crypto'
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+    implementation libs.jjwt.api
+    runtimeOnly libs.jjwt.impl
+    runtimeOnly libs.jjwt.jackson
 
     // External - AWS
-    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.4.0')
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+    implementation libs.spring.cloud.aws.starter.s3
 
     // External - Firebase
-    implementation 'com.google.firebase:firebase-admin:9.4.3'
+    implementation libs.firebase.admin
 
     // External - App Store, Google Play
-    implementation 'com.apple.itunes.storekit:app-store-server-library:3.3.0'
-    implementation 'com.google.apis:google-api-services-androidpublisher:v3-rev20250602-2.0.0'
-    implementation 'com.google.auth:google-auth-library-oauth2-http:1.35.0'
+    implementation libs.app.store.server
+    implementation libs.google.androidpublisher
+    implementation libs.google.auth
 
     // Resilience
-    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+    implementation libs.resilience4j.spring.boot
 
     // API Docs
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation libs.springdoc.webmvc.ui
 
     // Monitoring
     implementation 'org.hibernate.orm:hibernate-micrometer'
@@ -83,13 +83,17 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 
     // Local
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'com.h2database:h2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-mysql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

@@ -1,7 +1,6 @@
 package deepple.deepple.match.query;
 
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.match.command.domain.match.Match;
 import deepple.deepple.match.command.domain.match.MatchContactType;
 import deepple.deepple.match.command.domain.match.MatchType;
@@ -17,19 +16,13 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, MatchQueryRepository.class})
-@ExtendWith(MockEventsExtension.class)
-public class MatchQueryRepositoryTest {
+public class MatchQueryRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private MatchQueryRepository matchQueryRepository;
 

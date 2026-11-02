@@ -1,10 +1,11 @@
 package deepple.deepple.member.query.introduction.intra;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,11 +14,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * PersonalityIntroductionRedisRepository가 주입받는 ObjectMapper는 Spring Boot 자동 구성 빈이다.
- * Jackson2ObjectMapperBuilder로 동일하게 구성해 LocalDateTime(openedAt)이 실제로 직렬화/역직렬화되는지 검증한다.
+ * Boot 설정(use-jackson2-defaults)과 같게 구성해 LocalDateTime(openedAt)이 실제로 직렬화/역직렬화되는지 검증한다.
  */
 class PersonalityIntroductionOpenStateSerializationTest {
 
-    private final ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+        .configureForJackson2()
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build();
 
     @Test
     @DisplayName("openedAt을 포함해 직렬화/역직렬화가 왕복된다.")

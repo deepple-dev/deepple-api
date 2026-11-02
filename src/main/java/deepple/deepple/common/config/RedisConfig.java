@@ -1,20 +1,17 @@
 package deepple.deepple.common.config;
 
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 import java.time.Duration;
 
@@ -22,27 +19,11 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig {
 
-    private final String REDISSON_HOST_PREFIX;
-    private final String host;
-    private final String port;
-
-    public RedisConfig(@Value("${spring.data.redis.host}") String host,
-        @Value("${spring.data.redis.port}") String port,
-        @Value("${spring.data.redis.ssl.enabled}") boolean sslEnabled) {
-        this.host = host;
-        this.port = port;
-        if (sslEnabled) {
-            REDISSON_HOST_PREFIX = "rediss://";
-        } else {
-            REDISSON_HOST_PREFIX = "redis://";
-        }
-    }
-
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setValueSerializer(jsonRedisSerializer());
         redisTemplate.setConnectionFactory(connectionFactory);
         return redisTemplate;
     }
@@ -52,7 +33,7 @@ public class RedisConfig {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
             .serializeValuesWith(
                 RedisSerializationContext.SerializationPair
-                    .fromSerializer(new GenericJackson2JsonRedisSerializer())
+                    .fromSerializer(jsonRedisSerializer())
             )
             .entryTtl(Duration.ofDays(30))
             .prefixCacheNameWith("cache::");
@@ -62,11 +43,16 @@ public class RedisConfig {
             .build();
     }
 
-    @Bean
-    @Profile("!test")
-    public RedissonClient redissonClient() {
-        Config config = new Config();
-        config.useSingleServer().setAddress(REDISSON_HOST_PREFIX + host + ":" + port);
-        return Redisson.create(config);
+    // 값에 타입 정보를 함께 저장해 역직렬화하므로, 역직렬화할 수 있는 타입을 앱 클래스와 JDK 기본 타입으로 제한한다
+    static GenericJacksonJsonRedisSerializer jsonRedisSerializer() {
+        PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
+            .allowIfSubType("deepple.deepple.")
+            .allowIfSubType("java.lang.")
+            .allowIfSubType("java.util.")
+            .allowIfSubType("java.time.")
+            .build();
+        return GenericJacksonJsonRedisSerializer.builder()
+            .enableDefaultTyping(typeValidator)
+            .build();
     }
 }

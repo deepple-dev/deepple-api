@@ -1,7 +1,6 @@
 package deepple.deepple.community.query;
 
-import deepple.deepple.common.config.QueryDslConfig;
-import deepple.deepple.common.event.Events;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import deepple.deepple.community.presentation.selfintroduction.dto.AdminSelfIntroductionSearchCondition;
 import deepple.deepple.community.query.selfintroduction.AdminSelfIntroductionQueryRepository;
@@ -11,16 +10,11 @@ import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -31,12 +25,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, AdminSelfIntroductionQueryRepository.class})
-class AdminSelfIntroductionQueryRepositoryTest {
+class AdminSelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
 
     private static final int PAGE_SIZE = 5;
-    private static MockedStatic<Events> mockedEvents;
 
     Member manMember;
     Member womanMember;
@@ -49,9 +40,6 @@ class AdminSelfIntroductionQueryRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        mockedEvents = Mockito.mockStatic(Events.class);
-        mockedEvents.when(() -> Events.raise(Mockito.any()))
-            .thenAnswer(invocation -> null);
 
         manMember = Member.fromPhoneNumber("01012345678");
         womanMember = Member.fromPhoneNumber("01098765432");
@@ -102,11 +90,6 @@ class AdminSelfIntroductionQueryRepositoryTest {
 
         entityManager.flush();
         entityManager.clear();
-    }
-
-    @AfterEach
-    void tearDown() {
-        mockedEvents.close();
     }
 
     @DisplayName("모든 셀프 소개를 조회합니다.")
@@ -243,6 +226,5 @@ class AdminSelfIntroductionQueryRepositoryTest {
     private String toDate(LocalDateTime localDateTime) {
         return localDateTime != null ? DateTimeFormatter.ofPattern("yyyy/MM/dd").format(localDateTime) : null;
     }
-
 
 }

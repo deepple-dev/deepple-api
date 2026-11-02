@@ -1,22 +1,18 @@
 package deepple.deepple.notification.query;
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.notification.command.domain.NotificationPreference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.Optional;
 
 import static deepple.deepple.notification.command.domain.NotificationType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, NotificationPreferenceQueryRepository.class})
-class NotificationPreferenceQueryRepositoryTest {
+class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private TestEntityManager em;

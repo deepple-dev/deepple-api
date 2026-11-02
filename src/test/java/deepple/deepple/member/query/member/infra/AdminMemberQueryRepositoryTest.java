@@ -2,8 +2,7 @@ package deepple.deepple.member.query.member.infra;
 
 import deepple.deepple.admin.command.domain.warning.Warning;
 import deepple.deepple.admin.command.domain.warning.WarningReasonType;
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
@@ -20,13 +19,10 @@ import deepple.deepple.notification.command.domain.NotificationPreference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,10 +35,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-@DataJpaTest
-@ExtendWith(MockEventsExtension.class)
-@Import({QueryDslConfig.class, AdminMemberQueryRepository.class})
-class AdminMemberQueryRepositoryTest {
+class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private AdminMemberQueryRepository adminMemberQueryRepository;

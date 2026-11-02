@@ -1,8 +1,5 @@
 package deepple.deepple.member.query.introduction.intra;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepple.deepple.member.query.introduction.intra.exception.IntroductionMemberIdSerializationFailedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Date;
 import java.util.Set;
@@ -41,7 +41,7 @@ class IntroductionRedisRepositoryTest {
     class SaveIntroductionMemberIdsTest {
         @Test
         @DisplayName("Redis에 올바르게 저장되고 만료 시간 설정")
-        void saveIntroductionMemberIdWhenSuccess() throws JsonProcessingException {
+        void saveIntroductionMemberIdWhenSuccess() throws JacksonException {
             // given
             String key = "testKey";
             Set<Long> ids = Set.of(1L, 2L, 3L);
@@ -62,13 +62,13 @@ class IntroductionRedisRepositoryTest {
 
         @Test
         @DisplayName("JSON 직렬화 실패 시 예외 발생")
-        void throwExceptionWhenSerializationFailed() throws JsonProcessingException {
+        void throwExceptionWhenSerializationFailed() throws JacksonException {
             // given
             String key = "testKey";
             Set<Long> ids = Set.of(1L, 2L, 3L);
             Date expireAt = new Date();
 
-            when(mapper.writeValueAsString(ids)).thenThrow(new JsonProcessingException("error") {});
+            when(mapper.writeValueAsString(ids)).thenThrow(new JacksonException("error") {});
 
             // when & then
             assertThatThrownBy(() -> repository.saveIntroductionMemberIds(key, ids, expireAt))
@@ -98,7 +98,7 @@ class IntroductionRedisRepositoryTest {
 
         @Test
         @DisplayName("Redis에 저장된 JSON을 올바르게 역직렬화하여 반환")
-        void returnIntroductionMemberIdsWhenRedisHasValue() throws JsonProcessingException {
+        void returnIntroductionMemberIdsWhenRedisHasValue() throws JacksonException {
             // given
             String key = "testKey";
             String fullKey = "introduction:" + key;
@@ -118,7 +118,7 @@ class IntroductionRedisRepositoryTest {
 
         @Test
         @DisplayName("Redis에 저장된 JSON 역직렬화 실패 시 예외 발생")
-        void throwExceptionWhenDeserializationFailed() throws JsonProcessingException {
+        void throwExceptionWhenDeserializationFailed() throws JacksonException {
             // given
             String key = "testKey";
             String fullKey = "introduction:" + key;
@@ -127,7 +127,7 @@ class IntroductionRedisRepositoryTest {
             when(redisTemplate.opsForValue()).thenReturn(valueOps);
             when(valueOps.get(fullKey)).thenReturn(json);
             when(mapper.readValue(eq(json), any(TypeReference.class))).thenThrow(
-                new JsonProcessingException("error") {});
+                new JacksonException("error") {});
 
             // when & then
             assertThatThrownBy(() -> repository.findIntroductionMemberIds(key))

@@ -1,13 +1,13 @@
 package deepple.deepple.datingexam.adapter.encoding;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepple.deepple.datingexam.domain.DatingExamAnswerEncoder;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 
@@ -37,7 +37,7 @@ public class DatingExamEncoder implements DatingExamAnswerEncoder {
 
         try {
             return objectMapper.writeValueAsString(resultMap);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new DatingExamEncodingFailedException("답안 인코딩에 실패했습니다. " + e.getMessage());
         }
     }
