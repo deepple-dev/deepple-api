@@ -1,12 +1,12 @@
 package deepple.deepple.auth.presentation.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepple.deepple.common.enums.StatusType;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,12 +40,12 @@ public class ResponseHandler {
             String jsonBody = makeJsonBody(status, code, message);
             writer.write(jsonBody);
             writer.flush();
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             log.error("응답 바디 설정에 실패했습니다: {}", e.getMessage());
         }
     }
 
-    private String makeJsonBody(int status, String code, String message) throws JsonProcessingException {
+    private String makeJsonBody(int status, String code, String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("status", status);
         body.put("code", code);

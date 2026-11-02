@@ -1,7 +1,6 @@
 package deepple.deepple.member.query.member.infra;
 
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
@@ -28,11 +27,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -43,11 +39,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-@DataJpaTest
-@Import({QueryDslConfig.class, MemberQueryRepository.class})
-@ExtendWith(MockEventsExtension.class)
-class MemberQueryRepositoryTest {
+class MemberQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private MemberQueryRepository memberQueryRepository;

@@ -1,8 +1,7 @@
 package deepple.deepple.like.query;
 
 import deepple.deepple.block.domain.Block;
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
 import deepple.deepple.member.command.domain.member.District;
@@ -15,11 +14,8 @@ import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,10 +24,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, LikeQueryRepository.class})
-@ExtendWith(MockEventsExtension.class)
-class LikeQueryRepositoryTest {
+class LikeQueryRepositoryTest extends RepositoryTestSupport {
     private static final int NUMBER_OF_PEOPLE = 30;
     private static final int PAGE_SIZE = 13;
 

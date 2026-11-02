@@ -1,12 +1,12 @@
 package deepple.deepple.member.query.introduction.intra;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepple.deepple.member.query.introduction.intra.exception.IntroductionMemberIdSerializationFailedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -27,7 +27,7 @@ public class PersonalityIntroductionRedisRepository {
     public void saveOpenState(long memberId, PersonalityIntroductionOpenState state) {
         try {
             redisTemplate.opsForValue().set(openKey(memberId), objectMapper.writeValueAsString(state), TTL);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IntroductionMemberIdSerializationFailedException(e);
         }
     }
@@ -39,7 +39,7 @@ public class PersonalityIntroductionRedisRepository {
         }
         try {
             return Optional.of(objectMapper.readValue(json, PersonalityIntroductionOpenState.class));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IntroductionMemberIdSerializationFailedException(e);
         }
     }
@@ -51,7 +51,7 @@ public class PersonalityIntroductionRedisRepository {
         }
         try {
             return objectMapper.readValue(json, new TypeReference<Set<Long>>() {});
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IntroductionMemberIdSerializationFailedException(e);
         }
     }
@@ -61,7 +61,7 @@ public class PersonalityIntroductionRedisRepository {
         unlockedMemberIds.add(targetMemberId);
         try {
             redisTemplate.opsForValue().set(unlockedKey(memberId), objectMapper.writeValueAsString(unlockedMemberIds));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IntroductionMemberIdSerializationFailedException(e);
         }
         alignUnlockedExpiry(memberId);

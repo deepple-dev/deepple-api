@@ -1,7 +1,6 @@
 package deepple.deepple.payment.command.infra.order;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.androidpublisher.AndroidPublisher;
 import com.google.api.services.androidpublisher.AndroidPublisherScopes;
@@ -16,8 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Slf4j
@@ -41,18 +38,12 @@ public class GooglePlayClientConfig {
             )
             .createScoped(List.of(AndroidPublisherScopes.ANDROIDPUBLISHER));
 
-        try {
-            HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-
-            return new AndroidPublisher.Builder(
-                transport,
-                GsonFactory.getDefaultInstance(),
-                new HttpCredentialsAdapter(credentials)
-            )
-                .setApplicationName(applicationName)
-                .build();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new IllegalStateException("Google Play 클라이언트 초기화 실패: " + e.getMessage(), e);
-        }
+        return new AndroidPublisher.Builder(
+            new NetHttpTransport(),
+            GsonFactory.getDefaultInstance(),
+            new HttpCredentialsAdapter(credentials)
+        )
+            .setApplicationName(applicationName)
+            .build();
     }
 }

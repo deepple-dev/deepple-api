@@ -1,18 +1,17 @@
 package deepple.deepple.common.entity;
 
 
+import deepple.deepple.common.support.RepositoryTestSupport;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-public class BaseEntityTest {
+public class BaseEntityTest extends RepositoryTestSupport {
 
     @Autowired
     private EntityManager entityManager;
@@ -22,7 +21,7 @@ public class BaseEntityTest {
     void saveBaseEntityTest() {
         // given
         String name = "test";
-        BaseEntityTestEntity entity = new BaseEntityTestEntity(name);
+        TestEntity entity = new TestEntity(name);
 
         // when
         entityManager.persist(entity);
@@ -30,7 +29,7 @@ public class BaseEntityTest {
         entityManager.clear();
 
         // then
-        BaseEntityTestEntity savedEntity = entityManager.find(BaseEntityTestEntity.class, entity.getId());
+        TestEntity savedEntity = entityManager.find(TestEntity.class, entity.getId());
         assertThat(savedEntity.getId()).isEqualTo(entity.getId());
         assertThat(savedEntity.getCreatedAt()).isEqualTo(savedEntity.getUpdatedAt());
     }
@@ -40,11 +39,11 @@ public class BaseEntityTest {
     void updateBaseEntityTest() {
         // given
         String name = "test";
-        BaseEntityTestEntity entity = new BaseEntityTestEntity(name);
+        TestEntity entity = new TestEntity(name);
         entityManager.persist(entity);
         entityManager.flush();
         entityManager.clear();
-        BaseEntityTestEntity savedEntity = entityManager.find(BaseEntityTestEntity.class, entity.getId());
+        TestEntity savedEntity = entityManager.find(TestEntity.class, entity.getId());
         LocalDateTime createdAt = savedEntity.getCreatedAt();
         LocalDateTime updatedAt = savedEntity.getUpdatedAt();
 
@@ -54,7 +53,7 @@ public class BaseEntityTest {
         entityManager.clear();
 
         // then
-        BaseEntityTestEntity updatedEntity = entityManager.find(BaseEntityTestEntity.class, entity.getId());
+        TestEntity updatedEntity = entityManager.find(TestEntity.class, entity.getId());
         assertThat(updatedEntity.getId()).isEqualTo(savedEntity.getId());
         assertThat(updatedEntity.getCreatedAt()).isEqualTo(createdAt);
         assertThat(updatedEntity.getUpdatedAt()).isAfter(updatedAt);

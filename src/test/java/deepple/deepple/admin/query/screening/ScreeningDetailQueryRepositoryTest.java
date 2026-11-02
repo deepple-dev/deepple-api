@@ -1,7 +1,7 @@
 package deepple.deepple.admin.query.screening;
 
 import deepple.deepple.admin.command.domain.screening.Screening;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
@@ -15,17 +15,13 @@ import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.Calendar;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, ScreeningDetailQueryRepository.class})
-class ScreeningDetailQueryRepositoryTest {
+class ScreeningDetailQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private TestEntityManager em;

@@ -1,7 +1,7 @@
 package deepple.deepple.member.query.introduction.intra;
 
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.introduction.MemberIdeal;
 import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
 import deepple.deepple.member.command.domain.member.*;
@@ -9,17 +9,13 @@ import deepple.deepple.member.query.introduction.application.MemberIdealView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, MemberIdealQueryRepository.class})
-class MemberIdealQueryRepositoryTest {
+class MemberIdealQueryRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private TestEntityManager entityManager;
 

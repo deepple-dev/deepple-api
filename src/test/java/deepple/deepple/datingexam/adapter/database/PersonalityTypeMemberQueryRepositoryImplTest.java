@@ -1,8 +1,7 @@
 package deepple.deepple.datingexam.adapter.database;
 
 import deepple.deepple.block.domain.Block;
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
 import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
@@ -11,21 +10,15 @@ import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import({QueryDslConfig.class, PersonalityTypeMemberQueryRepositoryImpl.class})
-@ExtendWith(MockEventsExtension.class)
-@DataJpaTest
-class PersonalityTypeMemberQueryRepositoryImplTest {
+class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport {
 
     private static final AnswerPersonalityType TARGET_TYPE = AnswerPersonalityType.STIMULATING_ADVENTURER;
 

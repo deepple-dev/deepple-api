@@ -1,7 +1,6 @@
 version: 2
 
 updates:
-  # Gradle 의존성은 Spring Boot 업그레이드를 마친 뒤 추가한다
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -18,3 +17,20 @@ updates:
     commit-message:
       prefix: chore
     labels: [ infra ]
+
+  # 자동 병합하지 않고 직접 확인한다
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    cooldown:
+      default-days: 7
+    groups:
+      gradle:
+        update-types: [ minor, patch ]
+    commit-message:
+      prefix: chore
+    labels: [ ]

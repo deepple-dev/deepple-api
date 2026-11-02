@@ -1,24 +1,18 @@
 package deepple.deepple.member.command.infra.member;
 
-import deepple.deepple.common.MockEventsExtension;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import(MemberCommandRepositoryImpl.class)
-@ExtendWith(MockEventsExtension.class)
-class MemberCommandRepositoryLastAccessedAtTest {
+class MemberCommandRepositoryLastAccessedAtTest extends RepositoryTestSupport {
 
     @Autowired
     private MemberCommandRepository memberCommandRepository;

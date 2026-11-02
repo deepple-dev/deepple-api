@@ -1,17 +1,16 @@
 package deepple.deepple.payment.query.heartpurchaseoption;
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseAmount;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.Price;
 import deepple.deepple.payment.query.heartpurchaseoption.condition.HeartPurchaseOptionSearchCondition;
 import deepple.deepple.payment.query.heartpurchaseoption.view.HeartPurchaseOptionView;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -21,11 +20,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, HeartPurchaseOptionQueryRepository.class})
-class HeartPurchaseOptionQueryRepositoryTest {
+class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private TestEntityManager entityManager;
+
+    @BeforeEach
+    void deleteSeedData() {
+        entityManager.getEntityManager().createNativeQuery("delete from heart_purchase_options").executeUpdate();
+    }
     @Autowired
     private HeartPurchaseOptionQueryRepository heartPurchaseOptionQueryRepository;
 

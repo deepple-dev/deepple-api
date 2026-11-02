@@ -1,8 +1,7 @@
 package deepple.deepple.datingexam.adapter.database;
 
 import deepple.deepple.block.domain.Block;
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.datingexam.domain.DatingExamAnswerEncoder;
 import deepple.deepple.datingexam.domain.DatingExamSubject;
 import deepple.deepple.datingexam.domain.DatingExamSubmit;
@@ -15,11 +14,8 @@ import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.Set;
 
@@ -28,10 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Import({QueryDslConfig.class, SoulmateQueryRepositoryImpl.class})
-@ExtendWith(MockEventsExtension.class)
-@DataJpaTest
-class SoulmateQueryRepositoryImplTest {
+class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
     @Autowired
     private TestEntityManager em;
 

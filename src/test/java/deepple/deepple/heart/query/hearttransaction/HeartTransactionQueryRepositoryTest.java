@@ -1,6 +1,6 @@
 package deepple.deepple.heart.query.hearttransaction;
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
@@ -10,9 +10,7 @@ import deepple.deepple.heart.query.hearttransaction.view.HeartTransactionView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
@@ -20,9 +18,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, HeartTransactionQueryRepository.class})
-class HeartTransactionQueryRepositoryTest {
+class HeartTransactionQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private HeartTransactionQueryRepository heartTransactionQueryRepository;

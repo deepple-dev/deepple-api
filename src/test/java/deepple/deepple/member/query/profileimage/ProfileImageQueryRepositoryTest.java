@@ -1,6 +1,6 @@
 package deepple.deepple.member.query.profileimage;
 
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
 import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import deepple.deepple.member.query.profileimage.view.ProfileImageView;
@@ -8,15 +8,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.List;
 
-@Import({QueryDslConfig.class, ProfileImageQueryRepository.class})
-@DataJpaTest
-public class ProfileImageQueryRepositoryTest {
+public class ProfileImageQueryRepositoryTest extends RepositoryTestSupport {
     @Autowired
     private ProfileImageQueryRepository profileImageQueryRepository;
 

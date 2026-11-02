@@ -1,12 +1,12 @@
 package deepple.deepple.member.query.introduction.intra;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import deepple.deepple.member.query.introduction.intra.exception.IntroductionMemberIdSerializationFailedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Date;
 import java.util.Set;
@@ -25,7 +25,7 @@ public class IntroductionRedisRepository {
             String json = objectMapper.writeValueAsString(introductionMemberIds);
             redisTemplate.opsForValue().set(fullKey, json);
             redisTemplate.expireAt(fullKey, expireAt);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IntroductionMemberIdSerializationFailedException(e);
         }
     }
@@ -38,7 +38,7 @@ public class IntroductionRedisRepository {
                 return Set.of();
             }
             return objectMapper.readValue(json, new TypeReference<Set<Long>>() {});
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IntroductionMemberIdSerializationFailedException(e);
         }
     }

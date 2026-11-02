@@ -1,7 +1,6 @@
 package deepple.deepple.admin.query.match;
 
-import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.config.QueryDslConfig;
+import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.match.command.domain.match.Match;
 import deepple.deepple.match.command.domain.match.MatchContactType;
 import deepple.deepple.match.command.domain.match.MatchType;
@@ -13,11 +12,8 @@ import deepple.deepple.member.command.domain.member.vo.Nickname;
 import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -25,10 +21,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({QueryDslConfig.class, MatchHistoryQueryRepository.class})
-@ExtendWith(MockEventsExtension.class)
-class MatchHistoryQueryRepositoryTest {
+class MatchHistoryQueryRepositoryTest extends RepositoryTestSupport {
 
     @Autowired
     private TestEntityManager em;
