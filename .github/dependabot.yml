@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  # Gradle 의존성은 Spring Boot 업그레이드를 마친 뒤 추가한다
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    # 탈취된 새 버전이 자동 병합되지 않도록 공개 후 7일이 지난 버전만 올린다
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        update-types: [ minor, patch ]
+    commit-message:
+      prefix: chore
+    labels: [ infra ]
