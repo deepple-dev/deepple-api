@@ -11,6 +11,7 @@ infra/terraform/
 └── envs/
     ├── shared/  # 계정 공통 (ECR, GitHub OIDC, Route 53, 알림, CloudTrail)
     ├── dev/     # 개발 서버 (dev-api.deepple.co.kr)
+    ├── grafana/ # Grafana Cloud 알람·대시보드 (dev·prod 공용 스택 deepple)
     └── prod/
 ```
 
@@ -52,6 +53,7 @@ terraform apply            # 실제 적용
 
 - 매일 02~08시(KST)에 앱·Alloy와 RDS를 끈다. RDS·Alloy는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
   - 시각과 사용 여부는 `variables.tf`의 `nightly_shutdown` 기본값을 바꿔 apply한다.
+  - 시각이나 사용 여부를 바꾸면 `envs/grafana`의 `environments.dev.quiet_hours`도 같이 바꾼다. 앱이 꺼져 있는 동안 Grafana 알림을 보내지 않는 시간대다.
   - 한 번만 바꿀 때는 `terraform apply -var 'nightly_shutdown={enabled=false,stop_hour=2,start_hour=8}'`처럼 넘긴다. 다음 apply 때 기본값으로 돌아간다.
   - 꺼져 있는 시간에 사용을 끄면 앱·Alloy와 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
 - 이미지 버킷 `deepple-dev-storage`는 읽기 공개다.
@@ -70,6 +72,7 @@ Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코�
 | `deepple-dev/external` | App Store 앱 ID, Bizgo 키, Sentry DSN | 직접 넣는다 |
 | `deepple-dev/grafana-cloud` | Alloy가 Grafana Cloud로 보낼 때 쓰는 Access Policy 토큰 | 직접 넣는다 |
 | `ecr-pullthroughcache/docker-hub` (shared) | ECR pull through cache용 Docker Hub access token | 직접 넣는다 |
+| `deepple/grafana-terraform` (shared) | `envs/grafana`가 쓰는 Grafana 스택 서비스 계정 토큰 | 직접 넣는다 |
 
 `deepple-dev/external`은 키 이름이 `secrets.tf`의 `external_secret_keys`와 같은 JSON이다. 로컬 `.env`에서 만들어 넣을 수 있다.
 
@@ -134,17 +137,34 @@ dev 구성 절차는 아래와 같다. prod도 같은 방식으로 `deepple-c541
 
 ## 알림
 
-알림은 `modules/alerts`(SNS 토픽 → Lambda → Discord 웹훅)로 환경마다 따로 보낸다.
+AWS 자원 알림은 `modules/alerts`(SNS 토픽 → Lambda → Discord 웹훅)로, 앱 지표 알림은 Grafana에서 같은 채널로 보낸다. 에러 내용은 Sentry가 알린다.
 
 | 환경 | 채널 | 내용 | 웹훅 secret |
 |---|---|---|---|
 | shared | `#alerts-account` | 예산 초과, 루트 계정 사용, dev 알림 전송 실패 | `deepple/alerts/discord-webhook` |
-| dev | `#alerts-dev` | 서버 오류(5xx), 메모리, DB 저장 공간, ECS task 시작·배치 실패, 배포 실패·성공 | `deepple-dev/alerts/discord-webhook` |
+| dev | `#alerts-dev` | 메모리, DB 저장 공간, ECS task 시작·배치 실패, 배포 실패·성공 (Grafana: 아래 표) | `deepple-dev/alerts/discord-webhook` |
 
 - 멘션 역할은 각 환경 `variables.tf`의 `discord_mention_role_id`로 정한다.
 - 메시지 형식은 Datadog을 따른다. 제목은 `[Triggered on dev] High memory usage`처럼 상태·환경·영문 제목이고(복구는 `Recovered`, 배포는 `Deployed`), 본문은 What's happening? / Possible causes / How to troubleshoot? 칸에 한글로 쓴다.
 - CloudWatch alarm의 `alarm_description`은 JSON(`title`, `what`, `why`, `how`, `unit`)이다. `what`의 `{value}`는 측정값, `{condition}`은 `> 90%` 같은 조건으로 채워진다. `why`, `how`는 목록이면 불릿으로 표시된다. 환경 이름은 모듈의 `environment`로 붙는다.
 - 환경 알림 Lambda가 오류를 내면 `#alerts-account`로 알린다. 고장 난 Lambda는 자기 고장을 알릴 수 없기 때문이다.
+
+### Grafana
+
+`envs/grafana`가 Grafana Cloud 스택 `deepple`의 폴더, 알람 규칙, 알림 정책, 메시지 템플릿, 대시보드를 관리한다. dev와 prod는 한 스택을 같이 쓰고 `deployment_environment_name` 라벨로 구분한다.
+
+| 등급 | 알람 | 멘션 |
+|---|---|---|
+| critical | 5xx 비율(요청 10건 이상일 때), 응답 시간 p95, 앱 지표 끊김 | O |
+| warning | DB 커넥션 대기, GC 후 old 영역 사용률 | X |
+
+- 같은 환경 알림은 하나로 묶어 보낸다. 야간 중지로 앱이 꺼져 있는 시간대(`environments`의 `quiet_hours`)에는 보내지 않는다.
+- 메시지 형식은 위 CloudWatch 알림과 같다(`templates/deepple.tmpl`). 알람 규칙의 annotation `title`, `what`, `why`, `how`가 칸을 채운다.
+- 실행 전에 토큰을 환경 변수로 넘긴다. 토큰은 스택 서비스 계정 `terraform`(Admin)의 토큰이다.
+  ```bash
+  export GRAFANA_AUTH=$(aws secretsmanager get-secret-value --secret-id deepple/grafana-terraform --query SecretString --output text)
+  ```
+- Discord 연락처는 웹훅 URL이 state에 남지 않게 Grafana에서 직접 만든다. Alerting → Contact points에서 이름 `discord-<환경>`, 통합 Discord, 웹훅은 환경 웹훅 secret 값, Title·Message Content는 notification template `deepple.title`·`deepple.message`를 고른다. 연락처가 없으면 알림 정책 apply가 실패하므로 먼저 만든다.
 
 ## state
 

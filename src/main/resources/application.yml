@@ -46,6 +46,10 @@ management:
     resource-attributes:
       deployment.environment.name: ${spring.profiles.active}
       service.version: ${git.commit.id:unknown}
+  metrics:
+    distribution:
+      slo:
+        http.server.requests: 100ms,300ms,500ms,1s,3s
   tracing:
     sampling:
       probability: 1.0

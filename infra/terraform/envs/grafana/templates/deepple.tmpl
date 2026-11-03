@@ -1,0 +1,26 @@
+{{ define "deepple.title" -}}
+{{ if .Alerts.Firing -}}
+[Triggered on {{ .CommonLabels.env }}] {{ (index .Alerts.Firing 0).Annotations.title }}{{ if gt (len .Alerts.Firing) 1 }} (총 {{ len .Alerts.Firing }}건){{ end }}
+{{- else -}}
+[Recovered on {{ .CommonLabels.env }}] {{ (index .Alerts.Resolved 0).Annotations.title }}{{ if gt (len .Alerts.Resolved) 1 }} (총 {{ len .Alerts.Resolved }}건){{ end }}
+{{- end }}
+{{- end }}
+
+{{ define "deepple.message" -}}
+{{ $mention := "" }}{{ range .Alerts.Firing }}{{ if .Annotations.mention }}{{ $mention = .Annotations.mention }}{{ end }}{{ end }}{{ $mention }}
+{{- range .Alerts.Firing }}
+### {{ .Annotations.title }}
+**What's happening?**
+{{ .Annotations.what }}
+
+**Possible causes**
+{{ .Annotations.why }}
+
+**How to troubleshoot?**
+{{ .Annotations.how }}
+{{ end }}
+{{- range .Alerts.Resolved }}
+### {{ .Annotations.title }}
+복구
+{{ end }}
+{{- end }}
