@@ -10,8 +10,10 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      password: ${REDIS_PASSWORD}
+      cluster:
+        nodes: ${REDIS_HOST}:6379
+      ssl:
+        enabled: true
 
   cloud:
     aws:
