@@ -46,6 +46,12 @@ variable "domain" {
   default     = "api.deepple.co.kr"
 }
 
+variable "github_repository" {
+  description = "OIDC로 배포할 GitHub 저장소 (owner/name)"
+  type        = string
+  default     = "deepple-dev/deepple-api"
+}
+
 variable "image_tag" {
   description = "처음 만들 때 쓸 앱 이미지 태그(커밋 SHA). 이후 배포는 CD가 task definition을 갱신한다"
   type        = string

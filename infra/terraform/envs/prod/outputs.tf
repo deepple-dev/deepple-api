@@ -13,3 +13,7 @@ output "cache_endpoint" {
 output "images_url" {
   value = "https://${var.images_domain}"
 }
+
+output "deploy_role_arn" {
+  value = aws_iam_role.deploy.arn
+}

@@ -15,6 +15,22 @@ resource "aws_ecr_repository" "this" {
 data "aws_ecr_lifecycle_policy_document" "this" {
   rule {
     priority    = 1
+    description = "운영 버전 이미지 20개만 보관"
+
+    selection {
+      tag_status      = "tagged"
+      tag_prefix_list = ["v"]
+      count_type      = "imageCountMoreThan"
+      count_number    = 20
+    }
+
+    action {
+      type = "expire"
+    }
+  }
+
+  rule {
+    priority    = 2
     description = "최근 이미지 30개만 보관"
 
     selection {
