@@ -58,6 +58,7 @@ variable "discord_mention_role_id" {
 variable "gcp_workload_identity_provider" {
   description = "Google Cloud Workload Identity 공급자 전체 이름 (projects/<번호>/locations/global/workloadIdentityPools/<풀>/providers/<공급자>)"
   type        = string
+  default     = "projects/1049288044004/locations/global/workloadIdentityPools/aws-deepple/providers/deepple-dev"
 }
 
 variable "firebase_project_id" {
@@ -75,7 +76,7 @@ variable "firebase_service_account" {
 variable "google_play_service_account" {
   description = "앱이 impersonate할 Google Play 서비스 계정"
   type        = string
-  default     = "deepple-play-verifier@deepple-c5416.iam.gserviceaccount.com"
+  default     = "deepple-dev-play-verifier@atwoz-d63ef.iam.gserviceaccount.com"
 }
 
 variable "alloy_version" {
