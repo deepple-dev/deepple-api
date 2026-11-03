@@ -60,89 +60,37 @@ terraform apply            # 실제 적용
 - Valkey task가 바뀌면(Spot 회수, 장애) 데이터(인증번호, refresh token)가 사라진다.
 - DB·캐시 접속: RDS와 Valkey는 비공개라 앱 task를 거쳐 SSM 포트 포워딩으로 붙는다. 절차는 `/dev-connect` 스킬(`.claude/skills/dev-connect/SKILL.md`)에 있다.
 
-## apply 전 준비물
+## Secret
 
-Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코드와 state에 남지 않게 하려는 것이다. 처음 apply할 때는 secret만 먼저 만들고(`-target`) 값을 넣은 뒤 나머지를 apply한다. 값이 없으면 ECS task가 시작하지 못한다.
-
-### Secret 값
+Terraform은 secret을 만들기만 하고, 직접 넣는 값은 `aws secretsmanager put-secret-value`로 넣는다. 값이 코드와 state에 남지 않게 하려는 것이다.
 
 | Secret | 내용 | 관리 |
 |---|---|---|
 | `deepple-dev/app` | `JWT_SECRET`, `MYSQL_PASSWORD` | Terraform이 랜덤 생성 (state에 남지 않음) |
-| `deepple-dev/external` | App Store 앱 ID, Bizgo 키, Sentry DSN | 직접 넣는다 |
+| `deepple-dev/external` | App Store 앱 ID, Bizgo 키, Sentry DSN (키 이름은 `secrets.tf`의 `external_secret_keys`) | 직접 넣는다 |
 | `deepple-dev/grafana-cloud` | Alloy가 Grafana Cloud로 보낼 때 쓰는 Access Policy 토큰 | 직접 넣는다 |
+| `deepple-dev/alerts/discord-webhook` | `#alerts-dev` 웹훅 URL | 직접 넣는다 |
+| `deepple/alerts/discord-webhook` (shared) | `#alerts-account` 웹훅 URL | 직접 넣는다 |
 | `ecr-pullthroughcache/docker-hub` (shared) | ECR pull through cache용 Docker Hub access token | 직접 넣는다 |
 | `deepple/grafana-terraform` (shared) | `envs/grafana`가 쓰는 Grafana 스택 서비스 계정 토큰 | 직접 넣는다 |
 
-`deepple-dev/external`은 키 이름이 `secrets.tf`의 `external_secret_keys`와 같은 JSON이다. 로컬 `.env`에서 만들어 넣을 수 있다.
+## Google (Firebase, Google Play)
 
-```bash
-set -a; source .env; set +a
-jq -n 'env | {APP_STORE_APP_APPLE_ID,
-  BIZGO_API_URL, BIZGO_API_KEY, BIZGO_FROM_PHONE_NUMBER}' \
-  | aws secretsmanager put-secret-value --secret-id deepple-dev/external --secret-string file:///dev/stdin
-```
-
-Discord 웹훅 URL은 채널에서 복사한 뒤 넣는다. secret 이름은 아래 알림 표에 있다.
-
-```bash
-aws secretsmanager put-secret-value --secret-id <웹훅 secret> --secret-string "$(pbpaste)"
-```
-
-Grafana Cloud 토큰은 Grafana Cloud Portal → 스택 → OpenTelemetry 타일에서 만든다. 권한은 `metrics:write`, `logs:write`, `traces:write`만 준다. 엔드포인트와 인스턴스 ID는 같은 타일에 나오며 `variables.tf`의 `grafana_cloud_otlp_endpoint`, `grafana_cloud_instance_id`와 같아야 한다.
-
-```bash
-aws secretsmanager put-secret-value --secret-id deepple-dev/grafana-cloud --secret-string "$(pbpaste)"
-```
-
-Docker Hub 토큰은 Docker Hub → Account settings → Personal access tokens에서 읽기 전용(Public Repo Read-only)으로 만든다.
-
-```bash
-jq -n --arg username <Docker Hub 사용자 이름> --arg accessToken "$(pbpaste)" '{username: $username, accessToken: $accessToken}' \
-  | aws secretsmanager put-secret-value --secret-id ecr-pullthroughcache/docker-hub --secret-string file:///dev/stdin
-```
-
-### Google (Firebase, Google Play)
-
-키 파일 없이 Workload Identity Federation을 쓴다. 앱 역할로 Google에 인증해 서비스 계정을 impersonate한다. 환경마다 Google Cloud 프로젝트를 나눈다.
+키 파일 없이 Workload Identity Federation으로 앱 역할이 서비스 계정을 impersonate한다. 환경마다 Google Cloud 프로젝트를 나눈다.
 
 | 환경 | 프로젝트 | 풀·공급자 | Firebase | Google Play |
 |---|---|---|---|---|
 | dev | `atwoz-d63ef` | `aws-deepple` / `deepple-dev` | `firebase-adminsdk-ox847` | `deepple-dev-play-verifier` |
 | prod | `deepple-c5416` | | `firebase-adminsdk-fbsvc` | `deepple-play-verifier` |
 
-dev 구성 절차는 아래와 같다. prod도 같은 방식으로 `deepple-c5416`에 만든다.
-
-1. API를 켜고 풀과 AWS 공급자를 만든다. 공급자는 dev 앱 역할(`deepple-dev-app`)만 허용한다.
-   ```bash
-   gcloud services enable sts.googleapis.com iamcredentials.googleapis.com androidpublisher.googleapis.com --project=atwoz-d63ef
-   gcloud iam workload-identity-pools create aws-deepple --project=atwoz-d63ef --location=global --display-name="AWS deepple"
-   gcloud iam workload-identity-pools providers create-aws deepple-dev --project=atwoz-d63ef --location=global \
-     --workload-identity-pool=aws-deepple --account-id=339713092351 \
-     --attribute-condition="attribute.aws_role == 'arn:aws:sts::339713092351:assumed-role/deepple-dev-app'"
-   ```
-2. Google Play 결제 검증용 서비스 계정을 만들고, Play Console → 사용자 및 권한에서 이 계정을 초대해 앱 권한으로 재무 데이터 보기와 주문·구독 관리를 준다.
-   ```bash
-   gcloud iam service-accounts create deepple-dev-play-verifier --project=atwoz-d63ef --display-name="dev Play 결제 검증"
-   ```
-3. 앱 역할에 두 서비스 계정의 impersonate 권한을 준다. `<번호>`는 `gcloud projects describe atwoz-d63ef --format='value(projectNumber)'`로 확인한다.
-   ```bash
-   MEMBER="principalSet://iam.googleapis.com/projects/<번호>/locations/global/workloadIdentityPools/aws-deepple/attribute.aws_role/arn:aws:sts::339713092351:assumed-role/deepple-dev-app"
-   for sa in firebase-adminsdk-ox847 deepple-dev-play-verifier; do
-     gcloud iam service-accounts add-iam-policy-binding $sa@atwoz-d63ef.iam.gserviceaccount.com \
-       --project=atwoz-d63ef --role=roles/iam.workloadIdentityUser --member="$MEMBER"
-   done
-   ```
-4. `variables.tf`의 `gcp_workload_identity_provider`, `firebase_service_account`, `google_play_service_account`가 위 값과 같은지 확인한다.
-
 ## 알림
 
 AWS 자원 알림은 `modules/alerts`(SNS 토픽 → Lambda → Discord 웹훅)로, 앱 지표 알림은 Grafana(`envs/grafana`)에서 같은 채널로 보낸다.
 
-| 환경 | 채널 | 웹훅 secret |
-|---|---|---|
-| shared | `#alerts-account` | `deepple/alerts/discord-webhook` |
-| dev | `#alerts-dev` | `deepple-dev/alerts/discord-webhook` |
+| 환경 | 채널 |
+|---|---|
+| shared | `#alerts-account` |
+| dev | `#alerts-dev` |
 
 - 멘션 역할은 각 환경 `variables.tf`의 `discord_mention_role_id`로 정한다.
 - `envs/grafana`는 실행 전에 Grafana 토큰을 환경 변수로 넘긴다.
