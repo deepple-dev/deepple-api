@@ -1,15 +1,28 @@
+{{ define "deepple.name" -}}
+{{ .Annotations.title }} ({{ .Labels.service }})
+{{- end }}
+
+{{ define "deepple.duration" -}}
+{{ printf "%.0f" (.EndsAt.Sub .StartsAt).Minutes }}분 지속
+{{- end }}
+
 {{ define "deepple.title" -}}
 {{ if .Alerts.Firing -}}
-[Triggered on {{ .CommonLabels.env }}] {{ (index .Alerts.Firing 0).Annotations.title }}{{ if gt (len .Alerts.Firing) 1 }} (총 {{ len .Alerts.Firing }}건){{ end }}
+[Triggered] {{ template "deepple.name" (index .Alerts.Firing 0) }}{{ if gt (len .Alerts.Firing) 1 }} (총 {{ len .Alerts.Firing }}건){{ end }}
 {{- else -}}
-[Recovered on {{ .CommonLabels.env }}] {{ (index .Alerts.Resolved 0).Annotations.title }}{{ if gt (len .Alerts.Resolved) 1 }} (총 {{ len .Alerts.Resolved }}건){{ end }}
+[Recovered] {{ template "deepple.name" (index .Alerts.Resolved 0) }}{{ if gt (len .Alerts.Resolved) 1 }} (총 {{ len .Alerts.Resolved }}건){{ end }}
+{{- if eq .CommonLabels.severity "critical" }} · {{ template "deepple.duration" (index .Alerts.Resolved 0) }}{{ end }}
 {{- end }}
 {{- end }}
 
-{{ define "deepple.message" -}}
-{{ $mention := "" }}{{ range .Alerts.Firing }}{{ if .Annotations.mention }}{{ $mention = .Annotations.mention }}{{ end }}{{ end }}{{ $mention }}
-{{- range .Alerts.Firing }}
-### {{ .Annotations.title }}
+{{ define "deepple.sections" -}}
+{{ if .Annotations.Error -}}
+**What's happening?**
+알람 쿼리 실행 실패: {{ .Annotations.Error }}
+
+**How to troubleshoot?**
+- Grafana Alerting에서 알람 규칙과 데이터 소스 상태 확인
+{{- else -}}
 **What's happening?**
 {{ .Annotations.what }}
 
@@ -18,9 +31,25 @@
 
 **How to troubleshoot?**
 {{ .Annotations.how }}
-{{ end }}
-{{- range .Alerts.Resolved }}
-### {{ .Annotations.title }}
-복구
-{{ end }}
+{{- end }}
+{{- end }}
+
+{{ define "deepple.message" -}}
+{{ $critical := eq .CommonLabels.severity "critical" -}}
+{{ $grouped := gt (len .Alerts) 1 -}}
+{{ if .Alerts.Firing -}}
+{{ if $critical }}{{ template "deepple.title" . }}{{ range .Alerts.Firing }}{{ if .Annotations.mention }} {{ .Annotations.mention }}{{ break }}{{ end }}{{ end }}
+
+{{ end -}}
+{{ range .Alerts.Firing -}}
+{{ if $grouped }}### {{ template "deepple.name" . }}
+{{ end -}}
+{{ template "deepple.sections" . }}
+
+{{ end -}}
+{{ else if not $critical -}}
+{{ range .Alerts.Resolved -}}
+{{ if $grouped }}{{ template "deepple.name" . }}: {{ end }}{{ template "deepple.duration" . }}
+{{ end -}}
+{{ end -}}
 {{- end }}

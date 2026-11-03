@@ -8,8 +8,8 @@ locals {
     { title = "응답 시간 p95", unit = "ms", expr = "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_milliseconds_bucket{${local.env}}[$__rate_interval])))", legend = "p95" },
     { title = "엔드포인트별 응답 시간 p95", unit = "ms", expr = "histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_milliseconds_bucket{${local.env}}[$__rate_interval])))", legend = "{{uri}}" },
     { title = "DB 커넥션", unit = "short", expr = "sum by (__name__) ({__name__=~\"hikaricp_connections_(active|idle|pending)\", ${local.env}})", legend = "{{__name__}}" },
-    { title = "GC 후 old 영역 사용률", unit = "percentunit", expr = "max(jvm_gc_live_data_size_bytes{${local.env}} / jvm_gc_max_data_size_bytes{${local.env}})", legend = "old gen" },
-    { title = "JVM 힙", unit = "bytes", expr = "sum(jvm_memory_used_bytes{${local.env}, area=\"heap\"})", legend = "used" },
+    { title = "GC 후 old gen 사용률", unit = "percentunit", expr = "max(jvm_gc_live_data_size_bytes{${local.env}} / jvm_gc_max_data_size_bytes{${local.env}})", legend = "old gen" },
+    { title = "JVM heap", unit = "bytes", expr = "sum(jvm_memory_used_bytes{${local.env}, area=\"heap\"})", legend = "used" },
     { title = "GC 시간 비율", unit = "percentunit", expr = "sum(rate(jvm_gc_pause_milliseconds_sum{${local.env}}[$__rate_interval])) / 1000", legend = "gc" },
   ]
 }

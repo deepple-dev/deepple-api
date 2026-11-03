@@ -13,9 +13,9 @@ locals {
       evaluator = { type = "gt", value = 0.05 }
       for       = "1m"
       no_data   = "OK"
-      what      = "5분간 5xx 응답 비율 {{ humanizePercentage $values.A.Value }} (> 5%, 요청 10건 이상일 때)"
+      what      = "5xx 응답 비율 {{ humanizePercentage $values.A.Value }} (> 5%, 5분간, 요청 10건 이상일 때)"
       why       = "- 처리 못 한 예외\n- DB·Redis·외부 API 장애"
-      how       = "- Sentry에서 같은 시각 이슈 확인\n- Grafana에서 ERROR 로그와 trace 확인"
+      how       = "- Sentry에서 같은 시각 이슈 확인\n- Grafana Explore에서 같은 시각 ERROR 로그·trace 확인"
     }
     high_latency = {
       title     = "High latency"
@@ -25,8 +25,8 @@ locals {
       for       = "10m"
       no_data   = "OK"
       what      = "응답 시간 p95 {{ printf \"%.0f\" $values.A.Value }}ms (> 1000ms, 10분 지속)"
-      why       = "- 느린 DB 쿼리·커넥션 부족\n- 외부 API 지연\n- GC 증가"
-      how       = "- Application Observability에서 느린 엔드포인트와 trace 확인\n- deepple-api 대시보드에서 DB 커넥션·GC 확인"
+      why       = "- DB slow query·커넥션 부족\n- 외부 API 지연 (Bizgo, Google, Apple)\n- GC 증가"
+      how       = "- deepple-api 대시보드에서 엔드포인트별 p95와 DB 커넥션·GC 확인\n- Application Observability에서 느린 trace 확인"
     }
     metrics_missing = {
       title     = "Metrics missing"
@@ -35,9 +35,9 @@ locals {
       evaluator = { type = "lt", value = 1 }
       for       = "5m"
       no_data   = "Alerting"
-      what      = "deepple-api 지표가 5분 넘게 들어오지 않음"
-      why       = "- 앱 task 중지·재시작 반복\n- Alloy 중지\n- Grafana Cloud 전송 실패"
-      how       = "- ECS 서비스(앱·Alloy) 상태 확인\n- CloudWatch(/ecs/deepple-ENV)에서 앱·Alloy 로그 확인"
+      what      = "앱 지표가 5분 넘게 들어오지 않음"
+      why       = "- 앱 task 중지·재시작 반복\n- Alloy 중지\n- Alloy → Grafana Cloud 전송 실패 (토큰 만료 등)"
+      how       = "- ECS에서 앱·Alloy 서비스 상태 확인\n- CloudWatch `/ecs/deepple-ENV`에서 앱·Alloy 로그 확인"
     }
     db_connection_pending = {
       title     = "DB connections pending"
@@ -46,9 +46,9 @@ locals {
       evaluator = { type = "gt", value = 0 }
       for       = "5m"
       no_data   = "OK"
-      what      = "DB 커넥션을 기다리는 요청 {{ printf \"%.0f\" $values.A.Value }}개 (5분 지속)"
-      why       = "- 느린 쿼리로 커넥션 반환 지연\n- 트래픽 증가 대비 풀 크기 부족"
-      how       = "- deepple-api 대시보드에서 활성 커넥션 확인\n- 느린 쿼리 trace 확인"
+      what      = "DB 커넥션을 기다리는 요청 {{ printf \"%.0f\" $values.A.Value }}개 (> 0, 5분 지속)"
+      why       = "- slow query로 커넥션 반환 지연\n- 트래픽 대비 커넥션 풀 크기 부족"
+      how       = "- deepple-api 대시보드에서 활성·대기 커넥션 확인\n- Application Observability에서 slow query trace 확인"
     }
     old_gen_usage = {
       title     = "High old gen usage after GC"
@@ -57,9 +57,9 @@ locals {
       evaluator = { type = "gt", value = 0.9 }
       for       = "15m"
       no_data   = "OK"
-      what      = "GC 후 old 영역 사용률 {{ humanizePercentage $values.A.Value }} (> 90%, 15분 지속)"
-      why       = "- 메모리 누수\n- 힙 크기 부족"
-      how       = "- deepple-api 대시보드에서 힙 추이 확인\n- 최근 배포 확인"
+      what      = "GC 후 old gen 사용률 {{ humanizePercentage $values.A.Value }} (> 90%, 15분 지속)"
+      why       = "- 메모리 누수\n- heap 크기 부족"
+      how       = "- deepple-api 대시보드에서 old gen·heap 추이 확인\n- 최근 배포 확인"
     }
   }
 }
@@ -83,6 +83,7 @@ resource "grafana_rule_group" "deepple_api" {
 
       labels = {
         env      = each.key
+        service  = "deepple-${each.key}-api"
         severity = rule.value.severity
       }
 
