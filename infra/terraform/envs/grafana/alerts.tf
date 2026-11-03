@@ -3,13 +3,15 @@ resource "grafana_folder" "deepple" {
 }
 
 locals {
-  requests = "http_server_requests_milliseconds_count{deployment_environment_name=\"ENV\"}"
+  user_requests   = "deployment_environment_name=\"ENV\", uri!~\"/v3/api-docs.*|/swagger-ui.*\""
+  requests        = "http_server_requests_milliseconds_count{${local.user_requests}}"
+  enough_requests = "and on() sum(increase(${local.requests}[5m])) >= 10"
 
   alert_rules = {
     high_error_rate = {
       title     = "High error rate"
       severity  = "critical"
-      query     = "sum(rate(http_server_requests_milliseconds_count{deployment_environment_name=\"ENV\", outcome=\"SERVER_ERROR\"}[5m])) / sum(rate(${local.requests}[5m])) and on() sum(increase(${local.requests}[5m])) >= 10"
+      query     = "sum(rate(http_server_requests_milliseconds_count{${local.user_requests}, outcome=\"SERVER_ERROR\"}[5m])) / sum(rate(${local.requests}[5m])) ${local.enough_requests}"
       evaluator = { type = "gt", value = 0.05 }
       for       = "1m"
       no_data   = "OK"
@@ -20,11 +22,11 @@ locals {
     high_latency = {
       title     = "High latency"
       severity  = "critical"
-      query     = "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_milliseconds_bucket{deployment_environment_name=\"ENV\"}[5m])))"
+      query     = "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_milliseconds_bucket{${local.user_requests}}[5m]))) ${local.enough_requests}"
       evaluator = { type = "gt", value = 1000 }
       for       = "10m"
       no_data   = "OK"
-      what      = "응답 시간 p95 {{ printf \"%.0f\" $values.A.Value }}ms (> 1000ms, 10분 지속)"
+      what      = "응답 시간 p95 {{ printf \"%.0f\" $values.A.Value }}ms (> 1000ms, 10분 지속, 요청 10건 이상일 때)"
       why       = "- DB slow query·커넥션 부족\n- 외부 API 지연 (Bizgo, Google, Apple)\n- GC 증가"
       how       = "- deepple-api 대시보드에서 엔드포인트별 p95와 DB 커넥션·GC 확인\n- Application Observability에서 느린 trace 확인"
     }
