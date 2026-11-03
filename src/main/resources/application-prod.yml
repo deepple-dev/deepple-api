@@ -35,3 +35,6 @@ auth:
 payment:
   app-store:
     environment: Production
+
+storage:
+  public-url: https://images.deepple.co.kr

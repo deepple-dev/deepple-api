@@ -21,6 +21,9 @@ public class S3Uploader {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
+    @Value("${storage.public-url:}")
+    private String publicUrl;
+
     public S3Uploader(S3Template s3Template, S3Client s3Client) {
         this.s3Template = s3Template;
         this.s3Client = s3Client;
@@ -51,6 +54,9 @@ public class S3Uploader {
     }
 
     private String getObjectUrl(String key) {
+        if (!publicUrl.isBlank()) {
+            return publicUrl + "/" + key;
+        }
         return s3Client.utilities()
             .getUrl(builder -> builder.bucket(bucket).key(key))
             .toString();
