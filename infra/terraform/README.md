@@ -48,12 +48,12 @@ terraform apply            # 실제 적용
 
 ### dev
 
-구성은 ALB(`dev-api.deepple.co.kr`) → ECS Fargate Spot 앱 task 1개 → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
+구성은 ALB(`dev-api.deepple.co.kr`) → ECS Fargate Spot 앱 task 1개 → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. 앱의 지표·trace·로그는 Alloy ECS service(`alloy.deepple-dev.local`)를 거쳐 Grafana Cloud로 보낸다. 콘솔 로그는 CloudWatch(`/ecs/deepple-dev`)에 14일 보관한다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
 
-- 매일 02~08시(KST)에 앱과 RDS를 끈다. RDS는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
+- 매일 02~08시(KST)에 앱·Alloy와 RDS를 끈다. RDS·Alloy는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
   - 시각과 사용 여부는 `variables.tf`의 `nightly_shutdown` 기본값을 바꿔 apply한다.
   - 한 번만 바꿀 때는 `terraform apply -var 'nightly_shutdown={enabled=false,stop_hour=2,start_hour=8}'`처럼 넘긴다. 다음 apply 때 기본값으로 돌아간다.
-  - 꺼져 있는 시간에 사용을 끄면 앱과 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
+  - 꺼져 있는 시간에 사용을 끄면 앱·Alloy와 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
 - 이미지 버킷 `deepple-dev-storage`는 읽기 공개다.
 - Valkey task가 바뀌면(Spot 회수, 장애) 데이터(인증번호, refresh token)가 사라진다.
 - DB·캐시 접속: RDS와 Valkey는 비공개라 앱 task를 거쳐 SSM 포트 포워딩으로 붙는다. 절차는 `/dev-connect` 스킬(`.claude/skills/dev-connect/SKILL.md`)에 있다.
@@ -67,7 +67,9 @@ Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코�
 | Secret | 내용 | 관리 |
 |---|---|---|
 | `deepple-dev/app` | `JWT_SECRET`, `MYSQL_PASSWORD` | Terraform이 랜덤 생성 (state에 남지 않음) |
-| `deepple-dev/external` | App Store, Bizgo 키 | 직접 넣는다 |
+| `deepple-dev/external` | App Store, Bizgo 키, Sentry DSN | 직접 넣는다 |
+| `deepple-dev/grafana-cloud` | Alloy가 Grafana Cloud로 보낼 때 쓰는 Access Policy 토큰 | 직접 넣는다 |
+| `ecr-pullthroughcache/docker-hub` (shared) | ECR pull through cache용 Docker Hub access token | 직접 넣는다 |
 
 `deepple-dev/external`은 키 이름이 `secrets.tf`의 `external_secret_keys`와 같은 JSON이다. 로컬 `.env`에서 만들어 넣을 수 있다.
 
@@ -82,6 +84,19 @@ Discord 웹훅 URL은 채널에서 복사한 뒤 넣는다. secret 이름은 아
 
 ```bash
 aws secretsmanager put-secret-value --secret-id <웹훅 secret> --secret-string "$(pbpaste)"
+```
+
+Grafana Cloud 토큰은 Grafana Cloud Portal → 스택 → OpenTelemetry 타일에서 만든다. 권한은 `metrics:write`, `logs:write`, `traces:write`만 준다. 엔드포인트와 인스턴스 ID는 같은 타일에 나오며 `variables.tf`의 `grafana_cloud_otlp_endpoint`, `grafana_cloud_instance_id`와 같아야 한다.
+
+```bash
+aws secretsmanager put-secret-value --secret-id deepple-dev/grafana-cloud --secret-string "$(pbpaste)"
+```
+
+Docker Hub 토큰은 Docker Hub → Account settings → Personal access tokens에서 읽기 전용(Public Repo Read-only)으로 만든다.
+
+```bash
+jq -n --arg username <Docker Hub 사용자 이름> --arg accessToken "$(pbpaste)" '{username: $username, accessToken: $accessToken}' \
+  | aws secretsmanager put-secret-value --secret-id ecr-pullthroughcache/docker-hub --secret-string file:///dev/stdin
 ```
 
 ### Google (Firebase, Google Play)

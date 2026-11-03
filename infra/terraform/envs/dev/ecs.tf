@@ -43,7 +43,17 @@ resource "aws_iam_role_policy_attachment" "execution" {
 data "aws_iam_policy_document" "execution_secrets" {
   statement {
     actions   = ["secretsmanager:GetSecretValue"]
-    resources = [aws_secretsmanager_secret.app.arn, aws_secretsmanager_secret.external.arn]
+    resources = [aws_secretsmanager_secret.app.arn, aws_secretsmanager_secret.external.arn, aws_secretsmanager_secret.grafana_cloud.arn]
+  }
+
+  statement {
+    actions   = ["ssm:GetParameters"]
+    resources = [aws_ssm_parameter.alloy_config.arn]
+  }
+
+  statement {
+    actions   = ["ecr:CreateRepository", "ecr:BatchImportUpstreamImage"]
+    resources = ["arn:aws:ecr:${var.region}:${var.account_id}:repository/docker-hub/*"]
   }
 }
 
@@ -87,15 +97,16 @@ resource "aws_iam_role_policy" "app" {
 
 locals {
   app_environment = {
-    SPRING_PROFILES_ACTIVE = "dev"
-    MYSQL_HOST             = aws_db_instance.this.address
-    MYSQL_PORT             = tostring(aws_db_instance.this.port)
-    MYSQL_DATABASE         = aws_db_instance.this.db_name
-    MYSQL_USER             = aws_db_instance.this.username
-    REDIS_HOST             = local.valkey_host
-    AWS_S3_BUCKET_NAME     = aws_s3_bucket.storage.bucket
-    JPA_SHOW_SQL           = "false"
-    AUTH_PREFIX_CODE       = "008008"
+    SPRING_PROFILES_ACTIVE      = "dev"
+    MYSQL_HOST                  = aws_db_instance.this.address
+    MYSQL_PORT                  = tostring(aws_db_instance.this.port)
+    MYSQL_DATABASE              = aws_db_instance.this.db_name
+    MYSQL_USER                  = aws_db_instance.this.username
+    REDIS_HOST                  = local.valkey_host
+    OTEL_EXPORTER_OTLP_ENDPOINT = "http://${local.alloy_host}:4318"
+    AWS_S3_BUCKET_NAME          = aws_s3_bucket.storage.bucket
+    JPA_SHOW_SQL                = "false"
+    AUTH_PREFIX_CODE            = "008008"
 
     APP_STORE_ENVIRONMENT    = "Sandbox"
     APP_STORE_BUNDLE_ID      = "com.goodmeet.deepple"

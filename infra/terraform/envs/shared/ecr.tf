@@ -34,3 +34,37 @@ resource "aws_ecr_lifecycle_policy" "this" {
   repository = aws_ecr_repository.this.name
   policy     = data.aws_ecr_lifecycle_policy_document.this.json
 }
+
+resource "aws_secretsmanager_secret" "docker_hub" {
+  name        = "ecr-pullthroughcache/docker-hub"
+  description = "ECR pull through cache용 Docker Hub access token"
+}
+
+resource "aws_ecr_pull_through_cache_rule" "docker_hub" {
+  ecr_repository_prefix = "docker-hub"
+  upstream_registry_url = "registry-1.docker.io"
+  credential_arn        = aws_secretsmanager_secret.docker_hub.arn
+}
+
+resource "aws_ecr_repository_creation_template" "docker_hub" {
+  prefix           = "docker-hub"
+  applied_for      = ["PULL_THROUGH_CACHE"]
+  lifecycle_policy = data.aws_ecr_lifecycle_policy_document.docker_hub.json
+}
+
+data "aws_ecr_lifecycle_policy_document" "docker_hub" {
+  rule {
+    priority    = 1
+    description = "최근 이미지 5개만 보관"
+
+    selection {
+      tag_status   = "any"
+      count_type   = "imageCountMoreThan"
+      count_number = 5
+    }
+
+    action {
+      type = "expire"
+    }
+  }
+}

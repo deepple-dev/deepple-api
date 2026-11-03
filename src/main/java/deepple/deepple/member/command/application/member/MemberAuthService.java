@@ -149,7 +149,7 @@ public class MemberAuthService {
             Events.raise(new MemberRegisteredEvent(member.getId())); // Event 발행.
             return member;
         } catch (DataIntegrityViolationException e) {
-            throw new MemberLoginConflictException(phoneNumber);
+            throw new MemberLoginConflictException();
         }
     }
 

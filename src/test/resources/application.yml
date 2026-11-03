@@ -27,6 +27,18 @@ spring:
       s3:
         path-style-access-enabled: true
 
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  tracing:
+    export:
+      enabled: false
+  logging:
+    export:
+      enabled: false
+
 jwt:
   secret: this-is-secret-key-value-at-least-128-bytes
   access-token:

@@ -40,6 +40,7 @@ dependencyManagement {
 dependencies {
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-restclient'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
@@ -80,7 +81,8 @@ dependencies {
 
     // Observability
     implementation 'org.hibernate.orm:hibernate-micrometer'
-    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+    implementation libs.opentelemetry.logback.appender
     implementation libs.sentry.spring.boot
     implementation libs.sentry.logback
 
