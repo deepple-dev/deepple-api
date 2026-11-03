@@ -82,6 +82,7 @@ resource "grafana_rule_group" "deepple_api" {
       for            = rule.value.for
       no_data_state  = rule.value.no_data
       exec_err_state = "Error"
+      is_paused      = each.value.paused
 
       labels = {
         env      = each.key

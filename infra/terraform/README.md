@@ -12,10 +12,8 @@ infra/terraform/
     ├── shared/  # 계정 공통 (ECR, GitHub OIDC, Route 53, 알림, CloudTrail)
     ├── dev/     # 개발 서버 (dev-api.deepple.co.kr)
     ├── grafana/ # Grafana Cloud 알람·대시보드 (dev·prod 공용 스택 deepple)
-    └── prod/
+    └── prod/    # 운영 서버 (api.deepple.co.kr, 아직 apply 안 함)
 ```
-
-`envs/prod`는 작성 중이다.
 
 ## 시작하기
 
@@ -49,7 +47,7 @@ terraform apply            # 실제 적용
 
 ### dev
 
-구성은 ALB(`dev-api.deepple.co.kr`) → ECS Fargate Spot 앱 task 1개 → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. 앱의 지표·trace·로그는 Alloy ECS service(`alloy.deepple-dev.local`)를 거쳐 Grafana Cloud로 보낸다. 콘솔 로그는 CloudWatch(`/ecs/deepple-dev`)에 14일 보관한다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
+구성은 API Gateway HTTP API(`dev-api.deepple.co.kr`) → VPC Link → Cloud Map → ECS Fargate Spot 앱 task 1개(ARM) → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. 앱의 지표·trace·로그는 Alloy ECS service(`alloy.deepple-dev.local`)를 거쳐 Grafana Cloud로 보낸다. 콘솔 로그는 CloudWatch(`/ecs/deepple-dev`)에 14일 보관한다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
 
 - 매일 02~08시(KST)에 앱·Alloy와 RDS를 끈다. RDS·Alloy는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
   - 시각과 사용 여부는 `variables.tf`의 `nightly_shutdown` 기본값을 바꿔 apply한다.
@@ -91,8 +89,10 @@ AWS 자원 알림은 `modules/alerts`(SNS 토픽 → Lambda → Discord 웹훅)�
 |---|---|
 | shared | `#alerts-account` |
 | dev | `#alerts-dev` |
+| prod | `#alerts-prod` |
 
 - 멘션 역할은 각 환경 `variables.tf`의 `discord_mention_role_id`로 정한다.
+- prod Grafana 알림 규칙은 prod를 띄우기 전까지 멈춰 둔다(`envs/grafana`의 `environments.prod.paused`). 띄운 뒤 false로 바꿔 apply한다.
 - `envs/grafana`는 실행 전에 Grafana 토큰을 환경 변수로 넘긴다.
   ```bash
   export GRAFANA_AUTH=$(aws secretsmanager get-secret-value --secret-id deepple/grafana-terraform --query SecretString --output text)

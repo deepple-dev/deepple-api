@@ -11,7 +11,7 @@ variable "prometheus_datasource_uid" {
 }
 
 variable "environments" {
-  description = "알람을 보낼 환경. contact_point(멘션용)와 card_contact_point(Show Message in Embed를 켠 경고용)는 Grafana에서 직접 만든 Discord 연락처 이름이고, quiet_hours는 야간 중지로 앱이 꺼져 있는 KST 시간대(HH:MM)"
+  description = "알람을 보낼 환경. contact_point(멘션용)와 card_contact_point(Show Message in Embed를 켠 경고용)는 Grafana에서 직접 만든 Discord 연락처 이름이고, quiet_hours는 야간 중지로 앱이 꺼져 있는 KST 시간대(HH:MM), paused는 앱을 아직 띄우지 않아 알림 규칙을 멈춰 둘 환경"
   type = map(object({
     contact_point      = string
     card_contact_point = string
@@ -20,6 +20,7 @@ variable "environments" {
       start = string
       end   = string
     }))
+    paused = optional(bool, false)
   }))
   default = {
     dev = {
@@ -27,6 +28,12 @@ variable "environments" {
       card_contact_point = "discord-dev-card"
       mention_role_id    = "1394957566953652256"
       quiet_hours        = { start = "01:55", end = "08:20" }
+    }
+    prod = {
+      contact_point      = "discord-prod"
+      card_contact_point = "discord-prod-card"
+      mention_role_id    = "1394957566953652256"
+      paused             = true
     }
   }
 }
