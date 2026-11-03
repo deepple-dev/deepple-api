@@ -28,6 +28,7 @@ class S3UploaderTest {
             .thenReturn(URI.create("https://presigned.example.com").toURL());
         S3Uploader uploader = new S3Uploader(s3Template, s3Client);
         ReflectionTestUtils.setField(uploader, "bucket", BUCKET);
+        ReflectionTestUtils.setField(uploader, "publicUrl", "");
         return uploader;
     }
 
@@ -58,6 +59,22 @@ class S3UploaderTest {
 
         assertThat(response.objectUrl())
             .startsWith("http://localhost:9090/" + BUCKET + "/profile/1/")
+            .endsWith(".png");
+    }
+
+    @Test
+    @DisplayName("공개 주소를 정하면 S3 주소 대신 그 주소로 돌려준다")
+    void objectUrlWithPublicUrl() throws Exception {
+        S3Client s3Client = S3Client.builder()
+            .region(Region.AP_NORTHEAST_2)
+            .build();
+        S3Uploader uploader = createUploader(s3Client);
+        ReflectionTestUtils.setField(uploader, "publicUrl", "https://images.example.com");
+
+        PresignedUrlResponse response = uploader.getPresignedUrl("a.png", 1L, "profile");
+
+        assertThat(response.objectUrl())
+            .startsWith("https://images.example.com/profile/1/")
             .endsWith(".png");
     }
 }
