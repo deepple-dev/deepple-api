@@ -19,6 +19,24 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        generate_statistics: true
+        jdbc:
+          timezone: Asia/Seoul
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
+server:
+  tomcat:
+    max-http-form-post-size: 50MB
+
 management:
   endpoint:
     health:
@@ -34,10 +52,18 @@ management:
 
 logging:
   structured:
+    format:
+      console: ecs
     ecs:
       service:
         environment: ${spring.profiles.active}
         version: ${git.commit.id:unknown}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 
 sentry:
   environment: ${spring.profiles.active}
@@ -49,3 +75,46 @@ sentry:
       request:
         mode: deny-list
         terms: forwarded,-ip,remote-,via,-user
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token:
+    expiration: 1800  # 30분
+
+auth:
+  refresh-token-cookie:
+    name: refresh_token
+    path: /
+    same-site: None
+    secure: true
+    http-only: true
+  prefix-code: ${AUTH_PREFIX_CODE}
+
+payment:
+  app-store:
+    key-id: ${APP_STORE_KEY_ID}
+    private-key-string: ${APP_STORE_PRIVATE_KEY_STRING}
+    issuer-id: ${APP_STORE_ISSUER_ID}
+    bundle-id: com.goodmeet.deepple
+    app-apple-id: ${APP_STORE_APP_APPLE_ID}
+    root-ca-paths: /etc/certs/appstore/AppleRootCA-G2.pem, /etc/certs/appstore/AppleRootCA-G3.pem
+  google-play:
+    package-name: com.goodmeet.deepple
+    service-account: ${GOOGLE_PLAY_SERVICE_ACCOUNT}
+    application-name: deepple-api
+
+firebase:
+  project-id: ${FIREBASE_PROJECT_ID}
+  service-account: ${FIREBASE_SERVICE_ACCOUNT}
+
+google:
+  workload-identity:
+    audience: ${GOOGLE_WORKLOAD_IDENTITY_AUDIENCE}
+
+bizgo:
+  api-url: ${BIZGO_API_URL}
+  api-key: ${BIZGO_API_KEY}
+  from-phone-number: ${BIZGO_FROM_PHONE_NUMBER}
+
+scheduler:
+  cron: "0 0 0 * * *"

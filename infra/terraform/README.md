@@ -76,7 +76,7 @@ Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코�
 ```bash
 set -a; source .env; set +a
 jq -n 'env | {APP_STORE_KEY_ID, APP_STORE_PRIVATE_KEY_STRING, APP_STORE_ISSUER_ID, APP_STORE_APP_APPLE_ID,
-  BIZGO_API_URL, BIZGO_API_KEY, BIZGO_CLIENT_ID, BIZGO_CLIENT_PASSWORD, BIZGO_FROM_PHONE_NUMBER}' \
+  BIZGO_API_URL, BIZGO_API_KEY, BIZGO_FROM_PHONE_NUMBER}' \
   | aws secretsmanager put-secret-value --secret-id deepple-dev/external --secret-string file:///dev/stdin
 ```
 
