@@ -216,7 +216,7 @@ resource "aws_ecs_service" "app" {
 }
 
 resource "aws_service_discovery_service" "app" {
-  name = "api"
+  name = "app"
 
   dns_config {
     namespace_id   = aws_service_discovery_private_dns_namespace.this.id
@@ -228,4 +228,8 @@ resource "aws_service_discovery_service" "app" {
     }
   }
 
+  health_check_custom_config {
+    failure_threshold = 1
+  }
 }
+
