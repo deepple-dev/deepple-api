@@ -4,7 +4,7 @@ module "alerts" {
   name                = "deepple-alerts"
   webhook_secret_name = "deepple/alerts/discord-webhook"
   mention_role_id     = var.discord_mention_role_id
-  publisher_services  = ["budgets.amazonaws.com", "cloudwatch.amazonaws.com"]
+  publisher_services  = ["budgets.amazonaws.com", "cloudwatch.amazonaws.com", "costalerts.amazonaws.com"]
 }
 
 resource "aws_budgets_budget" "monthly" {
@@ -36,6 +36,38 @@ resource "aws_budgets_budget" "monthly" {
     threshold_type            = "PERCENTAGE"
     notification_type         = "FORECASTED"
     subscriber_sns_topic_arns = [module.alerts.topic_arn]
+  }
+
+  depends_on = [module.alerts]
+}
+
+import {
+  to = aws_ce_anomaly_monitor.services
+  id = "arn:aws:ce::339713092351:anomalymonitor/2046216b-4cda-448c-92b6-db270a618442"
+}
+
+resource "aws_ce_anomaly_monitor" "services" {
+  name              = "Default-Services-Monitor"
+  monitor_type      = "DIMENSIONAL"
+  monitor_dimension = "SERVICE"
+}
+
+resource "aws_ce_anomaly_subscription" "this" {
+  name             = "deepple-anomalies"
+  frequency        = "IMMEDIATE"
+  monitor_arn_list = [aws_ce_anomaly_monitor.services.arn]
+
+  subscriber {
+    type    = "SNS"
+    address = module.alerts.topic_arn
+  }
+
+  threshold_expression {
+    dimension {
+      key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
+      match_options = ["GREATER_THAN_OR_EQUAL"]
+      values        = [tostring(var.cost_anomaly_threshold_usd)]
+    }
   }
 
   depends_on = [module.alerts]

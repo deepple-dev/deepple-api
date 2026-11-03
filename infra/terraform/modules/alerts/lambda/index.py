@@ -212,6 +212,21 @@ def budget_embed(message):
     }
 
 
+# Cost Anomaly Detection의 IMMEDIATE 구독 메시지
+def anomaly_embed(message):
+    impact = message.get("impact", {})
+    causes = message.get("rootCauses") or []
+    service = (causes[0].get("service") if causes else None) or message.get("dimensionalValue")
+    what = f"예상 ${impact.get('totalExpectedSpend', 0):.2f} → 실제 ${impact.get('totalActualSpend', 0):.2f} (+${impact.get('totalImpact', 0):.2f})"
+    why = [" · ".join(filter(None, [cause.get("service"), cause.get("region"), cause.get("usageType")])) for cause in causes[:3]]
+    return {
+        "title": title_with_status("Triggered", f"Cost anomaly ({service})" if service else "Cost anomaly"),
+        "description": sections(what, [item for item in why if item] or None, ["Cost Anomaly Detection 상세 화면에서 원인 확인", "예상하지 못한 리소스면 정리, 키 유출이 의심되면 즉시 키 비활성화"]),
+        "url": message.get("anomalyDetailsLink"),
+        "color": ORANGE,
+    }, True
+
+
 # (embed, 멘션 여부)를 돌려준다. 문제가 생겼을 때만 멘션하고, 보낼 필요가 없으면 None
 def to_embed(sns):
     try:
@@ -225,6 +240,8 @@ def to_embed(sns):
         return ecs_embed(message)
     if isinstance(message, dict) and message.get("source") == "deepple.deploy":
         return deploy_embed(message)
+    if isinstance(message, dict) and "anomalyId" in message:
+        return anomaly_embed(message)
 
     subject = sns.get("Subject") or "AWS notification"
     if subject.startswith("AWS Budgets"):
