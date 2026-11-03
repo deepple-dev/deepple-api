@@ -24,4 +24,3 @@ auth:
 payment:
   app-store:
     environment: Sandbox
-    base-url: https://api.storekit-sandbox.itunes.apple.com

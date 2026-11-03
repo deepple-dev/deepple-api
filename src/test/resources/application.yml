@@ -62,14 +62,10 @@ server:
 
 payment:
   app-store:
-    key-id: "ABC123XYZ"
-    issuer-id: "1122334455"
-    private-key-string: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1ZkTDNYNk1aejRHa1Bxc2gKUTNkNHYwd0p4OGFaR20xS3ozS1A5dmF2LzBHaFJBTkNBQVNkcDNxSDJHM2QvSjVhK3hKNHZMbUhaNlFucEFDbApZRjV4VHRQT2wzcVV2OWVrWWNBSTJWenlMUWRURnI4N0Rod3AxaUYyQnZvd3h5MUZzNDhDY0daZAotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
     bundle-id: "com.example.myapp"
     environment: "Sandbox"
     app-apple-id: 0000000000
     root-ca-paths: certs/appstore/AppleRootCA-G2.pem,certs/appstore/AppleRootCA-G3.pem
-    base-url: https://api.storekit-sandbox.itunes.apple.com
   google-play:
     enabled: false
 

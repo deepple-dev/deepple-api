@@ -92,9 +92,6 @@ auth:
 
 payment:
   app-store:
-    key-id: ${APP_STORE_KEY_ID}
-    private-key-string: ${APP_STORE_PRIVATE_KEY_STRING}
-    issuer-id: ${APP_STORE_ISSUER_ID}
     bundle-id: com.goodmeet.deepple
     app-apple-id: ${APP_STORE_APP_APPLE_ID}
     root-ca-paths: /etc/certs/appstore/AppleRootCA-G2.pem, /etc/certs/appstore/AppleRootCA-G3.pem

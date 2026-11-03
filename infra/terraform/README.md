@@ -67,7 +67,7 @@ Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코�
 | Secret | 내용 | 관리 |
 |---|---|---|
 | `deepple-dev/app` | `JWT_SECRET`, `MYSQL_PASSWORD` | Terraform이 랜덤 생성 (state에 남지 않음) |
-| `deepple-dev/external` | App Store, Bizgo 키, Sentry DSN | 직접 넣는다 |
+| `deepple-dev/external` | App Store 앱 ID, Bizgo 키, Sentry DSN | 직접 넣는다 |
 | `deepple-dev/grafana-cloud` | Alloy가 Grafana Cloud로 보낼 때 쓰는 Access Policy 토큰 | 직접 넣는다 |
 | `ecr-pullthroughcache/docker-hub` (shared) | ECR pull through cache용 Docker Hub access token | 직접 넣는다 |
 
@@ -75,7 +75,7 @@ Terraform은 secret을 만들기만 하고 값은 넣지 않는다. 값이 코�
 
 ```bash
 set -a; source .env; set +a
-jq -n 'env | {APP_STORE_KEY_ID, APP_STORE_PRIVATE_KEY_STRING, APP_STORE_ISSUER_ID, APP_STORE_APP_APPLE_ID,
+jq -n 'env | {APP_STORE_APP_APPLE_ID,
   BIZGO_API_URL, BIZGO_API_KEY, BIZGO_FROM_PHONE_NUMBER}' \
   | aws secretsmanager put-secret-value --secret-id deepple-dev/external --secret-string file:///dev/stdin
 ```

@@ -32,9 +32,6 @@ resource "aws_secretsmanager_secret" "external" {
 
 locals {
   external_secret_keys = [
-    "APP_STORE_KEY_ID",
-    "APP_STORE_PRIVATE_KEY_STRING",
-    "APP_STORE_ISSUER_ID",
     "APP_STORE_APP_APPLE_ID",
     "BIZGO_API_URL",
     "BIZGO_API_KEY",
