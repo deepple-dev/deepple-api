@@ -25,5 +25,11 @@ variable "discord_mention_role_id" {
 variable "monthly_budget_usd" {
   description = "월 예산(USD). 80%·100% 도달과 100% 초과 예측 시 알림"
   type        = number
-  default     = 200
+  default     = 300
+}
+
+variable "cost_anomaly_threshold_usd" {
+  description = "비용 이상 알림 기준(USD). 예상보다 이 금액 이상 더 나온 이상 비용만 알린다"
+  type        = number
+  default     = 10
 }
