@@ -65,3 +65,45 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
   from_port                    = 3306
   to_port                      = 3306
 }
+
+resource "aws_security_group" "alloy" {
+  name        = "${local.name}-alloy"
+  description = "Alloy"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alloy_otlp_from_app" {
+  for_each = toset(["4317", "4318"])
+
+  security_group_id            = aws_security_group.alloy.id
+  referenced_security_group_id = aws_security_group.app.id
+  ip_protocol                  = "tcp"
+  from_port                    = tonumber(each.value)
+  to_port                      = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_egress_rule" "alloy_all" {
+  security_group_id = aws_security_group.alloy.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+resource "aws_security_group" "valkey" {
+  name        = "${local.name}-valkey"
+  description = "Valkey"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "valkey_from_app" {
+  security_group_id            = aws_security_group.valkey.id
+  referenced_security_group_id = aws_security_group.app.id
+  ip_protocol                  = "tcp"
+  from_port                    = 6379
+  to_port                      = 6379
+}
+
+resource "aws_vpc_security_group_egress_rule" "valkey_all" {
+  security_group_id = aws_security_group.valkey.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}

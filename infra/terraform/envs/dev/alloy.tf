@@ -27,28 +27,6 @@ resource "aws_secretsmanager_secret" "grafana_cloud" {
   description = "dev Alloy가 Grafana Cloud로 보낼 때 쓰는 토큰"
 }
 
-resource "aws_security_group" "alloy" {
-  name        = "${local.name}-alloy"
-  description = "Alloy"
-  vpc_id      = module.vpc.vpc_id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "alloy_otlp_from_app" {
-  for_each = toset(["4317", "4318"])
-
-  security_group_id            = aws_security_group.alloy.id
-  referenced_security_group_id = aws_security_group.app.id
-  ip_protocol                  = "tcp"
-  from_port                    = tonumber(each.value)
-  to_port                      = tonumber(each.value)
-}
-
-resource "aws_vpc_security_group_egress_rule" "alloy_all" {
-  security_group_id = aws_security_group.alloy.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
-}
-
 resource "aws_ecs_task_definition" "alloy" {
   family                   = "${local.name}-alloy"
   requires_compatibilities = ["FARGATE"]

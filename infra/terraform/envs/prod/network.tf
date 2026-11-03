@@ -1,3 +1,7 @@
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.0"
@@ -63,4 +67,62 @@ resource "aws_vpc_security_group_ingress_rule" "cache_from_app" {
   ip_protocol                  = "tcp"
   from_port                    = 6379
   to_port                      = 6380
+}
+
+resource "aws_security_group" "alb" {
+  name        = "${local.name}-alb"
+  description = "ALB"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb_from_internet" {
+  for_each = toset(["80", "443"])
+
+  security_group_id = aws_security_group.alb.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+  from_port         = tonumber(each.value)
+  to_port           = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb_to_app" {
+  for_each = toset(["8080", "8081"])
+
+  security_group_id            = aws_security_group.alb.id
+  referenced_security_group_id = aws_security_group.app.id
+  ip_protocol                  = "tcp"
+  from_port                    = tonumber(each.value)
+  to_port                      = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
+  for_each = toset(["8080", "8081"])
+
+  security_group_id            = aws_security_group.app.id
+  referenced_security_group_id = aws_security_group.alb.id
+  ip_protocol                  = "tcp"
+  from_port                    = tonumber(each.value)
+  to_port                      = tonumber(each.value)
+}
+
+resource "aws_security_group" "alloy" {
+  name        = "${local.name}-alloy"
+  description = "Alloy"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alloy_otlp_from_app" {
+  for_each = toset(["4317", "4318"])
+
+  security_group_id            = aws_security_group.alloy.id
+  referenced_security_group_id = aws_security_group.app.id
+  ip_protocol                  = "tcp"
+  from_port                    = tonumber(each.value)
+  to_port                      = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_egress_rule" "alloy_all" {
+  security_group_id = aws_security_group.alloy.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
 }

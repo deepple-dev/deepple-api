@@ -6,6 +6,7 @@ data "aws_route53_zone" "this" {
   name = "deepple.co.kr"
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
+resource "aws_service_discovery_private_dns_namespace" "this" {
+  name = "${local.name}.local"
+  vpc  = module.vpc.vpc_id
 }

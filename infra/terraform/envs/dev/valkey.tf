@@ -1,9 +1,4 @@
 # 앱 배포·야간 중지와 상관없이 켜 둔다. 이 task가 바뀔 때만 데이터가 사라진다
-resource "aws_service_discovery_private_dns_namespace" "this" {
-  name = "${local.name}.local"
-  vpc  = module.vpc.vpc_id
-}
-
 resource "aws_service_discovery_service" "valkey" {
   name = "valkey"
 
@@ -20,26 +15,6 @@ resource "aws_service_discovery_service" "valkey" {
 
 locals {
   valkey_host = "${aws_service_discovery_service.valkey.name}.${aws_service_discovery_private_dns_namespace.this.name}"
-}
-
-resource "aws_security_group" "valkey" {
-  name        = "${local.name}-valkey"
-  description = "Valkey"
-  vpc_id      = module.vpc.vpc_id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "valkey_from_app" {
-  security_group_id            = aws_security_group.valkey.id
-  referenced_security_group_id = aws_security_group.app.id
-  ip_protocol                  = "tcp"
-  from_port                    = 6379
-  to_port                      = 6379
-}
-
-resource "aws_vpc_security_group_egress_rule" "valkey_all" {
-  security_group_id = aws_security_group.valkey.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
 }
 
 resource "aws_ecs_task_definition" "valkey" {

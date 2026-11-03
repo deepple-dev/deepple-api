@@ -233,3 +233,6 @@ resource "aws_service_discovery_service" "app" {
   }
 }
 
+data "aws_ecr_repository" "app" {
+  name = "deepple-api"
+}

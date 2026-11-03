@@ -6,6 +6,7 @@ data "aws_route53_zone" "this" {
   name = "deepple.co.kr"
 }
 
-data "aws_ecr_repository" "app" {
-  name = "deepple-api"
+resource "aws_service_discovery_private_dns_namespace" "this" {
+  name = "${local.name}.local"
+  vpc  = module.vpc.vpc_id
 }
