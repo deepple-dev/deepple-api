@@ -35,4 +35,3 @@ auth:
 payment:
   app-store:
     environment: Production
-    base-url: https://api.storekit.itunes.apple.com

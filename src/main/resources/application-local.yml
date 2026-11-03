@@ -36,13 +36,9 @@ auth:
 
 payment:
   app-store:
-    key-id: key-id
-    private-key-string: private-key-string
-    issuer-id: issuer-id
     environment: Sandbox
     app-apple-id: 0
     root-ca-paths: certs/appstore/AppleRootCA-G2.pem, certs/appstore/AppleRootCA-G3.pem
-    base-url: https://api.storekit-sandbox.itunes.apple.com
   google-play:
     enabled: false
 
