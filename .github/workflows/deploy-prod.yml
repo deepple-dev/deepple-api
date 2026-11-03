@@ -1,0 +1,109 @@
+name: Deploy prod
+
+on:
+  push:
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: deepple-api
+
+jobs:
+  deploy:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment:
+      name: prod
+      url: https://api.deepple.co.kr
+    permissions:
+      contents: read
+      id-token: write
+      attestations: read
+    steps:
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::339713092351:role/deepple-prod-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+
+      - id: image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          image=$(aws ecr batch-get-image --repository-name "$ECR_REPOSITORY" --image-ids imageTag="$GITHUB_SHA" \
+            --query 'images[0].{manifest: imageManifest, mediaType: imageManifestMediaType, digest: imageId.imageDigest}' --output json)
+          digest=$(jq -r '.digest // empty' <<< "$image")
+          if [ -z "$digest" ]; then
+            echo "::error::$GITHUB_SHA 이미지가 없습니다. dev 배포가 끝났는지 확인하세요. 앱 코드가 바뀌지 않은 커밋이면 Deploy 워크플로를 이 커밋에서 수동 실행해 이미지를 만든 뒤 다시 실행하세요"
+            exit 1
+          fi
+          echo "$image" > image.json
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "image=$REGISTRY/$ECR_REPOSITORY@$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Verify provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          gh attestation verify "oci://$IMAGE" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/deploy.yml"
+
+      - name: Tag version
+        env:
+          VERSION: ${{ github.ref_name }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          tagged=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" --image-ids imageDigest="$DIGEST" \
+            --query "contains(imageDetails[0].imageTags, '$VERSION')" --output text)
+          if [ "$tagged" != "True" ]; then
+            aws ecr put-image --repository-name "$ECR_REPOSITORY" --image-tag "$VERSION" \
+              --image-manifest "$(jq -r .manifest image.json)" \
+              --image-manifest-media-type "$(jq -r .mediaType image.json)" > /dev/null
+          fi
+
+      - name: Download task definition
+        run: aws ecs describe-task-definition --task-definition deepple-prod --query taskDefinition > task-definition.json
+
+      - id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@8d79160660ad39c402a16e5fc7cd2a32e8f7d6b7 # v1.9.1
+        with:
+          task-definition: task-definition.json
+          container-name: app
+          image: ${{ steps.image.outputs.image }}
+
+      - uses: aws-actions/amazon-ecs-deploy-task-definition@a00d4d57ac0de1a99b39fe469f3d898d38717c2b # v2.6.4
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          cluster: deepple-prod
+          service: deepple-prod-api
+          wait-for-service-stability: true
+          wait-for-minutes: 25
+
+      - name: Notify
+        continue-on-error: true
+        env:
+          VERSION: ${{ github.ref_name }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}
+        run: |
+          message=$(jq -n \
+            --arg commit "$GITHUB_SHA" \
+            --arg message "$VERSION" \
+            --arg url "$RELEASE_URL" \
+            --arg author "$GITHUB_ACTOR" \
+            --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{source: "deepple.deploy", environment: "prod", commit: $commit, message: $message, url: $url, author: $author, time: $time}')
+          aws sns publish \
+            --topic-arn "arn:aws:sns:${AWS_REGION}:339713092351:deepple-prod-alerts" \
+            --message "$message"

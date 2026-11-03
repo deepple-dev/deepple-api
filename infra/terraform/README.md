@@ -60,6 +60,15 @@ terraform apply            # 실제 적용
 - Valkey task가 바뀌면(Spot 회수, 장애) 데이터(인증번호, refresh token)가 사라진다.
 - DB·캐시 접속: RDS와 Valkey는 비공개라 앱 task를 거쳐 SSM 포트 포워딩으로 붙는다. 절차는 `/dev-connect` 스킬(`.claude/skills/dev-connect/SKILL.md`)에 있다.
 
+### prod
+
+코드만 있고 아직 apply하지 않았다. 출시 준비 때 띄운다.
+
+- 배포: `v1.2.3` 같은 태그를 push하면 `Deploy prod` 워크플로가 GitHub `prod` 환경 승인을 기다린다. 승인하면 dev에서 빌드한 그 커밋의 이미지를 확인(provenance)하고 버전 태그를 붙여 배포한다. 다시 빌드하지 않는다.
+- 이미지가 없다고 실패하면: 앱 코드가 바뀌지 않은 커밋이라 dev 빌드가 돌지 않은 것이다. `Deploy` 워크플로를 그 커밋에서 수동 실행한 뒤 다시 실행한다.
+- 되돌리기: Actions → `Deploy prod` → Run workflow에서 "Use workflow from"을 이전 버전 태그로 골라 실행한다. main에서 실행하면 아무것도 하지 않는다.
+- ECR은 `v` 태그 이미지를 최근 20개까지 따로 보관한다.
+
 ## Secret
 
 Terraform은 secret을 만들기만 하고, 직접 넣는 값은 `aws secretsmanager put-secret-value`로 넣는다. 값이 코드와 state에 남지 않게 하려는 것이다.
