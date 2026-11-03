@@ -38,6 +38,8 @@ server:
     max-http-form-post-size: 50MB
 
 management:
+  server:
+    port: 8081
   endpoint:
     health:
       probes:

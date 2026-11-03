@@ -153,6 +153,14 @@ resource "aws_ecs_task_definition" "app" {
       # graceful shutdown 30초보다 여유 있게
       stopTimeout = 40
 
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -fs http://localhost:8081/actuator/health/readiness || exit 1"]
+        interval    = 15
+        timeout     = 5
+        retries     = 3
+        startPeriod = 180
+      }
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -171,8 +179,7 @@ resource "aws_ecs_service" "app" {
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 1
 
-  enable_execute_command            = true
-  health_check_grace_period_seconds = 180
+  enable_execute_command = true
 
   # 태스크가 하나라 새 태스크가 뜬 뒤 기존 태스크를 내린다
   deployment_minimum_healthy_percent = 100
@@ -189,10 +196,10 @@ resource "aws_ecs_service" "app" {
     assign_public_ip = true
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "app"
-    container_port   = 8080
+  service_registries {
+    registry_arn   = aws_service_discovery_service.app.arn
+    container_name = "app"
+    container_port = 8080
   }
 
   deployment_circuit_breaker {
@@ -205,5 +212,20 @@ resource "aws_ecs_service" "app" {
     ignore_changes = [task_definition, desired_count]
   }
 
-  depends_on = [aws_lb_listener.https, aws_ecs_cluster_capacity_providers.this]
+  depends_on = [aws_ecs_cluster_capacity_providers.this]
+}
+
+resource "aws_service_discovery_service" "app" {
+  name = "api"
+
+  dns_config {
+    namespace_id   = aws_service_discovery_private_dns_namespace.this.id
+    routing_policy = "MULTIVALUE"
+
+    dns_records {
+      type = "SRV"
+      ttl  = 10
+    }
+  }
+
 }

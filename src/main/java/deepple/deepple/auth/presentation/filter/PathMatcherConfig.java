@@ -12,8 +12,7 @@ public class PathMatcherConfig {
         "/member/login", "/member/logout", "/member/code", "/member/login/test", "/member/refresh",
         "/admin/login", "/admin/signup", "/admin/logout", "/member/profile/active",
         "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**",
-        "/webjars/**",
-        "/actuator/**"
+        "/webjars/**"
     );
 
     @Bean
