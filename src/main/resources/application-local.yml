@@ -42,8 +42,8 @@ payment:
   google-play:
     enabled: false
 
-bizgo:
+firebase:
   enabled: false
 
-firebase:
+bizgo:
   enabled: false
