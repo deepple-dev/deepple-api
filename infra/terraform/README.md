@@ -101,26 +101,36 @@ jq -n --arg username <Docker Hub 사용자 이름> --arg accessToken "$(pbpaste)
 
 ### Google (Firebase, Google Play)
 
-키 파일 없이 Workload Identity Federation을 쓴다. 앱 역할(`deepple-dev-app`)로 Google에 인증해 기존 서비스 계정을 impersonate한다.
+키 파일 없이 Workload Identity Federation을 쓴다. 앱 역할로 Google에 인증해 서비스 계정을 impersonate한다. 환경마다 Google Cloud 프로젝트를 나눈다.
 
-1. 풀과 AWS 공급자를 만든다(프로젝트 `deepple-c5416`).
+| 환경 | 프로젝트 | 풀·공급자 | Firebase | Google Play |
+|---|---|---|---|---|
+| dev | `atwoz-d63ef` | `aws-deepple` / `deepple-dev` | `firebase-adminsdk-ox847` | `deepple-dev-play-verifier` |
+| prod | `deepple-c5416` | | `firebase-adminsdk-fbsvc` | `deepple-play-verifier` |
+
+dev 구성 절차는 아래와 같다. prod도 같은 방식으로 `deepple-c5416`에 만든다.
+
+1. API를 켜고 풀과 AWS 공급자를 만든다. 공급자는 dev 앱 역할(`deepple-dev-app`)만 허용한다.
    ```bash
-   gcloud services enable sts.googleapis.com iamcredentials.googleapis.com --project=deepple-c5416
-   gcloud services enable iamcredentials.googleapis.com --project=atwoz-d63ef
-   gcloud iam workload-identity-pools create aws --project=deepple-c5416 --location=global --display-name="AWS"
-   gcloud iam workload-identity-pools providers create-aws deepple --project=deepple-c5416 --location=global \
-     --workload-identity-pool=aws --account-id=339713092351 \
+   gcloud services enable sts.googleapis.com iamcredentials.googleapis.com androidpublisher.googleapis.com --project=atwoz-d63ef
+   gcloud iam workload-identity-pools create aws-deepple --project=atwoz-d63ef --location=global --display-name="AWS deepple"
+   gcloud iam workload-identity-pools providers create-aws deepple-dev --project=atwoz-d63ef --location=global \
+     --workload-identity-pool=aws-deepple --account-id=339713092351 \
      --attribute-condition="attribute.aws_role == 'arn:aws:sts::339713092351:assumed-role/deepple-dev-app'"
    ```
-2. 앱 역할에 두 서비스 계정의 impersonate 권한을 준다. `<번호>`는 `gcloud projects describe deepple-c5416 --format='value(projectNumber)'`로 확인한다.
+2. Google Play 결제 검증용 서비스 계정을 만들고, Play Console → 사용자 및 권한에서 이 계정을 초대해 앱 권한으로 재무 데이터 보기와 주문·구독 관리를 준다.
    ```bash
-   MEMBER="principalSet://iam.googleapis.com/projects/<번호>/locations/global/workloadIdentityPools/aws/attribute.aws_role/arn:aws:sts::339713092351:assumed-role/deepple-dev-app"
-   gcloud iam service-accounts add-iam-policy-binding deepple-play-verifier@deepple-c5416.iam.gserviceaccount.com \
-     --project=deepple-c5416 --role=roles/iam.workloadIdentityUser --member="$MEMBER"
-   gcloud iam service-accounts add-iam-policy-binding firebase-adminsdk-ox847@atwoz-d63ef.iam.gserviceaccount.com \
-     --project=atwoz-d63ef --role=roles/iam.workloadIdentityUser --member="$MEMBER"
+   gcloud iam service-accounts create deepple-dev-play-verifier --project=atwoz-d63ef --display-name="dev Play 결제 검증"
    ```
-3. `variables.tf`의 `gcp_workload_identity_provider`에 `projects/<번호>/locations/global/workloadIdentityPools/aws/providers/deepple`을 넣는다.
+3. 앱 역할에 두 서비스 계정의 impersonate 권한을 준다. `<번호>`는 `gcloud projects describe atwoz-d63ef --format='value(projectNumber)'`로 확인한다.
+   ```bash
+   MEMBER="principalSet://iam.googleapis.com/projects/<번호>/locations/global/workloadIdentityPools/aws-deepple/attribute.aws_role/arn:aws:sts::339713092351:assumed-role/deepple-dev-app"
+   for sa in firebase-adminsdk-ox847 deepple-dev-play-verifier; do
+     gcloud iam service-accounts add-iam-policy-binding $sa@atwoz-d63ef.iam.gserviceaccount.com \
+       --project=atwoz-d63ef --role=roles/iam.workloadIdentityUser --member="$MEMBER"
+   done
+   ```
+4. `variables.tf`의 `gcp_workload_identity_provider`, `firebase_service_account`, `google_play_service_account`가 위 값과 같은지 확인한다.
 
 ## 알림
 
