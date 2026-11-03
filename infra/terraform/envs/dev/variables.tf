@@ -77,3 +77,21 @@ variable "google_play_service_account" {
   type        = string
   default     = "deepple-play-verifier@deepple-c5416.iam.gserviceaccount.com"
 }
+
+variable "alloy_version" {
+  description = "Grafana Alloy 이미지 태그"
+  type        = string
+  default     = "v1.21.3"
+}
+
+variable "grafana_cloud_otlp_endpoint" {
+  description = "Grafana Cloud 스택의 OTLP 엔드포인트 (Grafana Cloud Portal → OpenTelemetry 타일)"
+  type        = string
+  default     = "https://otlp-gateway-prod-ap-northeast-0.grafana.net/otlp"
+}
+
+variable "grafana_cloud_instance_id" {
+  description = "Grafana Cloud OTLP 인증 사용자 이름(인스턴스 ID, OpenTelemetry 타일)"
+  type        = string
+  default     = "1902666"
+}

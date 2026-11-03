@@ -1,0 +1,127 @@
+resource "aws_service_discovery_service" "alloy" {
+  name = "alloy"
+
+  dns_config {
+    namespace_id   = aws_service_discovery_private_dns_namespace.this.id
+    routing_policy = "MULTIVALUE"
+
+    dns_records {
+      type = "A"
+      ttl  = 10
+    }
+  }
+}
+
+locals {
+  alloy_host = "${aws_service_discovery_service.alloy.name}.${aws_service_discovery_private_dns_namespace.this.name}"
+}
+
+resource "aws_ssm_parameter" "alloy_config" {
+  name  = "/${local.name}/alloy/config"
+  type  = "String"
+  value = file("${path.module}/../../../alloy/config.alloy")
+}
+
+resource "aws_secretsmanager_secret" "grafana_cloud" {
+  name        = "${local.name}/grafana-cloud"
+  description = "dev Alloy가 Grafana Cloud로 보낼 때 쓰는 토큰"
+}
+
+resource "aws_security_group" "alloy" {
+  name        = "${local.name}-alloy"
+  description = "Alloy"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alloy_otlp_from_app" {
+  for_each = toset(["4317", "4318"])
+
+  security_group_id            = aws_security_group.alloy.id
+  referenced_security_group_id = aws_security_group.app.id
+  ip_protocol                  = "tcp"
+  from_port                    = tonumber(each.value)
+  to_port                      = tonumber(each.value)
+}
+
+resource "aws_vpc_security_group_egress_rule" "alloy_all" {
+  security_group_id = aws_security_group.alloy.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+resource "aws_ecs_task_definition" "alloy" {
+  family                   = "${local.name}-alloy"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.execution.arn
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
+
+  container_definitions = jsonencode([
+    {
+      name      = "alloy"
+      image     = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/docker-hub/grafana/alloy:${var.alloy_version}"
+      essential = true
+
+      portMappings = [
+        { containerPort = 4317, protocol = "tcp" },
+        { containerPort = 4318, protocol = "tcp" },
+      ]
+
+      entryPoint = ["/bin/sh", "-c"]
+      command    = ["printenv ALLOY_CONFIG_CONTENT > /tmp/config_file && exec /bin/alloy run /tmp/config_file"]
+
+      environment = [
+        { name = "GRAFANA_CLOUD_OTLP_ENDPOINT", value = var.grafana_cloud_otlp_endpoint },
+        { name = "GRAFANA_CLOUD_INSTANCE_ID", value = var.grafana_cloud_instance_id },
+        { name = "ALLOY_CONFIG_SHA256", value = sha256(aws_ssm_parameter.alloy_config.value) },
+      ]
+      secrets = [
+        { name = "ALLOY_CONFIG_CONTENT", valueFrom = aws_ssm_parameter.alloy_config.arn },
+        { name = "GRAFANA_CLOUD_API_KEY", valueFrom = aws_secretsmanager_secret.grafana_cloud.arn },
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.app.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "alloy"
+        }
+      }
+    },
+  ])
+}
+
+resource "aws_ecs_service" "alloy" {
+  name            = "${local.name}-alloy"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.alloy.arn
+  desired_count   = 1
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
+
+  network_configuration {
+    subnets          = module.vpc.public_subnets
+    security_groups  = [aws_security_group.alloy.id]
+    assign_public_ip = true
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.alloy.arn
+  }
+
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
+  depends_on = [aws_ecs_cluster_capacity_providers.this]
+}

@@ -31,7 +31,7 @@ resource "aws_iam_role" "scheduler" {
 data "aws_iam_policy_document" "scheduler" {
   statement {
     actions   = ["ecs:UpdateService"]
-    resources = [aws_ecs_service.app.id]
+    resources = [aws_ecs_service.app.id, aws_ecs_service.alloy.id]
   }
 
   statement {
@@ -118,6 +118,48 @@ resource "aws_scheduler_schedule" "ecs_start" {
     input = jsonencode({
       Cluster      = aws_ecs_cluster.this.name
       Service      = aws_ecs_service.app.name
+      DesiredCount = 1
+    })
+  }
+}
+
+resource "aws_scheduler_schedule" "alloy_stop" {
+  name                         = "${local.name}-alloy-stop"
+  schedule_expression          = "cron(5 ${local.stop_hour} * * ? *)"
+  schedule_expression_timezone = local.schedule_timezone
+  state                        = local.schedule_state
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ecs:updateService"
+    role_arn = aws_iam_role.scheduler.arn
+    input = jsonencode({
+      Cluster      = aws_ecs_cluster.this.name
+      Service      = aws_ecs_service.alloy.name
+      DesiredCount = 0
+    })
+  }
+}
+
+resource "aws_scheduler_schedule" "alloy_start" {
+  name                         = "${local.name}-alloy-start"
+  schedule_expression          = "cron(0 ${local.start_hour} * * ? *)"
+  schedule_expression_timezone = local.schedule_timezone
+  state                        = local.schedule_state
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  target {
+    arn      = "arn:aws:scheduler:::aws-sdk:ecs:updateService"
+    role_arn = aws_iam_role.scheduler.arn
+    input = jsonencode({
+      Cluster      = aws_ecs_cluster.this.name
+      Service      = aws_ecs_service.alloy.name
       DesiredCount = 1
     })
   }

@@ -20,7 +20,7 @@ public class PhoneNumber {
 
     private PhoneNumber(@NonNull String value) {
         if (!PHONE_NUMBER_PATTERN.matcher(value).matches()) {
-            throw new InvalidPhoneNumberException(value);
+            throw new InvalidPhoneNumberException();
         }
         this.value = value;
     }

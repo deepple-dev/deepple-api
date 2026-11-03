@@ -16,7 +16,7 @@ resource "aws_cloudwatch_event_rule" "ecs_failure" {
   event_pattern = jsonencode({
     source      = ["aws.ecs"]
     detail-type = ["ECS Service Action", "ECS Deployment State Change"]
-    resources   = [aws_ecs_service.app.id, aws_ecs_service.valkey.id]
+    resources   = [aws_ecs_service.app.id, aws_ecs_service.valkey.id, aws_ecs_service.alloy.id]
     detail = {
       eventName = ["SERVICE_TASK_START_IMPAIRED", "SERVICE_TASK_PLACEMENT_FAILURE", "SERVICE_DEPLOYMENT_FAILED"]
     }

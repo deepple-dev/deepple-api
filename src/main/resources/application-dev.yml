@@ -43,6 +43,9 @@ spring:
 logging:
   level:
     root: info
+  structured:
+    format:
+      console: ecs
 
 server:
   port: ${SERVER_PORT:8080}
