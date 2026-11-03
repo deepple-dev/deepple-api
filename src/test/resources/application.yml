@@ -9,9 +9,6 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
-  servlet:
-    multipart:
-      max-request-size: 50MB
 
   flyway:
     enabled: true
@@ -49,16 +46,12 @@ jwt:
 auth:
   refresh-token-cookie:
     name: refresh_token
-    max-age: 2419200 # 4주
+    max-age: 2419200  # 4주
     path: /
     same-site: None
     secure: true
     http-only: true
   prefix-code: 008008
-
-server:
-  tomcat:
-    max-http-form-post-size: 50MB
 
 payment:
   app-store:
@@ -69,10 +62,10 @@ payment:
   google-play:
     enabled: false
 
-bizgo:
+firebase:
   enabled: false
 
-firebase:
+bizgo:
   enabled: false
 
 scheduler:

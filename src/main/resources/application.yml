@@ -14,11 +14,6 @@ spring:
       fail-on-unknown-properties: true
     time-zone: Asia/Seoul
 
-  servlet:
-    multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
-
   jpa:
     hibernate:
       ddl-auto: validate
@@ -32,10 +27,6 @@ spring:
     aws:
       region:
         static: ap-northeast-2
-
-server:
-  tomcat:
-    max-http-form-post-size: 50MB
 
 management:
   server:
