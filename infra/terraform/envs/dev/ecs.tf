@@ -105,12 +105,7 @@ locals {
     REDIS_HOST                  = local.valkey_host
     OTEL_EXPORTER_OTLP_ENDPOINT = "http://${local.alloy_host}:4318"
     AWS_S3_BUCKET_NAME          = aws_s3_bucket.storage.bucket
-    JPA_SHOW_SQL                = "false"
     AUTH_PREFIX_CODE            = "008008"
-
-    APP_STORE_ENVIRONMENT    = "Sandbox"
-    APP_STORE_BUNDLE_ID      = "com.goodmeet.deepple"
-    GOOGLE_PLAY_PACKAGE_NAME = "com.goodmeet.deepple"
 
     GOOGLE_WORKLOAD_IDENTITY_AUDIENCE = "//iam.googleapis.com/${var.gcp_workload_identity_provider}"
     FIREBASE_PROJECT_ID               = var.firebase_project_id
