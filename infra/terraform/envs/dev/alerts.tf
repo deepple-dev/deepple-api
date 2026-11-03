@@ -29,28 +29,6 @@ resource "aws_cloudwatch_event_target" "ecs_failure" {
 }
 
 # 야간 중지 시간에는 지표가 없으므로 데이터가 없으면 정상으로 본다
-resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
-  alarm_name = "${local.name}-alb-5xx"
-  alarm_description = jsonencode({
-    title = "5xx responses detected"
-    what  = "1분 동안 5xx 응답 {value} ({condition})"
-    why   = ["처리 못 한 예외", "DB·Redis·외부 API 장애"]
-    how   = "같은 시각의 ERROR 로그 확인 (/ecs/deepple-dev)"
-    unit  = "count"
-  })
-  namespace           = "AWS/ApplicationELB"
-  metric_name         = "HTTPCode_Target_5XX_Count"
-  dimensions          = { LoadBalancer = aws_lb.this.arn_suffix }
-  statistic           = "Sum"
-  period              = 60
-  evaluation_periods  = 1
-  threshold           = 1
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  treat_missing_data  = "notBreaching"
-  alarm_actions       = [module.alerts.topic_arn]
-  ok_actions          = [module.alerts.topic_arn]
-}
-
 resource "aws_cloudwatch_metric_alarm" "app_memory" {
   alarm_name = "${local.name}-app-memory"
   alarm_description = jsonencode({
