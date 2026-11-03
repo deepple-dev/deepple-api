@@ -26,13 +26,25 @@ resource "grafana_notification_policy" "this" {
 
     content {
       contact_point = policy.value.contact_point
-      group_by      = ["env"]
+      group_by      = ["env", "severity"]
       mute_timings  = policy.value.quiet_hours != null ? [grafana_mute_timing.quiet_hours[policy.key].name] : []
 
       matcher {
         label = "env"
         match = "="
         value = policy.key
+      }
+
+      policy {
+        contact_point = policy.value.card_contact_point
+        group_by      = ["env", "severity"]
+        mute_timings  = policy.value.quiet_hours != null ? [grafana_mute_timing.quiet_hours[policy.key].name] : []
+
+        matcher {
+          label = "severity"
+          match = "="
+          value = "warning"
+        }
       }
     }
   }

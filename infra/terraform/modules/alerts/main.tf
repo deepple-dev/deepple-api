@@ -119,7 +119,6 @@ resource "aws_lambda_function" "this" {
     variables = {
       WEBHOOK_SECRET_ARN = aws_secretsmanager_secret.webhook.arn
       MENTION_ROLE_ID    = var.mention_role_id
-      ENVIRONMENT        = var.environment
     }
   }
 

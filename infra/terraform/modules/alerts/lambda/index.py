@@ -27,29 +27,33 @@ def webhook_url():
     return _webhook_url
 
 
-# Datadog multi-alert처럼 상태와 환경을 제목 앞에 둔다
 def title_with_status(status, title):
-    environment = os.environ.get("ENVIRONMENT")
-    prefix = f"[{status} on {environment}]" if environment else f"[{status}]"
-    return f"{prefix} {title}"
+    return f"[{status}] {title}"
 
 
-def as_text(value):
-    return "\n".join(f"- {item}" for item in value) if isinstance(value, list) else value
+def bullets(value):
+    return "\n".join(f"- {item}" for item in (value if isinstance(value, list) else [value]))
 
 
-# 소제목은 한 줄에 두고 내용은 다음 줄에, 칸 사이는 빈 줄로 띄운다. 여러 항목은 불릿으로 쓴다
+# 소제목은 한 줄에 두고 내용은 다음 줄에, 칸 사이는 빈 줄로 띄운다. 원인과 확인 방법은 불릿으로 쓴다
 def sections(what, why=None, how=None):
-    return "\n\n".join(f"**{name}**\n{as_text(value)}" for name, value in [(WHAT, what), (WHY, why), (HOW, how)] if value)
+    parts = [f"**{WHAT}**\n{what}"] if what else []
+    parts += [f"**{name}**\n{bullets(value)}" for name, value in [(WHY, why), (HOW, how)] if value]
+    return "\n\n".join(parts)
 
 
-def iso_timestamp(value):
+def parse_time(value):
     for fmt in ("%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S.%fZ"):
         try:
-            return datetime.strptime(value, fmt).isoformat()
+            parsed = datetime.strptime(value, fmt)
+            return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
         except (TypeError, ValueError):
             continue
     return None
+
+
+def format_duration(started_at, ended_at):
+    return f"{max(int((ended_at - started_at).total_seconds() // 60), 1)}분 지속"
 
 
 def alarm_console_url(alarm_name):
@@ -90,12 +94,6 @@ def alarm_started_at(alarm_name):
     return None
 
 
-def format_duration(started_at):
-    minutes = int((datetime.now(timezone.utc) - started_at).total_seconds() // 60)
-    hours, minutes = divmod(minutes, 60)
-    return f"{hours}시간 {minutes}분" if hours else f"{max(minutes, 1)}분"
-
-
 # alarm_description은 JSON(title, what, why, how, unit)이다. what의 {value}는 측정값, {condition}은 '> 90%' 같은 조건으로 채운다
 # alarm을 처음 만들 때도 OK로 바뀌므로 ALARM에서 돌아온 경우만 복구로 보낸다
 def alarm_embed(alarm):
@@ -108,16 +106,15 @@ def alarm_embed(alarm):
     except json.JSONDecodeError:
         spec = {"title": alarm.get("AlarmDescription") or alarm["AlarmName"]}
 
-    unit = spec.get("unit")
-    trigger = alarm.get("Trigger", {})
-    value = format_value(alarm_value(alarm), unit)
-    condition = f"{COMPARISONS.get(trigger.get('ComparisonOperator'), '')} {format_value(trigger.get('Threshold'), unit, precise=False)}".strip()
-
     if recovered:
         started_at = alarm_started_at(alarm["AlarmName"])
-        duration = f"{format_duration(started_at)} 지속 후 복구" if started_at else "복구"
-        body = sections(f"현재 {value} ({duration})")
+        ended_at = parse_time(alarm.get("StateChangeTime")) or datetime.now(timezone.utc)
+        body = format_duration(started_at, ended_at) if started_at else "복구"
     else:
+        unit = spec.get("unit")
+        trigger = alarm.get("Trigger", {})
+        value = format_value(alarm_value(alarm), unit)
+        condition = f"{COMPARISONS.get(trigger.get('ComparisonOperator'), '')} {format_value(trigger.get('Threshold'), unit, precise=False)}".strip()
         what = spec.get("what", alarm.get("NewStateReason", "")).format(value=value, condition=condition)
         body = sections(what, spec.get("why"), spec.get("how"))
 
@@ -126,67 +123,67 @@ def alarm_embed(alarm):
         "description": body,
         "url": alarm_console_url(alarm["AlarmName"]),
         "color": GREEN if recovered else RED,
-        "footer": {"text": alarm["AlarmName"]},
-        "timestamp": iso_timestamp(alarm.get("StateChangeTime")),
     }, not recovered
 
 
+# (제목, 원인, 확인 방법, 멘션 여부). 확인 방법의 {log_group}은 서비스의 로그 그룹으로 채운다
 ECS_EVENTS = {
     "SERVICE_TASK_START_IMPAIRED": (
         "Task failing to start",
-        ["앱 시작 오류", "secret 누락", "DB 연결 실패"],
-        ["앱 로그 확인", "secret 값 확인"],
+        ["앱 시작 오류 (설정 누락, DB·Redis 연결 실패)", "secret 값 누락", "이미지 pull 실패"],
+        ["CloudWatch `{log_group}`에서 해당 서비스 로그 확인", "ECS 서비스 이벤트에서 중지 사유 확인"],
+        True,
     ),
     "SERVICE_TASK_PLACEMENT_FAILURE": (
         "Task placement failed",
-        "Fargate Spot 용량 부족",
-        ["ECS 자동 재시도 중", "해결되지 않으면 일반 Fargate 전환 검토"],
+        ["Fargate Spot 용량 부족"],
+        ["ECS가 자동으로 재시도하므로 몇 분 기다린 뒤 서비스 상태 확인", "계속 실패하면 capacity provider를 FARGATE로 바꿔 apply"],
+        False,
     ),
     "SERVICE_DEPLOYMENT_FAILED": (
         "Deployment failed and rolled back",
-        ["새 버전 시작 실패", "헬스 체크 실패"],
-        ["Deploy 워크플로 확인", "앱 로그 확인"],
+        ["새 버전 앱 시작 실패 (설정 누락, Flyway 마이그레이션 실패)", "ALB 헬스 체크 실패"],
+        ["GitHub Actions Deploy 실행 로그 확인", "CloudWatch `{log_group}`에서 새 task 로그 확인"],
+        True,
     ),
 }
 
 
-def ecs_service_console_url(service_arn):
+def ecs_service_console_url(cluster, service):
     region = os.environ.get("AWS_REGION", "ap-northeast-2")
-    cluster, service = service_arn.split(":service/")[1].split("/")
     return f"https://{region}.console.aws.amazon.com/ecs/v2/clusters/{cluster}/services/{service}/events?region={region}"
 
 
 def ecs_embed(event):
     detail = event["detail"]
-    title, why, how = ECS_EVENTS.get(detail["eventName"], (detail["eventName"], None, None))
-    service_arn = event["resources"][0]
-    service = service_arn.rsplit("/", 1)[-1]
+    title, why, how, mention = ECS_EVENTS.get(detail["eventName"], (detail["eventName"], None, None, True))
+    cluster, service = event["resources"][0].split(":service/")[1].split("/")
     return {
         "title": title_with_status("Triggered", f"{title} ({service})"),
-        "description": sections(detail.get("reason") or "상세 사유 미제공 (ECS 서비스 이벤트 확인 필요)", why, how),
-        "url": ecs_service_console_url(service_arn),
+        "description": sections(
+            detail.get("reason") or "상세 사유 미제공 (ECS 서비스 이벤트 확인 필요)",
+            why,
+            [step.format(log_group=f"/ecs/{cluster}") for step in how] if how else None,
+        ),
+        "url": ecs_service_console_url(cluster, service),
         "color": RED,
-        "footer": {"text": service},
-        "timestamp": event.get("time"),
-    }, True
+    }, mention
 
 
 # CD 워크플로가 배포를 마친 뒤 발행하는 메시지
 def deploy_embed(message):
-    commit = message["commit"]
+    commit = message["commit"][:7]
     author = message.get("author")
     return {
-        "title": title_with_status("Deployed", message.get("message", "").partition("\n")[0] or commit[:7]),
-        "description": f"**Commit**\n{commit[:7]}" + (f" ({author})" if author else ""),
+        "title": title_with_status("Deployed", message.get("message", "").partition("\n")[0] or commit),
+        "description": f"{commit} · {author}" if author else commit,
         "url": message.get("url"),
         "color": GREEN,
-        "footer": {"text": commit[:7]},
-        "timestamp": message.get("time"),
     }, False
 
 
 # Budgets 메시지 형식이 바뀌어 값을 못 찾으면 None을 돌려 원문을 보내게 한다
-def budget_embed(message, timestamp):
+def budget_embed(message):
     found = dict(re.findall(r"^(Budget Name|Budgeted Amount|Alert Threshold|ACTUAL Amount|FORECASTED Amount): (.+)$", message, re.MULTILINE))
     name = found.get("Budget Name")
     budgeted = found.get("Budgeted Amount")
@@ -198,29 +195,25 @@ def budget_embed(message, timestamp):
 
     if not all([name, budgeted, threshold, amount]):
         return None
-    # Alert Threshold 예: "> $24.00 (80.00%)". 형식이 다르면 원문을 그대로 쓴다
-    limit = re.search(r"[<>]=?\s*\$[\d,.]+", threshold)
+    # Alert Threshold 예: "> $24.00 (80.00%)". 비율이 없으면 원문을 그대로 쓴다
     percent = re.search(r"([\d.]+)%", threshold)
-    condition = ", ".join(filter(None, [limit and limit[0], percent and f"예산의 {float(percent[1]):g}%"])) or threshold
+    exceeded = f"{float(percent[1]):g}% 초과" if percent else threshold
     if percent:
-        title = f"{title} ({float(percent[1]):g}%)"
+        title = f"{title} {float(percent[1]):g}%"
     return {
-        "title": title_with_status("Triggered", title),
+        "title": title_with_status("Triggered", f"{title} ({name})"),
         "description": sections(
-            [f"{amount_label} {amount} ({condition})", f"월 예산 {budgeted}"],
+            f"{amount_label} {amount} / 월 예산 {budgeted} ({exceeded})",
             ["새 리소스 추가", "야간 중지 꺼짐 등 사용량 증가"],
-            "Cost Explorer에서 서비스별 비용 확인",
+            ["Cost Explorer에서 서비스별 비용 확인"],
         ),
         "url": BUDGETS_CONSOLE_URL,
         "color": ORANGE,
-        "footer": {"text": name},
-        "timestamp": timestamp,
     }
 
 
 # (embed, 멘션 여부)를 돌려준다. 문제가 생겼을 때만 멘션하고, 보낼 필요가 없으면 None
 def to_embed(sns):
-    timestamp = iso_timestamp(sns.get("Timestamp"))
     try:
         message = json.loads(sns["Message"])
     except json.JSONDecodeError:
@@ -235,11 +228,11 @@ def to_embed(sns):
 
     subject = sns.get("Subject") or "AWS notification"
     if subject.startswith("AWS Budgets"):
-        embed = budget_embed(sns["Message"], timestamp)
+        embed = budget_embed(sns["Message"])
         if embed:
             return embed, True
 
-    return {"title": title_with_status("Triggered", subject), "description": sns["Message"], "color": GRAY, "timestamp": timestamp}, True
+    return {"title": title_with_status("Triggered", subject), "description": sns["Message"], "color": GRAY}, True
 
 
 def post(embed, mention):
@@ -247,13 +240,11 @@ def post(embed, mention):
     embed["description"] = embed.get("description", "")[:DESCRIPTION_LIMIT]
     embed = {key: value for key, value in embed.items() if value}
 
-    # 푸시 알림에는 embed가 아니라 content만 보이므로 제목을 앞에 둔다
+    # 채널은 멘션 알림만 받고 푸시에는 content만 보이므로, 멘션할 때만 content에 제목을 둔다
     role_id = os.environ.get("MENTION_ROLE_ID") if mention else None
-    payload = {
-        "content": f"{embed['title']} <@&{role_id}>" if role_id else embed["title"],
-        "embeds": [embed],
-        "allowed_mentions": {"roles": [role_id] if role_id else []},
-    }
+    payload = {"embeds": [embed], "allowed_mentions": {"roles": [role_id] if role_id else []}}
+    if role_id:
+        payload["content"] = f"{embed['title']} <@&{role_id}>"
     request = urllib.request.Request(
         webhook_url(),
         data=json.dumps(payload).encode(),
