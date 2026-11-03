@@ -18,30 +18,14 @@ module "vpc" {
   enable_nat_gateway           = false
 }
 
-resource "aws_security_group" "alb" {
-  name        = "${local.name}-alb"
-  description = "ALB"
+resource "aws_security_group" "vpc_link" {
+  name        = "${local.name}-vpc-link"
+  description = "API Gateway VPC link"
   vpc_id      = module.vpc.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb_http" {
-  security_group_id = aws_security_group.alb.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "tcp"
-  from_port         = 80
-  to_port           = 80
-}
-
-resource "aws_vpc_security_group_ingress_rule" "alb_https" {
-  security_group_id = aws_security_group.alb.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "tcp"
-  from_port         = 443
-  to_port           = 443
-}
-
-resource "aws_vpc_security_group_egress_rule" "alb_to_app" {
-  security_group_id            = aws_security_group.alb.id
+resource "aws_vpc_security_group_egress_rule" "vpc_link_to_app" {
+  security_group_id            = aws_security_group.vpc_link.id
   referenced_security_group_id = aws_security_group.app.id
   ip_protocol                  = "tcp"
   from_port                    = 8080
@@ -54,9 +38,9 @@ resource "aws_security_group" "app" {
   vpc_id      = module.vpc.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
+resource "aws_vpc_security_group_ingress_rule" "app_from_vpc_link" {
   security_group_id            = aws_security_group.app.id
-  referenced_security_group_id = aws_security_group.alb.id
+  referenced_security_group_id = aws_security_group.vpc_link.id
   ip_protocol                  = "tcp"
   from_port                    = 8080
   to_port                      = 8080
