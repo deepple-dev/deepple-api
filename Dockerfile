@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /workspace
 
 # 빌드 스크립트만 먼저 복사해 의존성 레이어를 소스 변경과 분리한다
