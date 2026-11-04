@@ -21,6 +21,12 @@ auth:
   refresh-token-cookie:
     max-age: 2592000  # 30일
 
+cors:
+  allowed-origins:
+    - https://admin.deepple.co.kr
+    - https://localhost:8080
+    - https://dev-api.deepple.co.kr
+
 payment:
   app-store:
     environment: Sandbox

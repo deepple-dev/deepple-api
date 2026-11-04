@@ -34,6 +34,10 @@ auth:
     max-age: 2419200  # 4주
   prefix-code: 008008
 
+cors:
+  allowed-origins:
+    - https://localhost:8080
+
 payment:
   app-store:
     environment: Sandbox

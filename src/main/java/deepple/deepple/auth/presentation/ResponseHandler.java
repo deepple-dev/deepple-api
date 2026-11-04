@@ -1,4 +1,4 @@
-package deepple.deepple.auth.presentation.filter;
+package deepple.deepple.auth.presentation;
 
 import deepple.deepple.common.enums.StatusType;
 import jakarta.servlet.http.HttpServletResponse;

@@ -34,6 +34,10 @@ auth:
   refresh-token-cookie:
     max-age: 2419200  # 4주
 
+cors:
+  allowed-origins:
+    - https://admin.deepple.co.kr
+
 payment:
   app-store:
     environment: Production
