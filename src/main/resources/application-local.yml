@@ -12,7 +12,7 @@ spring:
 
   docker:
     compose:
-      lifecycle-management: start-only
+      lifecycle-management: start-and-stop
 
   cloud:
     aws:
