@@ -53,6 +53,10 @@ auth:
     http-only: true
   prefix-code: 008008
 
+cors:
+  allowed-origins:
+    - https://admin.deepple.test
+
 payment:
   app-store:
     bundle-id: "com.example.myapp"

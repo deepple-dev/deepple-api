@@ -82,6 +82,7 @@ public class MemberAuthService {
             member.getActivityStatus() != null ? member.getActivityStatus().name() : null);
     }
 
+    @Transactional
     public void logout(long memberId, String token) {
         Events.raise(MemberLoggedOutEvent.from(memberId));
         deleteToken(token);

@@ -5,11 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
-@Component
-@RequestScope
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class AuthContext {
