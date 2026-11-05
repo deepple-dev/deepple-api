@@ -51,11 +51,15 @@ public class NotificationPreference extends SoftDeleteBaseEntity {
     }
 
     public Map<NotificationType, Boolean> getNotificationPreferences() {
-        return new EnumMap<>(preferences);
+        Map<NotificationType, Boolean> result = new EnumMap<>(NotificationType.class);
+        for (NotificationType type : NotificationType.values()) {
+            result.put(type, isEnabledForType(type));
+        }
+        return result;
     }
 
     public boolean canReceive(NotificationType type) {
-        return isEnabledGlobally && preferences.getOrDefault(type, false);
+        return isEnabledGlobally && isEnabledForType(type);
     }
 
     public void enableGlobally() {
@@ -67,7 +71,7 @@ public class NotificationPreference extends SoftDeleteBaseEntity {
     }
 
     public boolean isDisabledForType(NotificationType type) {
-        return !preferences.getOrDefault(type, false);
+        return !isEnabledForType(type);
     }
 
     public void enableForNotificationType(NotificationType type) {
@@ -80,5 +84,9 @@ public class NotificationPreference extends SoftDeleteBaseEntity {
 
     public void updateNotificationPreferences(Map<NotificationType, Boolean> preferences) {
         this.preferences.putAll(preferences);
+    }
+
+    private boolean isEnabledForType(NotificationType type) {
+        return preferences.getOrDefault(type, true);
     }
 }

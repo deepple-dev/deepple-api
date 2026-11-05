@@ -21,6 +21,7 @@ public enum NotificationType {
     INAPPROPRIATE_PROFILE_IMAGE("부적절한 프로필 사진 경고"),
     INAPPROPRIATE_INTERVIEW("부적절한 인터뷰 경고"),
     INAPPROPRIATE_SELF_INTRODUCTION("부적절한 셀프소개 게시글 경고"),
+    REPORT("신고 누적 경고"),
 
     SCREENING_APPROVED("심사 승인"),
     SCREENING_REJECTED("심사 반려"),

@@ -16,7 +16,7 @@ public class NotificationDataReader {
     private final NotificationPreferenceCommandRepository notificationPreferenceRepository;
     private final DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
 
-    @Cacheable(value = "notificationTemplate", key = "#type")
+    @Cacheable(value = "notificationTemplate", key = "#type", unless = "#result == null")
     @Transactional(readOnly = true)
     public Optional<NotificationTemplateInfo> findTemplate(NotificationType type) {
         return notificationTemplateRepository.findByType(type)

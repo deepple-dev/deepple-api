@@ -8,6 +8,7 @@ import java.util.Map;
 
 import static deepple.deepple.notification.command.domain.NotificationType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 class NotificationPreferenceTest {
 
@@ -133,5 +134,34 @@ class NotificationPreferenceTest {
         assertThat(preference.canReceive(MATCH_REQUEST)).isFalse();
         assertThat(preference.canReceive(LIKE)).isFalse();
         assertThat(preference.canReceive(MATCH_ACCEPT)).isTrue();
+    }
+
+    @Test
+    @DisplayName("설정에 없는 타입: 수신 가능으로 판단")
+    void missingTypeIsEnabled() {
+        // given
+        var preference = NotificationPreference.of(1L);
+        setField(preference, "preferences", new EnumMap<>(Map.of(MATCH_REQUEST, false)));
+
+        // when & then
+        assertThat(preference.canReceive(REPORT)).isTrue();
+        assertThat(preference.isDisabledForType(REPORT)).isFalse();
+        assertThat(preference.canReceive(MATCH_REQUEST)).isFalse();
+    }
+
+    @Test
+    @DisplayName("getNotificationPreferences(): 설정에 없는 타입도 수신 가능으로 포함")
+    void getNotificationPreferencesIncludesMissingTypes() {
+        // given
+        var preference = NotificationPreference.of(1L);
+        setField(preference, "preferences", new EnumMap<>(Map.of(MATCH_REQUEST, false)));
+
+        // when
+        Map<NotificationType, Boolean> result = preference.getNotificationPreferences();
+
+        // then
+        assertThat(result).hasSize(NotificationType.values().length);
+        assertThat(result.get(REPORT)).isTrue();
+        assertThat(result.get(MATCH_REQUEST)).isFalse();
     }
 }
