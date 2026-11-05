@@ -42,6 +42,7 @@ public class SecurityConfig {
         post("/member/profile/active"),
         post("/admin/login"),
         post("/admin/signup"),
+        post("/admin/refresh"),
         post("/admin/logout"),
         post("/payment/app-store/notifications"),
         get("/v3/api-docs/**"),

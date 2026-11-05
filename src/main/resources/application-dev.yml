@@ -15,12 +15,6 @@ spring:
 
 jwt:
   issuer: https://dev-api.deepple.co.kr
-  refresh-token:
-    expiration: 2592000  # 30일
-
-auth:
-  refresh-token-cookie:
-    max-age: 2592000  # 30일
 
 cors:
   allowed-origins:

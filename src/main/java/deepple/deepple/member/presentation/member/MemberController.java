@@ -2,7 +2,7 @@ package deepple.deepple.member.presentation.member;
 
 import deepple.deepple.auth.presentation.AuthContext;
 import deepple.deepple.auth.presentation.AuthPrincipal;
-import deepple.deepple.auth.presentation.RefreshTokenCookieProperties;
+import deepple.deepple.auth.presentation.RefreshTokenCookies;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
@@ -35,7 +35,7 @@ public class MemberController {
     private final MemberQueryService memberQueryService;
     private final MemberAuthService memberAuthService;
 
-    private final RefreshTokenCookieProperties refreshTokenCookieProperties;
+    private final RefreshTokenCookies refreshTokenCookies;
 
     @Operation(summary = "프로필 정보 업데이트 API")
     @PutMapping("/profile")
@@ -76,7 +76,7 @@ public class MemberController {
         memberAuthService.logout(authContext.getId(), refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie deleteCookie = getResponseCookieDeletedRefreshToken();
+        ResponseCookie deleteCookie = refreshTokenCookies.expire();
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
         return ResponseEntity.ok().headers(headers).body(BaseResponse.from(StatusType.OK));
     }
@@ -115,15 +115,5 @@ public class MemberController {
     public ResponseEntity<BaseResponse<HeartBalanceView>> getHeartBalance(@AuthPrincipal AuthContext authContext) {
         return ResponseEntity.ok(
             BaseResponse.of(StatusType.OK, memberQueryService.getHeartBalance(authContext.getId())));
-    }
-
-    private ResponseCookie getResponseCookieDeletedRefreshToken() {
-        return ResponseCookie.from(refreshTokenCookieProperties.name(), "")
-            .httpOnly(refreshTokenCookieProperties.httpOnly())
-            .secure(refreshTokenCookieProperties.secure())
-            .sameSite(refreshTokenCookieProperties.sameSite())
-            .path(refreshTokenCookieProperties.path())
-            .maxAge(0)
-            .build();
     }
 }

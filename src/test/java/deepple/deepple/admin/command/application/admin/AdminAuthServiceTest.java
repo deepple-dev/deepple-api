@@ -10,7 +10,9 @@ import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupResponse;
 import deepple.deepple.auth.domain.TokenProvider;
-import deepple.deepple.auth.domain.TokenRepository;
+import deepple.deepple.auth.domain.RefreshTokenService;
+import deepple.deepple.auth.domain.TokenOwner;
+import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,7 +44,7 @@ class AdminAuthServiceTest {
     private TokenProvider tokenProvider;
 
     @Mock
-    private TokenRepository tokenRepository;
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private AdminAuthService adminAuthService;
@@ -124,7 +126,7 @@ class AdminAuthServiceTest {
         private Admin admin;
 
         @Test
-        @DisplayName("유효한 이메일과 비밀번호로 로그인하면 access token과 refresh token을 발급받고, refresh token은 저장소에 저장합니다.")
+        @DisplayName("유효한 이메일과 비밀번호로 로그인하면 access token과 refresh token을 발급받고, refresh token은 관리자 역할로 발급합니다.")
         void issueTokensWhenLoginIsValid() {
             // given
             String email = "valid@example.com";
@@ -140,14 +142,12 @@ class AdminAuthServiceTest {
             String newRefreshToken = "refreshToken";
             when(tokenProvider.createAccessToken(eq(1L), eq(Role.ADMIN), any(Instant.class)))
                 .thenReturn(newAccessToken);
-            when(tokenProvider.createRefreshToken(eq(1L), eq(Role.ADMIN), any(Instant.class)))
-                .thenReturn(newRefreshToken);
+            when(refreshTokenService.issue(new TokenOwner(1L, Role.ADMIN))).thenReturn(newRefreshToken);
 
             // when
             AdminLoginResponse response = adminAuthService.login(request);
 
             // then
-            verify(tokenRepository).save(newRefreshToken);
             assertThat(response).isNotNull();
             assertThat(response.accessToken()).isEqualTo(newAccessToken);
             assertThat(response.refreshToken()).isEqualTo(newRefreshToken);
@@ -178,7 +178,7 @@ class AdminAuthServiceTest {
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotFoundException.class);
-            verify(tokenRepository, never()).save(anyString());
+            verify(refreshTokenService, never()).issue(any());
         }
 
         @Test
@@ -192,7 +192,66 @@ class AdminAuthServiceTest {
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotApprovedException.class);
-            verify(tokenRepository, never()).save(anyString());
+            verify(refreshTokenService, never()).issue(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("토큰 갱신")
+    class Refresh {
+
+        private static final String REFRESH_TOKEN = "refreshToken";
+
+        @Mock
+        private Admin admin;
+
+        @Test
+        @DisplayName("승인된 관리자가 갱신하면 현재 역할로 새 토큰을 발급합니다.")
+        void issueTokensWithCurrentRole() {
+            // given
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(new TokenOwner(1L, Role.ADMIN));
+            when(adminCommandRepository.findById(1L)).thenReturn(Optional.of(admin));
+            when(admin.getId()).thenReturn(1L);
+            when(admin.isApproved()).thenReturn(true);
+            when(admin.getTokenRole()).thenReturn(Role.SUPER_ADMIN);
+            when(tokenProvider.createAccessToken(eq(1L), eq(Role.SUPER_ADMIN), any(Instant.class)))
+                .thenReturn("accessToken");
+            when(refreshTokenService.issue(new TokenOwner(1L, Role.SUPER_ADMIN))).thenReturn("newRefreshToken");
+
+            // when
+            AdminLoginResponse response = adminAuthService.refresh(REFRESH_TOKEN);
+
+            // then
+            assertThat(response.accessToken()).isEqualTo("accessToken");
+            assertThat(response.refreshToken()).isEqualTo("newRefreshToken");
+        }
+
+        @Test
+        @DisplayName("승인되지 않은 관리자가 갱신하면 예외가 발생하고 모든 리프레시 토큰을 폐기합니다.")
+        void revokeAllWhenAdminIsNotApproved() {
+            // given
+            TokenOwner owner = new TokenOwner(1L, Role.ADMIN);
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(owner);
+            when(adminCommandRepository.findById(1L)).thenReturn(Optional.of(admin));
+            when(admin.isApproved()).thenReturn(false);
+
+            // when & then
+            assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
+                .isInstanceOf(InvalidRefreshTokenException.class);
+            verify(refreshTokenService).revokeAll(owner);
+            verify(refreshTokenService, never()).issue(any());
+        }
+
+        @Test
+        @DisplayName("회원 리프레시 토큰으로 관리자 갱신을 요청하면 예외가 발생합니다.")
+        void rejectMemberRefreshToken() {
+            // given
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(1L));
+
+            // when & then
+            assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
+                .isInstanceOf(InvalidRefreshTokenException.class);
+            verify(adminCommandRepository, never()).findById(any());
         }
     }
 }

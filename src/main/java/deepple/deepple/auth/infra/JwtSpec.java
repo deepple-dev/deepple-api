@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 public final class JwtSpec {
 
     public static final String ACCESS_TOKEN_TYPE = "at+jwt";
-    public static final String REFRESH_TOKEN_TYPE = "refresh+jwt";
     public static final String AUDIENCE = "deepple-api";
     public static final String ROLES_CLAIM = "roles";
     public static final String CLIENT_ID_CLAIM = "client_id";

@@ -2,7 +2,7 @@ package deepple.deepple.member.presentation.member;
 
 import deepple.deepple.auth.presentation.AuthContext;
 import deepple.deepple.auth.presentation.AuthPrincipal;
-import deepple.deepple.auth.presentation.RefreshTokenCookieProperties;
+import deepple.deepple.auth.presentation.RefreshTokenCookies;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/member")
 public class MemberAuthController {
 
-    private final RefreshTokenCookieProperties refreshTokenCookieProperties;
+    private final RefreshTokenCookies refreshTokenCookies;
     private final MemberAuthService memberAuthService;
 
     @Operation(summary = "멤버 로그인 및 회원가입")
@@ -33,7 +33,7 @@ public class MemberAuthController {
         MemberLoginServiceDto loginServiceDto = memberAuthService.login(request.phoneNumber(), request.code());
 
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie refreshTokenCookie = getResponseCookieCreatedRefreshToken(loginServiceDto.refreshToken());
+        ResponseCookie refreshTokenCookie = refreshTokenCookies.create(loginServiceDto.refreshToken());
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         MemberLoginResponse loginResponse = MemberDtoMapper.toMemberLoginResponse(loginServiceDto);
@@ -49,7 +49,7 @@ public class MemberAuthController {
         MemberLoginServiceDto loginServiceDto = memberAuthService.test(request.phoneNumber());
 
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie refreshTokenCookie = getResponseCookieCreatedRefreshToken(loginServiceDto.refreshToken());
+        ResponseCookie refreshTokenCookie = refreshTokenCookies.create(loginServiceDto.refreshToken());
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         MemberLoginResponse loginResponse = MemberDtoMapper.toMemberLoginResponse(loginServiceDto);
@@ -67,7 +67,7 @@ public class MemberAuthController {
         TokenPairResponse tokenPair = memberAuthService.refresh(refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie refreshTokenCookie = getResponseCookieCreatedRefreshToken(tokenPair.refreshToken());
+        ResponseCookie refreshTokenCookie = refreshTokenCookies.create(tokenPair.refreshToken());
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         TokenRefreshResponse response = new TokenRefreshResponse(tokenPair.accessToken());
@@ -86,7 +86,7 @@ public class MemberAuthController {
         memberAuthService.logout(authContext.getId(), refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie deleteCookie = getResponseCookieDeletedRefreshToken();
+        ResponseCookie deleteCookie = refreshTokenCookies.expire();
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
         return ResponseEntity.ok()
@@ -96,13 +96,11 @@ public class MemberAuthController {
 
     @Operation(summary = "멤버 탈퇴")
     @DeleteMapping
-    public ResponseEntity<BaseResponse<Void>> delete(
-        @CookieValue(value = "refresh_token", required = false) String refreshToken,
-        @AuthPrincipal AuthContext authContext) {
-        memberAuthService.delete(authContext.getId(), refreshToken);
+    public ResponseEntity<BaseResponse<Void>> delete(@AuthPrincipal AuthContext authContext) {
+        memberAuthService.delete(authContext.getId());
 
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie deleteCookie = getResponseCookieDeletedRefreshToken();
+        ResponseCookie deleteCookie = refreshTokenCookies.expire();
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
         return ResponseEntity.ok()
@@ -116,25 +114,5 @@ public class MemberAuthController {
         memberAuthService.sendAuthCode(request.phoneNumber());
         return ResponseEntity.ok()
             .body(BaseResponse.from(StatusType.OK));
-    }
-
-    private ResponseCookie getResponseCookieDeletedRefreshToken() {
-        return ResponseCookie.from(refreshTokenCookieProperties.name(), "")
-            .httpOnly(refreshTokenCookieProperties.httpOnly())
-            .secure(refreshTokenCookieProperties.secure())
-            .sameSite(refreshTokenCookieProperties.sameSite())
-            .path(refreshTokenCookieProperties.path())
-            .maxAge(0)
-            .build();
-    }
-
-    private ResponseCookie getResponseCookieCreatedRefreshToken(String refreshToken) {
-        return ResponseCookie.from(refreshTokenCookieProperties.name(), refreshToken)
-            .httpOnly(refreshTokenCookieProperties.httpOnly())
-            .secure(refreshTokenCookieProperties.secure())
-            .sameSite(refreshTokenCookieProperties.sameSite())
-            .path(refreshTokenCookieProperties.path())
-            .maxAge(refreshTokenCookieProperties.maxAge())
-            .build();
     }
 }

@@ -1,7 +1,6 @@
 package deepple.deepple.auth.infra;
 
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.stereotype.Component;
 
@@ -23,9 +22,9 @@ public class JwtKeyPair {
     private final RSAPrivateKey privateKey;
     private final RSAPublicKey publicKey;
 
-    public JwtKeyPair(@Value("${jwt.private-key}") String privateKeyPem) {
+    public JwtKeyPair(JwtProperties jwtProperties) {
         this.privateKey = RsaKeyConverters.pkcs8()
-            .convert(new ByteArrayInputStream(privateKeyPem.getBytes(StandardCharsets.UTF_8)));
+            .convert(new ByteArrayInputStream(jwtProperties.privateKey().getBytes(StandardCharsets.UTF_8)));
         this.publicKey = derivePublicKey(privateKey);
     }
 

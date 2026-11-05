@@ -2,7 +2,7 @@ package deepple.deepple.auth.infra;
 
 import deepple.deepple.auth.domain.TokenProvider;
 import deepple.deepple.common.enums.Role;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -15,41 +15,22 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class JwtProvider implements TokenProvider {
 
     private final JwtEncoder jwtEncoder;
-    private final String issuer;
-    private final long accessTokenExpiration;
-    private final long refreshTokenExpiration;
-
-    public JwtProvider(JwtEncoder jwtEncoder,
-        @Value("${jwt.issuer}") String issuer,
-        @Value("${jwt.access-token.expiration}") long accessTokenExpiration,
-        @Value("${jwt.refresh-token.expiration}") long refreshTokenExpiration) {
-        this.jwtEncoder = jwtEncoder;
-        this.issuer = issuer;
-        this.accessTokenExpiration = accessTokenExpiration;
-        this.refreshTokenExpiration = refreshTokenExpiration;
-    }
+    private final JwtProperties jwtProperties;
 
     public String createAccessToken(long id, Role role, Instant issuedAt) {
-        return createToken(JwtSpec.ACCESS_TOKEN_TYPE, id, role, accessTokenExpiration, issuedAt);
-    }
-
-    public String createRefreshToken(long id, Role role, Instant issuedAt) {
-        return createToken(JwtSpec.REFRESH_TOKEN_TYPE, id, role, refreshTokenExpiration, issuedAt);
-    }
-
-    private String createToken(String type, long id, Role role, long expiration, Instant issuedAt) {
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256)
-            .type(type)
+            .type(JwtSpec.ACCESS_TOKEN_TYPE)
             .build();
         JwtClaimsSet claims = JwtClaimsSet.builder()
-            .issuer(issuer)
+            .issuer(jwtProperties.issuer())
             .subject(String.valueOf(id))
             .audience(List.of(JwtSpec.AUDIENCE))
             .issuedAt(issuedAt)
-            .expiresAt(issuedAt.plusSeconds(expiration))
+            .expiresAt(issuedAt.plus(jwtProperties.accessTokenLifetime()))
             .id(UUID.randomUUID().toString())
             .claim(JwtSpec.ROLES_CLAIM, List.of(role.name()))
             .claim(JwtSpec.CLIENT_ID_CLAIM, JwtSpec.clientIdOf(role))

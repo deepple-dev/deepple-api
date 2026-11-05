@@ -55,12 +55,8 @@ jwt:
     nbkH9WQBdp4FLP3Y3LcQ5K3M/v9MJtYU9SSrTC76WRjLQy/jmYHzHw5Oh7fTt56k
     3P1UIZKE0IoW2ExA5fzWDg==
     -----END PRIVATE KEY-----
-  refresh-token:
-    expiration: 1209600  # 2주
 
 auth:
-  refresh-token-cookie:
-    max-age: 2419200  # 4주
   prefix-code: 008008
 
 cors:

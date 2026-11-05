@@ -3,9 +3,10 @@ package deepple.deepple.member.command.application.member;
 import deepple.deepple.admin.command.domain.suspension.Suspension;
 import deepple.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
-import deepple.deepple.auth.domain.TokenParser;
+import deepple.deepple.auth.domain.RefreshTokenService;
+import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.TokenProvider;
-import deepple.deepple.auth.domain.TokenRepository;
+import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
@@ -41,8 +42,7 @@ public class MemberAuthService {
     private final SuspensionCommandRepository suspensionRepository;
     private final AuthMessageService authMessageService;
     private final TokenProvider tokenProvider;
-    private final TokenParser tokenParser;
-    private final TokenRepository tokenRepository;
+    private final RefreshTokenService refreshTokenService;
     @Value("${auth.prefix-code}")
     private String PRE_FIXED_CODE;
 
@@ -56,8 +56,7 @@ public class MemberAuthService {
         validateMemberLoginPermission(member);
 
         String accessToken = tokenProvider.createAccessToken(member.getId(), Role.MEMBER, Instant.now());
-        String refreshToken = tokenProvider.createRefreshToken(member.getId(), Role.MEMBER, Instant.now());
-        tokenRepository.save(refreshToken);
+        String refreshToken = refreshTokenService.issue(TokenOwner.member(member.getId()));
 
         Events.raise(MemberLoggedInEvent.from(member.getId()));
 
@@ -75,8 +74,7 @@ public class MemberAuthService {
         validateMemberLoginPermission(member);
 
         String accessToken = tokenProvider.createAccessToken(member.getId(), Role.MEMBER, Instant.now());
-        String refreshToken = tokenProvider.createRefreshToken(member.getId(), Role.MEMBER, Instant.now());
-        tokenRepository.save(refreshToken);
+        String refreshToken = refreshTokenService.issue(TokenOwner.member(member.getId()));
 
         return new MemberLoginServiceDto(accessToken, refreshToken, member.isProfileSettingNeeded(),
             member.getActivityStatus() != null ? member.getActivityStatus().name() : null);
@@ -85,55 +83,35 @@ public class MemberAuthService {
     @Transactional
     public void logout(long memberId, String token) {
         Events.raise(MemberLoggedOutEvent.from(memberId));
-        deleteToken(token);
+        refreshTokenService.revoke(token);
     }
 
     public TokenPairResponse refresh(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            throw new MissingRefreshTokenException();
-        }
-
-        if (tokenParser.isExpired(refreshToken)) {
-            tokenRepository.delete(refreshToken);
-            throw new ExpiredRefreshTokenException();
-        }
-
-        if (!tokenParser.isValid(refreshToken) || !tokenRepository.exists(refreshToken)) {
+        TokenOwner owner = refreshTokenService.consume(refreshToken);
+        if (!owner.isMember()) {
             throw new InvalidRefreshTokenException();
         }
+        validateRefreshPermission(owner);
 
-        tokenRepository.delete(refreshToken);
-
-        long memberId = tokenParser.getId(refreshToken);
-        Role role = tokenParser.getRole(refreshToken);
         Instant issuedAt = Instant.now();
+        String newAccessToken = tokenProvider.createAccessToken(owner.id(), Role.MEMBER, issuedAt);
+        String newRefreshToken = refreshTokenService.issue(owner);
 
-        String newAccessToken = tokenProvider.createAccessToken(memberId, role, issuedAt);
-        String newRefreshToken = tokenProvider.createRefreshToken(memberId, role, issuedAt);
-        tokenRepository.save(newRefreshToken);
-
-        memberCommandRepository.updateLastAccessedAt(memberId,
+        memberCommandRepository.updateLastAccessedAt(owner.id(),
             LocalDateTime.ofInstant(issuedAt, ZoneId.systemDefault()));
 
         return new TokenPairResponse(newAccessToken, newRefreshToken);
     }
 
     @Transactional
-    public void delete(Long memberId, String token) {
+    public void delete(long memberId) {
         Member member = getMemberById(memberId);
-
-        if (tokenParser.isValid(token) && tokenParser.getId(token) == member.getId()) {
-            deleteToken(token);
-        }
+        refreshTokenService.revokeAll(TokenOwner.member(memberId));
         member.delete();
     }
 
     public void sendAuthCode(String phoneNumber) {
         authMessageService.sendAndSaveCode(phoneNumber);
-    }
-
-    private void deleteToken(String token) {
-        tokenRepository.delete(token);
     }
 
     private Member createOrFindMemberByPhoneNumber(String phoneNumber) {
@@ -151,6 +129,22 @@ public class MemberAuthService {
             return member;
         } catch (DataIntegrityViolationException e) {
             throw new MemberLoginConflictException();
+        }
+    }
+
+    private void validateRefreshPermission(TokenOwner owner) {
+        Member member = memberCommandRepository.findById(owner.id())
+            .orElse(null);
+        if (member == null) {
+            refreshTokenService.revokeAll(owner);
+            throw new InvalidRefreshTokenException();
+        }
+
+        try {
+            validateMemberLoginPermission(member);
+        } catch (RuntimeException e) {
+            refreshTokenService.revokeAll(owner);
+            throw e;
         }
     }
 
