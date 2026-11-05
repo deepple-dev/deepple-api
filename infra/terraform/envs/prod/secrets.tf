@@ -1,6 +1,6 @@
-ephemeral "random_password" "jwt" {
-  length  = 64
-  special = false
+ephemeral "tls_private_key" "jwt" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
 }
 
 ephemeral "random_password" "db" {
@@ -10,14 +10,26 @@ ephemeral "random_password" "db" {
 
 resource "aws_secretsmanager_secret" "app" {
   name        = "${local.name}/app"
-  description = "prod 앱 secret (JWT 키, DB 비밀번호)"
+  description = "prod 앱 secret (DB 비밀번호)"
 }
 
 resource "aws_secretsmanager_secret_version" "app" {
   secret_id = aws_secretsmanager_secret.app.id
   secret_string_wo = jsonencode({
-    JWT_SECRET     = ephemeral.random_password.jwt.result
     MYSQL_PASSWORD = ephemeral.random_password.db.result
+  })
+  secret_string_wo_version = 1
+}
+
+resource "aws_secretsmanager_secret" "jwt" {
+  name        = "${local.name}/jwt"
+  description = "prod JWT 서명 키 (RSA 개인 키)"
+}
+
+resource "aws_secretsmanager_secret_version" "jwt" {
+  secret_id = aws_secretsmanager_secret.jwt.id
+  secret_string_wo = jsonencode({
+    JWT_PRIVATE_KEY = ephemeral.tls_private_key.jwt.private_key_pem_pkcs8
   })
   secret_string_wo_version = 1
 }

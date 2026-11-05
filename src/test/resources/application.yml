@@ -37,7 +37,36 @@ management:
       enabled: false
 
 jwt:
-  secret: this-is-secret-key-value-at-least-128-bytes
+  issuer: http://localhost:8080
+  private-key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDFYLywoRR5S8CY
+    IcKUHoTtR1nlmWAAN9+BSguKjFIn9y/KnThA64Ben8LRytIfRBZ0TpbUJNFA/MHF
+    7OcqEK5D+B21ldAYD2uIlZg7GzchLKfAVfRUBOfzkzznOSrdNR8tBRowFyS8O3Xs
+    eW2IaRm4XmWrfdIgKa+41HR2xZvoFaFK5pGKyTIxmA1RKsqgwKbjUpIWQOrcoQLB
+    QBLZOrxm5E+PV7oeHd9jinoRFJnF7sBUbkt8cT8/1y7zFqHAs9BYmMFLKD6NU01k
+    v286eUMNAegscl9Fb/w4DP666eCTkb2m6IJxILbICEZSOGjzo3/2FyeM+sAkhiP0
+    TUz/gYYzAgMBAAECggEAIyGp1EKHk2NxX2K68IRSIq3NiXl4RfGr/aZBUaLSSLzN
+    q+G6DowcaDtFgPP53IjQ+li2rgHzoP6cOu+E4c7gRcbW+ug0huPPvxrpYrPgZy48
+    mZZzC7Vn18oAUCOzxnXbG7dJxv+HkV2ACtw+K8aRRmi+7fxSN1lUJrDiHfXkXzWR
+    2/0E1DgalCtg4/gnSvmXmPMMJWEYH10J8cBruBI9cPES4o0Mitm8KQtRcivUPZ2r
+    qJH5UK9xI9Zwbi06hvGT0wRh/8ShWpfQs5wcF8uOhtAK+O/eqszdJgrcGTHNIw20
+    HkrAibLdPINOTzvK6XG+pP1nCcqufnh0hee0xO7J6QKBgQD7v7i0VNiImHeJ2pUZ
+    X2k2U7F/wLJANRa4V/qK7JXTT6h2tnpE7zAbkJK75ThyGOKkRMQHHZ0tC/mWvoLq
+    BmZThiVMFgM19Wr3V2CmXf2rElrn/+QBUEal7LyPKCgWBZKq2b/0NZe6WM1bIpx7
+    njO+V3GFCO0tkbHXENRY24ohfwKBgQDItfn836DC9jNt/g5u+bv70YTTNUqZ4K8b
+    +mR258uGMriGqulfU8q9KEiD6noRvf3WtOHyUmPuUJSHzFdOjwt6qIeU+2mzLLg5
+    XAdhWBceK7YJ1Kp3cbcb/Foy3pUlU5Rj5FYTR/3Zk3N6N9YrJoBpUJsk3upjCQJz
+    8cxVab4NTQKBgCo9PMxk///LNSNYHXQoYgrPeBSrTD0hqzI68Lqmf2z5DJb+fv1Z
+    9IRreXM1PodGTaCqOQnImjqYq8PzKxwA/uI8u71MZDWFe/EMJBdF5e3yInaSpLrj
+    sTbdxbVvU2p+fOFVr7NV2qNViv8ji4XiQWRKX62mlcTzkRc4p6hRDZgZAoGAZI2O
+    pVpfzuzLTUKndn+U5w7LjYi4TCkdcVXbeRqdgyjr+0Oq0UBIZMXGtpgE+diGUEek
+    nuMZ/23NS89auhe994BxFHl0NfikftAVPnaEdnANrhUmJdsJknK1uaB7dgzOXdEq
+    MlSx34wYoVVR7aJHWPuyDiHDqUP9P5sW9H+aYE0CgYBKVztlxGWZ6I1F2r6lFylS
+    2Z9CQYoz1zgdNaMq0hAERINu2T1eHDx53mD58FwIUVREBGvmcttsbRtIlkAEmIaH
+    nbkH9WQBdp4FLP3Y3LcQ5K3M/v9MJtYU9SSrTC76WRjLQy/jmYHzHw5Oh7fTt56k
+    3P1UIZKE0IoW2ExA5fzWDg==
+    -----END PRIVATE KEY-----
   access-token:
     expiration: 1800  # 30분
   refresh-token:

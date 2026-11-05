@@ -74,7 +74,7 @@ sentry:
         terms: forwarded,-ip,remote-,via,-user
 
 jwt:
-  secret: ${JWT_SECRET}
+  private-key: ${JWT_PRIVATE_KEY}
   access-token:
     expiration: 1800  # 30분
 

@@ -42,8 +42,13 @@ resource "aws_iam_role_policy_attachment" "execution" {
 
 data "aws_iam_policy_document" "execution_secrets" {
   statement {
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = [aws_secretsmanager_secret.app.arn, aws_secretsmanager_secret.external.arn, aws_secretsmanager_secret.grafana_cloud.arn]
+    actions = ["secretsmanager:GetSecretValue"]
+    resources = [
+      aws_secretsmanager_secret.app.arn,
+      aws_secretsmanager_secret.jwt.arn,
+      aws_secretsmanager_secret.external.arn,
+      aws_secretsmanager_secret.grafana_cloud.arn,
+    ]
   }
 
   statement {
@@ -115,8 +120,11 @@ locals {
 
   app_secrets = merge(
     {
-      for key in ["JWT_SECRET", "MYSQL_PASSWORD"] :
+      for key in ["MYSQL_PASSWORD"] :
       key => "${aws_secretsmanager_secret.app.arn}:${key}::"
+    },
+    {
+      JWT_PRIVATE_KEY = "${aws_secretsmanager_secret.jwt.arn}:JWT_PRIVATE_KEY::"
     },
     {
       for key in local.external_secret_keys :

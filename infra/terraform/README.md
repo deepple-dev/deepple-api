@@ -73,7 +73,8 @@ Terraform은 secret을 만들기만 하고, 직접 넣는 값은 `aws secretsman
 
 | Secret | 내용 | 관리 |
 |---|---|---|
-| `deepple-dev/app` | `JWT_SECRET`, `MYSQL_PASSWORD` | Terraform이 랜덤 생성 (state에 남지 않음) |
+| `deepple-dev/app` | `MYSQL_PASSWORD` | Terraform이 랜덤 생성 (state에 남지 않음) |
+| `deepple-dev/jwt` | `JWT_PRIVATE_KEY` (RSA 2048 PKCS#8 PEM, 토큰 서명용) | Terraform이 랜덤 생성 (state에 남지 않음). 교체는 `secret_string_wo_version`을 올린다 |
 | `deepple-dev/external` | App Store 앱 ID, Bizgo 키, Sentry DSN (키 이름은 `secrets.tf`의 `external_secret_keys`) | 직접 넣는다 |
 | `deepple-dev/grafana-cloud` | Alloy가 Grafana Cloud로 보낼 때 쓰는 Access Policy 토큰 | 직접 넣는다 |
 | `deepple-dev/alerts/discord-webhook` | `#alerts-dev` 웹훅 URL | 직접 넣는다 |
