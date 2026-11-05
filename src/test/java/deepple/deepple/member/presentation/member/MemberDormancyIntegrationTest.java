@@ -1,10 +1,11 @@
 package deepple.deepple.member.presentation.member;
 
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.TokenProvider;
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.support.IntegrationTestSupport;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
@@ -102,7 +103,9 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
         await()
             .atMost(Duration.ofSeconds(5))
             .untilAsserted(() -> assertThatThrownBy(() -> refreshTokenService.consume(otherDeviceToken))
-                .isInstanceOf(InvalidRefreshTokenException.class));
+                .isInstanceOf(DeeppleException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN));
     }
 
     private Long saveMember(ActivityStatus status) {

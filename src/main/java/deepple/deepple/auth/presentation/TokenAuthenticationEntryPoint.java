@@ -1,40 +1,40 @@
 package deepple.deepple.auth.presentation;
 
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.infra.JwtExpirationValidator;
-import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ResponseHandler responseHandler;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
         AuthenticationException authException) {
-        StatusType statusType = resolveStatusType(authException);
-        log.warn("[토큰 인증 실패] {}, uri={}", statusType.getMessage(), request.getRequestURI());
-        responseHandler.setResponse(response, statusType);
+        AuthErrorCode errorCode = resolveErrorCode(authException);
+        DeeppleException exception = new DeeppleException(errorCode, authException.getMessage(), authException);
+        handlerExceptionResolver.resolveException(request, response, null, exception);
     }
 
-    private StatusType resolveStatusType(AuthenticationException exception) {
+    private AuthErrorCode resolveErrorCode(AuthenticationException exception) {
         if (!(exception instanceof InvalidBearerTokenException)) {
-            return StatusType.MISSING_ACCESS_TOKEN;
+            return AuthErrorCode.MISSING_ACCESS_TOKEN;
         }
         if (isExpired(exception)) {
-            return StatusType.EXPIRED_ACCESS_TOKEN;
+            return AuthErrorCode.EXPIRED_ACCESS_TOKEN;
         }
-        return StatusType.INVALID_ACCESS_TOKEN;
+        return AuthErrorCode.INVALID_ACCESS_TOKEN;
     }
 
     private boolean isExpired(AuthenticationException exception) {

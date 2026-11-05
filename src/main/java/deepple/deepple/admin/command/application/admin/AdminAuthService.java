@@ -5,11 +5,12 @@ import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupResponse;
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.TokenProvider;
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +46,7 @@ public class AdminAuthService {
     public AdminLoginResponse refresh(String refreshToken) {
         TokenOwner owner = refreshTokenService.consume(refreshToken);
         if (!owner.isAdmin()) {
-            throw new InvalidRefreshTokenException();
+            throw new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         Admin admin = adminCommandRepository.findById(owner.id())
@@ -53,7 +54,7 @@ public class AdminAuthService {
             .orElse(null);
         if (admin == null) {
             refreshTokenService.revokeAll(owner);
-            throw new InvalidRefreshTokenException();
+            throw new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         return issueTokens(admin);

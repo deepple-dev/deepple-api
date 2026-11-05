@@ -1,25 +1,29 @@
 package deepple.deepple.auth.presentation;
 
-import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.auth.domain.AuthErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TokenAccessDeniedHandler implements AccessDeniedHandler {
 
-    private final ResponseHandler responseHandler;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
         AccessDeniedException accessDeniedException) {
-        log.warn("[권한 없음] uri={}", request.getRequestURI());
-        responseHandler.setResponse(response, StatusType.HANDLE_ACCESS_DENIED);
+        DeeppleException exception = new DeeppleException(
+            AuthErrorCode.ACCESS_DENIED,
+            accessDeniedException.getMessage(),
+            accessDeniedException
+        );
+        handlerExceptionResolver.resolveException(request, response, null, exception);
     }
 }

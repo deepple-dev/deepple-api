@@ -1,7 +1,7 @@
 package deepple.deepple.common.repository;
 
-import deepple.deepple.common.exception.CannotGetLockException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -19,7 +19,7 @@ public class LockRepository {
             getLock(key, LOCK_WAITING_TIME);
             action.run();
         } catch (DataAccessException e) {
-            throw new CannotGetLockException(e);
+            throw new CannotAcquireLockException("락을 획득하지 못했습니다. key=" + key, e);
         } finally {
             releaseLock(key);
         }
@@ -37,13 +37,13 @@ public class LockRepository {
 
     private void validateKey(String key) {
         if (key == null || key.trim().isEmpty()) {
-            throw new CannotGetLockException(new IllegalArgumentException("Key cannot be null or empty"));
+            throw new IllegalArgumentException("락 키는 비어 있을 수 없습니다.");
         }
     }
 
     private void validateAction(Runnable action) {
         if (action == null) {
-            throw new CannotGetLockException(new IllegalArgumentException("Action cannot be null"));
+            throw new IllegalArgumentException("락 안에서 실행할 작업이 없습니다.");
         }
     }
 }

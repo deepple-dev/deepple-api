@@ -1,9 +1,8 @@
 package deepple.deepple.auth.domain;
 
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
-import deepple.deepple.auth.domain.exception.MissingRefreshTokenException;
-import deepple.deepple.auth.infra.RefreshTokenRepository;
 import deepple.deepple.auth.infra.RefreshTokenProperties;
+import deepple.deepple.auth.infra.RefreshTokenRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -99,7 +98,9 @@ class RefreshTokenServiceTest {
 
         // when & then
         assertThatThrownBy(() -> refreshTokenService.consume("token"))
-            .isInstanceOf(InvalidRefreshTokenException.class);
+            .isInstanceOf(DeeppleException.class)
+            .extracting("errorCode")
+            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
         verify(refreshTokenRepository).deleteAll(OWNER);
     }
 
@@ -112,15 +113,19 @@ class RefreshTokenServiceTest {
 
         // when & then
         assertThatThrownBy(() -> refreshTokenService.consume("token"))
-            .isInstanceOf(InvalidRefreshTokenException.class);
+            .isInstanceOf(DeeppleException.class)
+            .extracting("errorCode")
+            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    @DisplayName("토큰이 없으면 MissingRefreshTokenException이 발생합니다.")
+    @DisplayName("토큰이 없으면 MISSING_REFRESH_TOKEN 오류가 발생합니다.")
     void rejectMissingToken(String token) {
         // when & then
         assertThatThrownBy(() -> refreshTokenService.consume(token))
-            .isInstanceOf(MissingRefreshTokenException.class);
+            .isInstanceOf(DeeppleException.class)
+            .extracting("errorCode")
+            .isEqualTo(AuthErrorCode.MISSING_REFRESH_TOKEN);
     }
 }

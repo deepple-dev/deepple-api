@@ -3,12 +3,13 @@ package deepple.deepple.member.command.application.member;
 import deepple.deepple.admin.command.domain.suspension.Suspension;
 import deepple.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.TokenProvider;
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
 import deepple.deepple.member.command.application.member.exception.*;
@@ -75,7 +76,7 @@ public class MemberAuthService {
     public TokenPairResponse refresh(String refreshToken) {
         TokenOwner owner = refreshTokenService.consume(refreshToken);
         if (!owner.isMember()) {
-            throw new InvalidRefreshTokenException();
+            throw new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
         validateRefreshPermission(owner);
 
@@ -123,7 +124,7 @@ public class MemberAuthService {
             .orElse(null);
         if (member == null) {
             refreshTokenService.revokeAll(owner);
-            throw new InvalidRefreshTokenException();
+            throw new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         try {
