@@ -1,7 +1,9 @@
 package deepple.deepple.admin.command.domain.admin;
 
+import deepple.deepple.admin.command.domain.admin.exception.AdminNotPendingException;
 import deepple.deepple.admin.command.domain.admin.exception.IncorrectPasswordException;
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
+import deepple.deepple.common.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -50,7 +52,7 @@ public class Admin extends SoftDeleteBaseEntity {
         setName(name);
         setPhoneNumber(phoneNumber);
         this.comment = comment;
-        this.role = AdminRole.GENERAL;
+        this.role = AdminRole.ADMIN;
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
@@ -74,5 +76,22 @@ public class Admin extends SoftDeleteBaseEntity {
         if (!password.matches(rawPassword, passwordHasher)) {
             throw new IncorrectPasswordException();
         }
+    }
+
+    public void approve(@NonNull AdminRole role) {
+        if (approvalStatus != ApprovalStatus.PENDING) {
+            throw new AdminNotPendingException();
+        }
+
+        this.role = role;
+        this.approvalStatus = ApprovalStatus.APPROVED;
+    }
+
+    public boolean isApproved() {
+        return approvalStatus == ApprovalStatus.APPROVED;
+    }
+
+    public Role getTokenRole() {
+        return role.getTokenRole();
     }
 }

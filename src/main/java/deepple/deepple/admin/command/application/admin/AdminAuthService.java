@@ -34,10 +34,12 @@ public class AdminAuthService {
     public AdminLoginResponse login(AdminLoginRequest request) {
         Admin admin = findAdminByEmail(request.email());
         admin.matchPassword(request.password(), passwordHasher);
+        validateApproved(admin);
 
+        Role role = admin.getTokenRole();
         Instant issuedAt = Instant.now();
-        String accessToken = createAccessToken(admin.getId(), issuedAt);
-        String refreshToken = createRefreshToken(admin.getId(), issuedAt);
+        String accessToken = tokenProvider.createAccessToken(admin.getId(), role, issuedAt);
+        String refreshToken = tokenProvider.createRefreshToken(admin.getId(), role, issuedAt);
         tokenRepository.save(refreshToken);
 
         return AdminAuthMapper.toLoginResponse(accessToken, refreshToken);
@@ -60,14 +62,13 @@ public class AdminAuthService {
 
     private Admin findAdminByEmail(String email) {
         return adminCommandRepository.findByEmail(Email.from(email))
+            .filter(admin -> !admin.isDeleted())
             .orElseThrow(AdminNotFoundException::new);
     }
 
-    private String createAccessToken(long id, Instant issuedAt) {
-        return tokenProvider.createAccessToken(id, Role.ADMIN, issuedAt);
-    }
-
-    private String createRefreshToken(long id, Instant issuedAt) {
-        return tokenProvider.createRefreshToken(id, Role.ADMIN, issuedAt);
+    private void validateApproved(Admin admin) {
+        if (!admin.isApproved()) {
+            throw new AdminNotApprovedException();
+        }
     }
 }

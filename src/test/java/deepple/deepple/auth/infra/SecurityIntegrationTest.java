@@ -21,6 +21,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
 
     private static final String ADMIN_API = "/admin/members";
     private static final String MEMBER_API = "/member/profile/contact";
+    private static final String ADMIN_ACCOUNT_API = "/admin/accounts";
     private static final String ALLOWED_ORIGIN = "https://admin.deepple.test";
 
     @Autowired
@@ -124,6 +125,28 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
                 .exchange();
 
             assertThat(result).hasStatusOk();
+        }
+
+        @Test
+        @DisplayName("슈퍼 관리자 토큰으로 관리자 API를 호출할 수 있다.")
+        void allowSuperAdminOnAdminApi() {
+            MvcTestResult result = mockMvc.get()
+                .uri(ADMIN_API)
+                .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(Role.SUPER_ADMIN)))
+                .exchange();
+
+            assertThat(result).hasStatusOk();
+        }
+
+        @Test
+        @DisplayName("일반 관리자 토큰으로 관리자 승인 API를 호출하면 403을 응답한다.")
+        void rejectAdminOnAdminAccountApi() {
+            MvcTestResult result = mockMvc.get()
+                .uri(ADMIN_ACCOUNT_API)
+                .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(Role.ADMIN)))
+                .exchange();
+
+            assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
         }
 
         @Test

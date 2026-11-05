@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface AdminCommandRepository extends JpaRepository<Admin, Long> {
 
     Optional<Admin> findByEmail(Email email);
+
+    Optional<Admin> findByIdAndApprovalStatus(long id, ApprovalStatus approvalStatus);
 }
