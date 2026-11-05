@@ -114,3 +114,7 @@ tasks.named('test') {
 tasks.named("jar") {
     enabled = false
 }
+
+tasks.named("bootJar") {
+    exclude 'application-local.yml'
+}
