@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk-jammy AS build
+FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk-jammy@sha256:4b1a74fbffbe6b4e7b6f0171a472478282fb463790a51edf10e465d578f22b69 AS build
 WORKDIR /workspace
 
 # 빌드 스크립트만 먼저 복사해 의존성 레이어를 소스 변경과 분리한다
@@ -11,7 +11,7 @@ COPY src src
 RUN ./gradlew bootJar --no-daemon \
     && java -Djarmode=tools -jar build/libs/*.jar extract --layers --launcher --destination extracted
 
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre-jammy@sha256:1eac8b8fee11ca7d6725a48bc5d41992ed1561504ebae25490d2d062847e8269
 WORKDIR /app
 
 RUN useradd --system --uid 1001 app
