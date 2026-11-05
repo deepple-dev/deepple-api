@@ -2,7 +2,6 @@ package deepple.deepple.member.command.application.member;
 
 
 import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
-import deepple.deepple.member.command.application.member.exception.PermanentlySuspendedMemberException;
 import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
@@ -27,21 +26,13 @@ public class MemberProfileService {
     }
 
     @Transactional
-    public void changeToDormant(Long memberId) {
-        getMemberById(memberId).changeToDormant();
+    public void deactivate(long memberId) {
+        getMemberById(memberId).deactivate();
     }
 
     @Transactional
-    public void changeToActive(String phoneNumber) {
-        Member member = getMemberByPhoneNumber(phoneNumber);
-        validateMemberStatusForActive(member);
-        member.changeToActive();
-    }
-
-    private void validateMemberStatusForActive(final Member member) {
-        if (member.isPermanentlySuspended()) {
-            throw new PermanentlySuspendedMemberException();
-        }
+    public void reactivate(long memberId) {
+        getMemberById(memberId).reactivate();
     }
 
     @Transactional
@@ -55,9 +46,9 @@ public class MemberProfileService {
     }
 
     @Transactional
-    public void changeActive(Long memberId) {
+    public void approveScreening(Long memberId) {
         Member member = getMemberById(memberId);
-        member.changeToActive();
+        member.approveScreening();
         changeProfilePublishStatus(memberId, true);
     }
 
@@ -114,10 +105,6 @@ public class MemberProfileService {
 
     private Member getMemberById(Long memberId) {
         return memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-    }
-
-    private Member getMemberByPhoneNumber(String phoneNumber) {
-        return memberCommandRepository.findByPhoneNumber(phoneNumber).orElseThrow(MemberNotFoundException::new);
     }
 
     private ActivityStatus getActivityStatus(String status) {

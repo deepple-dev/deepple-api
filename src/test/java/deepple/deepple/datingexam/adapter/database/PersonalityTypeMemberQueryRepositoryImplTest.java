@@ -80,10 +80,10 @@ class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport
         em.flush();
 
         if (activityStatus == ActivityStatus.ACTIVE) {
-            member.changeToActive();
+            member.changeActivityStatus(ActivityStatus.ACTIVE);
         }
         if (activityStatus == ActivityStatus.DORMANT && member.isActive()) {
-            member.changeToDormant();
+            member.changeActivityStatus(ActivityStatus.DORMANT);
         }
         em.flush();
         return member;

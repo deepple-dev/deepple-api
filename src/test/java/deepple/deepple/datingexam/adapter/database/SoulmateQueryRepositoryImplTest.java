@@ -50,11 +50,11 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
             em.flush();
 
             if (activityStatus == ActivityStatus.DORMANT && member.isActive()) {
-                member.changeToDormant();
+                member.changeActivityStatus(ActivityStatus.DORMANT);
             }
 
             if (activityStatus == ActivityStatus.ACTIVE) {
-                member.changeToActive();
+                member.changeActivityStatus(ActivityStatus.ACTIVE);
             }
 
             createSubmit(subjectId, member.getId(), answer);

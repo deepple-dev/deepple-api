@@ -68,7 +68,7 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
         entityManager.flush();
 
         if (activityStatus == ActivityStatus.DORMANT) {
-            member.changeToDormant();
+            member.changeActivityStatus(ActivityStatus.DORMANT);
         }
         return member;
     }

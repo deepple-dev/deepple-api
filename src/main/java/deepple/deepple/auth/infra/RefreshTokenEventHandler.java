@@ -3,6 +3,7 @@ package deepple.deepple.auth.infra;
 import deepple.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
+import deepple.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -24,6 +25,16 @@ public class RefreshTokenEventHandler {
             refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
         } catch (Exception e) {
             log.error("정지된 회원(id: {})의 리프레시 토큰 폐기 중 예외가 발생했습니다.", event.getMemberId(), e);
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(value = MemberBecameDormantEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    public void handle(MemberBecameDormantEvent event) {
+        try {
+            refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
+        } catch (Exception e) {
+            log.error("휴면 회원(id: {})의 리프레시 토큰 폐기 중 예외가 발생했습니다.", event.getMemberId(), e);
         }
     }
 }

@@ -38,7 +38,6 @@ public class SecurityConfig {
         post("/member/login"),
         post("/member/code"),
         post("/member/refresh"),
-        post("/member/profile/active"),
         post("/admin/login"),
         post("/admin/signup"),
         post("/admin/refresh"),
