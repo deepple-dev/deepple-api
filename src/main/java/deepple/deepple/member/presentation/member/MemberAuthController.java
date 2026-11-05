@@ -1,7 +1,6 @@
 package deepple.deepple.member.presentation.member;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.auth.presentation.RefreshTokenCookies;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
@@ -64,10 +63,10 @@ public class MemberAuthController {
     @Operation(summary = "멤버 로그아웃")
     @GetMapping("/logout")
     public ResponseEntity<BaseResponse<Void>> logout(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentMemberId long memberId,
         @CookieValue(value = "refresh_token", required = false) String refreshToken
     ) {
-        memberAuthService.logout(authContext.getId(), refreshToken);
+        memberAuthService.logout(memberId, refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
         ResponseCookie deleteCookie = refreshTokenCookies.expire();
@@ -80,8 +79,8 @@ public class MemberAuthController {
 
     @Operation(summary = "멤버 탈퇴")
     @DeleteMapping
-    public ResponseEntity<BaseResponse<Void>> delete(@AuthPrincipal AuthContext authContext) {
-        memberAuthService.delete(authContext.getId());
+    public ResponseEntity<BaseResponse<Void>> delete(@CurrentMemberId long memberId) {
+        memberAuthService.delete(memberId);
 
         HttpHeaders headers = new HttpHeaders();
         ResponseCookie deleteCookie = refreshTokenCookies.expire();

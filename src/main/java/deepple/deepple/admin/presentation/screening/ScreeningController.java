@@ -2,8 +2,7 @@ package deepple.deepple.admin.presentation.screening;
 
 import deepple.deepple.admin.command.application.screening.ScreeningService;
 import deepple.deepple.admin.query.screening.*;
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentAdminId;
 import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,9 +46,9 @@ public class ScreeningController {
     public ResponseEntity<BaseResponse<Void>> approve(
         @PathVariable long screeningId,
         @RequestBody ScreeningApproveRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentAdminId long adminId
     ) {
-        screeningService.approve(screeningId, request, authContext.getId());
+        screeningService.approve(screeningId, request, adminId);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 
@@ -58,9 +57,9 @@ public class ScreeningController {
     public ResponseEntity<BaseResponse<Void>> reject(
         @PathVariable long screeningId,
         @Valid @RequestBody ScreeningRejectRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentAdminId long adminId
     ) {
-        screeningService.reject(screeningId, authContext.getId(), request);
+        screeningService.reject(screeningId, adminId, request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }

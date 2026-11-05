@@ -1,7 +1,6 @@
 package deepple.deepple.report.presentation;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.report.command.application.ReportService;
@@ -26,8 +25,8 @@ public class ReportController {
     @Operation(summary = "신고하기")
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> report(@Valid @RequestBody ReportCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        reportService.report(request, authContext.getId());
+        @CurrentMemberId long memberId) {
+        reportService.report(request, memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 }

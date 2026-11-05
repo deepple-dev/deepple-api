@@ -1,7 +1,6 @@
 package deepple.deepple.interview.presentation.question;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
@@ -27,10 +26,10 @@ public class InterviewQuestionController {
     @GetMapping
     public ResponseEntity<BaseResponse<List<InterviewQuestionView>>> getQuestionAllByCategory(
         @ModelAttribute InterviewQuestionSearchCondition interviewQuestionSearchCondition,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
         List<InterviewQuestionView> views = interviewQuestionQueryRepository.findAllQuestionByCategoryWithMemberId(
-            interviewQuestionSearchCondition, authContext.getId());
+            interviewQuestionSearchCondition, memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, views));
     }
 
@@ -38,10 +37,10 @@ public class InterviewQuestionController {
     @GetMapping("/{id}")
     public ResponseEntity<BaseResponse<InterviewQuestionView>> getQuestionById(
         @PathVariable Long id,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
         InterviewQuestionView view = interviewQuestionQueryRepository
-            .findQuestionByIdWithMemberId(id, authContext.getId())
+            .findQuestionByIdWithMemberId(id, memberId)
             .orElseThrow(InterviewQuestionNotFoundException::new);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
     }

@@ -1,8 +1,7 @@
 package deepple.deepple.admin.presentation.warning;
 
 import deepple.deepple.admin.command.application.warning.WarningService;
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentAdminId;
 import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,10 +26,10 @@ public class WarningController {
     @Operation(summary = "경고 부여")
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> issue(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentAdminId long adminId,
         @Valid @RequestBody WarningCreateRequest request
     ) {
-        warningService.issue(authContext.getId(), request);
+        warningService.issue(adminId, request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }

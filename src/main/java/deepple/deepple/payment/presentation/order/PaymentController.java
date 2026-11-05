@@ -1,7 +1,6 @@
 package deepple.deepple.payment.presentation.order;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.payment.command.application.order.AppStoreNotificationService;
@@ -35,8 +34,8 @@ public class PaymentController {
     @Operation(summary = "앱스토어 결제 영수증 인증")
     @PostMapping("/app-store/verify-receipt")
     public ResponseEntity<BaseResponse<Void>> verifyReceipt(@Valid @RequestBody VerifyReceiptRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        appStorePaymentService.verifyReceipt(request.appReceipt(), authContext.getId());
+        @CurrentMemberId long memberId) {
+        appStorePaymentService.verifyReceipt(request.appReceipt(), memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
@@ -44,8 +43,8 @@ public class PaymentController {
     @PostMapping("/google-play/verify-receipt")
     public ResponseEntity<BaseResponse<Void>> verifyGooglePlayReceipt(
         @Valid @RequestBody GooglePlayVerifyReceiptRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        googlePlayPaymentService.verifyReceipt(request.productId(), request.purchaseToken(), authContext.getId());
+        @CurrentMemberId long memberId) {
+        googlePlayPaymentService.verifyReceipt(request.productId(), request.purchaseToken(), memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 

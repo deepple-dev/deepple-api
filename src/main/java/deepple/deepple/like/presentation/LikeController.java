@@ -1,7 +1,6 @@
 package deepple.deepple.like.presentation;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.like.command.application.LikeSendService;
 import deepple.deepple.like.query.LikeQueryService;
@@ -26,9 +25,9 @@ public class LikeController {
     @PostMapping
     public ResponseEntity<BaseResponse<LikeSendResponse>> send(
         @Valid @RequestBody LikeSendRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        final long senderId = authContext.getId();
+        final long senderId = memberId;
         boolean hasProcessedMission = likeSendService.send(senderId, request);
         LikeSendResponse response = new LikeSendResponse(hasProcessedMission);
         return ResponseEntity.ok(BaseResponse.of(OK, response));
@@ -38,9 +37,9 @@ public class LikeController {
     @GetMapping("/sent")
     public ResponseEntity<BaseResponse<LikeViews>> getSentLikes(
         @ModelAttribute LikeListRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        final var sentLikes = likeQueryService.findSentLikes(authContext.getId(), request.lastLikeId());
+        final var sentLikes = likeQueryService.findSentLikes(memberId, request.lastLikeId());
         return ResponseEntity.ok(BaseResponse.of(OK, sentLikes));
     }
 
@@ -48,9 +47,9 @@ public class LikeController {
     @GetMapping("/received")
     public ResponseEntity<BaseResponse<LikeViews>> getReceivedLikes(
         @ModelAttribute LikeListRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        final var receivedLikes = likeQueryService.findReceivedLikes(authContext.getId(), request.lastLikeId());
+        final var receivedLikes = likeQueryService.findReceivedLikes(memberId, request.lastLikeId());
         return ResponseEntity.ok(BaseResponse.of(OK, receivedLikes));
     }
 }

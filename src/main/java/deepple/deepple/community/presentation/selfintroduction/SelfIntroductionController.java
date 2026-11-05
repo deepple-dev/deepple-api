@@ -1,7 +1,6 @@
 package deepple.deepple.community.presentation.selfintroduction;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import deepple.deepple.common.response.BaseResponse;
@@ -37,8 +36,8 @@ public class SelfIntroductionController {
     @PostMapping
     public ResponseEntity<BaseResponse<SelfIntroductionWriteResponse>> write(
         @RequestBody @Valid SelfIntroductionWriteRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        boolean hasProcessedMission = selfIntroductionService.write(request, authContext.getId());
+        @CurrentMemberId long memberId) {
+        boolean hasProcessedMission = selfIntroductionService.write(request, memberId);
         return ResponseEntity.ok(
             BaseResponse.of(StatusType.OK, new SelfIntroductionWriteResponse(hasProcessedMission)));
     }
@@ -47,57 +46,57 @@ public class SelfIntroductionController {
     @PostMapping("/presigned-url")
     public ResponseEntity<BaseResponse<PresignedUrlResponse>> getPresignedUrl(
         @RequestBody @Valid PresignedUrlPostRequest request,
-        @AuthPrincipal AuthContext authContext) {
+        @CurrentMemberId long memberId) {
         return ResponseEntity.ok(
             BaseResponse.of(StatusType.OK,
-                selfIntroductionService.getPresignedUrl(request.fileName(), authContext.getId()))
+                selfIntroductionService.getPresignedUrl(request.fileName(), memberId))
         );
     }
 
     @Operation(summary = "셀프 소개 수정 API")
     @PatchMapping("/{id}")
     public ResponseEntity<BaseResponse<Void>> update(@PathVariable Long id,
-        @RequestBody @Valid SelfIntroductionWriteRequest request, @AuthPrincipal AuthContext authContext) {
-        selfIntroductionService.update(request, authContext.getId(), id);
+        @RequestBody @Valid SelfIntroductionWriteRequest request, @CurrentMemberId long memberId) {
+        selfIntroductionService.update(request, memberId, id);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
     @Operation(summary = "셀프 소개 삭제 API")
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse<Void>> delete(@PathVariable Long id, @AuthPrincipal AuthContext authContext) {
-        selfIntroductionService.delete(id, authContext.getId());
+    public ResponseEntity<BaseResponse<Void>> delete(@PathVariable Long id, @CurrentMemberId long memberId) {
+        selfIntroductionService.delete(id, memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
     @Operation(summary = "셀프 소개 목록 조회 API")
     @GetMapping
     public ResponseEntity<BaseResponse<List<SelfIntroductionSummaryView>>> getIntroductions(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentMemberId long memberId,
         @ParameterObject @ModelAttribute SelfIntroductionSearchRequest searchRequest
     ) {
         SelfIntroductionSearchCondition searchCondition = SelfIntroductionMapper.toSelfIntroductionSearchCondition(
             searchRequest);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK,
             selfIntroductionQueryRepository.findSelfIntroductions(searchCondition, searchRequest.lastId(),
-                authContext.getId())));
+                memberId)));
     }
 
     @Operation(summary = "자신의 셀프 소개 목록 조회 API")
     @GetMapping("/my")
     public ResponseEntity<BaseResponse<List<SelfIntroductionSummaryView>>> getMyIntroductions(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentMemberId long memberId,
         @RequestParam(required = false) Long lastId
     ) {
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK,
-            selfIntroductionQueryRepository.findMySelfIntroductions(lastId, authContext.getId())));
+            selfIntroductionQueryRepository.findMySelfIntroductions(lastId, memberId)));
     }
 
     @Operation(summary = "셀프 소개 상세 조회 API")
     @GetMapping("/{id}")
     public ResponseEntity<BaseResponse<SelfIntroductionView>> getIntroduction(@PathVariable Long id,
-        @AuthPrincipal AuthContext authContext) {
+        @CurrentMemberId long memberId) {
         SelfIntroductionView view = selfIntroductionQueryRepository.findSelfIntroductionByIdWithMemberId(id,
-            authContext.getId()).orElse(null);
+            memberId).orElse(null);
         if (view == null) {
             return ResponseEntity.status(404)
                 .body(BaseResponse.from(StatusType.NOT_FOUND));
