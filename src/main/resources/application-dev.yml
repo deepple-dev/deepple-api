@@ -30,3 +30,7 @@ cors:
 payment:
   app-store:
     environment: Sandbox
+
+notification:
+  test-send:
+    enabled: true
