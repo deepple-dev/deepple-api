@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static deepple.deepple.notification.command.domain.NotificationType.HEART_GRANTED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
 
@@ -76,7 +78,10 @@ class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
         notificationDataReader.findTemplate(HEART_GRANTED);
 
         // then
-        Long ttl = redisTemplate.getExpire("cache::" + CACHE_NAME + "::" + HEART_GRANTED, TimeUnit.SECONDS);
-        assertThat(ttl).isBetween(3500L, 3600L);
+        await()
+            .atMost(Duration.ofSeconds(5))
+            .untilAsserted(() -> assertThat(
+                redisTemplate.getExpire("cache::" + CACHE_NAME + "::" + HEART_GRANTED, TimeUnit.SECONDS)
+            ).isBetween(3500L, 3600L));
     }
 }
