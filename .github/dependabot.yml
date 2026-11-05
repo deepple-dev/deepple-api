@@ -34,3 +34,22 @@ updates:
     commit-message:
       prefix: chore
     labels: [ ]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    cooldown:
+      default-days: 3
+    ignore:
+      - dependency-name: eclipse-temurin
+        update-types: [ version-update:semver-major ]
+    groups:
+      docker:
+        patterns: [ "*" ]
+    commit-message:
+      prefix: chore
+    labels: [ infra ]
