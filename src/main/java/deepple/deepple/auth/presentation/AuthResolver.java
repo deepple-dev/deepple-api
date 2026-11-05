@@ -1,5 +1,6 @@
 package deepple.deepple.auth.presentation;
 
+import deepple.deepple.auth.infra.JwtSpec;
 import deepple.deepple.common.enums.Role;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
@@ -14,8 +15,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
 public class AuthResolver implements HandlerMethodArgumentResolver {
-
-    private static final String ROLE_CLAIM = "role";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -33,7 +32,9 @@ public class AuthResolver implements HandlerMethodArgumentResolver {
 
         Jwt jwt = jwtAuthentication.getToken();
         AuthContext authContext = new AuthContext();
-        authContext.authenticate(Long.parseLong(jwt.getSubject()), Role.valueOf(jwt.getClaimAsString(ROLE_CLAIM)));
+        Role role = Role.valueOf(jwt.getClaimAsStringList(JwtSpec.ROLES_CLAIM)
+            .getFirst());
+        authContext.authenticate(Long.parseLong(jwt.getSubject()), role);
         return authContext;
     }
 }

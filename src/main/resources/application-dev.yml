@@ -14,6 +14,7 @@ spring:
         bucket: ${AWS_S3_BUCKET_NAME}
 
 jwt:
+  issuer: https://dev-api.deepple.co.kr
   refresh-token:
     expiration: 2592000  # 30일
 

@@ -3,7 +3,6 @@ spring-boot = "4.1.2"
 spring-dependency-management = "1.1.7"
 spring-cloud-aws = "4.2.1"
 querydsl = "7.7"
-jjwt = "0.11.2"
 redisson = "4.8.0"
 firebase-admin = "9.11.0"
 app-store-server = "5.2.0"
@@ -24,9 +23,6 @@ spring-cloud-aws-starter-s3 = { module = "io.awspring.cloud:spring-cloud-aws-sta
 querydsl-jpa = { module = "io.github.openfeign.querydsl:querydsl-jpa", version.ref = "querydsl" }
 querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.ref = "querydsl" }
 
-jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
-jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
-jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 redisson-spring-boot-starter = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }

@@ -7,13 +7,25 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,8 +39,14 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MockMvcTester mockMvc;
 
+    @Value("${jwt.issuer}")
+    private String issuer;
+
     @Autowired
     private TokenProvider tokenProvider;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
 
     @Nested
     @DisplayName("access token 검증")
@@ -68,14 +86,67 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
 
         @Test
         @DisplayName("다른 키로 서명한 토큰이면 401과 INVALID_ACCESS_TOKEN 코드를 응답한다.")
-        void rejectTokenSignedWithOtherKey() {
-            TokenProvider otherKeyProvider = new JwtProvider("other-secret-key-value-for-test-at-least-32-bytes",
-                1800, 1209600);
+        void rejectTokenSignedWithOtherKey() throws Exception {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            KeyPair otherKeyPair = generator.generateKeyPair();
+            JwtEncoder otherKeyEncoder = NimbusJwtEncoder.withKeyPair((RSAPublicKey) otherKeyPair.getPublic(),
+                    (RSAPrivateKey) otherKeyPair.getPrivate())
+                .build();
+            TokenProvider otherKeyProvider = new JwtProvider(otherKeyEncoder, issuer, 1800, 1209600);
             String forgedToken = otherKeyProvider.createAccessToken(1L, Role.ADMIN, Instant.now());
 
             MvcTestResult result = mockMvc.get()
                 .uri(ADMIN_API)
                 .header(HttpHeaders.AUTHORIZATION, bearer(forgedToken))
+                .exchange();
+
+            assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
+            assertThat(result)
+                .bodyJson()
+                .extractingPath("$.code")
+                .isEqualTo("401002");
+        }
+
+        @Test
+        @DisplayName("refresh token을 access token 자리에 넣으면 401과 INVALID_ACCESS_TOKEN 코드를 응답한다.")
+        void rejectRefreshTokenAsAccessToken() {
+            String refreshToken = tokenProvider.createRefreshToken(1L, Role.MEMBER, Instant.now());
+
+            MvcTestResult result = mockMvc.get()
+                .uri(MEMBER_API)
+                .header(HttpHeaders.AUTHORIZATION, bearer(refreshToken))
+                .exchange();
+
+            assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
+            assertThat(result)
+                .bodyJson()
+                .extractingPath("$.code")
+                .isEqualTo("401002");
+        }
+
+        @Test
+        @DisplayName("roles claim이 없는 토큰이면 401과 INVALID_ACCESS_TOKEN 코드를 응답한다.")
+        void rejectTokenWithoutRoles() {
+            Instant now = Instant.now();
+            JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256)
+                .type("at+jwt")
+                .build();
+            JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(issuer)
+                .subject("1")
+                .audience(List.of("deepple-api"))
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(600))
+                .id("no-roles")
+                .claim("client_id", "deepple-app")
+                .build();
+            String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims))
+                .getTokenValue();
+
+            MvcTestResult result = mockMvc.get()
+                .uri(MEMBER_API)
+                .header(HttpHeaders.AUTHORIZATION, bearer(token))
                 .exchange();
 
             assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);

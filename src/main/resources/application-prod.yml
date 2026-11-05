@@ -27,6 +27,7 @@ springdoc:
     enabled: false
 
 jwt:
+  issuer: https://api.deepple.co.kr
   refresh-token:
     expiration: 1209600  # 2주
 

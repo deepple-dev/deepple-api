@@ -52,7 +52,6 @@ public class SecurityConfig {
     };
     private static final String ADMIN_ACCOUNT_API = "/admin/accounts/**";
     private static final String ADMIN_API = "/admin/**";
-    private static final String ROLE_CLAIM = "role";
     private static final String ROLE_PREFIX = "ROLE_";
 
     private final TokenAuthenticationEntryPoint authenticationEntryPoint;
@@ -135,7 +134,7 @@ public class SecurityConfig {
 
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthoritiesClaimName(ROLE_CLAIM);
+        authoritiesConverter.setAuthoritiesClaimName(JwtSpec.ROLES_CLAIM);
         authoritiesConverter.setAuthorityPrefix(ROLE_PREFIX);
 
         JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
