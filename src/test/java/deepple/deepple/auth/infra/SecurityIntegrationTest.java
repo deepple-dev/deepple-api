@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -229,6 +230,18 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
         void rejectLogoutWithoutToken() {
             MvcTestResult result = mockMvc.get()
                 .uri("/member/logout")
+                .exchange();
+
+            assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
+        }
+
+        @Test
+        @DisplayName("휴면 해제는 토큰 없이 호출할 수 없다.")
+        void rejectDormancyReleaseWithoutToken() {
+            MvcTestResult result = mockMvc.post()
+                .uri("/member/profile/active")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"phoneNumber\":\"01012345678\"}")
                 .exchange();
 
             assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);

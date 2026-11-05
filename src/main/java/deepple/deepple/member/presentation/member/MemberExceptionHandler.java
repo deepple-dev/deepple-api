@@ -3,6 +3,7 @@ package deepple.deepple.member.presentation.member;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.exception.*;
+import deepple.deepple.member.command.domain.member.exception.InvalidActivityStatusChangeException;
 import deepple.deepple.member.command.domain.member.exception.MemberNotActiveException;
 import deepple.deepple.member.presentation.member.dto.TemporarySuspensionLoginResponse;
 import deepple.deepple.member.query.member.application.exception.ProfileAccessDeniedException;
@@ -117,5 +118,15 @@ public class MemberExceptionHandler {
 
         return ResponseEntity.badRequest()
             .body(BaseResponse.of(StatusType.DORMANT_STATUS, e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidActivityStatusChangeException.class)
+    public ResponseEntity<BaseResponse<Void>> handleInvalidActivityStatusChangeException(
+        InvalidActivityStatusChangeException e
+    ) {
+        log.warn("회원 상태를 바꿀 수 없습니다. {}", e.getMessage());
+
+        return ResponseEntity.badRequest()
+            .body(BaseResponse.of(StatusType.BAD_REQUEST, e.getMessage()));
     }
 }

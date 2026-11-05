@@ -3,8 +3,11 @@ package deepple.deepple.member.command.domain.member;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
+import deepple.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
+import deepple.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
 import deepple.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
 import deepple.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
+import deepple.deepple.member.command.domain.member.exception.InvalidActivityStatusChangeException;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
@@ -13,6 +16,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 
 import java.util.Set;
@@ -35,7 +40,6 @@ class MemberTest {
         // Then
         Assertions.assertThat(member).isNotNull();
         Assertions.assertThat(member.isProfileSettingNeeded()).isTrue();
-        Assertions.assertThat(member.isPermanentlySuspended()).isFalse();
         Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
         Assertions.assertThat(member.getPrimaryContactType()).isEqualTo(PrimaryContactType.NONE);
         Assertions.assertThat(member.getHeartBalance()).isEqualTo(HeartBalance.init());
@@ -49,32 +53,99 @@ class MemberTest {
     class MemberStatusChangeTest {
 
         @Test
-        @DisplayName("멤버의 활동 상태를 휴면 상태로 전환합니다.")
-        void changeMemberActivityStatusToDormant() {
+        @DisplayName("관리자는 회원 상태와 관계없이 휴면으로 바꿀 수 있다.")
+        void changeActivityStatusToDormant() {
             // Given
             Member member = Member.fromPhoneNumber("01012345678");
             setField(member, "id", 1L);
 
             // When
-            member.changeToDormant();
+            member.changeActivityStatus(ActivityStatus.DORMANT);
 
             // Then
-            Assertions.assertThat(member.isActive()).isFalse();
+            Assertions.assertThat(member.isDormant()).isTrue();
         }
 
         @Test
-        @DisplayName("멤버의 활동 상태를 활동중 상태로 전환합니다.")
-        void changeMemberActivityStatusToActive() {
+        @DisplayName("심사가 승인되면 활동 중이 된다.")
+        void approveScreening() {
             // Given
             Member member = Member.fromPhoneNumber("01012345678");
             setField(member, "id", 1L);
-            member.changeToDormant();
+            setField(member, "activityStatus", ActivityStatus.WAITING_SCREENING);
 
-            // When
-            member.changeToActive();
+            try (MockedStatic<Events> events = mockStatic(Events.class)) {
+                // When
+                member.approveScreening();
 
-            // Then
-            Assertions.assertThat(member.isActive()).isTrue();
+                // Then
+                Assertions.assertThat(member.isActive()).isTrue();
+                events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
+            }
+        }
+
+        @Test
+        @DisplayName("활동 중인 회원은 휴면으로 전환할 수 있다.")
+        void deactivateWhenActive() {
+            // Given
+            Member member = Member.fromPhoneNumber("01012345678");
+            setField(member, "id", 1L);
+            setField(member, "activityStatus", ActivityStatus.ACTIVE);
+
+            try (MockedStatic<Events> events = mockStatic(Events.class)) {
+                // When
+                member.deactivate();
+
+                // Then
+                Assertions.assertThat(member.isDormant()).isTrue();
+                events.verify(() -> Events.raise(any(MemberBecameDormantEvent.class)));
+            }
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ActivityStatus.class, names = "ACTIVE", mode = EnumSource.Mode.EXCLUDE)
+        @DisplayName("활동 중이 아닌 회원은 휴면으로 전환할 수 없다.")
+        void rejectDeactivateWhenNotActive(ActivityStatus status) {
+            // Given
+            Member member = Member.fromPhoneNumber("01012345678");
+            setField(member, "activityStatus", status);
+
+            // When & Then
+            Assertions.assertThatThrownBy(member::deactivate)
+                .isInstanceOf(InvalidActivityStatusChangeException.class);
+            Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
+        }
+
+        @Test
+        @DisplayName("휴면 회원은 휴면을 해제해 활동 중이 된다.")
+        void reactivateWhenDormant() {
+            // Given
+            Member member = Member.fromPhoneNumber("01012345678");
+            setField(member, "id", 1L);
+            setField(member, "activityStatus", ActivityStatus.DORMANT);
+
+            try (MockedStatic<Events> events = mockStatic(Events.class)) {
+                // When
+                member.reactivate();
+
+                // Then
+                Assertions.assertThat(member.isActive()).isTrue();
+                events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
+            }
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ActivityStatus.class, names = "DORMANT", mode = EnumSource.Mode.EXCLUDE)
+        @DisplayName("휴면이 아닌 회원은 휴면을 해제할 수 없다.")
+        void rejectReactivateWhenNotDormant(ActivityStatus status) {
+            // Given
+            Member member = Member.fromPhoneNumber("01012345678");
+            setField(member, "activityStatus", status);
+
+            // When & Then
+            Assertions.assertThatThrownBy(member::reactivate)
+                .isInstanceOf(InvalidActivityStatusChangeException.class);
+            Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
         }
 
         @Test

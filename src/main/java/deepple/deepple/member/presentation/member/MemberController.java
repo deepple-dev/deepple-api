@@ -7,7 +7,6 @@ import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
 import deepple.deepple.member.command.application.member.MemberContactService;
 import deepple.deepple.member.command.application.member.MemberProfileService;
-import deepple.deepple.member.presentation.member.dto.MemberChangeToActiveRequest;
 import deepple.deepple.member.presentation.member.dto.MemberMyProfileResponse;
 import deepple.deepple.member.presentation.member.dto.MemberProfileResponse;
 import deepple.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
@@ -17,7 +16,6 @@ import deepple.deepple.member.query.member.view.MemberContactView;
 import deepple.deepple.member.query.member.view.MemberInfoView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -67,11 +65,11 @@ public class MemberController {
 
     @Operation(summary = "휴면 계정 전환 API")
     @PostMapping("/profile/dormant")
-    public ResponseEntity<BaseResponse<Void>> changeToDormant(
+    public ResponseEntity<BaseResponse<Void>> deactivate(
         @CurrentMemberId long memberId,
         @CookieValue(value = "refresh_token", required = false) String refreshToken
     ) {
-        memberProfileService.changeToDormant(memberId);
+        memberProfileService.deactivate(memberId);
         memberAuthService.logout(memberId, refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
@@ -82,8 +80,8 @@ public class MemberController {
 
     @Operation(summary = "활동 계정 전환 API")
     @PostMapping("/profile/active")
-    public ResponseEntity<BaseResponse<Void>> changeToActive(@Valid @RequestBody MemberChangeToActiveRequest request) {
-        memberProfileService.changeToActive(request.phoneNumber());
+    public ResponseEntity<BaseResponse<Void>> reactivate(@CurrentMemberId long memberId) {
+        memberProfileService.reactivate(memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 

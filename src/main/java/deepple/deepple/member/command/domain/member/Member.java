@@ -5,6 +5,7 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.member.command.domain.member.event.*;
+import deepple.deepple.member.command.domain.member.exception.InvalidActivityStatusChangeException;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
@@ -107,14 +108,32 @@ public class Member extends SoftDeleteBaseEntity {
         return phoneNumber.getValue();
     }
 
-    public void changeToDormant() {
+    private void changeToDormant() {
         activityStatus = ActivityStatus.DORMANT;
         Events.raise(MemberBecameDormantEvent.from(id));
     }
 
-    public void changeToActive() {
+    private void changeToActive() {
         activityStatus = ActivityStatus.ACTIVE;
         Events.raise(MemberBecameActiveEvent.from(id));
+    }
+
+    public void deactivate() {
+        if (!isActive()) {
+            throw new InvalidActivityStatusChangeException("활동중인 회원만 휴면으로 전환할 수 있습니다.");
+        }
+        changeToDormant();
+    }
+
+    public void reactivate() {
+        if (!isDormant()) {
+            throw new InvalidActivityStatusChangeException("휴면 회원만 휴면을 해제할 수 있습니다.");
+        }
+        changeToActive();
+    }
+
+    public void approveScreening() {
+        changeToActive();
     }
 
     public void changeToRejected() {
@@ -139,12 +158,12 @@ public class Member extends SoftDeleteBaseEntity {
         return activityStatus == ActivityStatus.ACTIVE;
     }
 
-    public Gender getGender() {
-        return profile.getGender();
+    public boolean isDormant() {
+        return activityStatus == ActivityStatus.DORMANT;
     }
 
-    public boolean isPermanentlySuspended() {
-        return activityStatus == ActivityStatus.SUSPENDED_PERMANENTLY;
+    public Gender getGender() {
+        return profile.getGender();
     }
 
     public void useHeart(HeartAmount heartAmount) {

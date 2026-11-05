@@ -8,6 +8,7 @@ import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.auth.infra.JwtProvider;
 import deepple.deepple.common.MockEventsExtension;
+import deepple.deepple.common.event.Events;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
@@ -16,7 +17,7 @@ import deepple.deepple.member.command.application.member.sms.AuthMessageService;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.exception.MemberNotActiveException;
+import deepple.deepple.member.command.domain.member.event.MemberLoggedInEvent;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -152,22 +153,40 @@ class MemberAuthServiceTest {
         }
 
         @Test
-        @DisplayName("활동 상태가 아닌 사용자가 로그인할 경우 예외 처리")
-        void shouldThrowExceptionWhenLoginAttemptedByNotActiveMember() {
+        @DisplayName("휴면 회원도 로그인하고, 응답에 휴면 상태를 담으며 로그인 이벤트는 발행하지 않는다")
+        void loginDormantMember(MockedStatic<Events> events) {
             // Given
             String phoneNumber = "01012345678";
             String code = "01012345678";
-            Member inactiveMember = Member.fromPhoneNumber("01012345678");
-            ReflectionTestUtils.setField(inactiveMember, "id", 3L);
-            inactiveMember.changeToDormant();
+            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.DORMANT);
 
-            when(memberCommandRepository.findByPhoneNumber(phoneNumber))
-                .thenReturn(Optional.of(inactiveMember));
+            when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(member));
             Mockito.doNothing().when(authMessageService).authenticate(phoneNumber, code);
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> memberAuthService.login(phoneNumber, code))
-                .isInstanceOf(MemberNotActiveException.class);
+            // When
+            MemberLoginServiceDto response = memberAuthService.login(phoneNumber, code);
+
+            // Then
+            Assertions.assertThat(response.activityStatus()).isEqualTo(ActivityStatus.DORMANT.name());
+            Mockito.verify(refreshTokenService).issue(TokenOwner.member(memberId));
+            events.verify(() -> Events.raise(Mockito.any(MemberLoggedInEvent.class)), Mockito.never());
+        }
+
+        @Test
+        @DisplayName("활동 중인 회원이 로그인하면 로그인 이벤트를 발행한다")
+        void raiseLoggedInEventForActiveMember(MockedStatic<Events> events) {
+            // Given
+            String phoneNumber = "01012345678";
+            String code = "01012345678";
+
+            when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(member));
+            Mockito.doNothing().when(authMessageService).authenticate(phoneNumber, code);
+
+            // When
+            memberAuthService.login(phoneNumber, code);
+
+            // Then
+            events.verify(() -> Events.raise(Mockito.any(MemberLoggedInEvent.class)));
         }
 
         @Test
@@ -309,6 +328,25 @@ class MemberAuthServiceTest {
                 .isInstanceOf(PermanentlySuspendedMemberException.class);
             Mockito.verify(refreshTokenService).revokeAll(TokenOwner.member(memberId));
             Mockito.verify(refreshTokenService, Mockito.never()).issue(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("휴면 회원도 토큰을 갱신할 수 있다")
+        void refreshDormantMember() {
+            // Given
+            long memberId = 3L;
+            Member member = Member.fromPhoneNumber("01012345678");
+            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.DORMANT);
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(memberId));
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(refreshTokenService.issue(TokenOwner.member(memberId))).thenReturn("newRefreshToken");
+
+            // When
+            TokenPairResponse response = memberAuthService.refresh(REFRESH_TOKEN);
+
+            // Then
+            Assertions.assertThat(response.refreshToken()).isEqualTo("newRefreshToken");
+            Mockito.verify(refreshTokenService, Mockito.never()).revokeAll(Mockito.any());
         }
 
         @Test

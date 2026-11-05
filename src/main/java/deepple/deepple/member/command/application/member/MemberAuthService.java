@@ -31,12 +31,14 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
+import static deepple.deepple.member.command.domain.member.ActivityStatus.*;
+
 @Service
 @RequiredArgsConstructor
 public class MemberAuthService {
 
-    private final static List<ActivityStatus> ALLOWED_ACTIVITY_STATUS = List.of(ActivityStatus.ACTIVE,
-        ActivityStatus.INITIAL, ActivityStatus.WAITING_SCREENING, ActivityStatus.REJECTED_SCREENING);
+    private final static List<ActivityStatus> ALLOWED_ACTIVITY_STATUS = List.of(
+        ACTIVE, INITIAL, WAITING_SCREENING, REJECTED_SCREENING, DORMANT);
     private final MemberCommandRepository memberCommandRepository;
     private final SuspensionCommandRepository suspensionRepository;
     private final AuthMessageService authMessageService;
@@ -53,7 +55,9 @@ public class MemberAuthService {
         String accessToken = tokenProvider.createAccessToken(member.getId(), Role.MEMBER, Instant.now());
         String refreshToken = refreshTokenService.issue(TokenOwner.member(member.getId()));
 
-        Events.raise(MemberLoggedInEvent.from(member.getId()));
+        if (!member.isDormant()) {
+            Events.raise(MemberLoggedInEvent.from(member.getId()));
+        }
 
         memberCommandRepository.updateLastAccessedAt(member.getId(),
             LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
@@ -137,9 +141,9 @@ public class MemberAuthService {
 
         ActivityStatus activityStatus = member.getActivityStatus();
 
-        if (activityStatus == ActivityStatus.SUSPENDED_PERMANENTLY) { // 영구 정지일 경우.
+        if (activityStatus == SUSPENDED_PERMANENTLY) { // 영구 정지일 경우.
             throw new PermanentlySuspendedMemberException();
-        } else if (activityStatus == ActivityStatus.SUSPENDED_TEMPORARILY) { // 일시 정지일 경우.
+        } else if (activityStatus == SUSPENDED_TEMPORARILY) { // 일시 정지일 경우.
             LocalDateTime suspensionExpireAt = getTemporarySuspensionExpireAt(member.getId());
             throw new TemporarilySuspendedMemberException(suspensionExpireAt);
         } else if (!ALLOWED_ACTIVITY_STATUS.contains(activityStatus)) {
