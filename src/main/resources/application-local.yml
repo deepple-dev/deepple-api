@@ -78,3 +78,7 @@ firebase:
 
 bizgo:
   enabled: false
+
+notification:
+  test-send:
+    enabled: true
