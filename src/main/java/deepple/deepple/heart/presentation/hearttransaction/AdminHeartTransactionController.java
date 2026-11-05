@@ -1,7 +1,6 @@
 package deepple.deepple.heart.presentation.hearttransaction;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentAdminId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.heart.command.application.admingrant.AdminHeartGrantService;
@@ -39,10 +38,10 @@ public class AdminHeartTransactionController {
     @Operation(summary = "관리자 하트 지급 API")
     @PostMapping("/grants")
     public ResponseEntity<BaseResponse<Void>> grant(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentAdminId long adminId,
         @Valid @RequestBody AdminHeartGrantRequest request
     ) {
-        adminHeartGrantService.grant(authContext.getId(), request);
+        adminHeartGrantService.grant(adminId, request);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 }

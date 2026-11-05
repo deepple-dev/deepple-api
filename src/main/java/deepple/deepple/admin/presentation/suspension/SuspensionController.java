@@ -1,8 +1,7 @@
 package deepple.deepple.admin.presentation.suspension;
 
 import deepple.deepple.admin.command.application.suspension.SuspensionService;
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentAdminId;
 import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,9 +25,9 @@ public class SuspensionController {
     public ResponseEntity<BaseResponse<Void>> updateStatus(
         @PathVariable long memberId,
         @Valid @RequestBody SuspendRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentAdminId long adminId
     ) {
-        suspensionService.suspendByAdmin(authContext.getId(), memberId, request);
+        suspensionService.suspendByAdmin(adminId, memberId, request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 

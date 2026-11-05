@@ -1,7 +1,6 @@
 package deepple.deepple.member.presentation.member;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.auth.presentation.RefreshTokenCookies;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
@@ -40,40 +39,40 @@ public class MemberController {
     @Operation(summary = "프로필 정보 업데이트 API")
     @PutMapping("/profile")
     public ResponseEntity<BaseResponse<Void>> updateProfile(@RequestBody MemberProfileUpdateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        memberProfileService.updateMember(authContext.getId(), request);
+        @CurrentMemberId long memberId) {
+        memberProfileService.updateMember(memberId, request);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
     @Operation(summary = "회원(자기 자신) 정보 캐싱용 API")
     @GetMapping("/cache")
-    public ResponseEntity<BaseResponse<MemberInfoView>> getMyInfoCache(@AuthPrincipal AuthContext authContext) {
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberQueryService.getInfoCache(authContext.getId())));
+    public ResponseEntity<BaseResponse<MemberInfoView>> getMyInfoCache(@CurrentMemberId long memberId) {
+        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberQueryService.getInfoCache(memberId)));
     }
 
     @Operation(summary = "회원(자기 자신) 프로필 정보 조회 API")
     @GetMapping("/profile")
-    public ResponseEntity<BaseResponse<MemberMyProfileResponse>> getMyProfile(@AuthPrincipal AuthContext authContext) {
+    public ResponseEntity<BaseResponse<MemberMyProfileResponse>> getMyProfile(@CurrentMemberId long memberId) {
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK,
-            MemberMapper.toMemberMyProfileResponse(memberQueryService.getProfile(authContext.getId()))));
+            MemberMapper.toMemberMyProfileResponse(memberQueryService.getProfile(memberId))));
     }
 
     @Operation(summary = "상대방 프로필 조회 API")
     @GetMapping("/{memberId}")
-    public ResponseEntity<BaseResponse<MemberProfileResponse>> getOtherProfile(@AuthPrincipal AuthContext authContext,
-        @PathVariable Long memberId) {
+    public ResponseEntity<BaseResponse<MemberProfileResponse>> getOtherProfile(@CurrentMemberId long memberId,
+        @PathVariable("memberId") long otherMemberId) {
         return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK, memberQueryService.getMemberProfile(authContext.getId(), memberId)));
+            BaseResponse.of(StatusType.OK, memberQueryService.getMemberProfile(memberId, otherMemberId)));
     }
 
     @Operation(summary = "휴면 계정 전환 API")
     @PostMapping("/profile/dormant")
     public ResponseEntity<BaseResponse<Void>> changeToDormant(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentMemberId long memberId,
         @CookieValue(value = "refresh_token", required = false) String refreshToken
     ) {
-        memberProfileService.changeToDormant(authContext.getId());
-        memberAuthService.logout(authContext.getId(), refreshToken);
+        memberProfileService.changeToDormant(memberId);
+        memberAuthService.logout(memberId, refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
         ResponseCookie deleteCookie = refreshTokenCookies.expire();
@@ -90,30 +89,30 @@ public class MemberController {
 
     @Operation(summary = "연락처(자기 자신) 정보 조회 API")
     @GetMapping("/profile/contact")
-    public ResponseEntity<BaseResponse<MemberContactView>> getMyContact(@AuthPrincipal AuthContext authContext) {
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberQueryService.getContact(authContext.getId())));
+    public ResponseEntity<BaseResponse<MemberContactView>> getMyContact(@CurrentMemberId long memberId) {
+        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberQueryService.getContact(memberId)));
     }
 
     @Operation(summary = "주요 연락처 수단(Kakao) 변경 API")
     @PatchMapping("/profile/contact/kakao")
-    public ResponseEntity<BaseResponse<Void>> updateKakaoId(@AuthPrincipal AuthContext authContext,
+    public ResponseEntity<BaseResponse<Void>> updateKakaoId(@CurrentMemberId long memberId,
         @RequestBody String kakaoId) {
-        memberContactService.updateKakaoId(authContext.getId(), kakaoId);
+        memberContactService.updateKakaoId(memberId, kakaoId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
     @Operation(summary = "주요 연락처 수단 변경(Phone) API")
     @PatchMapping("/profile/contact/phone")
-    public ResponseEntity<BaseResponse<Void>> updatePhoneNumber(@AuthPrincipal AuthContext authContext,
+    public ResponseEntity<BaseResponse<Void>> updatePhoneNumber(@CurrentMemberId long memberId,
         @RequestBody String phone) {
-        memberContactService.updatePhoneNumber(authContext.getId(), phone);
+        memberContactService.updatePhoneNumber(memberId, phone);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
     @Operation(summary = "보유 하트 조회 API")
     @GetMapping("/heartbalance")
-    public ResponseEntity<BaseResponse<HeartBalanceView>> getHeartBalance(@AuthPrincipal AuthContext authContext) {
+    public ResponseEntity<BaseResponse<HeartBalanceView>> getHeartBalance(@CurrentMemberId long memberId) {
         return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK, memberQueryService.getHeartBalance(authContext.getId())));
+            BaseResponse.of(StatusType.OK, memberQueryService.getHeartBalance(memberId)));
     }
 }

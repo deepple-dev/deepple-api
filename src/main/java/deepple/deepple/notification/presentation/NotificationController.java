@@ -1,7 +1,6 @@
 package deepple.deepple.notification.presentation;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.notification.command.application.*;
 import deepple.deepple.notification.command.domain.ChannelType;
@@ -36,20 +35,20 @@ public class NotificationController {
     @PatchMapping
     public ResponseEntity<BaseResponse<Void>> markAsRead(
         @Validated @RequestBody NotificationReadRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        notificationReadService.markAsRead(request, authContext.getId());
+        notificationReadService.markAsRead(request, memberId);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 
     @Operation(summary = "알림 목록 조회")
     @GetMapping
     public ResponseEntity<BaseResponse<NotificationViews>> getNotifications(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentMemberId long memberId,
         @RequestParam(required = false) Long lastId
     ) {
         return ResponseEntity.ok(
-            BaseResponse.of(OK, notificationQueryService.findNotifications(authContext.getId(), lastId))
+            BaseResponse.of(OK, notificationQueryService.findNotifications(memberId, lastId))
         );
     }
 
@@ -57,9 +56,9 @@ public class NotificationController {
     @DeleteMapping
     public ResponseEntity<BaseResponse<Void>> delete(
         @Validated @RequestBody NotificationDeleteRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        notificationDeleteService.delete(request, authContext.getId());
+        notificationDeleteService.delete(request, memberId);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 
@@ -75,7 +74,7 @@ public class NotificationController {
     @Operation(summary = "(테스트) 알림 전송 - k6 부하 테스트용")
     @PostMapping("/test")
     public ResponseEntity<BaseResponse<Void>> sendTestNotification(
-        @AuthPrincipal AuthContext authContext,
+        @CurrentMemberId long memberId,
         @RequestParam Long receiverId
     ) {
         var types = NotificationType.values();
@@ -83,7 +82,7 @@ public class NotificationController {
 
         var request = new NotificationSendRequest(
             SenderType.MEMBER,
-            authContext.getId(),
+            memberId,
             receiverId,
             type,
             Map.of("senderName", "테스트", "rejectionReason", "테스트 사유"),

@@ -1,7 +1,6 @@
 package deepple.deepple.notification.presentation;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.notification.command.application.DeviceRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,9 +27,9 @@ public class DeviceRegistrationController {
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> register(
         @Valid @RequestBody DeviceRegisterRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        deviceRegistrationService.register(authContext.getId(), request);
+        deviceRegistrationService.register(memberId, request);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }

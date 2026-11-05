@@ -1,7 +1,6 @@
 package deepple.deepple.member.presentation.introduction;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.datingexam.application.provided.SoulmateFinder;
@@ -41,8 +40,7 @@ public class MemberIntroductionController {
     @Operation(summary = "다이아 등급 이성 조회")
     @GetMapping("/grade")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findDiamondGradeIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService.findDiamondGradeIntroductions(
             memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -51,8 +49,7 @@ public class MemberIntroductionController {
     @Operation(summary = "취미가 같은 이성 조회")
     @GetMapping("/hobby")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findSameHobbyIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService.findSameHobbyIntroductions(
             memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -61,8 +58,7 @@ public class MemberIntroductionController {
     @Operation(summary = "종교가 같은 이성 조회")
     @GetMapping("/religion")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findSameReligionIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService.findSameReligionIntroductions(
             memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -71,8 +67,7 @@ public class MemberIntroductionController {
     @Operation(summary = "지역이 같은 이성 조회")
     @GetMapping("/city")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findSameCityIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService.findSameCityIntroductions(
             memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -81,8 +76,7 @@ public class MemberIntroductionController {
     @Operation(summary = "최근에 가입한 이성 조회")
     @GetMapping("/recent")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findRecentlyJoinedIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService.findRecentlyJoinedIntroductions(
             memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -91,8 +85,7 @@ public class MemberIntroductionController {
     @Operation(summary = "오늘의 카드 생성 및 조회")
     @PostMapping("/today-card")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> createTodayCardIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         final Set<Long> todayCardMemberIds = todayCardQueryService.findTodayCardMemberIds(memberId);
         todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
         List<MemberIntroductionProfileView> introductionProfileViews = todayCardQueryService.findTodayCardIntroductions(
@@ -104,8 +97,7 @@ public class MemberIntroductionController {
     @PostMapping("/grade")
     public ResponseEntity<BaseResponse<Void>> createGradeIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createGradeIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -114,8 +106,7 @@ public class MemberIntroductionController {
     @PostMapping("/hobby")
     public ResponseEntity<BaseResponse<Void>> createHobbyIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createHobbyIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -124,8 +115,7 @@ public class MemberIntroductionController {
     @PostMapping("/religion")
     public ResponseEntity<BaseResponse<Void>> createReligionIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createReligionIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -134,8 +124,7 @@ public class MemberIntroductionController {
     @PostMapping("/city")
     public ResponseEntity<BaseResponse<Void>> createCityIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createCityIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -144,8 +133,7 @@ public class MemberIntroductionController {
     @PostMapping("/recent")
     public ResponseEntity<BaseResponse<Void>> createRecentIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createRecentIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -153,8 +141,7 @@ public class MemberIntroductionController {
     @Operation(summary = "소울 메이트 이성 조회")
     @GetMapping("/soulmate")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findSoulmateIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         Set<Long> soulmateMemberIds = soulmateFinder.findSoulmateIds(memberId);
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService
             .findMemberIntroductionProfileViews(memberId, soulmateMemberIds);
@@ -165,8 +152,7 @@ public class MemberIntroductionController {
     @PostMapping("/soulmate")
     public ResponseEntity<BaseResponse<Void>> createSoulmateIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createSoulmateIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -175,8 +161,7 @@ public class MemberIntroductionController {
     @PostMapping("/same-answer")
     public ResponseEntity<BaseResponse<Void>> createSameAnswerIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createSameAnswerIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -184,8 +169,7 @@ public class MemberIntroductionController {
     @Operation(summary = "이상형 이성 조회")
     @GetMapping("/ideal")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findIdealIntroductions(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews = introductionQueryService.findIdealIntroductions(
             memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -195,8 +179,7 @@ public class MemberIntroductionController {
     @PostMapping("/ideal")
     public ResponseEntity<BaseResponse<Void>> createIdealIntroduction(
         @Valid @RequestBody MemberIntroductionCreateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         memberIntroductionService.createIdealIntroduction(memberId, request.introducedMemberId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
@@ -204,8 +187,7 @@ public class MemberIntroductionController {
     @Operation(summary = "유형별 이상형 오픈 상태 조회 (오픈한 유형, 오픈 시각)")
     @GetMapping("/personality-status")
     public ResponseEntity<BaseResponse<PersonalityIntroductionOpenStatusView>> findPersonalityIntroductionOpenStatus(
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         PersonalityIntroductionOpenStatusView openStatusView = personalityIntroductionQueryService
             .findOpenStatus(memberId)
             .orElse(null);
@@ -216,8 +198,7 @@ public class MemberIntroductionController {
     @GetMapping("/{personalityType}")
     public ResponseEntity<BaseResponse<List<MemberIntroductionProfileView>>> findPersonalityTypeIntroductions(
         @PathVariable AnswerPersonalityType personalityType,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         List<MemberIntroductionProfileView> introductionProfileViews =
             personalityIntroductionQueryService.open(memberId, personalityType);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, introductionProfileViews));
@@ -228,8 +209,7 @@ public class MemberIntroductionController {
     public ResponseEntity<BaseResponse<Void>> unlockPersonalityTypeIntroduction(
         @PathVariable AnswerPersonalityType personalityType,
         @PathVariable long targetMemberId,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         personalityIntroductionUnlockService.unlock(memberId, personalityType, targetMemberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }

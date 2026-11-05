@@ -1,7 +1,6 @@
 package deepple.deepple.member.presentation.profileimage;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import deepple.deepple.common.response.BaseResponse;
@@ -33,9 +32,9 @@ public class ProfileImageController {
     @PostMapping
     public ResponseEntity<BaseResponse<List<ProfileImageUploadResponse>>> updateProfileImage(
         @RequestBody @Valid ProfileImageUploadRequestWrapper request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        List<ProfileImageUploadResponse> result = profileImageService.save(authContext.getId(), request.requests());
+        List<ProfileImageUploadResponse> result = profileImageService.save(memberId, request.requests());
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, result));
     }
 
@@ -43,17 +42,17 @@ public class ProfileImageController {
     @PostMapping("/presigned-url")
     public ResponseEntity<BaseResponse<PresignedUrlResponse>> getPresignedUrl(
         @RequestBody @Valid PresignedUrlPostRequest request,
-        @AuthPrincipal AuthContext authContext) {
+        @CurrentMemberId long memberId) {
         return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK, profileImageService.getPresignedUrl(request.fileName(), authContext.getId()))
+            BaseResponse.of(StatusType.OK, profileImageService.getPresignedUrl(request.fileName(), memberId))
         );
     }
 
     @Operation(summary = "내 프로필 이미지 조회")
     @GetMapping
     public ResponseEntity<BaseResponse<List<ProfileImageView>>> getMyProfileImages(
-        @AuthPrincipal AuthContext authContext) {
-        List<ProfileImageView> profileImageViews = profileImageQueryRepository.findByMemberId(authContext.getId());
+        @CurrentMemberId long memberId) {
+        List<ProfileImageView> profileImageViews = profileImageQueryRepository.findByMemberId(memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, profileImageViews));
     }
 }

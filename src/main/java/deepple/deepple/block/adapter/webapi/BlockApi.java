@@ -1,7 +1,6 @@
 package deepple.deepple.block.adapter.webapi;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.block.adapter.webapi.dto.BlockCreateRequest;
 import deepple.deepple.block.application.provided.BlockCommander;
 import deepple.deepple.common.enums.StatusType;
@@ -26,9 +25,9 @@ public class BlockApi {
     @PostMapping
     public ResponseEntity<BaseResponse<Void>> createBlock(
         @RequestBody @Valid BlockCreateRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        Long blockerId = authContext.getId();
+        Long blockerId = memberId;
         blockCommander.createBlock(blockerId, request.blockedId());
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }

@@ -1,7 +1,6 @@
 package deepple.deepple.member.presentation.introduction;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.introduction.MemberIdealService;
@@ -26,8 +25,7 @@ public class MemberIdealController {
 
     @Operation(summary = "멤버 이상형 설정 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<MemberIdealView>> getMemberIdeal(@AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+    public ResponseEntity<BaseResponse<MemberIdealView>> getMemberIdeal(@CurrentMemberId long memberId) {
         MemberIdealView memberIdealView = memberIdealQueryRepository.findMemberIdealByMemberId(memberId)
             .orElseThrow(MemberIdealNotFoundException::new);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberIdealView));
@@ -36,8 +34,7 @@ public class MemberIdealController {
     @Operation(summary = "멤버 이상형 설정 수정")
     @PatchMapping
     public ResponseEntity<BaseResponse<Void>> updateIdeal(@Valid @RequestBody MemberIdealUpdateRequest request,
-        @AuthPrincipal AuthContext authContext) {
-        long memberId = authContext.getId();
+        @CurrentMemberId long memberId) {
         idealService.update(request, memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }

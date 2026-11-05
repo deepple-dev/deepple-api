@@ -1,7 +1,6 @@
 package deepple.deepple.interview.presentation.answer;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.interview.command.application.answer.InterviewAnswerService;
@@ -27,9 +26,9 @@ public class InterviewAnswerController {
     @PostMapping
     public ResponseEntity<BaseResponse<InterviewAnswerCreateResponse>> saveAnswer(
         @Valid @RequestBody InterviewAnswerSaveRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        boolean hasProcessedMission = interviewAnswerService.saveAnswer(request, authContext.getId());
+        boolean hasProcessedMission = interviewAnswerService.saveAnswer(request, memberId);
         InterviewAnswerCreateResponse response = new InterviewAnswerCreateResponse(hasProcessedMission);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, response));
     }
@@ -39,9 +38,9 @@ public class InterviewAnswerController {
     public ResponseEntity<BaseResponse<Void>> updateAnswer(
         @PathVariable Long id,
         @Valid @RequestBody InterviewAnswerUpdateRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        interviewAnswerService.updateAnswer(id, request, authContext.getId());
+        interviewAnswerService.updateAnswer(id, request, memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
@@ -49,9 +48,9 @@ public class InterviewAnswerController {
     @DeleteMapping("/{id}")
     public ResponseEntity<BaseResponse<Void>> deleteAnswer(
         @PathVariable Long id,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        interviewAnswerService.deleteAnswer(id, authContext.getId());
+        interviewAnswerService.deleteAnswer(id, memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 }

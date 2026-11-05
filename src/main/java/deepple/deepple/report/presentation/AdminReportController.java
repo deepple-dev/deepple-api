@@ -1,7 +1,6 @@
 package deepple.deepple.report.presentation;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentAdminId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.report.command.application.AdminReportService;
@@ -34,9 +33,9 @@ public class AdminReportController {
     public ResponseEntity<BaseResponse<Void>> updateResult(
         @PathVariable long id,
         @Valid @RequestBody ReportResultUpdateRequest request,
-        @AuthPrincipal AuthContext authContext
+        @CurrentAdminId long adminId
     ) {
-        adminReportService.updateResult(id, request, authContext.getId());
+        adminReportService.updateResult(id, request, adminId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 

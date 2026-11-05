@@ -1,8 +1,7 @@
 package deepple.deepple.member.presentation.screening;
 
 import deepple.deepple.admin.command.application.screening.ScreeningService;
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,9 +24,9 @@ public class MemberScreeningController {
     @Operation(summary = "재심사 요청")
     @PostMapping("/rescreen")
     public ResponseEntity<BaseResponse<Void>> rescreen(
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        screeningService.rescreen(authContext.getId());
+        screeningService.rescreen(memberId);
         return ResponseEntity.ok(BaseResponse.from(OK));
     }
 }

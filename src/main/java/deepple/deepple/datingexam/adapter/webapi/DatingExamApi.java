@@ -1,7 +1,6 @@
 package deepple.deepple.datingexam.adapter.webapi;
 
-import deepple.deepple.auth.presentation.AuthContext;
-import deepple.deepple.auth.presentation.AuthPrincipal;
+import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmissionResponse;
@@ -28,29 +27,29 @@ public class DatingExamApi {
     @PostMapping("/submit")
     public ResponseEntity<BaseResponse<Void>> submitRequiredExam(
         @RequestBody @Valid DatingExamSubmitRequest datingExamSubmitRequest,
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
-        datingExamSubmitter.submitSubject(datingExamSubmitRequest, authContext.getId());
+        datingExamSubmitter.submitSubject(datingExamSubmitRequest, memberId);
         return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
     }
 
     @Operation(summary = "필수 과목 정보 조회 API")
     @GetMapping("/required")
     public ResponseEntity<BaseResponse<DatingExamInfoWithSubjectSubmissionResponse>> getRequiredExamInfo(
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
         final DatingExamInfoWithSubjectSubmissionResponse requiredExamInfo = datingExamFinder.findRequiredExamInfo(
-            authContext.getId());
+            memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, requiredExamInfo));
     }
 
     @Operation(summary = "대표 성격 유형 조회 API")
     @GetMapping("/personality-type")
     public ResponseEntity<BaseResponse<DominantPersonalityTypeResponse>> getDominantPersonalityType(
-        @AuthPrincipal AuthContext authContext
+        @CurrentMemberId long memberId
     ) {
         final DominantPersonalityTypeResponse response = datingExamFinder.findDominantPersonalityType(
-            authContext.getId());
+            memberId);
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, response));
     }
 }
