@@ -57,7 +57,9 @@ jwt:
     -----END PRIVATE KEY-----
 
 auth:
-  prefix-code: 008008
+  test-phone-numbers:
+    verification-code: "008008"
+    allow-all: true
 
 cors:
   allowed-origins:

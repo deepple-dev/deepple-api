@@ -86,7 +86,6 @@ auth:
       same-site: None
       secure: true
       http-only: true
-  prefix-code: ${AUTH_PREFIX_CODE}
 
 payment:
   app-store:

@@ -16,6 +16,11 @@ spring:
 jwt:
   issuer: https://dev-api.deepple.co.kr
 
+auth:
+  test-phone-numbers:
+    verification-code: "008008"
+    allow-all: true
+
 cors:
   allowed-origins:
     - https://admin.deepple.co.kr

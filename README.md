@@ -20,7 +20,7 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 - 포트: MySQL `3306`(DB·계정·비밀번호 `deepple`), Valkey `6379`, S3Mock `9090`(버킷 `deepple-local`)
 - 스키마는 Flyway 마이그레이션으로 만들어진다. 데이터를 지우려면 `docker compose down -v`를 실행한다.
 - 로컬에서는 외부 연동을 가짜 구현으로 대신한다(`application-local.yml`의 `bizgo.enabled`, `firebase.enabled`, `payment.google-play.enabled`가 `false`).
-  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력, 고정 코드 `008008`로도 로그인 가능
+  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력
   - 푸시(FCM), Google Play 결제 검증: 요청하지 않고 로그만 남김, Google Play 구매는 항상 유효로 처리
   - 이미지 업로드: S3Mock에 저장
 
@@ -29,6 +29,15 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 - `Settings > Editor > Code Style > Scheme`을 `Project`로 설정 (저장소의 `.idea/codeStyles` 사용)
 - `Settings > Tools > Actions on Save`에서 `Reformat code`, `Optimize imports`, `Rearrange code` 켜기
 - (선택) SonarQube for IDE 플러그인 설치
+
+## 로그인
+
+| 환경 | 회원 | 관리자 |
+|---|---|---|
+| local·dev | 인증번호 `008008` + 아무 번호 | 가입 후 SUPER_ADMIN 승인 |
+| prod | 문자 인증. 심사용 데모 번호만 정해진 코드로 (`deepple-prod/external`) | 가입 후 SUPER_ADMIN 승인 |
+
+- 문자 없이 로그인할 번호는 `auth.test-phone-numbers`로 정한다. 데모 번호는 실제로 쓰이지 않는 번호를 쓴다.
 
 ## 테스트
 

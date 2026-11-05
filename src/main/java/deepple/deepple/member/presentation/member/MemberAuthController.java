@@ -43,22 +43,6 @@ public class MemberAuthController {
             .body(BaseResponse.of(StatusType.OK, loginResponse));
     }
 
-    @Operation(summary = "멤버 로그인 (테스트용, 인증번호X)")
-    @PostMapping("/login/test")
-    public ResponseEntity<BaseResponse<MemberLoginResponse>> test(@Valid @RequestBody MemberTestLoginRequest request) {
-        MemberLoginServiceDto loginServiceDto = memberAuthService.test(request.phoneNumber());
-
-        HttpHeaders headers = new HttpHeaders();
-        ResponseCookie refreshTokenCookie = refreshTokenCookies.create(loginServiceDto.refreshToken());
-        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
-
-        MemberLoginResponse loginResponse = MemberDtoMapper.toMemberLoginResponse(loginServiceDto);
-
-        return ResponseEntity.ok()
-            .headers(headers)
-            .body(BaseResponse.of(StatusType.OK, loginResponse));
-    }
-
     @Operation(summary = "토큰 갱신")
     @PostMapping("/refresh")
     public ResponseEntity<BaseResponse<TokenRefreshResponse>> refresh(

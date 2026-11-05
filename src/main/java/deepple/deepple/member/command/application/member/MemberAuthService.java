@@ -21,7 +21,6 @@ import deepple.deepple.member.command.domain.member.event.MemberLoggedOutEvent;
 import deepple.deepple.member.command.domain.member.event.MemberRegisteredEvent;
 import deepple.deepple.member.command.domain.member.exception.MemberNotActiveException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,14 +42,10 @@ public class MemberAuthService {
     private final AuthMessageService authMessageService;
     private final TokenProvider tokenProvider;
     private final RefreshTokenService refreshTokenService;
-    @Value("${auth.prefix-code}")
-    private String PRE_FIXED_CODE;
 
     @Transactional
     public MemberLoginServiceDto login(String phoneNumber, String code) {
-        if (PRE_FIXED_CODE == null || PRE_FIXED_CODE.isBlank() || !PRE_FIXED_CODE.equals(code)) {
-            authMessageService.authenticate(phoneNumber, code);
-        }
+        authMessageService.authenticate(phoneNumber, code);
 
         Member member = createOrFindMemberByPhoneNumber(phoneNumber);
         validateMemberLoginPermission(member);
@@ -62,19 +57,6 @@ public class MemberAuthService {
 
         memberCommandRepository.updateLastAccessedAt(member.getId(),
             LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
-
-        return new MemberLoginServiceDto(accessToken, refreshToken, member.isProfileSettingNeeded(),
-            member.getActivityStatus() != null ? member.getActivityStatus().name() : null);
-    }
-
-    @Transactional
-    public MemberLoginServiceDto test(String phoneNumber) {
-        Member member = createOrFindMemberByPhoneNumber(phoneNumber);
-
-        validateMemberLoginPermission(member);
-
-        String accessToken = tokenProvider.createAccessToken(member.getId(), Role.MEMBER, Instant.now());
-        String refreshToken = refreshTokenService.issue(TokenOwner.member(member.getId()));
 
         return new MemberLoginServiceDto(accessToken, refreshToken, member.isProfileSettingNeeded(),
             member.getActivityStatus() != null ? member.getActivityStatus().name() : null);
