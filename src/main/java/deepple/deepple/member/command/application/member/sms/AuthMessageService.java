@@ -16,6 +16,7 @@ public class AuthMessageService {
     private static final Random generator = new SecureRandom();
     private final AuthMessageRedisRepository authMessageRedisRepository;
     private final SmsSender smsSender;
+    private final TestPhoneNumbersProperties testPhoneNumbers;
 
     public void sendAndSaveCode(String phoneNumber) {
         String code = generateNumber();
@@ -24,6 +25,10 @@ public class AuthMessageService {
     }
 
     public void authenticate(String phoneNumber, String code) {
+        if (testPhoneNumbers.accepts(phoneNumber, code)) {
+            return;
+        }
+
         String value = authMessageRedisRepository.getByKey(phoneNumber);
         validateWithCode(value, code);
         authMessageRedisRepository.delete(phoneNumber);

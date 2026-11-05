@@ -109,7 +109,6 @@ locals {
     REDIS_HOST                  = aws_elasticache_serverless_cache.this.endpoint[0].address
     OTEL_EXPORTER_OTLP_ENDPOINT = "http://${local.alloy_host}:4318"
     AWS_S3_BUCKET_NAME          = aws_s3_bucket.storage.bucket
-    AUTH_PREFIX_CODE            = ""
 
     GOOGLE_WORKLOAD_IDENTITY_AUDIENCE = "//iam.googleapis.com/${var.gcp_workload_identity_provider}"
     FIREBASE_PROJECT_ID               = var.firebase_project_id

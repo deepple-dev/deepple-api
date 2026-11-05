@@ -20,7 +20,7 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 - 포트: MySQL `3306`(DB·계정·비밀번호 `deepple`), Valkey `6379`, S3Mock `9090`(버킷 `deepple-local`)
 - 스키마는 Flyway 마이그레이션으로 만들어진다. 데이터를 지우려면 `docker compose down -v`를 실행한다.
 - 로컬에서는 외부 연동을 가짜 구현으로 대신한다(`application-local.yml`의 `bizgo.enabled`, `firebase.enabled`, `payment.google-play.enabled`가 `false`).
-  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력, 고정 코드 `008008`로도 로그인 가능
+  - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력
   - 푸시(FCM), Google Play 결제 검증: 요청하지 않고 로그만 남김, Google Play 구매는 항상 유효로 처리
   - 이미지 업로드: S3Mock에 저장
 
@@ -30,6 +30,15 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
 - `Settings > Tools > Actions on Save`에서 `Reformat code`, `Optimize imports`, `Rearrange code` 켜기
 - (선택) SonarQube for IDE 플러그인 설치
 
+## 로그인
+
+| 환경 | 회원 | 관리자 |
+|---|---|---|
+| local·dev | 인증번호 `008008` + 아무 번호 | 가입 후 SUPER_ADMIN 승인 |
+| prod | 문자 인증. 심사용 데모 번호만 정해진 코드로 (`deepple-prod/external`) | 가입 후 SUPER_ADMIN 승인 |
+
+- 문자 없이 로그인할 번호는 `auth.test-phone-numbers`로 정한다. 데모 번호는 실제로 쓰이지 않는 번호를 쓴다.
+
 ## 테스트
 
 Docker를 켠 상태에서 실행한다. 테스트가 MySQL·Valkey·S3Mock 컨테이너를 직접 띄운다.
@@ -37,20 +46,6 @@ Docker를 켠 상태에서 실행한다. 테스트가 MySQL·Valkey·S3Mock 컨�
 ```bash
 ./gradlew test
 ```
-
-## 프로젝트 구조
-
-도메인별 패키지(`src/main/java/deepple/deepple/<도메인>`)로 나뉘고, 도메인 간 협력은 도메인 이벤트로 처리한다.
-
-```
-<도메인>/
-├── presentation/   # API 컨트롤러, 요청·응답 DTO
-├── command/        # 쓰기: application, domain, infra
-└── query/          # 읽기 전용 조회
-```
-
-- 도메인: `member`, `match`, `heart`, `payment`, `notification`, `admin`, `community`, `interview`, `like`, `mission`, `block`, `report`, `datingexam`, `auth`
-- DB 스키마: Flyway(`src/main/resources/db/migration`)
 
 ## 개발 플로우
 
@@ -72,7 +67,7 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 | 환경 | 방식 |
 |---|---|
 | 개발 | `main` 병합 시 앱 코드가 바뀌었으면 자동 배포, Actions의 Deploy에서 수동 실행 가능 (`dev-api.deepple.co.kr`) |
-| 운영 | 없음 (Terraform으로 재구축 중) |
+| 운영 | `v*` 태그 push → GitHub `prod` 환경 승인 후 배포 (인프라는 출시 전에 구축) |
 
 - 개발 배포: 이미지 빌드 → ECR push(커밋 SHA 태그) → 출처 증명·SBOM 서명 → ECS 서비스 갱신 → 완료 알림 `#alerts-dev`
 - 이미지 검증: `gh attestation verify oci://<ECR 주소>/deepple-api@<digest> --repo deepple-dev/deepple-api`
@@ -81,3 +76,4 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 
 - [CLAUDE.md](CLAUDE.md): 구조, 도메인, 코딩 규칙
 - [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동, DB, 테스트, 빌드 규칙
+- [infra/terraform/README.md](infra/terraform/README.md): 인프라, secret, 배포 절차

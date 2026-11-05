@@ -33,6 +33,9 @@ auth:
   refresh-token:
     cookie:
       same-site: Lax
+  test-phone-numbers:
+    verification-code: ${DEMO_ACCOUNT_CODE}
+    numbers: ${DEMO_ACCOUNT_PHONE_NUMBER}
 
 cors:
   allowed-origins:

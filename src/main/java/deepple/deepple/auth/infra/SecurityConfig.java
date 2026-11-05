@@ -36,7 +36,6 @@ public class SecurityConfig {
 
     private static final RequestMatcher[] PUBLIC_REQUESTS = {
         post("/member/login"),
-        post("/member/login/test"),
         post("/member/code"),
         post("/member/refresh"),
         post("/member/profile/active"),

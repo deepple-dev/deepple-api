@@ -36,7 +36,7 @@ resource "aws_secretsmanager_secret_version" "jwt" {
 
 resource "aws_secretsmanager_secret" "external" {
   name        = "${local.name}/external"
-  description = "prod 외부 연동 키 (App Store, Bizgo, Sentry)"
+  description = "prod 외부 연동 키 (App Store, Bizgo, Sentry)와 심사용 데모 계정"
 }
 
 locals {
@@ -46,5 +46,7 @@ locals {
     "BIZGO_API_KEY",
     "BIZGO_FROM_PHONE_NUMBER",
     "SENTRY_DSN",
+    "DEMO_ACCOUNT_PHONE_NUMBER",
+    "DEMO_ACCOUNT_CODE",
   ]
 }

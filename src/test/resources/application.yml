@@ -78,7 +78,6 @@ auth:
       same-site: None
       secure: true
       http-only: true
-  prefix-code: 008008
 
 cors:
   allowed-origins:
