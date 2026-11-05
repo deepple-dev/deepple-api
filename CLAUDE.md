@@ -59,7 +59,7 @@
 
 ## 코딩 규칙
 
-- 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 응답은 `BaseResponse`로 감싼다.
+- 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 성공 응답은 `BaseResponse`로 감싸고, 오류 응답은 `GlobalExceptionHandler`가 ProblemDetail로 만든다.
 - 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
   - 발행: `Events.raise(event)` (`common/event`), 이벤트는 `Event`를 상속
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`

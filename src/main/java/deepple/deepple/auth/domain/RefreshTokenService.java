@@ -1,9 +1,8 @@
 package deepple.deepple.auth.domain;
 
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
-import deepple.deepple.auth.domain.exception.MissingRefreshTokenException;
-import deepple.deepple.auth.infra.RefreshTokenRepository;
 import deepple.deepple.auth.infra.RefreshTokenProperties;
+import deepple.deepple.auth.infra.RefreshTokenRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
@@ -42,7 +41,7 @@ public class RefreshTokenService {
 
     public TokenOwner consume(String token) {
         if (token == null || token.isBlank()) {
-            throw new MissingRefreshTokenException();
+            throw new DeeppleException(AuthErrorCode.MISSING_REFRESH_TOKEN);
         }
 
         String tokenHash = hash(token);
@@ -55,14 +54,14 @@ public class RefreshTokenService {
         }
 
         UsedRefreshToken used = refreshTokenRepository.findUsed(tokenHash)
-            .orElseThrow(InvalidRefreshTokenException::new);
+            .orElseThrow(() -> new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN));
         if (used.usedAt().plus(REUSE_GRACE_PERIOD).isAfter(now)) {
             return used.owner();
         }
 
         log.warn("이미 사용한 리프레시 토큰이 다시 사용되어 모든 리프레시 토큰을 폐기합니다. owner={}", used.owner());
         refreshTokenRepository.deleteAll(used.owner());
-        throw new InvalidRefreshTokenException();
+        throw new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 
     public void revoke(String token) {

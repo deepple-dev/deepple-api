@@ -9,11 +9,12 @@ import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupResponse;
-import deepple.deepple.auth.domain.TokenProvider;
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
+import deepple.deepple.auth.domain.TokenProvider;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -237,7 +238,9 @@ class AdminAuthServiceTest {
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+                .isInstanceOf(DeeppleException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
             verify(refreshTokenService).revokeAll(owner);
             verify(refreshTokenService, never()).issue(any());
         }
@@ -250,7 +253,9 @@ class AdminAuthServiceTest {
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+                .isInstanceOf(DeeppleException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
             verify(adminCommandRepository, never()).findById(any());
         }
     }

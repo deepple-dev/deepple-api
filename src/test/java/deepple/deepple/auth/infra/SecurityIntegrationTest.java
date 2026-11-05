@@ -68,7 +68,20 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("401001");
+                .isEqualTo("MISSING_ACCESS_TOKEN");
+        }
+
+        @Test
+        @DisplayName("인증 실패는 ProblemDetail 형식으로 응답한다.")
+        void respondProblemDetailOnAuthenticationFailure() {
+            MvcTestResult result = mockMvc.get()
+                .uri(MEMBER_API)
+                .exchange();
+
+            assertThat(result).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+            assertThat(result).bodyJson().extractingPath("$.status").isEqualTo(401);
+            assertThat(result).bodyJson().extractingPath("$.detail").isEqualTo("액세스 토큰이 없습니다.");
+            assertThat(result).bodyJson().extractingPath("$.instance").isEqualTo(MEMBER_API);
         }
 
         @Test
@@ -86,7 +99,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("401006");
+                .isEqualTo("EXPIRED_ACCESS_TOKEN");
         }
 
         @Test
@@ -110,7 +123,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("401002");
+                .isEqualTo("INVALID_ACCESS_TOKEN");
         }
 
         @Test
@@ -127,7 +140,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("401002");
+                .isEqualTo("INVALID_ACCESS_TOKEN");
         }
 
         @Test
@@ -158,7 +171,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("401002");
+                .isEqualTo("INVALID_ACCESS_TOKEN");
         }
     }
 
@@ -178,7 +191,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("403001");
+                .isEqualTo("ACCESS_DENIED");
         }
 
         @Test
@@ -266,7 +279,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             assertThat(result)
                 .bodyJson()
                 .extractingPath("$.code")
-                .isEqualTo("401003");
+                .isEqualTo("MISSING_REFRESH_TOKEN");
         }
 
         @Test

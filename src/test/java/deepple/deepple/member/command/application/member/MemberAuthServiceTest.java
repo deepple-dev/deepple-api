@@ -3,13 +3,14 @@ package deepple.deepple.member.command.application.member;
 import deepple.deepple.admin.command.domain.suspension.Suspension;
 import deepple.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.auth.infra.JwtProvider;
 import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.common.event.Events;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
 import deepple.deepple.member.command.application.member.exception.*;
@@ -357,7 +358,9 @@ class MemberAuthServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.refresh(REFRESH_TOKEN))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+                .isInstanceOf(DeeppleException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
             Mockito.verify(memberCommandRepository, Mockito.never()).findById(Mockito.anyLong());
         }
     }

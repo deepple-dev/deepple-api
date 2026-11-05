@@ -1,10 +1,10 @@
 package deepple.deepple.common.repository;
 
-import deepple.deepple.common.exception.CannotGetLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.TimeUnit;
@@ -28,7 +28,7 @@ public class RedissonLockRepository {
             runnable.run();
         } catch (Exception e) {
             log.error("잠금 에러 발생 = {}", key, e);
-            throw new CannotGetLockException(e);
+            throw new CannotAcquireLockException("락을 획득하지 못했습니다. key=" + key, e);
         } finally {
             if (isLocked && lock.isHeldByCurrentThread()) {
                 lock.unlock();

@@ -1,9 +1,10 @@
 package deepple.deepple.auth.infra;
 
+import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
-import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,9 +71,13 @@ class RefreshTokenRedisIntegrationTest extends IntegrationTestSupport {
 
         // then
         assertThatThrownBy(() -> refreshTokenService.consume(phone))
-            .isInstanceOf(InvalidRefreshTokenException.class);
+            .isInstanceOf(DeeppleException.class)
+            .extracting("errorCode")
+            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
         assertThatThrownBy(() -> refreshTokenService.consume(laptop))
-            .isInstanceOf(InvalidRefreshTokenException.class);
+            .isInstanceOf(DeeppleException.class)
+            .extracting("errorCode")
+            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
         assertThat(refreshTokenService.consume(otherMember)).isEqualTo(TokenOwner.member(103L));
     }
 
@@ -87,6 +92,8 @@ class RefreshTokenRedisIntegrationTest extends IntegrationTestSupport {
 
         // then
         assertThatThrownBy(() -> refreshTokenService.consume(token))
-            .isInstanceOf(InvalidRefreshTokenException.class);
+            .isInstanceOf(DeeppleException.class)
+            .extracting("errorCode")
+            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 }
