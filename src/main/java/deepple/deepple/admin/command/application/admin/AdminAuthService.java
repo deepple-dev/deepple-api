@@ -5,8 +5,10 @@ import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupResponse;
+import deepple.deepple.auth.domain.RefreshTokenService;
+import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.TokenProvider;
-import deepple.deepple.auth.domain.TokenRepository;
+import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.common.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,7 @@ public class AdminAuthService {
     private final AdminCommandRepository adminCommandRepository;
     private final PasswordHasher passwordHasher;
     private final TokenProvider tokenProvider;
-    private final TokenRepository tokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public AdminSignupResponse signup(AdminSignupRequest request) {
@@ -36,17 +38,36 @@ public class AdminAuthService {
         admin.matchPassword(request.password(), passwordHasher);
         validateApproved(admin);
 
-        Role role = admin.getTokenRole();
-        Instant issuedAt = Instant.now();
-        String accessToken = tokenProvider.createAccessToken(admin.getId(), role, issuedAt);
-        String refreshToken = tokenProvider.createRefreshToken(admin.getId(), role, issuedAt);
-        tokenRepository.save(refreshToken);
+        return issueTokens(admin);
+    }
 
-        return AdminAuthMapper.toLoginResponse(accessToken, refreshToken);
+    @Transactional(readOnly = true)
+    public AdminLoginResponse refresh(String refreshToken) {
+        TokenOwner owner = refreshTokenService.consume(refreshToken);
+        if (!owner.isAdmin()) {
+            throw new InvalidRefreshTokenException();
+        }
+
+        Admin admin = adminCommandRepository.findById(owner.id())
+            .filter(found -> !found.isDeleted() && found.isApproved())
+            .orElse(null);
+        if (admin == null) {
+            refreshTokenService.revokeAll(owner);
+            throw new InvalidRefreshTokenException();
+        }
+
+        return issueTokens(admin);
     }
 
     public void logout(String refreshToken) {
-        tokenRepository.delete(refreshToken);
+        refreshTokenService.revoke(refreshToken);
+    }
+
+    private AdminLoginResponse issueTokens(Admin admin) {
+        Role role = admin.getTokenRole();
+        String accessToken = tokenProvider.createAccessToken(admin.getId(), role, Instant.now());
+        String refreshToken = refreshTokenService.issue(new TokenOwner(admin.getId(), role));
+        return AdminAuthMapper.toLoginResponse(accessToken, refreshToken);
     }
 
     private void validateEmailUniqueness(String email) {

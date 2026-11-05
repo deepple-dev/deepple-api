@@ -3,12 +3,14 @@ package deepple.deepple.member.command.application.member;
 import deepple.deepple.admin.command.domain.suspension.Suspension;
 import deepple.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
-import deepple.deepple.auth.domain.TokenParser;
-import deepple.deepple.auth.domain.TokenRepository;
+import deepple.deepple.auth.domain.RefreshTokenService;
+import deepple.deepple.auth.domain.TokenOwner;
+import deepple.deepple.auth.domain.exception.InvalidRefreshTokenException;
 import deepple.deepple.auth.infra.JwtProvider;
 import deepple.deepple.common.MockEventsExtension;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
+import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
 import deepple.deepple.member.command.application.member.exception.*;
 import deepple.deepple.member.command.application.member.sms.AuthMessageService;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
@@ -49,10 +51,7 @@ class MemberAuthServiceTest {
     private JwtProvider jwtProvider;
 
     @Mock
-    private TokenRepository tokenRepository;
-
-    @Mock
-    private TokenParser tokenParser;
+    private RefreshTokenService refreshTokenService;
 
     @Mock
     private AuthMessageService authMessageService;
@@ -255,9 +254,6 @@ class MemberAuthServiceTest {
                 when(
                     jwtProvider.createAccessToken(Mockito.anyLong(), Mockito.eq(Role.MEMBER), Mockito.eq(fixedInstant)))
                     .thenReturn("accessToken");
-                when(jwtProvider.createRefreshToken(Mockito.anyLong(), Mockito.eq(Role.MEMBER),
-                    Mockito.eq(fixedInstant)))
-                    .thenReturn("refreshToken");
                 Mockito.doNothing().when(authMessageService).authenticate(phoneNumber, code);
 
                 // When
@@ -274,29 +270,57 @@ class MemberAuthServiceTest {
     @DisplayName("토큰 갱신 테스트")
     class Refresh {
 
+        private static final String REFRESH_TOKEN = "refreshToken";
+
         @Test
-        @DisplayName("토큰 갱신 성공 시 마지막 접속 시각을 갱신한다")
+        @DisplayName("토큰 갱신 성공 시 새 토큰을 발급하고 마지막 접속 시각을 갱신한다")
         void updatesLastAccessedAtOnRefresh() {
             // Given
-            String refreshToken = "refreshToken";
             long memberId = 1L;
-
-            when(tokenParser.isExpired(refreshToken)).thenReturn(false);
-            when(tokenParser.isValid(refreshToken)).thenReturn(true);
-            when(tokenRepository.exists(refreshToken)).thenReturn(true);
-            when(tokenParser.getId(refreshToken)).thenReturn(memberId);
-            when(tokenParser.getRole(refreshToken)).thenReturn(Role.MEMBER);
+            Member member = Member.fromPhoneNumber("01012345678");
+            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.ACTIVE);
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(memberId));
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
             when(jwtProvider.createAccessToken(Mockito.eq(memberId), Mockito.eq(Role.MEMBER), Mockito.any()))
                 .thenReturn("newAccessToken");
-            when(jwtProvider.createRefreshToken(Mockito.eq(memberId), Mockito.eq(Role.MEMBER), Mockito.any()))
-                .thenReturn("newRefreshToken");
+            when(refreshTokenService.issue(TokenOwner.member(memberId))).thenReturn("newRefreshToken");
 
             // When
-            memberAuthService.refresh(refreshToken);
+            TokenPairResponse response = memberAuthService.refresh(REFRESH_TOKEN);
 
             // Then
+            Assertions.assertThat(response.refreshToken()).isEqualTo("newRefreshToken");
             Mockito.verify(memberCommandRepository)
                 .updateLastAccessedAt(Mockito.eq(memberId), Mockito.any(LocalDateTime.class));
+        }
+
+        @Test
+        @DisplayName("정지된 회원이 갱신하면 예외가 발생하고 모든 리프레시 토큰을 폐기한다")
+        void revokeAllWhenSuspendedMemberRefreshes() {
+            // Given
+            long memberId = 2L;
+            Member member = Member.fromPhoneNumber("01012345678");
+            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.SUSPENDED_PERMANENTLY);
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(memberId));
+            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+            // When & Then
+            Assertions.assertThatThrownBy(() -> memberAuthService.refresh(REFRESH_TOKEN))
+                .isInstanceOf(PermanentlySuspendedMemberException.class);
+            Mockito.verify(refreshTokenService).revokeAll(TokenOwner.member(memberId));
+            Mockito.verify(refreshTokenService, Mockito.never()).issue(Mockito.any());
+        }
+
+        @Test
+        @DisplayName("관리자 리프레시 토큰으로 회원 갱신을 요청하면 예외가 발생한다")
+        void rejectAdminRefreshToken() {
+            // Given
+            when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(new TokenOwner(1L, Role.ADMIN));
+
+            // When & Then
+            Assertions.assertThatThrownBy(() -> memberAuthService.refresh(REFRESH_TOKEN))
+                .isInstanceOf(InvalidRefreshTokenException.class);
+            Mockito.verify(memberCommandRepository, Mockito.never()).findById(Mockito.anyLong());
         }
     }
 
@@ -307,29 +331,28 @@ class MemberAuthServiceTest {
         @Test
         void throwExceptionWhenMemberIsNotFound() {
             // Given
-            Long memberId = 1L;
-            String refreshToken = "refreshToken";
+            long memberId = 1L;
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 
             // When & Then
-            Assertions.assertThatThrownBy(() -> memberAuthService.delete(memberId, refreshToken))
+            Assertions.assertThatThrownBy(() -> memberAuthService.delete(memberId))
                 .isInstanceOf(MemberNotFoundException.class);
         }
 
-        @DisplayName("존재하는 경우, 회원을 SoftDelete 한다.")
+        @DisplayName("존재하는 경우, 회원을 SoftDelete 하고 모든 리프레시 토큰을 폐기한다.")
         @Test
         void softDeleteWhenMemberIsFound() {
             // Given
-            Long memberId = 1L;
-            String refreshToken = "refreshToken";
+            long memberId = 1L;
             Member member = Member.fromPhoneNumber("01012345678");
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
             // When
-            memberAuthService.delete(memberId, refreshToken);
+            memberAuthService.delete(memberId);
 
             // Then
             Assertions.assertThat(member.isDeleted()).isTrue();
+            Mockito.verify(refreshTokenService).revokeAll(TokenOwner.member(memberId));
         }
     }
 }

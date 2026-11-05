@@ -3,9 +3,10 @@ package deepple.deepple.admin.presentation.admin;
 import deepple.deepple.admin.command.application.admin.AdminAuthService;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
+import deepple.deepple.admin.presentation.admin.dto.AdminRefreshResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupResponse;
-import deepple.deepple.auth.presentation.RefreshTokenCookieProperties;
+import deepple.deepple.auth.presentation.RefreshTokenCookies;
 import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +25,7 @@ public class AdminAuthController {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final RefreshTokenCookieProperties refreshTokenCookieProperties;
+    private final RefreshTokenCookies refreshTokenCookies;
     private final AdminAuthService adminAuthService;
 
     @Operation(summary = "관리자 회원가입")
@@ -42,19 +42,25 @@ public class AdminAuthController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + response.accessToken());
-        ResponseCookie refreshTokenCookie = ResponseCookie.from(refreshTokenCookieProperties.name(),
-                response.refreshToken())
-            .httpOnly(refreshTokenCookieProperties.httpOnly())
-            .secure(refreshTokenCookieProperties.secure())
-            .sameSite(refreshTokenCookieProperties.sameSite())
-            .path(refreshTokenCookieProperties.path())
-            .maxAge(refreshTokenCookieProperties.maxAge())
-            .build();
-        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookies.create(response.refreshToken())
+            .toString());
 
         return ResponseEntity.ok()
             .headers(headers)
             .body(BaseResponse.from(StatusType.OK));
+    }
+
+    @Operation(summary = "관리자 토큰 재발급")
+    @PostMapping("/refresh")
+    public ResponseEntity<BaseResponse<AdminRefreshResponse>> refresh(
+        @CookieValue(value = "refresh_token", required = false) String refreshToken
+    ) {
+        AdminLoginResponse response = adminAuthService.refresh(refreshToken);
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.create(response.refreshToken())
+                .toString())
+            .body(BaseResponse.of(StatusType.OK, new AdminRefreshResponse(response.accessToken())));
     }
 
     @Operation(summary = "관리자 로그아웃")
@@ -64,16 +70,9 @@ public class AdminAuthController {
     ) {
         adminAuthService.logout(refreshToken);
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from(refreshTokenCookieProperties.name(), "")
-            .httpOnly(refreshTokenCookieProperties.httpOnly())
-            .secure(refreshTokenCookieProperties.secure())
-            .sameSite(refreshTokenCookieProperties.sameSite())
-            .path(refreshTokenCookieProperties.path())
-            .maxAge(0)
-            .build();
-
         return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.expire()
+                .toString())
             .body(BaseResponse.from(StatusType.OK));
     }
 }

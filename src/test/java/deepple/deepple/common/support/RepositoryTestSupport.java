@@ -1,6 +1,6 @@
 package deepple.deepple.common.support;
 
-import deepple.deepple.auth.infra.TokenRedisRepository;
+import deepple.deepple.auth.infra.RefreshTokenRepository;
 import deepple.deepple.common.MockEventsExtension;
 import deepple.deepple.common.config.MySqlContainerConfig;
 import deepple.deepple.common.config.QueryDslConfig;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository;
     excludeFilters = @Filter(
         type = FilterType.ASSIGNABLE_TYPE,
         classes = {
-            TokenRedisRepository.class,
+            RefreshTokenRepository.class,
             AuthMessageRedisRepository.class,
             IntroductionRedisRepository.class,
             PersonalityIntroductionRedisRepository.class,

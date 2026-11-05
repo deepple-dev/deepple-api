@@ -67,19 +67,17 @@ jwt:
     nbkH9WQBdp4FLP3Y3LcQ5K3M/v9MJtYU9SSrTC76WRjLQy/jmYHzHw5Oh7fTt56k
     3P1UIZKE0IoW2ExA5fzWDg==
     -----END PRIVATE KEY-----
-  access-token:
-    expiration: 1800  # 30분
-  refresh-token:
-    expiration: 1209600  # 2주
+  access-token-lifetime: 30m
 
 auth:
-  refresh-token-cookie:
-    name: refresh_token
-    max-age: 2419200  # 4주
-    path: /
-    same-site: None
-    secure: true
-    http-only: true
+  refresh-token:
+    lifetime: 30d
+    cookie:
+      name: refresh_token
+      path: /
+      same-site: None
+      secure: true
+      http-only: true
   prefix-code: 008008
 
 cors:

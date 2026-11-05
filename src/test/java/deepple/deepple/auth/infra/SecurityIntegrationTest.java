@@ -1,5 +1,7 @@
 package deepple.deepple.auth.infra;
 
+import deepple.deepple.auth.domain.RefreshTokenService;
+import deepple.deepple.auth.domain.TokenOwner;
 import deepple.deepple.auth.domain.TokenProvider;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.common.support.IntegrationTestSupport;
@@ -7,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
@@ -39,14 +40,17 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MockMvcTester mockMvc;
 
-    @Value("${jwt.issuer}")
-    private String issuer;
+    @Autowired
+    private JwtProperties jwtProperties;
 
     @Autowired
     private TokenProvider tokenProvider;
 
     @Autowired
     private JwtEncoder jwtEncoder;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     @Nested
     @DisplayName("access token 검증")
@@ -93,7 +97,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
             JwtEncoder otherKeyEncoder = NimbusJwtEncoder.withKeyPair((RSAPublicKey) otherKeyPair.getPublic(),
                     (RSAPrivateKey) otherKeyPair.getPrivate())
                 .build();
-            TokenProvider otherKeyProvider = new JwtProvider(otherKeyEncoder, issuer, 1800, 1209600);
+            TokenProvider otherKeyProvider = new JwtProvider(otherKeyEncoder, jwtProperties);
             String forgedToken = otherKeyProvider.createAccessToken(1L, Role.ADMIN, Instant.now());
 
             MvcTestResult result = mockMvc.get()
@@ -111,7 +115,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
         @Test
         @DisplayName("refresh token을 access token 자리에 넣으면 401과 INVALID_ACCESS_TOKEN 코드를 응답한다.")
         void rejectRefreshTokenAsAccessToken() {
-            String refreshToken = tokenProvider.createRefreshToken(1L, Role.MEMBER, Instant.now());
+            String refreshToken = refreshTokenService.issue(TokenOwner.member(1L));
 
             MvcTestResult result = mockMvc.get()
                 .uri(MEMBER_API)
@@ -133,7 +137,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
                 .type("at+jwt")
                 .build();
             JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(issuer)
+                .issuer(jwtProperties.issuer())
                 .subject("1")
                 .audience(List.of("deepple-api"))
                 .issuedAt(now)

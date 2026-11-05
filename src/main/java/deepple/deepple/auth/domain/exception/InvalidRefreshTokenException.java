@@ -1,4 +1,4 @@
-package deepple.deepple.member.command.application.member.exception;
+package deepple.deepple.auth.domain.exception;
 
 public class InvalidRefreshTokenException extends RuntimeException {
     public InvalidRefreshTokenException() {

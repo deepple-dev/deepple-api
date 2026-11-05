@@ -1,6 +1,5 @@
 package deepple.deepple.auth.infra;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -25,13 +24,13 @@ public class JwtConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(JwtKeyPair keyPair, @Value("${jwt.issuer}") String issuer) {
+    public JwtDecoder jwtDecoder(JwtKeyPair keyPair, JwtProperties jwtProperties) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(keyPair.getPublicKey())
             .build();
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
             new JwtExpirationValidator(),
             JwtValidators.createAtJwtValidator()
-                .issuer(issuer)
+                .issuer(jwtProperties.issuer())
                 .audience(JwtSpec.AUDIENCE)
                 .validators(validators -> validators.put(JwtSpec.ROLES_CLAIM, rolesValidator()))
                 .build()
