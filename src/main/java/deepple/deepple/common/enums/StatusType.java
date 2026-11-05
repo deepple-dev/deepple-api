@@ -45,6 +45,7 @@ public enum StatusType {
     DELETED_TARGET(403, "403003", "Deleted Target"), // 회원 삭제.
     WAITING_STATUS(403, "403004", "Waiting Screening"), // 심사 대기 상태.
     TEMPORARILY_FORBIDDEN(403, "403005", "Temporarily Forbidden"),
+    ADMIN_NOT_APPROVED(403, "403006", "Admin Not Approved"),
 
     NOT_FOUND(404, "404", "Not Found"),
 

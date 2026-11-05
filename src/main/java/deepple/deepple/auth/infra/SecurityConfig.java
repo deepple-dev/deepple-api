@@ -50,6 +50,7 @@ public class SecurityConfig {
         get("/swagger-resources/**"),
         get("/webjars/**")
     };
+    private static final String ADMIN_ACCOUNT_API = "/admin/accounts/**";
     private static final String ADMIN_API = "/admin/**";
     private static final String ROLE_CLAIM = "role";
     private static final String ROLE_PREFIX = "ROLE_";
@@ -78,7 +79,8 @@ public class SecurityConfig {
     public SecurityFilterChain apiFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
         return applyCommonSettings(http)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(ADMIN_API).hasRole(Role.ADMIN.name())
+                .requestMatchers(ADMIN_ACCOUNT_API).hasRole(Role.SUPER_ADMIN.name())
+                .requestMatchers(ADMIN_API).hasAnyRole(Role.ADMIN.name(), Role.SUPER_ADMIN.name())
                 .anyRequest().hasRole(Role.MEMBER.name()))
             .oauth2ResourceServer(resourceServer -> resourceServer
                 .jwt(jwt -> jwt

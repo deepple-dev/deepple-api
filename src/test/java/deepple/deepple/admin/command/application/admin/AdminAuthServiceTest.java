@@ -132,6 +132,8 @@ class AdminAuthServiceTest {
             AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
 
             when(admin.getId()).thenReturn(1L);
+            when(admin.isApproved()).thenReturn(true);
+            when(admin.getTokenRole()).thenReturn(Role.ADMIN);
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
 
             String newAccessToken = "accessToken";
@@ -163,6 +165,34 @@ class AdminAuthServiceTest {
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("삭제된 관리자가 로그인을 시도하면 AdminNotFoundException이 발생합니다.")
+        void loginThrowsAdminNotFoundExceptionWhenDeleted() {
+            // given
+            String email = "deleted@example.com";
+            AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
+            when(admin.isDeleted()).thenReturn(true);
+            when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+
+            // when & then
+            assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotFoundException.class);
+            verify(tokenRepository, never()).save(anyString());
+        }
+
+        @Test
+        @DisplayName("승인되지 않은 관리자가 로그인하면 AdminNotApprovedException이 발생하고 토큰을 발급하지 않습니다.")
+        void loginThrowsAdminNotApprovedExceptionWhenPending() {
+            // given
+            String email = "pending@example.com";
+            AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
+            when(admin.isApproved()).thenReturn(false);
+            when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+
+            // when & then
+            assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotApprovedException.class);
+            verify(tokenRepository, never()).save(anyString());
         }
     }
 }
