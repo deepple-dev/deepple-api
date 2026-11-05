@@ -4,7 +4,11 @@ public interface ErrorCode {
 
     ErrorType getType();
 
-    String getCode();
-
     String getMessage();
+
+    String name();
+
+    default String getCode() {
+        return name();
+    }
 }

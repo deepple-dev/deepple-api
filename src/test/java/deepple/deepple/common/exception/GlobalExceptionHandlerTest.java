@@ -136,10 +136,9 @@ class GlobalExceptionHandlerTest {
     @Getter
     @RequiredArgsConstructor
     private enum TestErrorCode implements ErrorCode {
-        TEST_CONFLICT(ErrorType.ALREADY_EXISTS, "TEST_CONFLICT", "테스트 충돌입니다.");
+        TEST_CONFLICT(ErrorType.ALREADY_EXISTS, "테스트 충돌입니다.");
 
         private final ErrorType type;
-        private final String code;
         private final String message;
     }
 
