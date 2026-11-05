@@ -40,6 +40,7 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(connectionFactory)
             .cacheDefaults(config)
+            .withCacheConfiguration("notificationTemplate", config.entryTtl(Duration.ofHours(1)))
             .build();
     }
 
