@@ -47,20 +47,6 @@ Docker를 켠 상태에서 실행한다. 테스트가 MySQL·Valkey·S3Mock 컨�
 ./gradlew test
 ```
 
-## 프로젝트 구조
-
-도메인별 패키지(`src/main/java/deepple/deepple/<도메인>`)로 나뉘고, 도메인 간 협력은 도메인 이벤트로 처리한다.
-
-```
-<도메인>/
-├── presentation/   # API 컨트롤러, 요청·응답 DTO
-├── command/        # 쓰기: application, domain, infra
-└── query/          # 읽기 전용 조회
-```
-
-- 도메인: `member`, `match`, `heart`, `payment`, `notification`, `admin`, `community`, `interview`, `like`, `mission`, `block`, `report`, `datingexam`, `auth`
-- DB 스키마: Flyway(`src/main/resources/db/migration`)
-
 ## 개발 플로우
 
 트렁크 기반으로 `main` 하나만 사용하고 squash merge로 병합한다.
@@ -81,7 +67,7 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 | 환경 | 방식 |
 |---|---|
 | 개발 | `main` 병합 시 앱 코드가 바뀌었으면 자동 배포, Actions의 Deploy에서 수동 실행 가능 (`dev-api.deepple.co.kr`) |
-| 운영 | 없음 (Terraform으로 재구축 중) |
+| 운영 | `v*` 태그 push → GitHub `prod` 환경 승인 후 배포 (인프라는 출시 전에 구축) |
 
 - 개발 배포: 이미지 빌드 → ECR push(커밋 SHA 태그) → 출처 증명·SBOM 서명 → ECS 서비스 갱신 → 완료 알림 `#alerts-dev`
 - 이미지 검증: `gh attestation verify oci://<ECR 주소>/deepple-api@<digest> --repo deepple-dev/deepple-api`
@@ -90,3 +76,4 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 
 - [CLAUDE.md](CLAUDE.md): 구조, 도메인, 코딩 규칙
 - [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동, DB, 테스트, 빌드 규칙
+- [infra/terraform/README.md](infra/terraform/README.md): 인프라, secret, 배포 절차
