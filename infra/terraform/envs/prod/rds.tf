@@ -1,3 +1,13 @@
+resource "aws_db_parameter_group" "this" {
+  name   = local.name
+  family = "mysql8.4"
+
+  parameter {
+    name  = "time_zone"
+    value = "Asia/Seoul"
+  }
+}
+
 resource "aws_db_instance" "this" {
   identifier     = local.name
   engine         = "mysql"
@@ -15,6 +25,7 @@ resource "aws_db_instance" "this" {
   password_wo_version = 1
 
   db_subnet_group_name   = module.vpc.database_subnet_group_name
+  parameter_group_name   = aws_db_parameter_group.this.name
   vpc_security_group_ids = [aws_security_group.db.id]
   publicly_accessible    = false
   multi_az               = var.db.multi_az

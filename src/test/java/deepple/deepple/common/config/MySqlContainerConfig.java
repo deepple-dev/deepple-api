@@ -11,6 +11,6 @@ public class MySqlContainerConfig {
     @Bean
     @ServiceConnection
     public MySQLContainer mySqlContainer() {
-        return new MySQLContainer(ContainerImages.MYSQL);
+        return new MySQLContainer(ContainerImages.MYSQL).withEnv("TZ", "Asia/Seoul");
     }
 }
