@@ -1,7 +1,7 @@
 package deepple.deepple.match.command.domain.match;
 
 import deepple.deepple.common.event.Events;
-import deepple.deepple.match.command.domain.match.exception.InvalidMatchStatusChangeException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.match.command.domain.match.vo.Message;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -112,7 +112,8 @@ public class MatchTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> match.approve(responseMessage, "testUser", contactType))
-                .isInstanceOf(InvalidMatchStatusChangeException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
         }
 
         @Test
@@ -156,7 +157,8 @@ public class MatchTest {
 
             // When & Then
             Assertions.assertThatThrownBy(match::checkRejected)
-                .isInstanceOf(InvalidMatchStatusChangeException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
         }
 
         @Test

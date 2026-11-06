@@ -1,7 +1,9 @@
 package deepple.deepple.datingexam.adapter.database;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.required.SoulmateQueryRepository;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.DatingExamSubmit;
 import deepple.deepple.datingexam.domain.SubjectType;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
@@ -41,7 +43,7 @@ public class SoulmateQueryRepositoryImpl implements SoulmateQueryRepository {
             .fetchOne();
 
         if (gender == null) {
-            throw new IllegalStateException("멤버의 성별이 null입니다. 멤버 ID: " + memberId);
+            throw new DeeppleException(DatingExamErrorCode.GENDER_NOT_SET, "memberId=" + memberId);
         }
 
         return queryFactory
@@ -89,7 +91,7 @@ public class SoulmateQueryRepositoryImpl implements SoulmateQueryRepository {
             .fetch();
 
         if (submits.isEmpty()) {
-            throw new IllegalStateException("연애 모의고사 제출 기록이 없습니다. memberId: " + memberId);
+            throw new DeeppleException(DatingExamErrorCode.DATING_EXAM_RESULT_NOT_FOUND, "memberId=" + memberId);
         }
 
         List<Set<Long>> equalAnswerMemberIdSets = submits.stream().map(submit ->

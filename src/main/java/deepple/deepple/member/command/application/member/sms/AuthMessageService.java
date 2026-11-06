@@ -1,7 +1,7 @@
 package deepple.deepple.member.command.application.member.sms;
 
-import deepple.deepple.member.command.application.member.exception.CodeNotExistsException;
-import deepple.deepple.member.command.application.member.exception.CodeNotMatchException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.infra.member.AuthMessageRedisRepository;
 import deepple.deepple.member.command.domain.sms.SmsSender;
 import lombok.RequiredArgsConstructor;
@@ -44,11 +44,11 @@ public class AuthMessageService {
 
     private void validateWithCode(String value, String code) {
         if (value == null) {
-            throw new CodeNotExistsException();
+            throw new DeeppleException(MemberErrorCode.AUTH_CODE_NOT_FOUND);
         }
 
         if (!value.equals(code)) {
-            throw new CodeNotMatchException();
+            throw new DeeppleException(MemberErrorCode.AUTH_CODE_MISMATCH);
         }
     }
 }

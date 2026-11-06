@@ -1,10 +1,12 @@
 package deepple.deepple.datingexam.application;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.required.*;
 import deepple.deepple.datingexam.domain.*;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -109,7 +111,8 @@ class DatingExamModifyServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> datingExamModifyService.submitSubject(request, memberId))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.DATING_EXAM_SUBJECT_NOT_FOUND);
         }
 
         @Test
@@ -128,7 +131,8 @@ class DatingExamModifyServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> datingExamModifyService.submitSubject(request, memberId))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.DATING_EXAM_ALREADY_SUBMITTED);
         }
 
         @Test

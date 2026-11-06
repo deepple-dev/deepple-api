@@ -1,7 +1,6 @@
 package deepple.deepple.heart.command.domain.heartransaction;
 
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartAmountException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
@@ -86,7 +85,7 @@ class HeartTransactionTest {
             assertThatThrownBy(
                 () -> HeartTransaction.of(memberId, transactionType, content, heartAmount,
                     heartBalance))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -104,7 +103,7 @@ class HeartTransactionTest {
             assertThatThrownBy(
                 () -> HeartTransaction.of(memberId, transactionType, content, heartAmount,
                     heartBalance))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 }

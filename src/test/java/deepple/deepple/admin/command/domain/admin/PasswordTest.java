@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidPasswordException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -50,11 +51,12 @@ class PasswordTest {
             "password1234",
             "비밀번호abcd1234^^"
         })
-        @DisplayName("잘못된 형식의 비밀번호는 InvalidPasswordException이 발생합니다.")
+        @DisplayName("잘못된 형식의 비밀번호는 INVALID_PASSWORD 예외가 발생합니다.")
         void createPasswordWhenInvalidThrowsException(String invalidPassword) {
             // when & then
             assertThatThrownBy(() -> Password.fromRaw(invalidPassword, passwordHasher))
-                .isInstanceOf(InvalidPasswordException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_PASSWORD);
         }
     }
 

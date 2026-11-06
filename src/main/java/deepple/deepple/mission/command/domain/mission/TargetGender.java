@@ -1,6 +1,5 @@
 package deepple.deepple.mission.command.domain.mission;
 
-import deepple.deepple.mission.command.domain.mission.exception.InvalidMissionEnumValueException;
 import lombok.Getter;
 
 @Getter
@@ -19,7 +18,7 @@ public enum TargetGender {
         try {
             return TargetGender.valueOf(targetGender.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidMissionEnumValueException(targetGender);
+            throw new IllegalArgumentException("유효하지 않은 TargetGender 값입니다. value=" + targetGender, e);
         }
     }
 }

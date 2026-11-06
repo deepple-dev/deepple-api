@@ -1,7 +1,8 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidAdminRoleException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.Getter;
 
 import java.util.Locale;
@@ -23,7 +24,7 @@ public enum AdminRole {
         try {
             return AdminRole.valueOf(value.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new InvalidAdminRoleException(value);
+            throw new DeeppleException(AdminErrorCode.INVALID_ADMIN_ROLE, "value=" + value, e);
         }
     }
 }

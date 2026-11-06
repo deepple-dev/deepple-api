@@ -67,7 +67,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
         assertThat(result)
             .bodyJson()
             .extractingPath("$.code")
-            .isEqualTo("403006");
+            .isEqualTo("ADMIN_NOT_APPROVED");
     }
 
     @Test

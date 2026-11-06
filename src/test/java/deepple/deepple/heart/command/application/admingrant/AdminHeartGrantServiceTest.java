@@ -1,8 +1,9 @@
 package deepple.deepple.heart.command.application.admingrant;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.presentation.hearttransaction.AdminHeartGrantRequest;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import org.assertj.core.api.Assertions;
@@ -52,7 +53,7 @@ class AdminHeartGrantServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 멤버에게 지급하려고 하면 MemberNotFoundException 이 발생한다.")
+    @DisplayName("존재하지 않는 멤버에게 지급하려고 하면 MEMBER_NOT_FOUND 예외가 발생한다.")
     void grantShouldThrowWhenMemberNotFound() {
         // given
         long adminId = 99L;
@@ -62,6 +63,7 @@ class AdminHeartGrantServiceTest {
 
         // when / then
         Assertions.assertThatThrownBy(() -> adminHeartGrantService.grant(adminId, request))
-            .isInstanceOf(MemberNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
 }

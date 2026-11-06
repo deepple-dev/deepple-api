@@ -1,6 +1,7 @@
 package deepple.deepple.payment.command.domain.order;
 
-import deepple.deepple.payment.command.domain.order.exception.InvalidOrderStatusException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -77,11 +78,12 @@ class OrderTest {
         }
 
         @Test
-        @DisplayName("refund() 메서드 호출 시 InvalidOrderStatusException 발생")
-        void throwsInvalidOrderStatusExceptionWhenRefundMethodIsCalled() {
+        @DisplayName("refund() 메서드 호출 시 ORDER_NOT_REFUNDABLE 예외발생")
+        void throwsOrderNotRefundableWhenRefundMethodIsCalled() {
             // when & then
             assertThatThrownBy(order::refund)
-                .isInstanceOf(InvalidOrderStatusException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.ORDER_NOT_REFUNDABLE);
         }
     }
 }

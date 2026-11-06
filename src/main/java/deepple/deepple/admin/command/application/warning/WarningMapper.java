@@ -1,6 +1,8 @@
 package deepple.deepple.admin.command.application.warning;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.warning.WarningReasonType;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.NoArgsConstructor;
 
 import java.util.Set;
@@ -21,7 +23,7 @@ public class WarningMapper {
         try {
             return WarningReasonType.valueOf(reasonType.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidWarningReasonTypeException(reasonType);
+            throw new DeeppleException(AdminErrorCode.INVALID_WARNING_REASON_TYPE, "value=" + reasonType, e);
         }
     }
 }

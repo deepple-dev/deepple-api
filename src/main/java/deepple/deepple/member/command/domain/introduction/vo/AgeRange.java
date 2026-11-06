@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.introduction.vo;
 
-import deepple.deepple.member.command.domain.introduction.exception.InvalidAgeRangeException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -46,7 +47,7 @@ public class AgeRange {
 
     private void validateAgeRange(Integer minAge, Integer maxAge) {
         if (minAge < MIN_VALUE || maxAge > MAX_VALUE || minAge > maxAge) {
-            throw new InvalidAgeRangeException();
+            throw new DeeppleException(MemberErrorCode.INVALID_AGE_RANGE, "minAge=" + minAge + ", maxAge=" + maxAge);
         }
     }
 }

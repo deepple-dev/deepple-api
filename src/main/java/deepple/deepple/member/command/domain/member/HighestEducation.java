@@ -1,6 +1,8 @@
 package deepple.deepple.member.command.domain.member;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidMemberEnumValueException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
+
 
 public enum HighestEducation {
     HIGH_SCHOOL("고등학교 졸업"),
@@ -27,7 +29,7 @@ public enum HighestEducation {
         try {
             return HighestEducation.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidMemberEnumValueException(value);
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_OPTION, "HighestEducation=" + value, e);
         }
     }
 }

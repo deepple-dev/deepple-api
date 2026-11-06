@@ -1,11 +1,10 @@
 package deepple.deepple.match.command.application.match;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.repository.LockRepository;
-import deepple.deepple.match.command.application.match.exception.ExistsMatchException;
-import deepple.deepple.match.command.application.match.exception.InvalidMatchUpdateException;
-import deepple.deepple.match.command.application.match.exception.MatchNotFoundException;
 import deepple.deepple.match.command.domain.match.*;
+import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import deepple.deepple.match.command.domain.match.vo.Message;
 import deepple.deepple.match.presentation.dto.MatchRequestDto;
 import deepple.deepple.match.presentation.dto.MatchResponseDto;
@@ -99,7 +98,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.request(requesterId, requestDto))
-                .isInstanceOf(ExistsMatchException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ALREADY_EXISTS);
         }
 
 
@@ -159,7 +159,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
-                .isInstanceOf(MatchNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
         }
 
         @DisplayName("매치의 상태가 대기중이 아닐 경우, 예외 발생")
@@ -183,7 +184,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
-                .isInstanceOf(InvalidMatchUpdateException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
         }
 
         @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 수락.")
@@ -236,7 +238,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.reject(matchId, responderId))
-                .isInstanceOf(MatchNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
         }
 
         @DisplayName("매치의 상태가 대기중이 아닐 경우, 예외 발생")
@@ -260,7 +263,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.reject(matchId, responderId))
-                .isInstanceOf(InvalidMatchUpdateException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
         }
 
         @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 거절.")
@@ -318,7 +322,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.rejectCheck(requesterId, matchId))
-                .isInstanceOf(InvalidMatchUpdateException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
         }
 
         @DisplayName("매치가 존재하지 않는 경우, 예외 발생")
@@ -333,7 +338,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.rejectCheck(requesterId, matchId))
-                .isInstanceOf(MatchNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
         }
 
         @DisplayName("매치가 존재하며, 해당 상태가 거절일 경우 상태 변경")
@@ -381,7 +387,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.readReceivedMatch(matchId, readerId))
-                .isInstanceOf(MatchNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
         }
 
         @Test
@@ -418,7 +425,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.read(readerId, matchRequesterId, matchResponderId))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ACCESS_DENIED);
         }
 
         @Test
@@ -434,7 +442,8 @@ class MatchServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.read(readerId, matchRequesterId, matchResponderId))
-                .isInstanceOf(MatchNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
         }
 
         @Test

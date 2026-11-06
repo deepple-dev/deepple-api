@@ -1,8 +1,6 @@
 package deepple.deepple.heart.command.domain.hearttransaction;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartAmountException;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartTransactionContentException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
@@ -66,7 +64,7 @@ public class HeartTransaction extends BaseEntity {
 
     private void setContent(@NonNull String content) {
         if (content.isBlank()) {
-            throw new InvalidHeartTransactionContentException("content는 비어있을 수 없습니다.");
+            throw new IllegalArgumentException("content는 비어있을 수 없습니다.");
         }
         this.content = content;
     }
@@ -81,11 +79,11 @@ public class HeartTransaction extends BaseEntity {
 
     private void validateHeartTransaction(TransactionType transactionType, HeartAmount heartAmount) {
         if (transactionType.isUsingType() && !heartAmount.isUsingAmount()) {
-            throw new InvalidHeartAmountException(
+            throw new IllegalArgumentException(
                 "잘못된 하트 사용량 입니다. transactionType: " + transactionType + ", heartAmount: " + heartAmount);
         }
         if (transactionType.isGainingType() && !heartAmount.isGainingAmount()) {
-            throw new InvalidHeartAmountException(
+            throw new IllegalArgumentException(
                 "잘못된 하트 획득량 입니다. transactionType: " + transactionType + ", heartAmount: " + heartAmount);
         }
     }

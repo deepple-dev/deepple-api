@@ -3,11 +3,11 @@ package deepple.deepple.community.command.domain.profileexchange;
 
 import deepple.deepple.common.entity.BaseEntity;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.event.ProfileExchangeAcceptedEvent;
 import deepple.deepple.community.command.domain.profileexchange.event.ProfileExchangeRejectedEvent;
 import deepple.deepple.community.command.domain.profileexchange.event.ProfileExchangeRequestedEvent;
-import deepple.deepple.community.command.domain.profileexchange.exception.InvalidProfileExchangeStatusException;
-import deepple.deepple.community.command.domain.profileexchange.exception.SelfProfileExchangeException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -61,13 +61,16 @@ public class ProfileExchange extends BaseEntity {
 
     private void validateRequesterIdAndResponderId(long requesterId, long responderId) {
         if (requesterId == responderId) {
-            throw new SelfProfileExchangeException();
+            throw new DeeppleException(CommunityErrorCode.SELF_PROFILE_EXCHANGE, "memberId=" + requesterId);
         }
     }
 
     private void validateWaitingStatus() {
         if (status != ProfileExchangeStatus.WAITING) {
-            throw new InvalidProfileExchangeStatusException("대기상태의 요청에만 응답할 수 있습니다.");
+            throw new DeeppleException(
+                CommunityErrorCode.INVALID_PROFILE_EXCHANGE_STATUS,
+                "profileExchangeId=" + id + ", status=" + status
+            );
         }
     }
 }

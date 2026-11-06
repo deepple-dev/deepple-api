@@ -1,6 +1,6 @@
 package deepple.deepple.report.command.domain;
 
-import deepple.deepple.report.command.domain.exception.InvalidReportResultException;
+import deepple.deepple.common.exception.DeeppleException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NonNull;
 
@@ -25,7 +25,7 @@ public enum ReportResult {
         try {
             return ReportResult.valueOf(result.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidReportResultException("Invalid report result: " + result);
+            throw new DeeppleException(ReportErrorCode.INVALID_REPORT_RESULT, "Invalid report result: " + result, e);
         }
     }
 

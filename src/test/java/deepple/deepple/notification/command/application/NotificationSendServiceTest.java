@@ -1,7 +1,9 @@
 package deepple.deepple.notification.command.application;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.notification.command.domain.DeviceRegistration;
 import deepple.deepple.notification.command.domain.Notification;
+import deepple.deepple.notification.command.domain.NotificationErrorCode;
 import deepple.deepple.notification.command.domain.NotificationPreference;
 import deepple.deepple.notification.command.domain.NotificationSender;
 import org.junit.jupiter.api.DisplayName;
@@ -176,7 +178,11 @@ class NotificationSendServiceTest {
 
         var sender = mock(NotificationSender.class);
         when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));
-        doThrow(new NotificationSendFailedException(new RuntimeException("FCM 전송 실패")))
+        doThrow(new DeeppleException(
+            NotificationErrorCode.NOTIFICATION_SEND_FAILED,
+            "receiverId=20",
+            new RuntimeException("FCM 전송 실패")
+        ))
             .when(sender).send(any(Notification.class), any(DeviceRegistration.class));
 
         // when

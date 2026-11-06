@@ -1,10 +1,10 @@
 package deepple.deepple.like.command.application;
 
 import deepple.deepple.block.application.required.BlockRepository;
-import deepple.deepple.like.command.application.exception.LikeReceiverInactiveException;
-import deepple.deepple.like.command.application.exception.LikeSameGenderException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeCommandRepository;
+import deepple.deepple.like.command.domain.LikeErrorCode;
 import deepple.deepple.like.presentation.LikeLevelRequest;
 import deepple.deepple.like.presentation.LikeSendRequest;
 import deepple.deepple.member.command.domain.member.Member;
@@ -102,7 +102,8 @@ class LikeSendServiceTest {
 
         // when & then
         assertThatThrownBy(() -> likeSendService.send(senderId, request))
-            .isInstanceOf(LikeAlreadyExistsException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", LikeErrorCode.LIKE_ALREADY_EXISTS);
     }
 
     @Test
@@ -125,7 +126,8 @@ class LikeSendServiceTest {
 
         // when && then
         assertThatThrownBy(() -> likeSendService.send(senderId, request))
-            .isInstanceOf(LikeReceiverInactiveException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", LikeErrorCode.LIKE_RECEIVER_INACTIVE);
     }
 
     @Test
@@ -149,7 +151,8 @@ class LikeSendServiceTest {
 
         // when && then
         assertThatThrownBy(() -> likeSendService.send(senderId, request))
-            .isInstanceOf(LikeSameGenderException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", LikeErrorCode.LIKE_SAME_GENDER);
     }
 
     @Test
@@ -177,7 +180,8 @@ class LikeSendServiceTest {
 
         // when && then
         assertThatThrownBy(() -> likeSendService.send(senderId, request))
-            .isInstanceOf(LikeBlockedException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", LikeErrorCode.LIKE_BLOCKED);
     }
 
     @Test
@@ -206,6 +210,7 @@ class LikeSendServiceTest {
 
         // when && then
         assertThatThrownBy(() -> likeSendService.send(senderId, request))
-            .isInstanceOf(LikeBlockedException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", LikeErrorCode.LIKE_BLOCKED);
     }
 }

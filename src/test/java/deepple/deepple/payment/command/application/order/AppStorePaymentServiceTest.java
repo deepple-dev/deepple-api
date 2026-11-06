@@ -2,7 +2,8 @@ package deepple.deepple.payment.command.application.order;
 
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
 import deepple.deepple.common.event.Events;
-import deepple.deepple.payment.command.application.order.exception.InvalidOrderException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.order.event.AppStoreReceiptVerifiedEvent;
 import deepple.deepple.payment.command.infra.order.AppStoreClient;
 import org.junit.jupiter.api.DisplayName;
@@ -60,8 +61,8 @@ class AppStorePaymentServiceTest {
     }
 
     @Test
-    @DisplayName("signedTransaction이 검증되고, transactionInfo가 revoked 상태인 경우 InvalidOrderException을 발생시킨다.")
-    void throwInvalidOrderExceptionWhenTransactionInfoIsRevoked() {
+    @DisplayName("signedTransaction이 검증되고, transactionInfo가 revoked 상태인 경우 INVALID_PROFILE_IMAGE_ORDER 예외를 발생시킨다.")
+    void throwInvalidProfileImageOrderWhenTransactionInfoIsRevoked() {
         // Given
         String signedTransaction = "signed.transaction.jws";
         Long memberId = 1L;
@@ -75,6 +76,7 @@ class AppStorePaymentServiceTest {
         // When & Then
         assertThatThrownBy(() ->
             appStorePaymentService.verifyReceipt(signedTransaction, memberId))
-            .isInstanceOf(InvalidOrderException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.REVOKED_TRANSACTION);
     }
 }

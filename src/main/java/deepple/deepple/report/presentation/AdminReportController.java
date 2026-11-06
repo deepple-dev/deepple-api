@@ -2,9 +2,10 @@ package deepple.deepple.report.presentation;
 
 import deepple.deepple.auth.presentation.CurrentAdminId;
 import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.report.command.application.AdminReportService;
-import deepple.deepple.report.command.application.exception.ReportNotFoundException;
+import deepple.deepple.report.command.domain.ReportErrorCode;
 import deepple.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import deepple.deepple.report.query.ReportQueryRepository;
 import deepple.deepple.report.query.condition.ReportSearchCondition;
@@ -53,7 +54,7 @@ public class AdminReportController {
     @GetMapping("/{id}")
     public ResponseEntity<BaseResponse<ReportDetailView>> getReport(@PathVariable long id) {
         ReportDetailView view = reportQueryRepository.findReportDetailView(id)
-            .orElseThrow(ReportNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(ReportErrorCode.REPORT_NOT_FOUND, "reportId=" + id));
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
     }
 }

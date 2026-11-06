@@ -12,16 +12,16 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
-import deepple.deepple.member.command.application.member.exception.*;
 import deepple.deepple.member.command.application.member.sms.AuthMessageService;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.domain.member.event.MemberLoggedInEvent;
 import deepple.deepple.member.command.domain.member.event.MemberLoggedOutEvent;
 import deepple.deepple.member.command.domain.member.event.MemberRegisteredEvent;
-import deepple.deepple.member.command.domain.member.exception.MemberNotActiveException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +38,7 @@ import static deepple.deepple.member.command.domain.member.ActivityStatus.*;
 @RequiredArgsConstructor
 public class MemberAuthService {
 
+    private static final String SUSPENSION_EXPIRE_AT_PROPERTY = "suspensionExpireAt";
     private final static List<ActivityStatus> ALLOWED_ACTIVITY_STATUS = List.of(
         ACTIVE, INITIAL, WAITING_SCREENING, REJECTED_SCREENING, DORMANT);
     private final MemberCommandRepository memberCommandRepository;
@@ -106,7 +107,8 @@ public class MemberAuthService {
     }
 
     private Member getMemberById(Long memberId) {
-        return memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     private Member create(String phoneNumber) {
@@ -115,7 +117,7 @@ public class MemberAuthService {
             Events.raise(new MemberRegisteredEvent(member.getId())); // Event 발행.
             return member;
         } catch (DataIntegrityViolationException e) {
-            throw new MemberLoginConflictException();
+            throw new ConcurrencyFailureException("같은 전화번호로 회원 가입이 동시에 요청되었습니다.", e);
         }
     }
 
@@ -137,21 +139,25 @@ public class MemberAuthService {
 
     private void validateMemberLoginPermission(Member member) {
         if (member.isDeleted()) { // 회원이 삭제된 경우.
-            throw new MemberDeletedException();
+            throw new DeeppleException(MemberErrorCode.MEMBER_DELETED, "memberId=" + member.getId());
         }
 
         ActivityStatus activityStatus = member.getActivityStatus();
 
         if (activityStatus == SUSPENDED_PERMANENTLY) { // 영구 정지일 경우.
-            throw new PermanentlySuspendedMemberException();
+            throw new DeeppleException(MemberErrorCode.MEMBER_PERMANENTLY_SUSPENDED, "memberId=" + member.getId());
         } else if (activityStatus == SUSPENDED_TEMPORARILY) { // 일시 정지일 경우.
             LocalDateTime suspensionExpireAt = getTemporarySuspensionExpireAt(member.getId());
-            throw new TemporarilySuspendedMemberException(suspensionExpireAt);
+            throw new DeeppleException(MemberErrorCode.MEMBER_TEMPORARILY_SUSPENDED, "memberId=" + member.getId())
+                .withProperty(SUSPENSION_EXPIRE_AT_PROPERTY, suspensionExpireAt);
         } else if (!ALLOWED_ACTIVITY_STATUS.contains(activityStatus)) {
             /**
              * 2025/11/18 변경 : 이외의 상태 (활동중, 심사 대기중, 심사 거절) 는 로그인 허용.
              */
-            throw new MemberNotActiveException();
+            throw new DeeppleException(
+                MemberErrorCode.MEMBER_NOT_ACTIVE,
+                "memberId=" + member.getId() + ", activityStatus=" + activityStatus
+            );
         }
     }
 

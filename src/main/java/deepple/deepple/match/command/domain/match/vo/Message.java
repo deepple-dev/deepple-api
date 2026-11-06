@@ -1,6 +1,7 @@
 package deepple.deepple.match.command.domain.match.vo;
 
-import deepple.deepple.match.command.domain.match.exception.InvalidMessageException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +27,7 @@ public class Message {
 
     private void validate(String value) {
         if (value.trim().isEmpty()) {
-            throw new InvalidMessageException(value);
+            throw new DeeppleException(MatchErrorCode.INVALID_MATCH_MESSAGE);
         }
     }
 }

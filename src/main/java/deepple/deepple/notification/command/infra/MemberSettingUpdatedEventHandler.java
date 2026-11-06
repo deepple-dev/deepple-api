@@ -1,7 +1,6 @@
 package deepple.deepple.notification.command.infra;
 
 import deepple.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
-import deepple.deepple.notification.command.application.NotificationPreferenceNotFoundException;
 import deepple.deepple.notification.command.application.NotificationPreferenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +19,10 @@ public class MemberSettingUpdatedEventHandler {
     @TransactionalEventListener(value = MemberSettingUpdatedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     public void handle(MemberSettingUpdatedEvent event) {
         try {
-            if (event.isPushNotificationEnabled()) {
-                notificationPreferenceService.enableGlobally(event.getMemberId());
-            } else {
-                notificationPreferenceService.disableGlobally(event.getMemberId());
-            }
-        } catch (NotificationPreferenceNotFoundException e) {
-            log.warn(e.getMessage());
+            notificationPreferenceService.changeGloballyIfPresent(
+                event.getMemberId(),
+                event.isPushNotificationEnabled()
+            );
         } catch (Exception e) {
             log.error("Member(id: {})의 NotificationPreference 업데이트 중 예외가 발생했습니다.", event.getMemberId(), e);
         }

@@ -1,5 +1,7 @@
 package deepple.deepple.notification.command.application;
 
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.notification.command.domain.NotificationErrorCode;
 import deepple.deepple.notification.command.domain.NotificationType;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +14,7 @@ public class NotificationTypeMapper {
         try {
             return NotificationType.valueOf(notificationType.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidNotificationTypeException(notificationType);
+            throw new DeeppleException(NotificationErrorCode.INVALID_NOTIFICATION_TYPE, "type=" + notificationType, e);
         }
     }
 }

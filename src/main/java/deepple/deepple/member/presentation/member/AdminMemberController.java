@@ -1,8 +1,9 @@
 package deepple.deepple.member.presentation.member;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.AdminMemberService;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.presentation.member.dto.AdminMemberSettingUpdateRequest;
 import deepple.deepple.member.query.member.condition.AdminMemberSearchCondition;
 import deepple.deepple.member.query.member.infra.AdminMemberQueryRepository;
@@ -42,7 +43,7 @@ public class AdminMemberController {
     @GetMapping("/{memberId}")
     public ResponseEntity<BaseResponse<AdminMemberDetailView>> getMemberDetail(@PathVariable long memberId) {
         AdminMemberDetailView view = adminMemberQueryRepository.findById(memberId)
-            .orElseThrow(MemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
         return ResponseEntity.ok(BaseResponse.of(OK, view));
     }
 

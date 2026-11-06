@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.member.vo;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidKakaoIdException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -21,7 +22,7 @@ public class KakaoId {
 
     private KakaoId(String value) {
         if (!value.matches(KAKAO_ID_REGEX)) {
-            throw new InvalidKakaoIdException();
+            throw new DeeppleException(MemberErrorCode.INVALID_KAKAO_ID);
         }
         this.value = value;
     }

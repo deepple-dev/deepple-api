@@ -2,10 +2,11 @@ package deepple.deepple.member.command.domain.member;
 
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.member.command.domain.member.event.*;
-import deepple.deepple.member.command.domain.member.exception.InvalidActivityStatusChangeException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
@@ -120,14 +121,20 @@ public class Member extends SoftDeleteBaseEntity {
 
     public void deactivate() {
         if (!isActive()) {
-            throw new InvalidActivityStatusChangeException("활동중인 회원만 휴면으로 전환할 수 있습니다.");
+            throw new DeeppleException(
+                MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE,
+                "활동중인 회원만 휴면으로 전환할 수 있습니다." + " memberId=" + id + ", activityStatus=" + activityStatus
+            );
         }
         changeToDormant();
     }
 
     public void reactivate() {
         if (!isDormant()) {
-            throw new InvalidActivityStatusChangeException("휴면 회원만 휴면을 해제할 수 있습니다.");
+            throw new DeeppleException(
+                MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE,
+                "휴면 회원만 휴면을 해제할 수 있습니다." + " memberId=" + id + ", activityStatus=" + activityStatus
+            );
         }
         changeToActive();
     }

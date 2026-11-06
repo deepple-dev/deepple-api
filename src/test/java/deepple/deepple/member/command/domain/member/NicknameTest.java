@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.member;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidNicknameException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,8 @@ class NicknameTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> Nickname.from(nickname))
-            .isInstanceOf(InvalidNicknameException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_NICKNAME);
     }
 
     @Test
@@ -38,7 +40,8 @@ class NicknameTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> Nickname.from(nickname))
-            .isInstanceOf(InvalidNicknameException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_NICKNAME);
     }
 
     @Test
@@ -49,7 +52,8 @@ class NicknameTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> Nickname.from(nickname))
-            .isInstanceOf(InvalidNicknameException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_NICKNAME);
     }
 
     @Test

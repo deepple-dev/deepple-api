@@ -1,8 +1,8 @@
 package deepple.deepple.payment.command.application.order;
 
 import deepple.deepple.common.event.Events;
-import deepple.deepple.payment.command.application.order.exception.HeartPurchaseOptionNotFoundException;
-import deepple.deepple.payment.command.application.order.exception.OrderNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
 import deepple.deepple.payment.command.domain.order.Order;
@@ -63,7 +63,10 @@ public class RefundService {
 
     private Order findOrder(String transactionId, PaymentMethod paymentMethod) {
         return orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod)
-            .orElseThrow(() -> new OrderNotFoundException("주문을 찾을 수 없습니다. transactionId: " + transactionId));
+            .orElseThrow(() -> new DeeppleException(
+                PaymentErrorCode.ORDER_NOT_FOUND,
+                "주문을 찾을 수 없습니다. transactionId: " + transactionId
+            ));
     }
 
     private Long calculateRefundAmount(String productId, int quantity) {
@@ -73,8 +76,10 @@ public class RefundService {
 
     private HeartPurchaseOption findHeartPurchaseOption(String productId) {
         return heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId)
-            .orElseThrow(() -> new HeartPurchaseOptionNotFoundException(
-                "하트 구매 옵션이 존재하지 않습니다. product id:" + productId));
+            .orElseThrow(() -> new DeeppleException(
+                PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND,
+                "하트 구매 옵션이 존재하지 않습니다. product id:" + productId
+            ));
     }
 
     private void saveRefund(

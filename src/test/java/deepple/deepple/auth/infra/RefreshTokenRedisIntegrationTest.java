@@ -72,12 +72,10 @@ class RefreshTokenRedisIntegrationTest extends IntegrationTestSupport {
         // then
         assertThatThrownBy(() -> refreshTokenService.consume(phone))
             .isInstanceOf(DeeppleException.class)
-            .extracting("errorCode")
-            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
         assertThatThrownBy(() -> refreshTokenService.consume(laptop))
             .isInstanceOf(DeeppleException.class)
-            .extracting("errorCode")
-            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
         assertThat(refreshTokenService.consume(otherMember)).isEqualTo(TokenOwner.member(103L));
     }
 
@@ -93,7 +91,6 @@ class RefreshTokenRedisIntegrationTest extends IntegrationTestSupport {
         // then
         assertThatThrownBy(() -> refreshTokenService.consume(token))
             .isInstanceOf(DeeppleException.class)
-            .extracting("errorCode")
-            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 }

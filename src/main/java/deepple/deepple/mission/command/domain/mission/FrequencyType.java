@@ -1,6 +1,5 @@
 package deepple.deepple.mission.command.domain.mission;
 
-import deepple.deepple.mission.command.domain.mission.exception.InvalidMissionEnumValueException;
 import lombok.Getter;
 
 @Getter
@@ -19,7 +18,7 @@ public enum FrequencyType {
         try {
             return FrequencyType.valueOf(frequencyType.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidMissionEnumValueException(frequencyType);
+            throw new IllegalArgumentException("유효하지 않은 FrequencyType 값입니다. value=" + frequencyType, e);
         }
     }
 }

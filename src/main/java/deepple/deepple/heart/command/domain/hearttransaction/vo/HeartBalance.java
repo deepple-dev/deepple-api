@@ -1,8 +1,7 @@
 package deepple.deepple.heart.command.domain.hearttransaction.vo;
 
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InsufficientHeartBalanceException;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartAmountException;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartBalanceException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.heart.command.domain.HeartErrorCode;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -65,23 +64,26 @@ public final class HeartBalance {
 
     private void validateRefundAmount(HeartAmount heartChangeAmount) {
         if (heartChangeAmount.isZero() || !heartChangeAmount.isUsingAmount()) {
-            throw new InvalidHeartAmountException("잘못된 환불 금액입니다. amount: " + heartChangeAmount.getAmount());
+            throw new IllegalArgumentException("잘못된 환불 금액입니다. amount: " + heartChangeAmount.getAmount());
         }
     }
 
     private void validateBalanceIsUsable(HeartAmount heartChangeAmount) {
         Long totalHeartBalance = this.purchaseHeartBalance + this.missionHeartBalance;
         if (totalHeartBalance + heartChangeAmount.getAmount() < MIN_HEART_BALANCE) {
-            throw new InsufficientHeartBalanceException();
+            throw new DeeppleException(
+                HeartErrorCode.INSUFFICIENT_HEART_BALANCE,
+                "balance=" + totalHeartBalance + ", amount=" + heartChangeAmount.getAmount()
+            );
         }
     }
 
     private void validateMinHeartBalance(Long purchaseHeartBalance, Long missionHeartBalance) {
         if (purchaseHeartBalance < MIN_HEART_BALANCE) {
-            throw new InvalidHeartBalanceException("하트 잔액이 최소값 미만입니다. purchaseHeartBalance: " + purchaseHeartBalance);
+            throw new IllegalArgumentException("하트 잔액이 최소값 미만입니다. purchaseHeartBalance: " + purchaseHeartBalance);
         }
         if (missionHeartBalance < MIN_HEART_BALANCE) {
-            throw new InvalidHeartBalanceException("하트 잔액이 최소값 미만입니다. missionHeartBalance: " + missionHeartBalance);
+            throw new IllegalArgumentException("하트 잔액이 최소값 미만입니다. missionHeartBalance: " + missionHeartBalance);
         }
     }
 
@@ -102,13 +104,13 @@ public final class HeartBalance {
 
     private void validateUsingAmount(HeartAmount heartChangeAmount) {
         if (!heartChangeAmount.isUsingAmount()) {
-            throw new InvalidHeartAmountException("잘못된 하트 사용량 입니다. amount: " + heartChangeAmount.getAmount());
+            throw new IllegalArgumentException("잘못된 하트 사용량 입니다. amount: " + heartChangeAmount.getAmount());
         }
     }
 
     private void validateGainingAmount(HeartAmount heartChangeAmount) {
         if (!heartChangeAmount.isGainingAmount()) {
-            throw new InvalidHeartAmountException("잘못된 하트 획득량 입니다. amount: " + heartChangeAmount.getAmount());
+            throw new IllegalArgumentException("잘못된 하트 획득량 입니다. amount: " + heartChangeAmount.getAmount());
         }
     }
 }

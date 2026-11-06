@@ -1,8 +1,10 @@
 package deepple.deepple.datingexam.adapter.database;
 
 import deepple.deepple.block.domain.Block;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.datingexam.domain.DatingExamAnswerEncoder;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.DatingExamSubject;
 import deepple.deepple.datingexam.domain.DatingExamSubmit;
 import deepple.deepple.datingexam.domain.SubjectType;
@@ -233,7 +235,8 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
             // when & then
             Long memberId = member.getId();
             assertThatThrownBy(() -> soulmateQueryRepository.findSameAnswerMemberIds(memberId))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.DATING_EXAM_RESULT_NOT_FOUND);
         }
     }
 }

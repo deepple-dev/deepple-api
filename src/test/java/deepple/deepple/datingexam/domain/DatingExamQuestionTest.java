@@ -1,6 +1,5 @@
 package deepple.deepple.datingexam.domain;
 
-import deepple.deepple.datingexam.domain.exception.InvalidDatingExamQuestionContentException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +21,7 @@ class DatingExamQuestionTest {
             .isInstanceOf(NullPointerException.class);
 
         assertThatThrownBy(() -> DatingExamQuestion.create(subjectId, emptyContent))
-            .isInstanceOf(InvalidDatingExamQuestionContentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

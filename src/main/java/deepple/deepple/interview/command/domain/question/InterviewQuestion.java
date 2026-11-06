@@ -1,8 +1,9 @@
 package deepple.deepple.interview.command.domain.question;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.interview.command.domain.question.exception.InvalidInterviewQuestionContentException;
 import jakarta.persistence.*;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,7 +41,7 @@ public class InterviewQuestion extends BaseEntity {
 
     private void setContent(@NonNull String content) {
         if (content.isBlank()) {
-            throw new InvalidInterviewQuestionContentException();
+            throw new DeeppleException(InterviewErrorCode.INVALID_INTERVIEW_QUESTION_CONTENT);
         }
         this.content = content;
     }

@@ -2,6 +2,8 @@ package deepple.deepple.block.application;
 
 import deepple.deepple.block.application.required.BlockRepository;
 import deepple.deepple.block.domain.Block;
+import deepple.deepple.block.domain.BlockErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,8 +30,8 @@ class BlockModifyServiceTest {
     @DisplayName("차단을 생성할 때")
     class CreateBlockTest {
         @Test
-        @DisplayName("이미 차단된 멤버면 IllegalStateException 예외를 던진다.")
-        void throwsIllegalStateExceptionWhenBlockAlreadyExists() {
+        @DisplayName("이미 차단된 멤버면 BLOCK_ALREADY_EXISTS 예외를 던진다.")
+        void throwsBlockAlreadyExistsWhenBlockAlreadyExists() {
             // given
             Long blockerId = 1L;
             Long blockedId = 2L;
@@ -37,12 +39,12 @@ class BlockModifyServiceTest {
             when(blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)).thenReturn(true);
 
             // when
-            IllegalStateException result = assertThrows(IllegalStateException.class, () -> {
+            DeeppleException result = assertThrows(DeeppleException.class, () -> {
                 blockModifyService.createBlock(blockerId, blockedId);
             });
 
             // then
-            assertThat(result).isInstanceOf(IllegalStateException.class);
+            assertThat(result.getErrorCode()).isEqualTo(BlockErrorCode.BLOCK_ALREADY_EXISTS);
         }
 
         @Test

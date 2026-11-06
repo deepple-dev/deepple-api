@@ -2,6 +2,7 @@ package deepple.deepple.block.domain;
 
 import deepple.deepple.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -31,7 +32,7 @@ public class Block extends BaseEntity {
 
     private Block(@NonNull Long blockerId, @NonNull Long blockedId) {
         if (blockerId.equals(blockedId)) {
-            throw new IllegalArgumentException("blockerId와 blockedId는 같을 수 없습니다.");
+            throw new DeeppleException(BlockErrorCode.SELF_BLOCK, "memberId=" + blockerId);
         }
         this.blockerId = blockerId;
         this.blockedId = blockedId;

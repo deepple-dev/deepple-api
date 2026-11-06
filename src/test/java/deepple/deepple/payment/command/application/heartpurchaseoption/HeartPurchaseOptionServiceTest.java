@@ -1,7 +1,7 @@
 package deepple.deepple.payment.command.application.heartpurchaseoption;
 
-import deepple.deepple.payment.command.application.heartpurchaseoption.exception.HeartPurchaseOptionAlreadyExistsException;
-import deepple.deepple.payment.command.application.order.exception.HeartPurchaseOptionNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
 import deepple.deepple.payment.presentation.heartpurchaseoption.dto.HeartPurchaseOptionCreateRequest;
@@ -51,7 +51,8 @@ class HeartPurchaseOptionServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> heartPurchaseOptionService.create(request))
-                .isInstanceOf(HeartPurchaseOptionAlreadyExistsException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_ALREADY_EXISTS);
             verify(heartPurchaseOptionCommandRepository, never()).save(any());
         }
 
@@ -96,7 +97,8 @@ class HeartPurchaseOptionServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> heartPurchaseOptionService.delete(id))
-                .isInstanceOf(HeartPurchaseOptionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND);
             verify(heartPurchaseOptionCommandRepository, never()).deleteById(any());
         }
 
@@ -110,7 +112,8 @@ class HeartPurchaseOptionServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> heartPurchaseOptionService.delete(id))
-                .isInstanceOf(HeartPurchaseOptionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND);
             verify(heartPurchaseOptionCommandRepository, never()).deleteById(any());
         }
 

@@ -1,13 +1,14 @@
 package deepple.deepple.member.command.domain.member;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
 import deepple.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
 import deepple.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
 import deepple.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
-import deepple.deepple.member.command.domain.member.exception.InvalidActivityStatusChangeException;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
@@ -112,7 +113,8 @@ class MemberTest {
 
             // When & Then
             Assertions.assertThatThrownBy(member::deactivate)
-                .isInstanceOf(InvalidActivityStatusChangeException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE);
             Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
         }
 
@@ -144,7 +146,8 @@ class MemberTest {
 
             // When & Then
             Assertions.assertThatThrownBy(member::reactivate)
-                .isInstanceOf(InvalidActivityStatusChangeException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE);
             Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
         }
 

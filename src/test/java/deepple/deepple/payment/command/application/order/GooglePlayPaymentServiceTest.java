@@ -2,10 +2,10 @@ package deepple.deepple.payment.command.application.order;
 
 import com.google.api.services.androidpublisher.model.ProductPurchase;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.order.event.GooglePlayReceiptVerifiedEvent;
 import deepple.deepple.payment.command.infra.order.GooglePlayClient;
-import deepple.deepple.payment.command.infra.order.exception.GooglePlayClientException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidGooglePlayReceiptException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,15 +57,16 @@ class GooglePlayPaymentServiceTest {
     }
 
     @Test
-    @DisplayName("검증 실패 시 InvalidGooglePlayReceiptException을 던지고 consume은 호출하지 않는다")
+    @DisplayName("검증 실패 시 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던지고 consume은 호출하지 않는다")
     void throwsWhenVerificationFails() {
         // given
         when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN))
-            .thenThrow(new InvalidGooglePlayReceiptException("invalid"));
+            .thenThrow(new DeeppleException(PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT, "invalid"));
 
         // when & then
         assertThatThrownBy(() -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
-            .isInstanceOf(InvalidGooglePlayReceiptException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
 
         verify(googlePlayClient, never()).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
     }
@@ -77,7 +78,11 @@ class GooglePlayPaymentServiceTest {
         ProductPurchase purchase = new ProductPurchase().setOrderId(ORDER_ID);
         when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).thenReturn(purchase);
         when(googlePlayClient.resolveQuantity(purchase)).thenReturn(QUANTITY);
-        doThrow(new GooglePlayClientException(new RuntimeException("consume failed")))
+        doThrow(new DeeppleException(
+            PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE,
+            "consume failed",
+            new RuntimeException("consume failed")
+        ))
             .when(googlePlayClient).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
 
         // when & then

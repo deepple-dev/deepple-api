@@ -1,10 +1,10 @@
 package deepple.deepple.member.command.application.profileImage;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.infra.s3.S3Uploader;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import deepple.deepple.member.command.application.profileImage.dto.ProfileImageUploadResponse;
-import deepple.deepple.member.command.application.profileImage.exception.ExceedProfileImageCountException;
-import deepple.deepple.member.command.application.profileImage.exception.InvalidProfileImageExtensionException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
 import deepple.deepple.member.command.domain.profileImage.ProfileImageCommandRepository;
 import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
@@ -75,7 +75,7 @@ public class ProfileImageService {
          * 사이즈 검증.
          */
         if (request.size() > 6) {
-            throw new ExceedProfileImageCountException(request.size());
+            throw new DeeppleException(MemberErrorCode.PROFILE_IMAGE_COUNT_EXCEEDED, "count=" + request.size());
         }
     }
 
@@ -84,18 +84,18 @@ public class ProfileImageService {
          * 확장자 검증.
          */
         if (fileName == null || fileName.isEmpty()) {
-            throw new InvalidProfileImageExtensionException("Blank FileName.");
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_IMAGE_EXTENSION, "Blank FileName.");
         }
 
         int lastDotIndex = fileName.lastIndexOf(".");
         if (lastDotIndex == -1 || lastDotIndex == fileName.length() - 1) {
-            throw new InvalidProfileImageExtensionException("No Extension.");
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_IMAGE_EXTENSION, "No Extension.");
         }
 
         String extension = fileName.substring(lastDotIndex + 1).toLowerCase();
 
         if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            throw new InvalidProfileImageExtensionException(extension);
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_IMAGE_EXTENSION, "extension=" + extension);
         }
     }
 }

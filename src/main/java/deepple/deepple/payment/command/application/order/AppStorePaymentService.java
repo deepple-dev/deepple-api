@@ -2,7 +2,8 @@ package deepple.deepple.payment.command.application.order;
 
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
 import deepple.deepple.common.event.Events;
-import deepple.deepple.payment.command.application.order.exception.InvalidOrderException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.order.event.AppStoreReceiptVerifiedEvent;
 import deepple.deepple.payment.command.infra.order.AppStoreClient;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,10 @@ public class AppStorePaymentService {
 
     private void verifyPayload(JWSTransactionDecodedPayload decodedPayload) {
         if (decodedPayload.getRevocationDate() != null) {
-            throw new InvalidOrderException();
+            throw new DeeppleException(
+                PaymentErrorCode.REVOKED_TRANSACTION,
+                "transactionId=" + decodedPayload.getTransactionId()
+            );
         }
     }
 

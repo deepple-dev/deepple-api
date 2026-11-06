@@ -1,8 +1,9 @@
 package deepple.deepple.member.query.introduction.application;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.provided.PersonalityTypeMemberFinder;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
-import deepple.deepple.member.command.application.introduction.exception.PersonalityIntroductionAlreadyOpenedException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.query.introduction.intra.IntroductionQueryRepository;
 import deepple.deepple.member.query.introduction.intra.PersonalityIntroductionOpenState;
 import deepple.deepple.member.query.introduction.intra.PersonalityIntroductionRedisRepository;
@@ -37,7 +38,10 @@ public class PersonalityIntroductionQueryService {
         if (openState.isPresent()) {
             PersonalityIntroductionOpenState state = openState.get();
             if (state.type() != type) {
-                throw new PersonalityIntroductionAlreadyOpenedException(state.type(), type);
+                throw new DeeppleException(
+                    MemberErrorCode.PERSONALITY_INTRODUCTION_ALREADY_OPENED,
+                    "openedType=" + state.type() + ", requestedType=" + type
+                );
             }
             return toProfileViews(memberId, state.memberIds());
         }

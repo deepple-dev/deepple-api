@@ -2,9 +2,10 @@ package deepple.deepple.member.presentation.introduction;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.introduction.MemberIdealService;
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.presentation.introduction.dto.MemberIdealUpdateRequest;
 import deepple.deepple.member.query.introduction.application.MemberIdealView;
 import deepple.deepple.member.query.introduction.intra.MemberIdealQueryRepository;
@@ -27,7 +28,7 @@ public class MemberIdealController {
     @GetMapping
     public ResponseEntity<BaseResponse<MemberIdealView>> getMemberIdeal(@CurrentMemberId long memberId) {
         MemberIdealView memberIdealView = memberIdealQueryRepository.findMemberIdealByMemberId(memberId)
-            .orElseThrow(MemberIdealNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_IDEAL_NOT_FOUND, "memberId=" + memberId));
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberIdealView));
     }
 

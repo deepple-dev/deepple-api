@@ -1,6 +1,5 @@
 package deepple.deepple.heart.command.domain.heartusagepolicy;
 
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartTransactionTypeException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import deepple.deepple.member.command.domain.member.Gender;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +53,7 @@ class HeartUsagePolicyTest {
             HeartPriceAmount heartPriceAmount = HeartPriceAmount.from(10L);
             // when & then
             assertThatThrownBy(() -> HeartUsagePolicy.of(transactionType, gender, heartPriceAmount))
-                .isInstanceOf(InvalidHeartTransactionTypeException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 

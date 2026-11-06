@@ -1,6 +1,5 @@
 package deepple.deepple.member.query.introduction.intra;
 
-import deepple.deepple.member.query.introduction.intra.exception.IntroductionMemberIdSerializationFailedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -72,7 +71,7 @@ class IntroductionRedisRepositoryTest {
 
             // when & then
             assertThatThrownBy(() -> repository.saveIntroductionMemberIds(key, ids, expireAt))
-                .isInstanceOf(IntroductionMemberIdSerializationFailedException.class);
+                .isInstanceOf(JacksonException.class);
         }
     }
 
@@ -131,7 +130,7 @@ class IntroductionRedisRepositoryTest {
 
             // when & then
             assertThatThrownBy(() -> repository.findIntroductionMemberIds(key))
-                .isInstanceOf(IntroductionMemberIdSerializationFailedException.class);
+                .isInstanceOf(JacksonException.class);
         }
     }
 }

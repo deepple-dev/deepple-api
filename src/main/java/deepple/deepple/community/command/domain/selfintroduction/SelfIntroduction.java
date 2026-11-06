@@ -2,10 +2,9 @@ package deepple.deepple.community.command.domain.selfintroduction;
 
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
-import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionContentException;
-import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionTitleException;
-import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -90,20 +89,20 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
 
     private void setImageUrl(String imageUrl) {
         if (imageUrl != null && imageUrl.isEmpty()) {
-            throw new InvalidImageUrlException();
+            throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
         }
         this.imageUrl = imageUrl;
     }
 
     private void validateContent(String content) {
         if (content.isBlank() || content.length() < 30) {
-            throw new InvalidSelfIntroductionContentException();
+            throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
         }
     }
 
     private void validateTitle(String title) {
         if (title.isBlank()) {
-            throw new InvalidSelfIntroductionTitleException();
+            throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
         }
     }
 }

@@ -1,6 +1,5 @@
 package deepple.deepple.mission.command.domain.mission;
 
-import deepple.deepple.mission.command.domain.mission.exception.InvalidMissionEnumValueException;
 import lombok.Getter;
 
 @Getter
@@ -22,7 +21,7 @@ public enum ActionType {
         try {
             return ActionType.valueOf(actionType.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidMissionEnumValueException(actionType);
+            throw new IllegalArgumentException("유효하지 않은 ActionType 값입니다. value=" + actionType, e);
         }
     }
 }

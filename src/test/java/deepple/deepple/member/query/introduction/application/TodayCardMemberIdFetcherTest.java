@@ -1,8 +1,8 @@
 package deepple.deepple.member.query.introduction.application;
 
 
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealNotFoundException;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.MemberIdeal;
 import deepple.deepple.member.command.domain.introduction.MemberIdealCommandRepository;
 import deepple.deepple.member.command.domain.member.Gender;
@@ -96,7 +96,8 @@ class TodayCardMemberIdFetcherTest {
 
         // when & then
         assertThatThrownBy(() -> todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix))
-            .isInstanceOf(MemberNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
 
     @Test
@@ -115,7 +116,8 @@ class TodayCardMemberIdFetcherTest {
 
         // when & then
         assertThatThrownBy(() -> todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix))
-            .isInstanceOf(MemberIdealNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_IDEAL_NOT_FOUND);
     }
 
 

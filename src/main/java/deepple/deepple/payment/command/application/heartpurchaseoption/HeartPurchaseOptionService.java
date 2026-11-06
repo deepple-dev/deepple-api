@@ -1,7 +1,7 @@
 package deepple.deepple.payment.command.application.heartpurchaseoption;
 
-import deepple.deepple.payment.command.application.heartpurchaseoption.exception.HeartPurchaseOptionAlreadyExistsException;
-import deepple.deepple.payment.command.application.order.exception.HeartPurchaseOptionNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseAmount;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
@@ -30,7 +30,10 @@ public class HeartPurchaseOptionService {
 
     private void validateCreateRequest(HeartPurchaseOptionCreateRequest request) {
         if (heartPurchaseOptionCommandRepository.existsByProductIdAndDeletedAtIsNull(request.productId())) {
-            throw new HeartPurchaseOptionAlreadyExistsException(request.productId());
+            throw new DeeppleException(
+                PaymentErrorCode.HEART_PURCHASE_OPTION_ALREADY_EXISTS,
+                "productId=" + request.productId()
+            );
         }
     }
 
@@ -48,10 +51,13 @@ public class HeartPurchaseOptionService {
 
     private void validateDeleteRequest(Long id) {
         final HeartPurchaseOption heartPurchaseOption = heartPurchaseOptionCommandRepository.findById(id).orElseThrow(
-            () -> new HeartPurchaseOptionNotFoundException("해당 id의 하트 구매 옵션이 존재하지 않습니다." + id)
+            () -> new DeeppleException(PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND, "heartPurchaseOptionId=" + id)
         );
         if (heartPurchaseOption.isDeleted()) {
-            throw new HeartPurchaseOptionNotFoundException("이미 삭제된 하트 구매 옵션입니다." + id);
+            throw new DeeppleException(
+                PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND,
+                "이미 삭제된 하트 구매 옵션입니다. heartPurchaseOptionId=" + id
+            );
         }
     }
 }

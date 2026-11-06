@@ -1,11 +1,11 @@
 package deepple.deepple.report.command.application;
 
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.report.command.application.exception.ReportAlreadyExistsException;
 import deepple.deepple.report.command.domain.ReportCommandRepository;
+import deepple.deepple.report.command.domain.ReportErrorCode;
 import deepple.deepple.report.command.domain.ReportReasonType;
-import deepple.deepple.report.command.domain.exception.InvalidReportReasonTypeException;
 import deepple.deepple.report.presentation.dto.ReportCreateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,8 @@ class ReportServiceTest {
 
         // when, then
         assertThatThrownBy(() -> reportService.report(request, reporterId))
-            .isInstanceOf(MemberNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
 
         verify(reportCommandRepository, never()).save(any());
     }
@@ -58,8 +59,9 @@ class ReportServiceTest {
         when(reportCommandRepository.existsByReporterIdAndReporteeId(reporterId, reporteeId)).thenReturn(true);
 
         // when, then
-        assertThatThrownBy(() -> reportService.report(request, reporterId)).isInstanceOf(
-            ReportAlreadyExistsException.class);
+        assertThatThrownBy(() -> reportService.report(request, reporterId))
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_EXISTS);
 
         verify(reportCommandRepository, never()).save(any());
     }
@@ -77,7 +79,8 @@ class ReportServiceTest {
 
         // when, then
         assertThatThrownBy(() -> reportService.report(request, reporterId))
-            .isInstanceOf(InvalidReportReasonTypeException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_REASON_TYPE);
 
         verify(reportCommandRepository, never()).save(any());
     }

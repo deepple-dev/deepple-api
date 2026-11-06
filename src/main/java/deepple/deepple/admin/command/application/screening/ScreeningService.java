@@ -1,9 +1,11 @@
 package deepple.deepple.admin.command.application.screening;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.Screening;
 import deepple.deepple.admin.command.domain.screening.ScreeningCommandRepository;
 import deepple.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import deepple.deepple.admin.presentation.screening.ScreeningRejectRequest;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -20,7 +22,10 @@ public class ScreeningService {
     private final ScreeningCommandRepository screeningCommandRepository;
 
     @Transactional
-    public void create(long memberId) {
+    public void createIfAbsent(long memberId) {
+        if (screeningCommandRepository.existsByMemberId(memberId)) {
+            return;
+        }
         screeningCommandRepository.save(Screening.from(memberId));
     }
 
@@ -53,6 +58,6 @@ public class ScreeningService {
 
     private Screening getScreening(long id) {
         return screeningCommandRepository.findById(id)
-            .orElseThrow(ScreeningNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(AdminErrorCode.SCREENING_NOT_FOUND, "screeningId=" + id));
     }
 }

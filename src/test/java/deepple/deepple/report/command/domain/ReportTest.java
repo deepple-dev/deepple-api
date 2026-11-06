@@ -1,9 +1,9 @@
 package deepple.deepple.report.command.domain;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.report.command.domain.event.ReportCreatedEvent;
 import deepple.deepple.report.command.domain.event.ReportWarnedEvent;
-import deepple.deepple.report.command.domain.exception.InvalidReportResultException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -61,8 +61,9 @@ class ReportTest {
             String content = "content";
 
             // when, then
-            assertThatThrownBy(() -> Report.of(reporterId, reporteeId, reason, content)).isInstanceOf(
-                InvalidReportException.class);
+            assertThatThrownBy(() -> Report.of(reporterId, reporteeId, reason, content))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.SELF_REPORT);
         }
 
         @Test
@@ -119,7 +120,9 @@ class ReportTest {
             report.reject(adminId); // 상태를 REJECTED로 변경
 
             // when, then
-            assertThatThrownBy(() -> report.reject(adminId)).isInstanceOf(InvalidReportResultException.class);
+            assertThatThrownBy(() -> report.reject(adminId))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         @Test
@@ -212,7 +215,9 @@ class ReportTest {
             report.warn(adminId);
 
             // when, then
-            assertThatThrownBy(() -> report.warn(adminId)).isInstanceOf(InvalidReportResultException.class);
+            assertThatThrownBy(() -> report.warn(adminId))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         @Test

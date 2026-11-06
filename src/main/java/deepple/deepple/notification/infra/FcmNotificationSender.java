@@ -3,10 +3,11 @@ package deepple.deepple.notification.infra;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
-import deepple.deepple.notification.command.application.NotificationSendFailedException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.notification.command.domain.ChannelType;
 import deepple.deepple.notification.command.domain.DeviceRegistration;
 import deepple.deepple.notification.command.domain.Notification;
+import deepple.deepple.notification.command.domain.NotificationErrorCode;
 import deepple.deepple.notification.command.domain.NotificationSender;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -69,6 +70,10 @@ public class FcmNotificationSender implements NotificationSender {
                 exception.getMessage()
             );
         }
-        throw new NotificationSendFailedException(exception);
+        throw new DeeppleException(
+            NotificationErrorCode.NOTIFICATION_SEND_FAILED,
+            "receiverId=" + notification.getReceiverId(),
+            exception
+        );
     }
 }

@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidEmailException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
@@ -26,7 +27,7 @@ public class Email {
 
     private Email(@NonNull String address) {
         if (!EMAIL_PATTERN.matcher(address).matches()) {
-            throw new InvalidEmailException(address);
+            throw new DeeppleException(AdminErrorCode.INVALID_EMAIL);
         }
         this.address = address;
     }

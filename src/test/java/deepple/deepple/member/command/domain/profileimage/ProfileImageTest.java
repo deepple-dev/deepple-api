@@ -1,7 +1,8 @@
 package deepple.deepple.member.command.domain.profileimage;
 
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.exception.InvalidOrderException;
 import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -64,7 +65,8 @@ public class ProfileImageTest {
                 .isPrimary(isPrimary)
                 .order(order)
                 .build())
-            .isInstanceOf(InvalidOrderException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PROFILE_IMAGE_ORDER);
 
     }
 }

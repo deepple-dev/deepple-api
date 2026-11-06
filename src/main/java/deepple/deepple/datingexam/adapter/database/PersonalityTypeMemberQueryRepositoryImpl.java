@@ -1,8 +1,10 @@
 package deepple.deepple.datingexam.adapter.database;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.required.PersonalityTypeMemberQueryRepository;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Gender;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,7 @@ public class PersonalityTypeMemberQueryRepositoryImpl implements PersonalityType
             .fetchOne();
 
         if (gender == null) {
-            throw new IllegalStateException("멤버의 성별이 null입니다. 멤버 ID: " + memberId);
+            throw new DeeppleException(DatingExamErrorCode.GENDER_NOT_SET, "memberId=" + memberId);
         }
 
         return queryFactory

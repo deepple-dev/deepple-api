@@ -1,7 +1,9 @@
 package deepple.deepple.admin.command.domain.screening;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -152,7 +154,8 @@ class ScreeningTest {
 
             // when & then
             assertThatThrownBy(() -> screening.reject(11L, RejectionReasonType.CONTACT_IN_PROFILE))
-                .isInstanceOf(CannotRejectApprovedScreeningException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.CANNOT_REJECT_APPROVED_SCREENING);
         }
     }
 }

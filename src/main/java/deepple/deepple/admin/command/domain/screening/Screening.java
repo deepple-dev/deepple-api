@@ -1,11 +1,13 @@
 package deepple.deepple.admin.command.domain.screening;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
 import deepple.deepple.admin.command.domain.screening.event.ScreeningCreatedEvent;
 import deepple.deepple.admin.command.domain.screening.event.ScreeningRejectedEvent;
 import deepple.deepple.common.entity.BaseEntity;
 import deepple.deepple.common.event.Events;
 import jakarta.persistence.*;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -82,7 +84,7 @@ public class Screening extends BaseEntity {
 
     private void validateNotApproved() {
         if (ScreeningStatus.APPROVED == status) {
-            throw new CannotRejectApprovedScreeningException();
+            throw new DeeppleException(AdminErrorCode.CANNOT_REJECT_APPROVED_SCREENING, "screeningId=" + id);
         }
     }
 }

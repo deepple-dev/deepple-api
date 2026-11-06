@@ -1,11 +1,9 @@
 package deepple.deepple.member.command.application.introduction;
 
 import deepple.deepple.block.application.required.BlockRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberBlockedException;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberNotActiveException;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberNotFoundException;
-import deepple.deepple.member.command.application.introduction.exception.InvalidPersonalityIntroductionUnlockException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
@@ -35,9 +33,13 @@ public class PersonalityIntroductionUnlockService {
     @Transactional
     public void unlock(long memberId, AnswerPersonalityType type, long targetMemberId) {
         PersonalityIntroductionOpenState openState = personalityIntroductionRedisRepository.findOpenState(memberId)
-            .orElseThrow(() -> new InvalidPersonalityIntroductionUnlockException("오픈된 유형별 이상형 목록이 없습니다."));
+            .orElseThrow(() -> new DeeppleException(
+                MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK,
+                "오픈된 유형별 이상형 목록이 없습니다."
+            ));
         if (openState.type() != type || !openState.memberIds().contains(targetMemberId)) {
-            throw new InvalidPersonalityIntroductionUnlockException(
+            throw new DeeppleException(
+                MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK,
                 "오픈된 목록에 없는 대상입니다. targetMemberId: " + targetMemberId);
         }
 
@@ -60,13 +62,19 @@ public class PersonalityIntroductionUnlockService {
 
     private void validateTarget(long memberId, long targetMemberId) {
         Member target = memberCommandRepository.findById(targetMemberId)
-            .orElseThrow(IntroducedMemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + targetMemberId));
         if (!target.isActive()) {
-            throw new IntroducedMemberNotActiveException();
+            throw new DeeppleException(
+                MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE,
+                "introducedMemberId=" + targetMemberId
+            );
         }
         if (blockRepository.existsByBlockerIdAndBlockedId(memberId, targetMemberId)
             || blockRepository.existsByBlockerIdAndBlockedId(targetMemberId, memberId)) {
-            throw new IntroducedMemberBlockedException();
+            throw new DeeppleException(
+                MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
+                "memberId=" + memberId + ", introducedMemberId=" + targetMemberId
+            );
         }
     }
 }

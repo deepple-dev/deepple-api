@@ -1,10 +1,11 @@
 package deepple.deepple.mission.command.application.memberMission;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.mission.command.application.memberMission.exception.MemberNotFoundException;
-import deepple.deepple.mission.command.application.memberMission.exception.ShouldSetGenderOnProfileException;
+import deepple.deepple.mission.command.domain.MissionErrorCode;
 import deepple.deepple.mission.command.domain.memberMission.MemberMission;
 import deepple.deepple.mission.command.domain.memberMission.MemberMissionCommandRepository;
 import deepple.deepple.mission.command.domain.memberMission.event.MemberMissionCompletedEvent;
@@ -60,7 +61,8 @@ public class MemberMissionService {
     }
 
     private Member getMember(Long memberId) {
-        return memberCommandRepository.findById(memberId).orElseThrow(() -> new MemberNotFoundException(memberId));
+        return memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     private MemberMission createOrFindByMemberIdAndMissionId(Long memberId, Long missionId) {
@@ -79,7 +81,7 @@ public class MemberMissionService {
 
     private void validateMember(Member member) {
         if (member.getProfile() == null || member.getProfile().getGender() == null) {
-            throw new ShouldSetGenderOnProfileException(member.getId());
+            throw new DeeppleException(MissionErrorCode.GENDER_NOT_SET, "memberId=" + member.getId());
         }
     }
 }

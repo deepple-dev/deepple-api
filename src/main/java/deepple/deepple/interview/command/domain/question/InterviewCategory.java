@@ -1,6 +1,8 @@
 package deepple.deepple.interview.command.domain.question;
 
-import deepple.deepple.interview.command.domain.question.exception.InvalidInterviewCategoryException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
+
 
 public enum InterviewCategory {
     PERSONAL("나"),
@@ -21,7 +23,7 @@ public enum InterviewCategory {
         try {
             return InterviewCategory.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidInterviewCategoryException(value);
+            throw new DeeppleException(InterviewErrorCode.INVALID_INTERVIEW_CATEGORY, "value=" + value, e);
         }
     }
 }

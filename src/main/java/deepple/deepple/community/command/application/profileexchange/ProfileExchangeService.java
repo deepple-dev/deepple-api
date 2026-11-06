@@ -1,11 +1,12 @@
 package deepple.deepple.community.command.application.profileexchange;
 
 import deepple.deepple.block.application.required.BlockRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.repository.LockRepository;
-import deepple.deepple.community.command.application.profileexchange.exception.*;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,17 +50,27 @@ public class ProfileExchangeService {
     }
 
     private String getNickNameByMemberId(Long memberId) {
-        return memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new)
-            .getProfile().getNickname().getValue();
+        return memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId))
+            .getProfile()
+            .getNickname()
+            .getValue();
     }
 
     private ProfileExchange getProfileExchangeById(Long profileExchangeId) {
-        return profileExchangeRepository.findById(profileExchangeId).orElseThrow(ProfileExchangeNotFoundException::new);
+        return profileExchangeRepository.findById(profileExchangeId)
+            .orElseThrow(() -> new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_NOT_FOUND,
+                "profileExchangeId=" + profileExchangeId
+            ));
     }
 
     private void validateProfileExchangeResponse(ProfileExchange profileExchange, Long responderId) {
         if (profileExchange.getResponderId() != responderId) {
-            throw new ProfileExchangeResponderMismatchException();
+            throw new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_ACCESS_DENIED,
+                "profileExchangeId=" + profileExchange.getId() + ", responderId=" + responderId
+            );
         }
     }
 
@@ -69,17 +80,30 @@ public class ProfileExchangeService {
 
     private void validateProfileExchangeRequest(Long requesterId, Long responderId) {
         if (profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId)) {
-            throw new ProfileExchangeAlreadyExistsException();
+            throw new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS,
+                "requesterId=" + requesterId + ", responderId=" + responderId
+            );
         }
-        Member responder = memberCommandRepository.findById(responderId).orElseThrow(MemberNotFoundException::new);
+        Member responder = memberCommandRepository.findById(responderId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + responderId));
         if (!responder.isActive()) {
-            throw new ProfileExchangeResponderNotActiveException();
+            throw new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_RESPONDER_INACTIVE,
+                "responderId=" + responderId
+            );
         }
         if (blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId)) {
-            throw new ProfileExchangeHasBlockedException();
+            throw new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED,
+                "requesterId=" + requesterId + ", responderId=" + responderId
+            );
         }
         if (blockRepository.existsByBlockerIdAndBlockedId(responderId, requesterId)) {
-            throw new ProfileExchangeHasBlockedException();
+            throw new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED,
+                "requesterId=" + requesterId + ", responderId=" + responderId
+            );
         }
     }
 }

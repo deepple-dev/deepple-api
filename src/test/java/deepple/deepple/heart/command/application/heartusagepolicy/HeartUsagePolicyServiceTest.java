@@ -1,6 +1,6 @@
 package deepple.deepple.heart.command.application.heartusagepolicy;
 
-import deepple.deepple.heart.command.application.heartusagepolicy.exception.HeartUsagePolicyNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
@@ -9,7 +9,7 @@ import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartPriceAmount;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartUsagePolicy;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartUsagePolicyCommandRepository;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -51,7 +51,8 @@ class HeartUsagePolicyServiceTest {
 
         // when & then
         assertThatThrownBy(() -> heartUsageService.useHeart(memberId, transactionType, content, subtype.name()))
-            .isInstanceOf(MemberNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
 
     @Test
@@ -77,7 +78,7 @@ class HeartUsagePolicyServiceTest {
         // when & then
         assertThatThrownBy(
             () -> heartUsageService.useHeart(memberId, transactionType, content, subtype.name()))
-            .isInstanceOf(HeartUsagePolicyNotFoundException.class);
+            .isInstanceOf(IllegalStateException.class);
 
         verify(heartUsagePolicyCommandRepository, atMostOnce()).findByGenderAndTransactionType(gender, transactionType);
         verify(heartTransactionCommandRepository, never()).save(any(HeartTransaction.class));

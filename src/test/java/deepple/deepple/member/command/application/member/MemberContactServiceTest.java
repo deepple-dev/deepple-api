@@ -1,7 +1,7 @@
 package deepple.deepple.member.command.application.member;
 
-import deepple.deepple.member.command.application.member.exception.KakaoIdAlreadyExistsException;
-import deepple.deepple.member.command.application.member.exception.PhoneNumberAlreadyExistsException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
@@ -49,7 +49,8 @@ public class MemberContactServiceTest {
                 // When & Then
                 Assertions.assertThatThrownBy(
                         () -> memberContactService.updatePhoneNumber(member.getId(), updatePhoneNumber))
-                    .isInstanceOf(PhoneNumberAlreadyExistsException.class);
+                    .isInstanceOf(DeeppleException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
             }
 
             @Test
@@ -105,7 +106,8 @@ public class MemberContactServiceTest {
 
                 // When & Then
                 Assertions.assertThatThrownBy(() -> memberContactService.updateKakaoId(member.getId(), kakaoId))
-                    .isInstanceOf(KakaoIdAlreadyExistsException.class);
+                    .isInstanceOf(DeeppleException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.KAKAO_ID_ALREADY_EXISTS);
             }
 
             @Test

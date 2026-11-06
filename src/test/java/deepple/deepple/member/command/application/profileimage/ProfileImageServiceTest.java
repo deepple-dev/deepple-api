@@ -1,9 +1,9 @@
 package deepple.deepple.member.command.application.profileimage;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.infra.s3.S3Uploader;
 import deepple.deepple.member.command.application.profileImage.ProfileImageService;
-import deepple.deepple.member.command.application.profileImage.exception.ExceedProfileImageCountException;
-import deepple.deepple.member.command.application.profileImage.exception.InvalidProfileImageExtensionException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.profileImage.ProfileImageCommandRepository;
 import deepple.deepple.member.presentation.profileimage.dto.ProfileImageUploadRequest;
 import org.assertj.core.api.Assertions;
@@ -45,7 +45,8 @@ public class ProfileImageServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> profileImageService.getPresignedUrl(fileName, userId))
-                .isInstanceOf(InvalidProfileImageExtensionException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PROFILE_IMAGE_EXTENSION);
         }
     }
 
@@ -68,7 +69,8 @@ public class ProfileImageServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> profileImageService.save(memberId, requests))
-                .isInstanceOf(ExceedProfileImageCountException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.PROFILE_IMAGE_COUNT_EXCEEDED);
         }
 
         void uploadImage() {

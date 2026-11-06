@@ -1,5 +1,6 @@
 package deepple.deepple.block.domain;
 
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,19 +15,19 @@ class BlockTest {
     class CreateBlockTest {
 
         @Test
-        @DisplayName("차단하는 id와 차단당하는 id가 같으면 IllegalArgumentException 예외를 던진다.")
-        void throwsIllegalArgumentExceptionWhenBlockerIdEqualsBlockedId() {
+        @DisplayName("차단하는 id와 차단당하는 id가 같으면 SELF_BLOCK 예외를 던진다.")
+        void throwsSelfBlockWhenBlockerIdEqualsBlockedId() {
             // given
             Long blockerId = 1L;
             Long blockedId = blockerId;
 
             // when
-            IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> {
+            DeeppleException result = assertThrows(DeeppleException.class, () -> {
                 Block.of(blockerId, blockedId);
             });
 
             // then
-            assertThat(result).isInstanceOf(IllegalArgumentException.class);
+            assertThat(result.getErrorCode()).isEqualTo(BlockErrorCode.SELF_BLOCK);
         }
 
         @Test

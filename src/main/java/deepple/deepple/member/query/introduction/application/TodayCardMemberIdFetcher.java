@@ -1,7 +1,7 @@
 package deepple.deepple.member.query.introduction.application;
 
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealNotFoundException;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.MemberIdeal;
 import deepple.deepple.member.command.domain.introduction.MemberIdealCommandRepository;
 import deepple.deepple.member.command.domain.member.Gender;
@@ -38,7 +38,8 @@ public class TodayCardMemberIdFetcher {
         if (!cachedIds.isEmpty()) {
             return cachedIds;
         }
-        Member member = memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Member member = memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
         List<IntroductionSearchCondition> conditions = getConditions(member);
         Set<Long> introductionMemberIds = findAllIntroductionMemberId(conditions, member);
         introductionRedisRepository.saveIntroductionMemberIds(cacheKey, introductionMemberIds, getExpireAt());
@@ -47,7 +48,10 @@ public class TodayCardMemberIdFetcher {
 
     private List<IntroductionSearchCondition> getConditions(Member member) {
         MemberIdeal memberIdeal = memberIdealCommandRepository.findByMemberId(member.getId())
-            .orElseThrow(MemberIdealNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                MemberErrorCode.MEMBER_IDEAL_NOT_FOUND,
+                "memberId=" + member.getId()
+            ));
         Set<Long> excludedMemberIds = findExcludedMemberIds(member.getId());
         Gender oppositeGender = member.getGender().getOpposite();
         if (!memberIdeal.isUpdated()) {

@@ -5,7 +5,6 @@ import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Comparator;
@@ -35,10 +34,6 @@ public class DatingExamEncoder implements DatingExamAnswerEncoder {
         var resultMap = new java.util.LinkedHashMap<String, Object>();
         resultMap.put(ENCODED_ANSWERS_KEY, answers);
 
-        try {
-            return objectMapper.writeValueAsString(resultMap);
-        } catch (JacksonException e) {
-            throw new DatingExamEncodingFailedException("답안 인코딩에 실패했습니다. " + e.getMessage());
-        }
+        return objectMapper.writeValueAsString(resultMap);
     }
 }

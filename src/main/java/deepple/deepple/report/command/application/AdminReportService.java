@@ -1,10 +1,10 @@
 package deepple.deepple.report.command.application;
 
-import deepple.deepple.report.command.application.exception.ReportNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.report.command.domain.Report;
 import deepple.deepple.report.command.domain.ReportCommandRepository;
+import deepple.deepple.report.command.domain.ReportErrorCode;
 import deepple.deepple.report.command.domain.ReportResult;
-import deepple.deepple.report.command.domain.exception.InvalidReportResultException;
 import deepple.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,8 @@ public class AdminReportService {
     }
 
     private Report getReport(long id) {
-        return reportCommandRepository.findById(id).orElseThrow(ReportNotFoundException::new);
+        return reportCommandRepository.findById(id)
+            .orElseThrow(() -> new DeeppleException(ReportErrorCode.REPORT_NOT_FOUND, "reportId=" + id));
     }
 
     private void validateReport(Report report, long version) {
@@ -38,8 +39,14 @@ public class AdminReportService {
         switch (reportResult) {
             case REJECTED -> report.reject(adminId);
             case WARNED -> report.warn(adminId);
-            case PENDING -> throw new InvalidReportResultException("PENDING 으로 결과를 설정할 수 없습니다.");
-            default -> throw new InvalidReportResultException("Invalid report result: " + request.result());
+            case PENDING -> throw new DeeppleException(
+                ReportErrorCode.INVALID_REPORT_RESULT,
+                "PENDING 으로 결과를 설정할 수 없습니다."
+            );
+            default -> throw new DeeppleException(
+                ReportErrorCode.INVALID_REPORT_RESULT,
+                "Invalid report result: " + request.result()
+            );
         }
     }
 }

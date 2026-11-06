@@ -1,7 +1,7 @@
 package deepple.deepple.interview.command.application.question;
 
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionAlreadyExistsException;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
 import deepple.deepple.interview.command.domain.question.InterviewQuestionCommandRepository;
@@ -33,7 +33,10 @@ public class InterviewQuestionService {
 
     private void validateQuestionCreation(String questionContent) {
         if (interviewQuestionCommandRepository.existsByContent(questionContent)) {
-            throw new InterviewQuestionAlreadyExistsException();
+            throw new DeeppleException(
+                InterviewErrorCode.INTERVIEW_QUESTION_ALREADY_EXISTS,
+                "content=" + questionContent
+            );
         }
     }
 
@@ -44,7 +47,10 @@ public class InterviewQuestionService {
 
     private InterviewQuestion getInterviewQuestion(Long questionId) {
         return interviewQuestionCommandRepository.findById(questionId)
-            .orElseThrow(() -> new InterviewQuestionNotFoundException());
+            .orElseThrow(() -> new DeeppleException(
+                InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND,
+                "questionId=" + questionId
+            ));
     }
 
     private void validateQuestionUpdate(InterviewQuestion interviewQuestion, String questionContent) {
@@ -52,7 +58,10 @@ public class InterviewQuestionService {
             return;
         }
         if (interviewQuestionCommandRepository.existsByContent(questionContent)) {
-            throw new InterviewQuestionAlreadyExistsException();
+            throw new DeeppleException(
+                InterviewErrorCode.INTERVIEW_QUESTION_ALREADY_EXISTS,
+                "content=" + questionContent
+            );
         }
     }
 }

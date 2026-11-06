@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.application.member;
 
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Grade;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -56,6 +57,7 @@ class AdminMemberServiceTest {
 
         // when & then
         assertThatThrownBy(() -> adminMemberService.updateMemberSetting(memberId, request))
-            .isInstanceOf(MemberNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
 }

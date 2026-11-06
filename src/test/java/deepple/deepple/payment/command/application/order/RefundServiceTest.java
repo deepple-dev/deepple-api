@@ -1,8 +1,8 @@
 package deepple.deepple.payment.command.application.order;
 
 import deepple.deepple.common.event.Events;
-import deepple.deepple.payment.command.application.order.exception.HeartPurchaseOptionNotFoundException;
-import deepple.deepple.payment.command.application.order.exception.OrderNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
 import deepple.deepple.payment.command.domain.order.Order;
@@ -170,8 +170,8 @@ class RefundServiceTest {
     class OrderNotFoundTests {
 
         @Test
-        @DisplayName("transactionId와 paymentMethod로 주문을 찾을 수 없으면 OrderNotFoundException 발생")
-        void shouldThrowOrderNotFoundExceptionWhenOrderNotFound() {
+        @DisplayName("transactionId와 paymentMethod로 주문을 찾을 수 없으면 ORDER_NOT_FOUND 예외발생")
+        void shouldThrowOrderNotFoundWhenOrderNotFound() {
             // given
             String transactionId = "txn123";
             String productId = "product123";
@@ -186,7 +186,8 @@ class RefundServiceTest {
             // when & then
             assertThatThrownBy(
                 () -> refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType))
-                .isInstanceOf(OrderNotFoundException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.ORDER_NOT_FOUND)
                 .hasMessageContaining("주문을 찾을 수 없습니다");
 
             verify(heartPurchaseOptionCommandRepository, never()).findByProductIdAndDeletedAtIsNull(any());
@@ -199,8 +200,8 @@ class RefundServiceTest {
     class HeartPurchaseOptionNotFoundTests {
 
         @Test
-        @DisplayName("productId로 하트 구매 옵션을 찾을 수 없으면 HeartPurchaseOptionNotFoundException 발생")
-        void shouldThrowHeartPurchaseOptionNotFoundExceptionWhenOptionNotFound() {
+        @DisplayName("productId로 하트 구매 옵션을 찾을 수 없으면 HEART_PURCHASE_OPTION_NOT_FOUND 예외발생")
+        void shouldThrowHeartPurchaseOptionNotFoundWhenOptionNotFound() {
             // given
             String transactionId = "txn123";
             String productId = "product123";
@@ -220,7 +221,8 @@ class RefundServiceTest {
             // when & then
             assertThatThrownBy(
                 () -> refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType))
-                .isInstanceOf(HeartPurchaseOptionNotFoundException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND)
                 .hasMessageContaining("하트 구매 옵션이 존재하지 않습니다");
 
             verify(refundCommandRepository, never()).save(any(Refund.class));

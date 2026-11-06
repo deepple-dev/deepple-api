@@ -2,7 +2,6 @@ package deepple.deepple.heart.command.domain.heartusagepolicy;
 
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartTransactionTypeException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionSubtype;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import deepple.deepple.member.command.domain.member.Gender;
@@ -46,7 +45,7 @@ public class HeartUsagePolicy extends BaseEntity {
 
     private void setTransactionType(@NonNull TransactionType transactionType) {
         if (!transactionType.isUsingType()) {
-            throw new InvalidHeartTransactionTypeException(
+            throw new IllegalArgumentException(
                 "TransactionType이 UsingType이 아닙니다. transactionType: " + transactionType);
         }
         this.transactionType = transactionType;

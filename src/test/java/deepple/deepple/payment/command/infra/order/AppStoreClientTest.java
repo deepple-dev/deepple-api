@@ -4,8 +4,8 @@ import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
 import com.apple.itunes.storekit.model.ResponseBodyV2DecodedPayload;
 import com.apple.itunes.storekit.verification.SignedDataVerifier;
 import com.apple.itunes.storekit.verification.VerificationException;
-import deepple.deepple.payment.command.infra.order.exception.AppStoreClientException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidAppReceiptException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -55,16 +55,17 @@ class AppStoreClientTest {
             assertThat(result).isEqualTo(decodedPayload);
         }
 
-        @DisplayName("JWS 검증 실패 시 InvalidAppReceiptException을 던진다")
+        @DisplayName("JWS 검증 실패 시 INVALID_APP_STORE_RECEIPT 예외를 던진다")
         @Test
-        void whenVerificationFails_throwsInvalidAppReceiptException() throws VerificationException {
+        void whenVerificationFails_throwsInvalidAppStoreReceipt() throws VerificationException {
             // given
             VerificationException cause = mock(VerificationException.class);
             when(signedDataVerifier.verifyAndDecodeTransaction(SIGNED_TRANSACTION)).thenThrow(cause);
 
             // when & then
             assertThatThrownBy(() -> appStoreClient.verifyAndDecodeTransaction(SIGNED_TRANSACTION))
-                .isInstanceOf(InvalidAppReceiptException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_APP_STORE_RECEIPT)
                 .hasCause(cause);
         }
     }
@@ -86,29 +87,31 @@ class AppStoreClientTest {
             assertThat(result).isEqualTo(notificationPayload);
         }
 
-        @DisplayName("알림 검증 실패 시 InvalidAppReceiptException을 던진다")
+        @DisplayName("알림 검증 실패 시 INVALID_APP_STORE_RECEIPT 예외를 던진다")
         @Test
-        void whenVerificationFails_throwsInvalidAppReceiptException() throws VerificationException {
+        void whenVerificationFails_throwsInvalidAppStoreReceipt() throws VerificationException {
             // given
             VerificationException cause = mock(VerificationException.class);
             when(signedDataVerifier.verifyAndDecodeNotification(SIGNED_PAYLOAD)).thenThrow(cause);
 
             // when & then
             assertThatThrownBy(() -> appStoreClient.verifyAndDecodeNotification(SIGNED_PAYLOAD))
-                .isInstanceOf(InvalidAppReceiptException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_APP_STORE_RECEIPT)
                 .hasCause(cause);
         }
 
-        @DisplayName("일반 예외 발생 시 AppStoreClientException을 던진다")
+        @DisplayName("일반 예외 발생 시 APP_STORE_UNAVAILABLE 예외를 던진다")
         @Test
-        void whenGeneralExceptionOccurs_throwsAppStoreClientException() throws VerificationException {
+        void whenGeneralExceptionOccurs_throwsAppStoreUnavailable() throws VerificationException {
             // given
             RuntimeException cause = new RuntimeException("General error");
             when(signedDataVerifier.verifyAndDecodeNotification(SIGNED_PAYLOAD)).thenThrow(cause);
 
             // when & then
             assertThatThrownBy(() -> appStoreClient.verifyAndDecodeNotification(SIGNED_PAYLOAD))
-                .isInstanceOf(AppStoreClientException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.APP_STORE_UNAVAILABLE)
                 .hasCause(cause);
         }
     }

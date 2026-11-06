@@ -1,7 +1,6 @@
 package deepple.deepple.datingexam.domain;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.datingexam.domain.exception.InvalidDatingExamQuestionContentException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,7 +41,7 @@ public class DatingExamQuestion extends BaseEntity {
 
     private void setContent(@NonNull String content) {
         if (content.isBlank()) {
-            throw new InvalidDatingExamQuestionContentException("Question content cannot be null or blank");
+            throw new IllegalArgumentException("Question content cannot be null or blank");
         }
         this.content = content;
     }

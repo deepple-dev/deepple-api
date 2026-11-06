@@ -1,6 +1,6 @@
 package deepple.deepple.heart.command.application.heartusagepolicy;
 
-import deepple.deepple.heart.command.application.heartusagepolicy.exception.HeartUsagePolicyNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
@@ -9,7 +9,7 @@ import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionSubty
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartUsagePolicy;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartUsagePolicyCommandRepository;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +37,14 @@ public class HeartUsagePolicyService {
 
     private Member getMember(long memberId) {
         return memberCommandRepository.findById(memberId)
-            .orElseThrow(MemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     private HeartAmount getHeartAmount(Member member, TransactionType transactionType, String transactionSubtype) {
         HeartUsagePolicy heartUsagePolicy = heartUsagePolicyCommandRepository.findByGenderAndTransactionType(
                 member.getGender(), transactionType)
-            .orElseThrow(HeartUsagePolicyNotFoundException::new);
+            .orElseThrow(() -> new IllegalStateException(
+                "하트 사용 정책이 없습니다. gender=" + member.getGender() + ", transactionType=" + transactionType));
         TransactionSubtype subtype = TransactionSubtype.valueOf(transactionSubtype);
         return HeartAmount.from(heartUsagePolicy.getAmount(member.isVip(), subtype));
     }

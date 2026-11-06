@@ -1,8 +1,8 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.AdminNotPendingException;
-import deepple.deepple.admin.command.domain.admin.exception.IncorrectPasswordException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,7 +60,8 @@ class AdminTest {
 
         // when & then
         assertThatThrownBy(() -> admin.matchPassword(rawPassword, passwordHasher))
-            .isInstanceOf(IncorrectPasswordException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_CREDENTIALS);
     }
 
     @Test
@@ -97,7 +98,8 @@ class AdminTest {
 
         // when & then
         assertThatThrownBy(() -> admin.approve(AdminRole.SUPER_ADMIN))
-            .isInstanceOf(AdminNotPendingException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.ADMIN_NOT_PENDING);
     }
 
     private Admin createAdmin() {

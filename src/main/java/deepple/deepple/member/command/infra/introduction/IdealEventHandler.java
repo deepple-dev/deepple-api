@@ -19,7 +19,7 @@ public class IdealEventHandler {
     @TransactionalEventListener(value = MemberRegisteredEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     public void handle(MemberRegisteredEvent event) {
         try {
-            memberIdealService.init(event.getMemberId());
+            memberIdealService.initIfAbsent(event.getMemberId());
         } catch (Exception e) {
             log.error("Member(memberId: {})의 Ideal 생성 중 예외가 발생합니다.", event.getMemberId(), e);
         }

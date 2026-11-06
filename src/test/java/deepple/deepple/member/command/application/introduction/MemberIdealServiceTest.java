@@ -1,7 +1,7 @@
 package deepple.deepple.member.command.application.introduction;
 
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealAlreadyExistsException;
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.MemberIdeal;
 import deepple.deepple.member.command.domain.introduction.MemberIdealCommandRepository;
 import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
@@ -74,7 +74,8 @@ class MemberIdealServiceTest {
 
             // when && then
             assertThatThrownBy(() -> memberIdealService.update(request, memberId))
-                .isInstanceOf(MemberIdealNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_IDEAL_NOT_FOUND);
         }
 
         @Test
@@ -93,18 +94,20 @@ class MemberIdealServiceTest {
     }
 
     @Nested
-    @DisplayName("init 메서드 테스트")
-    class InitTest {
+    @DisplayName("initIfAbsent 메서드 테스트")
+    class InitIfAbsentTest {
         @Test
-        @DisplayName("memberIdeal이 이미 존재하는 경우 예외를 던진다.")
-        void throwExceptionWhenMemberIdealIsAlreadyExists() {
+        @DisplayName("memberIdeal이 이미 존재하는 경우 저장하지 않는다.")
+        void skipWhenMemberIdealAlreadyExists() {
             // given
             long memberId = 1L;
             when(memberIdealCommandRepository.existsByMemberId(memberId)).thenReturn(true);
 
-            // when && then
-            assertThatThrownBy(() -> memberIdealService.init(memberId))
-                .isInstanceOf(MemberIdealAlreadyExistsException.class);
+            // when
+            memberIdealService.initIfAbsent(memberId);
+
+            // then
+            verify(memberIdealCommandRepository, never()).save(any());
         }
 
         @Test
@@ -119,7 +122,7 @@ class MemberIdealServiceTest {
                 memberIdealMock.when(() -> MemberIdeal.init(memberId)).thenReturn(memberIdeal);
 
                 // when
-                memberIdealService.init(memberId);
+                memberIdealService.initIfAbsent(memberId);
 
                 // then
                 verify(memberIdealCommandRepository).save(memberIdeal);
