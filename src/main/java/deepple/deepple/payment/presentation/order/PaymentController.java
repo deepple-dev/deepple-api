@@ -54,7 +54,7 @@ public class PaymentController {
             appStoreNotificationService.handleNotification(request.signedPayload());
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            log.error("Apple 알림 처리 실패. signedPayload: {}", request.signedPayload(), e);
+            log.atError().setCause(e).log("Apple 알림 처리 실패");
             return ResponseEntity.noContent().build();
         }
     }

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberSuspendedEvent extends Event {
@@ -15,5 +17,10 @@ public class MemberSuspendedEvent extends Event {
 
     public static MemberSuspendedEvent of(long memberId, @NonNull String status) {
         return new MemberSuspendedEvent(memberId, status);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId);
     }
 }

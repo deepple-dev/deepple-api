@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ScreeningRejectedEvent extends Event {
@@ -14,5 +16,10 @@ public class ScreeningRejectedEvent extends Event {
 
     public static ScreeningRejectedEvent of(long adminId, long memberId, String rejectionReason) {
         return new ScreeningRejectedEvent(adminId, memberId, rejectionReason);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId);
     }
 }

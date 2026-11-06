@@ -4,11 +4,9 @@ import deepple.deepple.notification.command.domain.DeviceRegistration;
 import deepple.deepple.notification.command.domain.DeviceRegistrationCommandRepository;
 import deepple.deepple.notification.presentation.DeviceRegisterRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeviceRegistrationService {
@@ -26,15 +24,9 @@ public class DeviceRegistrationService {
     public void register(long memberId, DeviceRegisterRequest request) {
         deviceRegistrationCommandRepository.findByMemberId(memberId)
             .ifPresentOrElse(
-                device -> {
-                    device.update(request.deviceId(), request.registrationToken());
-                    log.info("사용자(id: {})의 디바이스 등록 갱신", memberId);
-                },
-                () -> {
-                    var registration = DeviceRegistration.of(memberId, request.deviceId(), request.registrationToken());
-                    deviceRegistrationCommandRepository.save(registration);
-                    log.info("사용자(id: {})의 디바이스 등록이 존재하지 않아 새 디바이스 등록", memberId);
-                }
+                device -> device.update(request.deviceId(), request.registrationToken()),
+                () -> deviceRegistrationCommandRepository.save(
+                    DeviceRegistration.of(memberId, request.deviceId(), request.registrationToken()))
             );
     }
 
@@ -45,10 +37,7 @@ public class DeviceRegistrationService {
     @Transactional
     public void activateByMemberId(long memberId) {
         deviceRegistrationCommandRepository.findByMemberId(memberId)
-            .ifPresentOrElse(
-                DeviceRegistration::activate,
-                () -> log.info("사용자(id: {})의 디바이스 등록이 존재하지 않아 활성화 실패", memberId)
-            );
+            .ifPresent(DeviceRegistration::activate);
     }
 
     /**
@@ -58,9 +47,6 @@ public class DeviceRegistrationService {
     @Transactional
     public void deactivateByMemberId(long memberId) {
         deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(memberId)
-            .ifPresentOrElse(
-                DeviceRegistration::deactivate,
-                () -> log.info("사용자(id: {})의 활성화된 디바이스 등록이 존재하지 않아 비활성화 실패", memberId)
-            );
+            .ifPresent(DeviceRegistration::deactivate);
     }
 }

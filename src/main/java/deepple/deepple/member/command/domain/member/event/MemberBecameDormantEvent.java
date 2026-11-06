@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Map;
+
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberBecameDormantEvent extends Event {
@@ -13,5 +15,10 @@ public class MemberBecameDormantEvent extends Event {
 
     public static MemberBecameDormantEvent from(long memberId) {
         return new MemberBecameDormantEvent(memberId);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId);
     }
 }

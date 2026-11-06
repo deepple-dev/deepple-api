@@ -1,10 +1,13 @@
 package deepple.deepple.common.exception;
 
+import deepple.deepple.common.logging.LogContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpHeaders;
@@ -34,6 +37,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String CODE_PROPERTY = "code";
     private static final String TRACE_ID_PROPERTY = "traceId";
     private static final String ERRORS_PROPERTY = "errors";
+    private static final String ERROR_CODE_KEY = "errorCode";
+    private static final String ERROR_TYPE_KEY = "errorType";
+    private static final String ERROR_DETAIL_KEY = "errorDetail";
+    private static final String URL_PATH_KEY = "url.path";
     private static final HttpStatusCode CLIENT_CLOSED_REQUEST = HttpStatusCode.valueOf(499);
     private static final String INTERNAL_ERROR_CODE = HttpStatus.INTERNAL_SERVER_ERROR.name();
     private static final String INTERNAL_ERROR_MESSAGE = "서버 내부 오류가 발생했습니다.";
@@ -189,16 +196,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private void logException(HttpStatusCode status, String code, Exception e, HttpServletRequest request) {
-        String method = request == null ? null : request.getMethod();
-        String uri = request == null ? null : request.getRequestURI();
+        LoggingEventBuilder event = createLogEvent(status, e).addKeyValue(ERROR_CODE_KEY, code);
+        if (request != null) {
+            event = event.addKeyValue(URL_PATH_KEY, request.getRequestURI());
+            if (MDC.get(LogContext.HTTP_REQUEST_METHOD) == null) {
+                event = event.addKeyValue(LogContext.HTTP_REQUEST_METHOD, request.getMethod());
+            }
+        }
+        event.log("오류 응답");
+    }
+
+    private LoggingEventBuilder createLogEvent(HttpStatusCode status, Exception e) {
         if (status.is5xxServerError()) {
-            log.error("[{}] {} {} - {}", code, method, uri, e.getMessage(), e);
-            return;
+            return log.atError().setCause(e);
         }
-        if (WARN_STATUSES.contains(status.value())) {
-            log.warn("[{}] {} {} - {}", code, method, uri, e.getMessage());
-            return;
+        LoggingEventBuilder event = WARN_STATUSES.contains(status.value()) ? log.atWarn() : log.atInfo();
+        event = event.addKeyValue(ERROR_TYPE_KEY, e.getClass().getSimpleName());
+        if (e instanceof DeeppleException) {
+            event = event.addKeyValue(ERROR_DETAIL_KEY, e.getMessage());
         }
-        log.info("[{}] {} {} - {}", code, method, uri, e.getMessage());
+        return event;
     }
 }

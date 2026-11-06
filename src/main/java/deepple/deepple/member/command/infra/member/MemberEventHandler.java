@@ -8,7 +8,6 @@ import deepple.deepple.mission.command.domain.memberMission.event.MemberMissionC
 import deepple.deepple.payment.command.domain.order.event.HeartRefundedEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -16,7 +15,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-@Slf4j
 public class MemberEventHandler {
     private final MemberProfileService memberProfileService;
     private final MemberHeartBalanceService memberHeartBalanceService;
@@ -40,11 +38,6 @@ public class MemberEventHandler {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(HeartRefundedEvent event) {
-        try {
-            memberHeartBalanceService.refundPurchasedHearts(event.getMemberId(), event.getAmount());
-        } catch (Exception e) {
-            log.error("하트 환불 처리 실패. memberId: {}, transactionId: {}",
-                event.getMemberId(), event.getTransactionId(), e);
-        }
+        memberHeartBalanceService.refundPurchasedHearts(event.getMemberId(), event.getAmount());
     }
 }
