@@ -6,21 +6,21 @@ import deepple.deepple.member.command.domain.sms.SmsSender;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageRequest;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 
 @Service
 @ConditionalOnProperty(name = "bizgo.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
-@Slf4j
 public class BizgoMessenger implements SmsSender {
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${bizgo.from-phone-number}")
     private String fromPhoneNumber;
@@ -42,7 +42,7 @@ public class BizgoMessenger implements SmsSender {
     private void sendRequest(String message, String phoneNumber) {
         String requestURL = apiUrl + "/api/comm/v1/send/omni";
 
-        ResponseEntity<BizgoMessageResponse> response = restClient.post()
+        restClient.post()
             .uri(requestURL)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -50,18 +50,24 @@ public class BizgoMessenger implements SmsSender {
             .body(new BizgoMessageRequest(message, fromPhoneNumber, phoneNumber))
             .retrieve()
             .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
-                    String responseBody = new String(httpResponse.getBody().readAllBytes());
-                    log.error("Bizgo API 에러 응답 - statusCode: {}, body: {}",
-                        httpResponse.getStatusCode().value(), responseBody);
                     throw new DeeppleException(
                         MemberErrorCode.SMS_SEND_FAILED,
                         "Bizgo statusCode=" + httpResponse.getStatusCode().value()
+                            + ", " + extractErrorCode(httpResponse.getBody().readAllBytes())
                     );
                 }
-            ).toEntity(BizgoMessageResponse.class);
+            )
+            .toBodilessEntity();
+    }
 
-        log.info("status = {}", response.getStatusCode());
-        log.info("headers = {}", response.getHeaders());
-        log.info("body = {}", response.getBody());
+    private String extractErrorCode(byte[] body) {
+        try {
+            BizgoMessageResponse response = objectMapper.readValue(body, BizgoMessageResponse.class);
+            String authCode = response.common() == null ? null : response.common().authCode();
+            String code = response.data() == null ? null : response.data().code();
+            return "authCode=" + authCode + ", code=" + code;
+        } catch (JacksonException e) {
+            return "errorCode=unknown";
+        }
     }
 }

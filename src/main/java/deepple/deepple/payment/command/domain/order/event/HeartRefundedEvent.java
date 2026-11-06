@@ -4,6 +4,8 @@ import deepple.deepple.common.event.Event;
 import lombok.Getter;
 import lombok.NonNull;
 
+import java.util.Map;
+
 @Getter
 public class HeartRefundedEvent extends Event {
     private final Long memberId;
@@ -18,5 +20,10 @@ public class HeartRefundedEvent extends Event {
 
     public static HeartRefundedEvent of(Long memberId, Long amount, String transactionId) {
         return new HeartRefundedEvent(memberId, amount, transactionId);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId, "amount", amount, "transactionId", transactionId);
     }
 }

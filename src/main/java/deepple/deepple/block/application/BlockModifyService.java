@@ -24,7 +24,15 @@ public class BlockModifyService implements BlockCommander {
                 "blockerId=" + blockerId + ", blockedId=" + blockedId
             );
         }
-        Block block = Block.of(blockerId, blockedId);
-        blockRepository.save(block);
+        blockRepository.save(Block.of(blockerId, blockedId));
+    }
+
+    @Override
+    @Transactional
+    public void createBlockIfAbsent(long blockerId, long blockedId) {
+        if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
+            return;
+        }
+        blockRepository.save(Block.of(blockerId, blockedId));
     }
 }

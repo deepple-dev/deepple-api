@@ -3,6 +3,7 @@ package deepple.deepple.common.event;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Getter
 public abstract class Event {
@@ -11,5 +12,9 @@ public abstract class Event {
 
     protected Event() {
         timestamp = Instant.now();
+    }
+
+    public Map<String, Object> logAttributes() {
+        return Map.of();
     }
 }

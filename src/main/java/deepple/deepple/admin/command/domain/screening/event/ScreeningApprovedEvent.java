@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ScreeningApprovedEvent extends Event {
@@ -13,5 +15,10 @@ public class ScreeningApprovedEvent extends Event {
 
     public static ScreeningApprovedEvent of(long adminId, long memberId) {
         return new ScreeningApprovedEvent(adminId, memberId);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId);
     }
 }

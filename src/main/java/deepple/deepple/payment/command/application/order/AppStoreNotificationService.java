@@ -32,13 +32,8 @@ public class AppStoreNotificationService {
     }
 
     private void handleRefund(ResponseBodyV2DecodedPayload payload, NotificationType notificationType) {
-        try {
-            JWSTransactionDecodedPayload transaction = extractTransaction(payload);
-            processRefundTransaction(transaction, notificationType);
-        } catch (Exception e) {
-            log.error("환불 알림 처리 실패", e);
-            throw e;
-        }
+        JWSTransactionDecodedPayload transaction = extractTransaction(payload);
+        processRefundTransaction(transaction, notificationType);
     }
 
     private JWSTransactionDecodedPayload extractTransaction(ResponseBodyV2DecodedPayload payload) {

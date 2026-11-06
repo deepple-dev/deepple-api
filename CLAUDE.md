@@ -91,6 +91,7 @@
 | `java.md` | 타입·이름·작성 규칙, Lombok | 모든 Java 파일 |
 | `swagger.md` | API 문서화 | `presentation`, `adapter/webapi`, `query` |
 | `exception.md` | 예외 던지기, ErrorCode, 오류 응답 | `src/main` Java 파일 |
+| `logging.md` | 로그 레벨·형식, 자동 문맥(MDC), 남기지 않는 값 | `src/main` Java 파일 |
 | `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `infra`, `adapter`, `common/config` |
 | `db.md` | 마이그레이션, 컬럼 타입 | 마이그레이션, 엔티티(`domain`) |
 | `test.md` | 테스트 종류별 작성 방식 | `src/test` |

@@ -4,6 +4,8 @@ import deepple.deepple.common.event.Event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+
 @RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 @Getter
 public class MemberSettingUpdatedEvent extends Event {
@@ -12,5 +14,10 @@ public class MemberSettingUpdatedEvent extends Event {
 
     public static MemberSettingUpdatedEvent of(long memberId, boolean isPushNotificationEnabled) {
         return new MemberSettingUpdatedEvent(memberId, isPushNotificationEnabled);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId);
     }
 }

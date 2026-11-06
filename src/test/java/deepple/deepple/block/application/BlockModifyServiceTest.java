@@ -71,4 +71,40 @@ class BlockModifyServiceTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("차단이 없을 때만 생성할 때")
+    class CreateBlockIfAbsentTest {
+        @Test
+        @DisplayName("이미 차단된 멤버면 예외 없이 저장하지 않는다.")
+        void skipsWhenBlockAlreadyExists() {
+            // given
+            long blockerId = 1L;
+            long blockedId = 2L;
+
+            when(blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)).thenReturn(true);
+
+            // when
+            blockModifyService.createBlockIfAbsent(blockerId, blockedId);
+
+            // then
+            verify(blockRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("이미 차단된 멤버가 아니면 차단을 저장한다.")
+        void createsBlockWhenNotAlreadyBlocked() {
+            // given
+            long blockerId = 1L;
+            long blockedId = 2L;
+
+            when(blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)).thenReturn(false);
+
+            // when
+            blockModifyService.createBlockIfAbsent(blockerId, blockedId);
+
+            // then
+            verify(blockRepository, times(1)).save(any(Block.class));
+        }
+    }
 }

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberProfileInitializedEvent extends Event {
@@ -13,5 +15,10 @@ public class MemberProfileInitializedEvent extends Event {
 
     public static MemberProfileInitializedEvent from(@NonNull Long memberId) {
         return new MemberProfileInitializedEvent(memberId);
+    }
+
+    @Override
+    public Map<String, Object> logAttributes() {
+        return Map.of("memberId", memberId);
     }
 }
