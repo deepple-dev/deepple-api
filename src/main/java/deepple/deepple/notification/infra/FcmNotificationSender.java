@@ -11,14 +11,12 @@ import deepple.deepple.notification.command.domain.NotificationErrorCode;
 import deepple.deepple.notification.command.domain.NotificationSender;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import static deepple.deepple.notification.command.infra.FcmResilienceConfig.CIRCUIT_BREAKER_POLICY_NAME;
 import static deepple.deepple.notification.command.infra.FcmResilienceConfig.RETRY_POLICY_NAME;
 
-@Slf4j
 @Service
 @ConditionalOnProperty(name = "firebase.enabled", havingValue = "true", matchIfMissing = true)
 public class FcmNotificationSender implements NotificationSender {
@@ -51,28 +49,17 @@ public class FcmNotificationSender implements NotificationSender {
             .putData(KEY_NOTIFICATION_TYPE, notification.getType().toString())
             .build();
 
-        String messageId = FirebaseMessaging.getInstance().send(message);
-        log.info("[알림 전송 성공] messageId={}, receiverId={}", messageId, notification.getReceiverId());
+        FirebaseMessaging.getInstance().send(message);
     }
 
     @SuppressWarnings("unused")
     private void sendFallback(Notification notification, DeviceRegistration deviceRegistration, Exception exception) {
-        if (exception instanceof FirebaseMessagingException fme) {
-            log.warn("[FCM 전송 실패] receiverId={}, errorCode={}, message={}",
-                notification.getReceiverId(),
-                fme.getMessagingErrorCode(),
-                fme.getMessage()
-            );
-        } else {
-            log.warn("[FCM 전송 실패] receiverId={}, exceptionType={}, message={}",
-                notification.getReceiverId(),
-                exception.getClass().getSimpleName(),
-                exception.getMessage()
-            );
-        }
+        String errorCode = exception instanceof FirebaseMessagingException fme
+            ? String.valueOf(fme.getMessagingErrorCode())
+            : exception.getClass().getSimpleName();
         throw new DeeppleException(
             NotificationErrorCode.NOTIFICATION_SEND_FAILED,
-            "receiverId=" + notification.getReceiverId(),
+            "receiverId=" + notification.getReceiverId() + ", errorCode=" + errorCode,
             exception
         );
     }

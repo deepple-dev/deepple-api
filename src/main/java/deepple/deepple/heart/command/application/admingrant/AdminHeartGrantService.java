@@ -29,7 +29,9 @@ public class AdminHeartGrantService {
         HeartAmount heartAmount = HeartAmount.from(request.amount());
         member.gainAdminGrantedHeart(heartAmount, adminId, request.reason());
 
-        log.info("관리자(id: {})가 멤버(id: {})에게 하트 {}개 지급. 사유: {}",
-            adminId, request.memberId(), request.amount(), request.reason());
+        log.atInfo()
+            .addKeyValue("memberId", request.memberId())
+            .addKeyValue("amount", request.amount())
+            .log("관리자 하트 지급");
     }
 }

@@ -18,12 +18,24 @@ public class AppStoreNotificationService {
 
     public void handleNotification(String signedPayload) {
         ResponseBodyV2DecodedPayload payload = verifyNotification(signedPayload);
+        try {
+            processNotification(payload);
+        } catch (Exception e) {
+            log.atError()
+                .setCause(e)
+                .addKeyValue("notificationUUID", payload.getNotificationUUID())
+                .addKeyValue("notificationType", payload.getRawNotificationType())
+                .log("Apple 알림 처리 실패");
+        }
+    }
+
+    private void processNotification(ResponseBodyV2DecodedPayload payload) {
         NotificationType notificationType = NotificationType.from(payload.getNotificationType().getValue());
 
         if (notificationType.isRefund()) {
             handleRefund(payload, notificationType);
         } else {
-            log.info("처리하지 않는 알림 타입. notificationType: {}", notificationType);
+            log.atInfo().addKeyValue("notificationType", notificationType).log("처리하지 않는 Apple 알림");
         }
     }
 

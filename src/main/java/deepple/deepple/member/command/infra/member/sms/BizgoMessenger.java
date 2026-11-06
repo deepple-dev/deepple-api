@@ -63,11 +63,10 @@ public class BizgoMessenger implements SmsSender {
     private String extractErrorCode(byte[] body) {
         try {
             BizgoMessageResponse response = objectMapper.readValue(body, BizgoMessageResponse.class);
-            String authCode = response.common() == null ? null : response.common().authCode();
-            String code = response.data() == null ? null : response.data().code();
-            return "authCode=" + authCode + ", code=" + code;
+            String code = response.data() == null ? response.code() : response.data().code();
+            return "code=" + code;
         } catch (JacksonException e) {
-            return "errorCode=unknown";
+            return "code=unknown";
         }
     }
 }

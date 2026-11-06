@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record BizgoMessageResponse(
     CommonField common,
-    Data data
+    Data data,
+    String code
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record CommonField(

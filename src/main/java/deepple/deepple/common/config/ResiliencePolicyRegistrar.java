@@ -26,24 +26,13 @@ public class ResiliencePolicyRegistrar implements SmartInitializingSingleton {
     }
 
     private void registerCircuitBreakerEventListeners() {
-        circuitBreakerRegistry.getAllCircuitBreakers().forEach(cb -> {
-            cb.getEventPublisher()
-                .onStateTransition(event -> log.warn(
-                    "[CircuitBreaker 상태 전환] name={}, {} -> {}",
-                    event.getCircuitBreakerName(),
-                    event.getStateTransition().getFromState(),
-                    event.getStateTransition().getToState()
-                ))
-                .onFailureRateExceeded(event -> log.warn(
-                    "[CircuitBreaker 실패율 초과] name={}, failureRate={}%",
-                    event.getCircuitBreakerName(),
-                    event.getFailureRate()
-                ))
-                .onSlowCallRateExceeded(event -> log.warn(
-                    "[CircuitBreaker 느린응답률 초과] name={}, slowCallRate={}%",
-                    event.getCircuitBreakerName(),
-                    event.getSlowCallRate()
-                ));
-        });
+        circuitBreakerRegistry.getAllCircuitBreakers().forEach(cb -> cb.getEventPublisher()
+            .onStateTransition(event -> log.atWarn()
+                .addKeyValue("circuitBreaker", event.getCircuitBreakerName())
+                .addKeyValue("fromState", event.getStateTransition().getFromState())
+                .addKeyValue("toState", event.getStateTransition().getToState())
+                .addKeyValue("failureRate", cb.getMetrics().getFailureRate())
+                .addKeyValue("slowCallRate", cb.getMetrics().getSlowCallRate())
+                .log("서킷 브레이커 상태 전환")));
     }
 }

@@ -21,6 +21,7 @@ import deepple.deepple.member.command.domain.member.event.MemberLoggedInEvent;
 import deepple.deepple.member.command.domain.member.event.MemberLoggedOutEvent;
 import deepple.deepple.member.command.domain.member.event.MemberRegisteredEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import java.util.Optional;
 
 import static deepple.deepple.member.command.domain.member.ActivityStatus.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberAuthService {
@@ -51,7 +53,8 @@ public class MemberAuthService {
     public MemberLoginServiceDto login(String phoneNumber, String code) {
         authMessageService.authenticate(phoneNumber, code);
 
-        Member member = createOrFindMemberByPhoneNumber(phoneNumber);
+        Optional<Member> existingMember = memberCommandRepository.findByPhoneNumber(phoneNumber);
+        Member member = existingMember.orElseGet(() -> create(phoneNumber));
         validateMemberLoginPermission(member);
 
         String accessToken = tokenProvider.createAccessToken(member.getId(), Role.MEMBER, Instant.now());
@@ -63,6 +66,11 @@ public class MemberAuthService {
 
         memberCommandRepository.updateLastAccessedAt(member.getId(),
             LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
+
+        log.atInfo()
+            .addKeyValue("memberId", member.getId())
+            .addKeyValue("newMember", existingMember.isEmpty())
+            .log("회원 로그인");
 
         return new MemberLoginServiceDto(accessToken, refreshToken, member.isProfileSettingNeeded(),
             member.getActivityStatus() != null ? member.getActivityStatus().name() : null);
@@ -96,14 +104,11 @@ public class MemberAuthService {
         Member member = getMemberById(memberId);
         refreshTokenService.revokeAll(TokenOwner.member(memberId));
         member.delete();
+        log.info("회원 탈퇴");
     }
 
     public void sendAuthCode(String phoneNumber) {
         authMessageService.sendAndSaveCode(phoneNumber);
-    }
-
-    private Member createOrFindMemberByPhoneNumber(String phoneNumber) {
-        return memberCommandRepository.findByPhoneNumber(phoneNumber).orElseGet(() -> create(phoneNumber));
     }
 
     private Member getMemberById(Long memberId) {
