@@ -1,10 +1,9 @@
 package deepple.deepple.interview.presentation.question;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.interview.command.domain.InterviewErrorCode;
+import deepple.deepple.interview.presentation.question.dto.InterviewQuestionViews;
 import deepple.deepple.interview.query.condition.InterviewQuestionSearchCondition;
 import deepple.deepple.interview.query.question.InterviewQuestionQueryRepository;
 import deepple.deepple.interview.query.question.view.InterviewQuestionView;
@@ -25,18 +24,18 @@ public class InterviewQuestionController {
 
     @Operation(summary = "인터뷰 질문 목록 조회 API")
     @GetMapping
-    public ResponseEntity<BaseResponse<List<InterviewQuestionView>>> getQuestionAllByCategory(
+    public ResponseEntity<InterviewQuestionViews> getQuestionAllByCategory(
         @ModelAttribute InterviewQuestionSearchCondition interviewQuestionSearchCondition,
         @CurrentMemberId long memberId
     ) {
         List<InterviewQuestionView> views = interviewQuestionQueryRepository.findAllQuestionByCategoryWithMemberId(
             interviewQuestionSearchCondition, memberId);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, views));
+        return ResponseEntity.ok(new InterviewQuestionViews(views));
     }
 
     @Operation(summary = "인터뷰 질문 상세 조회 API")
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<InterviewQuestionView>> getQuestionById(
+    public ResponseEntity<InterviewQuestionView> getQuestionById(
         @PathVariable Long id,
         @CurrentMemberId long memberId
     ) {
@@ -46,6 +45,6 @@ public class InterviewQuestionController {
                 InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND,
                 "questionId=" + id
             ));
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
+        return ResponseEntity.ok(view);
     }
 }

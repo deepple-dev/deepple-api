@@ -83,8 +83,8 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             .content("{\"role\": \"ADMIN\"}")
             .exchange();
 
-        assertThat(approveResult).hasStatusOk();
-        assertThat(login(APPLICANT_EMAIL, APPLICANT_PASSWORD)).hasStatusOk();
+        assertThat(approveResult).hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(login(APPLICANT_EMAIL, APPLICANT_PASSWORD)).hasStatus(HttpStatus.NO_CONTENT);
     }
 
     @Test
@@ -100,7 +100,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             .content("{\"role\": \"SUPER_ADMIN\"}")
             .exchange();
 
-        assertThat(approveResult).hasStatusOk();
+        assertThat(approveResult).hasStatus(HttpStatus.NO_CONTENT);
 
         String applicantToken = accessToken(login(APPLICANT_EMAIL, APPLICANT_PASSWORD));
         MvcTestResult result = mockMvc.get()
@@ -109,6 +109,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
         assertThat(result).hasStatusOk();
+        assertThat(result).bodyJson().extractingPath("$.admins").asArray().isNotNull();
     }
 
     @Test
@@ -122,7 +123,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             .header(HttpHeaders.AUTHORIZATION, superAdminToken)
             .exchange();
 
-        assertThat(rejectResult).hasStatusOk();
+        assertThat(rejectResult).hasStatus(HttpStatus.NO_CONTENT);
         assertThat(signupResult()).hasStatusOk();
     }
 

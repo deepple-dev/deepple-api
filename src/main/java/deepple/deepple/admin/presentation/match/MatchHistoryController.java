@@ -3,7 +3,6 @@ package deepple.deepple.admin.presentation.match;
 import deepple.deepple.admin.query.match.MatchHistoryQueryRepository;
 import deepple.deepple.admin.query.match.MatchHistorySearchCondition;
 import deepple.deepple.admin.query.match.MatchHistoryView;
-import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static deepple.deepple.common.enums.StatusType.OK;
 
 @Tag(name = "관리자 페이지 매치 내역 관리 API")
 @RestController
@@ -29,12 +27,10 @@ public class MatchHistoryController {
 
     @Operation(summary = "매치 내역 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<MatchHistoryView>>> getMatchHistories(
+    public ResponseEntity<Page<MatchHistoryView>> getMatchHistories(
         @Valid @ModelAttribute MatchHistorySearchCondition condition,
         @PageableDefault(size = 100) Pageable pageable
     ) {
-        return ResponseEntity.ok(
-            BaseResponse.of(OK, matchHistoryQueryRepository.findMatchHistories(condition, pageable))
-        );
+        return ResponseEntity.ok(matchHistoryQueryRepository.findMatchHistories(condition, pageable));
     }
 }

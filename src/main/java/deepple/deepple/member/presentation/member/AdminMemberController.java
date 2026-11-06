@@ -1,7 +1,6 @@
 package deepple.deepple.member.presentation.member;
 
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.AdminMemberService;
 import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.presentation.member.dto.AdminMemberSettingUpdateRequest;
@@ -19,7 +18,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static deepple.deepple.common.enums.StatusType.OK;
 
 @Tag(name = "관리자 페이지 멤버 관리 API")
 @RestController
@@ -32,28 +30,28 @@ public class AdminMemberController {
 
     @Operation(summary = "멤버 목록 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<AdminMemberView>>> getMembers(
+    public ResponseEntity<Page<AdminMemberView>> getMembers(
         @Valid @ModelAttribute AdminMemberSearchCondition condition,
         @PageableDefault(size = 100) Pageable pageable
     ) {
-        return ResponseEntity.ok(BaseResponse.of(OK, adminMemberQueryRepository.findMembers(condition, pageable)));
+        return ResponseEntity.ok(adminMemberQueryRepository.findMembers(condition, pageable));
     }
 
     @Operation(summary = "멤버 상세 조회")
     @GetMapping("/{memberId}")
-    public ResponseEntity<BaseResponse<AdminMemberDetailView>> getMemberDetail(@PathVariable long memberId) {
+    public ResponseEntity<AdminMemberDetailView> getMemberDetail(@PathVariable long memberId) {
         AdminMemberDetailView view = adminMemberQueryRepository.findById(memberId)
             .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
-        return ResponseEntity.ok(BaseResponse.of(OK, view));
+        return ResponseEntity.ok(view);
     }
 
     @Operation(summary = "멤버 설정 업데이트")
     @PutMapping("/{memberId}/settings")
-    public ResponseEntity<BaseResponse<Void>> updateMemberSetting(
+    public ResponseEntity<Void> updateMemberSetting(
         @Valid @RequestBody AdminMemberSettingUpdateRequest request,
         @PathVariable long memberId
     ) {
         adminMemberService.updateMemberSetting(memberId, request);
-        return ResponseEntity.ok(BaseResponse.from(OK));
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,8 +1,6 @@
 package deepple.deepple.interview.presentation.question;
 
-import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.interview.command.application.question.InterviewQuestionService;
 import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.presentation.question.dto.InterviewQuestionSaveRequest;
@@ -28,36 +26,36 @@ public class AdminInterviewQuestionController {
 
     @Operation(summary = "어드민 인터뷰 질문 생성 API")
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> createQuestion(
+    public ResponseEntity<Void> createQuestion(
         @Valid @RequestBody InterviewQuestionSaveRequest request
     ) {
         interviewQuestionService.createQuestion(request);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "어드민 인터뷰 질문 수정 API")
     @PatchMapping("/{id}")
-    public ResponseEntity<BaseResponse<Void>> updateQuestion(
+    public ResponseEntity<Void> updateQuestion(
         @PathVariable Long id,
         @Valid @RequestBody InterviewQuestionSaveRequest request
     ) {
         interviewQuestionService.updateQuestion(id, request);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "어드민 인터뷰 목록 조회 API")
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<AdminInterviewQuestionView>>> getQuestionPage(
+    public ResponseEntity<Page<AdminInterviewQuestionView>> getQuestionPage(
         @PageableDefault(size = 100) Pageable pageable
     ) {
         Page<AdminInterviewQuestionView> views = adminInterviewQuestionQueryRepository.findAdminInterviewQuestionPage(
             pageable);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, views));
+        return ResponseEntity.ok(views);
     }
 
     @Operation(summary = "어드민 인터뷰 상세 조회 API")
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<AdminInterviewQuestionView>> getQuestionById(
+    public ResponseEntity<AdminInterviewQuestionView> getQuestionById(
         @PathVariable Long id
     ) {
         AdminInterviewQuestionView view = adminInterviewQuestionQueryRepository.findAdminInterviewQuestionById(id)
@@ -65,6 +63,6 @@ public class AdminInterviewQuestionController {
                 InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND,
                 "questionId=" + id
             ));
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
+        return ResponseEntity.ok(view);
     }
 }

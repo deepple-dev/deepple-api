@@ -1,8 +1,6 @@
 package deepple.deepple.datingexam.adapter.webapi;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmissionResponse;
 import deepple.deepple.datingexam.application.dto.DominantPersonalityTypeResponse;
 import deepple.deepple.datingexam.application.provided.DatingExamFinder;
@@ -25,31 +23,31 @@ public class DatingExamApi {
 
     @Operation(summary = "과목 답안 제출 API")
     @PostMapping("/submit")
-    public ResponseEntity<BaseResponse<Void>> submitRequiredExam(
+    public ResponseEntity<Void> submitRequiredExam(
         @RequestBody @Valid DatingExamSubmitRequest datingExamSubmitRequest,
         @CurrentMemberId long memberId
     ) {
         datingExamSubmitter.submitSubject(datingExamSubmitRequest, memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "필수 과목 정보 조회 API")
     @GetMapping("/required")
-    public ResponseEntity<BaseResponse<DatingExamInfoWithSubjectSubmissionResponse>> getRequiredExamInfo(
+    public ResponseEntity<DatingExamInfoWithSubjectSubmissionResponse> getRequiredExamInfo(
         @CurrentMemberId long memberId
     ) {
         final DatingExamInfoWithSubjectSubmissionResponse requiredExamInfo = datingExamFinder.findRequiredExamInfo(
             memberId);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, requiredExamInfo));
+        return ResponseEntity.ok(requiredExamInfo);
     }
 
     @Operation(summary = "대표 성격 유형 조회 API")
     @GetMapping("/personality-type")
-    public ResponseEntity<BaseResponse<DominantPersonalityTypeResponse>> getDominantPersonalityType(
+    public ResponseEntity<DominantPersonalityTypeResponse> getDominantPersonalityType(
         @CurrentMemberId long memberId
     ) {
         final DominantPersonalityTypeResponse response = datingExamFinder.findDominantPersonalityType(
             memberId);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, response));
+        return ResponseEntity.ok(response);
     }
 }

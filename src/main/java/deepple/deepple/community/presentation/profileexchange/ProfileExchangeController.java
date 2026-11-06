@@ -1,8 +1,6 @@
 package deepple.deepple.community.presentation.profileexchange;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.community.command.application.profileexchange.ProfileExchangeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,25 +18,25 @@ public class ProfileExchangeController {
 
     @Operation(summary = "프로필 교환 신청 API")
     @PostMapping("/request/{responderId}")
-    public ResponseEntity<BaseResponse<Void>> requestProfileExchange(@CurrentMemberId long memberId,
+    public ResponseEntity<Void> requestProfileExchange(@CurrentMemberId long memberId,
         @PathVariable @Min(1) Long responderId) {
         profileExchangeService.request(memberId, responderId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "프로필 교환 수락 API")
     @PatchMapping("/{profileExchangeId}/approve")
-    public ResponseEntity<BaseResponse<Void>> approveProfileExchange(@CurrentMemberId long memberId,
+    public ResponseEntity<Void> approveProfileExchange(@CurrentMemberId long memberId,
         @PathVariable @Min(1) Long profileExchangeId) {
         profileExchangeService.approve(profileExchangeId, memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "프로필 교환 거절 API")
     @PatchMapping("/{profileExchangeId}/reject")
-    public ResponseEntity<BaseResponse<Void>> rejectProfileExchange(@CurrentMemberId long memberId,
+    public ResponseEntity<Void> rejectProfileExchange(@CurrentMemberId long memberId,
         @PathVariable @Min(1) Long profileExchangeId) {
         profileExchangeService.reject(profileExchangeId, memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 }

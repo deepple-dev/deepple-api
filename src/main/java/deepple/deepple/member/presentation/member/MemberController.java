@@ -2,8 +2,6 @@ package deepple.deepple.member.presentation.member;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.auth.presentation.RefreshTokenCookies;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
 import deepple.deepple.member.command.application.member.MemberContactService;
 import deepple.deepple.member.command.application.member.MemberProfileService;
@@ -36,36 +34,34 @@ public class MemberController {
 
     @Operation(summary = "프로필 정보 업데이트 API")
     @PutMapping("/profile")
-    public ResponseEntity<BaseResponse<Void>> updateProfile(@RequestBody MemberProfileUpdateRequest request,
+    public ResponseEntity<Void> updateProfile(@RequestBody MemberProfileUpdateRequest request,
         @CurrentMemberId long memberId) {
         memberProfileService.updateMember(memberId, request);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "회원(자기 자신) 정보 캐싱용 API")
     @GetMapping("/cache")
-    public ResponseEntity<BaseResponse<MemberInfoView>> getMyInfoCache(@CurrentMemberId long memberId) {
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberQueryService.getInfoCache(memberId)));
+    public ResponseEntity<MemberInfoView> getMyInfoCache(@CurrentMemberId long memberId) {
+        return ResponseEntity.ok(memberQueryService.getInfoCache(memberId));
     }
 
     @Operation(summary = "회원(자기 자신) 프로필 정보 조회 API")
     @GetMapping("/profile")
-    public ResponseEntity<BaseResponse<MemberMyProfileResponse>> getMyProfile(@CurrentMemberId long memberId) {
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK,
-            MemberMapper.toMemberMyProfileResponse(memberQueryService.getProfile(memberId))));
+    public ResponseEntity<MemberMyProfileResponse> getMyProfile(@CurrentMemberId long memberId) {
+        return ResponseEntity.ok(MemberMapper.toMemberMyProfileResponse(memberQueryService.getProfile(memberId)));
     }
 
     @Operation(summary = "상대방 프로필 조회 API")
     @GetMapping("/{memberId}")
-    public ResponseEntity<BaseResponse<MemberProfileResponse>> getOtherProfile(@CurrentMemberId long memberId,
+    public ResponseEntity<MemberProfileResponse> getOtherProfile(@CurrentMemberId long memberId,
         @PathVariable("memberId") long otherMemberId) {
-        return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK, memberQueryService.getMemberProfile(memberId, otherMemberId)));
+        return ResponseEntity.ok(memberQueryService.getMemberProfile(memberId, otherMemberId));
     }
 
     @Operation(summary = "휴면 계정 전환 API")
     @PostMapping("/profile/dormant")
-    public ResponseEntity<BaseResponse<Void>> deactivate(
+    public ResponseEntity<Void> deactivate(
         @CurrentMemberId long memberId,
         @CookieValue(value = "refresh_token", required = false) String refreshToken
     ) {
@@ -75,42 +71,41 @@ public class MemberController {
         HttpHeaders headers = new HttpHeaders();
         ResponseCookie deleteCookie = refreshTokenCookies.expire();
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
-        return ResponseEntity.ok().headers(headers).body(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().headers(headers).build();
     }
 
     @Operation(summary = "활동 계정 전환 API")
     @PostMapping("/profile/active")
-    public ResponseEntity<BaseResponse<Void>> reactivate(@CurrentMemberId long memberId) {
+    public ResponseEntity<Void> reactivate(@CurrentMemberId long memberId) {
         memberProfileService.reactivate(memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "연락처(자기 자신) 정보 조회 API")
     @GetMapping("/profile/contact")
-    public ResponseEntity<BaseResponse<MemberContactView>> getMyContact(@CurrentMemberId long memberId) {
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, memberQueryService.getContact(memberId)));
+    public ResponseEntity<MemberContactView> getMyContact(@CurrentMemberId long memberId) {
+        return ResponseEntity.ok(memberQueryService.getContact(memberId));
     }
 
     @Operation(summary = "주요 연락처 수단(Kakao) 변경 API")
     @PatchMapping("/profile/contact/kakao")
-    public ResponseEntity<BaseResponse<Void>> updateKakaoId(@CurrentMemberId long memberId,
+    public ResponseEntity<Void> updateKakaoId(@CurrentMemberId long memberId,
         @RequestBody String kakaoId) {
         memberContactService.updateKakaoId(memberId, kakaoId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "주요 연락처 수단 변경(Phone) API")
     @PatchMapping("/profile/contact/phone")
-    public ResponseEntity<BaseResponse<Void>> updatePhoneNumber(@CurrentMemberId long memberId,
+    public ResponseEntity<Void> updatePhoneNumber(@CurrentMemberId long memberId,
         @RequestBody String phone) {
         memberContactService.updatePhoneNumber(memberId, phone);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "보유 하트 조회 API")
     @GetMapping("/heartbalance")
-    public ResponseEntity<BaseResponse<HeartBalanceView>> getHeartBalance(@CurrentMemberId long memberId) {
-        return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK, memberQueryService.getHeartBalance(memberId)));
+    public ResponseEntity<HeartBalanceView> getHeartBalance(@CurrentMemberId long memberId) {
+        return ResponseEntity.ok(memberQueryService.getHeartBalance(memberId));
     }
 }

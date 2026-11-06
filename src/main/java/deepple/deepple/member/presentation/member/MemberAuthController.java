@@ -2,8 +2,6 @@ package deepple.deepple.member.presentation.member;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.auth.presentation.RefreshTokenCookies;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.member.command.application.member.MemberAuthService;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
@@ -28,7 +26,7 @@ public class MemberAuthController {
 
     @Operation(summary = "멤버 로그인 및 회원가입")
     @PostMapping("/login")
-    public ResponseEntity<BaseResponse<MemberLoginResponse>> login(@Valid @RequestBody MemberLoginRequest request) {
+    public ResponseEntity<MemberLoginResponse> login(@Valid @RequestBody MemberLoginRequest request) {
         MemberLoginServiceDto loginServiceDto = memberAuthService.login(request.phoneNumber(), request.code());
 
         HttpHeaders headers = new HttpHeaders();
@@ -39,12 +37,12 @@ public class MemberAuthController {
 
         return ResponseEntity.ok()
             .headers(headers)
-            .body(BaseResponse.of(StatusType.OK, loginResponse));
+            .body(loginResponse);
     }
 
     @Operation(summary = "토큰 갱신")
     @PostMapping("/refresh")
-    public ResponseEntity<BaseResponse<TokenRefreshResponse>> refresh(
+    public ResponseEntity<TokenRefreshResponse> refresh(
         @CookieValue(value = "refresh_token", required = false) String refreshToken
     ) {
         TokenPairResponse tokenPair = memberAuthService.refresh(refreshToken);
@@ -57,12 +55,12 @@ public class MemberAuthController {
 
         return ResponseEntity.ok()
             .headers(headers)
-            .body(BaseResponse.of(StatusType.OK, response));
+            .body(response);
     }
 
     @Operation(summary = "멤버 로그아웃")
     @GetMapping("/logout")
-    public ResponseEntity<BaseResponse<Void>> logout(
+    public ResponseEntity<Void> logout(
         @CurrentMemberId long memberId,
         @CookieValue(value = "refresh_token", required = false) String refreshToken
     ) {
@@ -72,30 +70,29 @@ public class MemberAuthController {
         ResponseCookie deleteCookie = refreshTokenCookies.expire();
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
-        return ResponseEntity.ok()
+        return ResponseEntity.noContent()
             .headers(headers)
-            .body(BaseResponse.from(StatusType.OK));
+            .build();
     }
 
     @Operation(summary = "멤버 탈퇴")
     @DeleteMapping
-    public ResponseEntity<BaseResponse<Void>> delete(@CurrentMemberId long memberId) {
+    public ResponseEntity<Void> delete(@CurrentMemberId long memberId) {
         memberAuthService.delete(memberId);
 
         HttpHeaders headers = new HttpHeaders();
         ResponseCookie deleteCookie = refreshTokenCookies.expire();
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
-        return ResponseEntity.ok()
+        return ResponseEntity.noContent()
             .headers(headers)
-            .body(BaseResponse.from(StatusType.OK));
+            .build();
     }
 
     @Operation(summary = "휴대폰 번호 인증 코드 발송")
     @PostMapping("/code")
-    public ResponseEntity<BaseResponse<Void>> getCode(@RequestBody @Valid MemberCodeRequest request) {
+    public ResponseEntity<Void> getCode(@RequestBody @Valid MemberCodeRequest request) {
         memberAuthService.sendAuthCode(request.phoneNumber());
-        return ResponseEntity.ok()
-            .body(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 }

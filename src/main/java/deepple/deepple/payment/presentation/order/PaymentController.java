@@ -1,8 +1,6 @@
 package deepple.deepple.payment.presentation.order;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.payment.command.application.order.AppStoreNotificationService;
 import deepple.deepple.payment.command.application.order.AppStorePaymentService;
 import deepple.deepple.payment.command.application.order.GooglePlayPaymentService;
@@ -33,31 +31,31 @@ public class PaymentController {
 
     @Operation(summary = "앱스토어 결제 영수증 인증")
     @PostMapping("/app-store/verify-receipt")
-    public ResponseEntity<BaseResponse<Void>> verifyReceipt(@Valid @RequestBody VerifyReceiptRequest request,
+    public ResponseEntity<Void> verifyReceipt(@Valid @RequestBody VerifyReceiptRequest request,
         @CurrentMemberId long memberId) {
         appStorePaymentService.verifyReceipt(request.appReceipt(), memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Google Play 결제 영수증 인증")
     @PostMapping("/google-play/verify-receipt")
-    public ResponseEntity<BaseResponse<Void>> verifyGooglePlayReceipt(
+    public ResponseEntity<Void> verifyGooglePlayReceipt(
         @Valid @RequestBody GooglePlayVerifyReceiptRequest request,
         @CurrentMemberId long memberId) {
         googlePlayPaymentService.verifyReceipt(request.productId(), request.purchaseToken(), memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "App Store Server-to-Server Notifications 웹훅", description = "Apple에서 전송하는 알림을 처리합니다. (환불, 구독 갱신 등)")
     @PostMapping("/app-store/notifications")
-    public ResponseEntity<BaseResponse<Void>> handleNotification(@Valid @RequestBody AppleNotificationRequest request) {
+    public ResponseEntity<Void> handleNotification(@Valid @RequestBody AppleNotificationRequest request) {
         log.info("Apple 알림 수신");
         try {
             appStoreNotificationService.handleNotification(request.signedPayload());
-            return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error("Apple 알림 처리 실패. signedPayload: {}", request.signedPayload(), e);
-            return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+            return ResponseEntity.noContent().build();
         }
     }
 }

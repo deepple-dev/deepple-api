@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
@@ -48,7 +49,7 @@ class MemberLogoutIntegrationTest extends IntegrationTestSupport {
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
             .exchange();
 
-        assertThat(result).hasStatusOk();
+        assertThat(result).hasStatus(HttpStatus.NO_CONTENT);
         await()
             .atMost(Duration.ofSeconds(5))
             .untilAsserted(() -> assertThat(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(MEMBER_ID))
