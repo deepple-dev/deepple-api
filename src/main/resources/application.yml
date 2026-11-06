@@ -20,8 +20,6 @@ spring:
     properties:
       hibernate:
         generate_statistics: true
-        jdbc:
-          timezone: Asia/Seoul
 
   cloud:
     aws:
