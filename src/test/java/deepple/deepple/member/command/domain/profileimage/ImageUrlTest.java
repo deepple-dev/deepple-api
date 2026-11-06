@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.profileimage;
 
-import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +17,8 @@ public class ImageUrlTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> ImageUrl.from(url))
-            .isInstanceOf(InvalidImageUrlException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PROFILE_IMAGE_URL);
     }
 
     @Test
@@ -27,7 +29,8 @@ public class ImageUrlTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> ImageUrl.from(url))
-            .isInstanceOf(InvalidImageUrlException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PROFILE_IMAGE_URL);
     }
 
     @Test

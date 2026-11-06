@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.member.vo;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidYearOfBirthException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.query.member.AgeConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -39,7 +40,7 @@ public class YearOfBirth {
     private void validateYearOfBirth(Integer yearOfBirth) {
         int age = Calendar.getInstance().get(Calendar.YEAR) - yearOfBirth + 1;
         if (age < 20 || age > 46) {
-            throw new InvalidYearOfBirthException();
+            throw new DeeppleException(MemberErrorCode.INVALID_YEAR_OF_BIRTH, "yearOfBirth=" + yearOfBirth);
         }
     }
 }

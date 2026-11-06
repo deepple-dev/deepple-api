@@ -2,11 +2,9 @@ package deepple.deepple.member.command.application.introduction;
 
 
 import deepple.deepple.block.application.required.BlockRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.required.SoulmateQueryRepository;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberBlockedException;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberNotActiveException;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberNotFoundException;
-import deepple.deepple.member.command.application.introduction.exception.MemberIntroductionAlreadyExistsException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
@@ -55,7 +53,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IntroducedMemberNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
 
     @Test
@@ -71,7 +70,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IntroducedMemberNotActiveException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE);
     }
 
     @Test
@@ -88,7 +88,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IntroducedMemberBlockedException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INTRODUCED_MEMBER_BLOCKED);
     }
 
     @Test
@@ -106,7 +107,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IntroducedMemberBlockedException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INTRODUCED_MEMBER_BLOCKED);
     }
 
 
@@ -127,7 +129,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(MemberIntroductionAlreadyExistsException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS);
     }
 
     @Test
@@ -171,7 +174,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createSoulmateIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IllegalStateException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.DATING_EXAM_NOT_SUBMITTED);
     }
 
     @Test
@@ -190,7 +194,8 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createSoulmateIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.NOT_SOULMATE);
     }
 
     @Test
@@ -206,6 +211,7 @@ class MemberIntroductionServiceTest {
 
         // when & then
         assertThatThrownBy(() -> memberIntroductionService.createSameAnswerIntroduction(memberId, introducedMemberId))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.NOT_SAME_ANSWER_MEMBER);
     }
 }

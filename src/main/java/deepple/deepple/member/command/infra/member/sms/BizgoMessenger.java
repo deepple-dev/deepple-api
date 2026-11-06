@@ -1,9 +1,10 @@
 package deepple.deepple.member.command.infra.member.sms;
 
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.sms.SmsSender;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageRequest;
 import deepple.deepple.member.command.infra.member.sms.dto.BizgoMessageResponse;
-import deepple.deepple.member.command.infra.member.sms.exception.BizgoMessageSendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +53,10 @@ public class BizgoMessenger implements SmsSender {
                     String responseBody = new String(httpResponse.getBody().readAllBytes());
                     log.error("Bizgo API 에러 응답 - statusCode: {}, body: {}",
                         httpResponse.getStatusCode().value(), responseBody);
-                    throw new BizgoMessageSendException(httpResponse.getStatusCode().value());
+                    throw new DeeppleException(
+                        MemberErrorCode.SMS_SEND_FAILED,
+                        "Bizgo statusCode=" + httpResponse.getStatusCode().value()
+                    );
                 }
             ).toEntity(BizgoMessageResponse.class);
 

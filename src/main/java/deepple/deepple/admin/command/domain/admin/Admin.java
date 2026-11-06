@@ -1,9 +1,9 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.AdminNotPendingException;
-import deepple.deepple.admin.command.domain.admin.exception.IncorrectPasswordException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
 import deepple.deepple.common.enums.Role;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -74,13 +74,16 @@ public class Admin extends SoftDeleteBaseEntity {
 
     public void matchPassword(String rawPassword, PasswordHasher passwordHasher) {
         if (!password.matches(rawPassword, passwordHasher)) {
-            throw new IncorrectPasswordException();
+            throw new DeeppleException(AdminErrorCode.INVALID_CREDENTIALS, "비밀번호가 일치하지 않습니다. adminId=" + id);
         }
     }
 
     public void approve(@NonNull AdminRole role) {
         if (approvalStatus != ApprovalStatus.PENDING) {
-            throw new AdminNotPendingException();
+            throw new DeeppleException(
+                AdminErrorCode.ADMIN_NOT_PENDING,
+                "adminId=" + id + ", approvalStatus=" + approvalStatus
+            );
         }
 
         this.role = role;

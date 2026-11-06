@@ -1,5 +1,7 @@
 package deepple.deepple.notification.command.application;
 
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.notification.command.domain.NotificationErrorCode;
 import deepple.deepple.notification.command.domain.NotificationPreference;
 import deepple.deepple.notification.command.domain.NotificationPreferenceCommandRepository;
 import deepple.deepple.notification.presentation.NotificationPreferenceSetRequest;
@@ -16,8 +18,11 @@ import java.util.Optional;
 
 import static deepple.deepple.notification.command.domain.NotificationType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,14 +36,14 @@ class NotificationPreferenceServiceTest {
     NotificationPreferenceService service;
 
     @Test
-    @DisplayName("create(): 신규 설정 없으면 저장 호출")
-    void createSavesNewPreference() {
+    @DisplayName("createIfAbsent(): 설정이 없으면 저장한다")
+    void createIfAbsentSavesNewPreference() {
         // given
         long memberId = 1L;
         when(repository.existsByMemberId(memberId)).thenReturn(false);
 
         // when
-        service.create(memberId);
+        service.createIfAbsent(memberId);
 
         // then
         verify(repository).save(argThat(pref ->
@@ -47,15 +52,43 @@ class NotificationPreferenceServiceTest {
     }
 
     @Test
-    @DisplayName("create(): 이미 설정 있으면 예외 발생")
-    void createThrowsWhenDuplicate() {
+    @DisplayName("createIfAbsent(): 이미 설정이 있으면 저장하지 않는다")
+    void createIfAbsentSkipsWhenExists() {
         // given
         long memberId = 2L;
         when(repository.existsByMemberId(memberId)).thenReturn(true);
 
-        // when && then
-        assertThatThrownBy(() -> service.create(memberId))
-            .isInstanceOf(DuplicateNotificationPreferenceException.class);
+        // when
+        service.createIfAbsent(memberId);
+
+        // then
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("changeGloballyIfPresent(): 설정이 있으면 글로벌 수신 여부를 바꾼다")
+    void changeGloballyIfPresentChangesPreference() {
+        // given
+        long memberId = 3L;
+        var pref = NotificationPreference.of(memberId);
+        when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
+
+        // when
+        service.changeGloballyIfPresent(memberId, false);
+
+        // then
+        assertThat(pref.isEnabledGlobally()).isFalse();
+    }
+
+    @Test
+    @DisplayName("changeGloballyIfPresent(): 설정이 없으면 아무것도 하지 않는다")
+    void changeGloballyIfPresentSkipsWhenAbsent() {
+        // given
+        long memberId = 4L;
+        when(repository.findByMemberId(memberId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatCode(() -> service.changeGloballyIfPresent(memberId, true)).doesNotThrowAnyException();
     }
 
     @Test
@@ -83,7 +116,8 @@ class NotificationPreferenceServiceTest {
 
         // when && then
         assertThatThrownBy(() -> service.enableGlobally(memberId))
-            .isInstanceOf(NotificationPreferenceNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND);
     }
 
     @Test
@@ -126,7 +160,8 @@ class NotificationPreferenceServiceTest {
         var req = new NotificationPreferenceToggleRequest("MATCH_REQUEST");
 
         assertThatThrownBy(() -> service.enableForType(memberId, req))
-            .isInstanceOf(NotificationPreferenceNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND);
     }
 
     @Test
@@ -153,7 +188,8 @@ class NotificationPreferenceServiceTest {
         var req = new NotificationPreferenceToggleRequest("LIKE");
 
         assertThatThrownBy(() -> service.disableForType(memberId, req))
-            .isInstanceOf(NotificationPreferenceNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND);
     }
 
     @Test
@@ -181,6 +217,7 @@ class NotificationPreferenceServiceTest {
         var req = new NotificationPreferenceSetRequest(Map.of());
 
         assertThatThrownBy(() -> service.setNotificationPreferences(memberId, req))
-            .isInstanceOf(NotificationPreferenceNotFoundException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND);
     }
 }

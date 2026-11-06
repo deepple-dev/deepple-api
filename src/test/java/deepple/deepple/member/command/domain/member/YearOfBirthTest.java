@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.member;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidYearOfBirthException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.vo.YearOfBirth;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +17,8 @@ public class YearOfBirthTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> YearOfBirth.from(age))
-            .isInstanceOf(InvalidYearOfBirthException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_YEAR_OF_BIRTH);
     }
 
     @DisplayName("나이가 46살 초과인 경우, 예외 발생")
@@ -27,7 +29,8 @@ public class YearOfBirthTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> YearOfBirth.from(age))
-            .isInstanceOf(InvalidYearOfBirthException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_YEAR_OF_BIRTH);
     }
 
     @DisplayName("나이가 null 인 경우, 정상 동작")

@@ -2,8 +2,9 @@ package deepple.deepple.member.command.domain.introduction;
 
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.event.MemberIntroducedEvent;
-import deepple.deepple.member.command.domain.introduction.exception.InvalidIntroductionMemberIdException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -68,6 +69,7 @@ class MemberIntroductionTest {
 
         // when & then
         assertThatThrownBy(() -> MemberIntroduction.of(memberId, introducedMemberId, type))
-            .isInstanceOf(InvalidIntroductionMemberIdException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.SELF_MEMBER_INTRODUCTION);
     }
 }

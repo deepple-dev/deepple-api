@@ -1,10 +1,7 @@
 package deepple.deepple.interview.command.application.answer;
 
-import deepple.deepple.interview.command.application.answer.exception.InterviewAnswerAccessDeniedException;
-import deepple.deepple.interview.command.application.answer.exception.InterviewAnswerAlreadyExistsException;
-import deepple.deepple.interview.command.application.answer.exception.InterviewAnswerNotFoundException;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionIsNotPublicException;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswerCommandRepository;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
@@ -58,7 +55,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.saveAnswer(request, memberId))
-                .isInstanceOf(InterviewQuestionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND);
         }
 
         @Test
@@ -77,7 +75,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.saveAnswer(request, memberId))
-                .isInstanceOf(InterviewQuestionIsNotPublicException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_QUESTION_NOT_PUBLIC);
         }
 
         @Test
@@ -99,7 +98,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.saveAnswer(request, memberId))
-                .isInstanceOf(InterviewAnswerAlreadyExistsException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_ANSWER_ALREADY_EXISTS);
         }
 
         @Test
@@ -188,7 +188,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.updateAnswer(answerId, request, memberId))
-                .isInstanceOf(InterviewAnswerNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_ANSWER_NOT_FOUND);
         }
 
         @Test
@@ -206,7 +207,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.updateAnswer(answerId, request, memberId))
-                .isInstanceOf(InterviewAnswerAccessDeniedException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_ANSWER_ACCESS_DENIED);
         }
 
         @Test
@@ -244,7 +246,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.deleteAnswer(answerId, memberId))
-                .isInstanceOf(InterviewAnswerNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_ANSWER_NOT_FOUND);
         }
 
         @Test
@@ -260,7 +263,8 @@ class InterviewAnswerServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewAnswerService.deleteAnswer(answerId, memberId))
-                .isInstanceOf(InterviewAnswerAccessDeniedException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_ANSWER_ACCESS_DENIED);
         }
 
         @Test

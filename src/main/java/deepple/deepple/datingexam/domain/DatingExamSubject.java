@@ -1,7 +1,6 @@
 package deepple.deepple.datingexam.domain;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.datingexam.domain.exception.InvalidSubjectNameException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +38,7 @@ public class DatingExamSubject extends BaseEntity {
 
     private void setName(@NonNull String name) {
         if (name.isBlank()) {
-            throw new InvalidSubjectNameException("Subject name cannot be null or blank");
+            throw new IllegalArgumentException("Subject name cannot be null or blank");
         }
         this.name = name;
     }

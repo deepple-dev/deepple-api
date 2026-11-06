@@ -1,10 +1,8 @@
 package deepple.deepple.member.query.introduction.intra;
 
-import deepple.deepple.member.query.introduction.intra.exception.IntroductionMemberIdSerializationFailedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -21,26 +19,18 @@ public class IntroductionRedisRepository {
 
     public void saveIntroductionMemberIds(String key, Set<Long> introductionMemberIds, Date expireAt) {
         String fullKey = buildKey(key);
-        try {
-            String json = objectMapper.writeValueAsString(introductionMemberIds);
-            redisTemplate.opsForValue().set(fullKey, json);
-            redisTemplate.expireAt(fullKey, expireAt);
-        } catch (JacksonException e) {
-            throw new IntroductionMemberIdSerializationFailedException(e);
-        }
+        String json = objectMapper.writeValueAsString(introductionMemberIds);
+        redisTemplate.opsForValue().set(fullKey, json);
+        redisTemplate.expireAt(fullKey, expireAt);
     }
 
     public Set<Long> findIntroductionMemberIds(String key) {
         String fullKey = buildKey(key);
-        try {
-            String json = redisTemplate.opsForValue().get(fullKey);
-            if (json == null) {
-                return Set.of();
-            }
-            return objectMapper.readValue(json, new TypeReference<Set<Long>>() {});
-        } catch (JacksonException e) {
-            throw new IntroductionMemberIdSerializationFailedException(e);
+        String json = redisTemplate.opsForValue().get(fullKey);
+        if (json == null) {
+            return Set.of();
         }
+        return objectMapper.readValue(json, new TypeReference<Set<Long>>() {});
     }
 
     private String buildKey(String key) {

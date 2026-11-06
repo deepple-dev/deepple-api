@@ -10,13 +10,9 @@ import static lombok.AccessLevel.PRIVATE;
 public class LikeMapper {
 
     public static LikeLevel toLikeLevel(LikeLevelRequest likeLevelRequest) {
-        try {
-            return switch (likeLevelRequest) {
-                case INTERESTED -> LikeLevel.INTERESTED;
-                case HIGHLY_INTERESTED -> LikeLevel.HIGHLY_INTERESTED;
-            };
-        } catch (IllegalArgumentException e) {
-            throw new InvalidLikeLevelException(likeLevelRequest.toString());
-        }
+        return switch (likeLevelRequest) {
+            case INTERESTED -> LikeLevel.INTERESTED;
+            case HIGHLY_INTERESTED -> LikeLevel.HIGHLY_INTERESTED;
+        };
     }
 }

@@ -2,8 +2,9 @@ package deepple.deepple.community.command.application.profileexchange;
 
 import deepple.deepple.block.application.required.BlockRepository;
 import deepple.deepple.common.MockEventsExtension;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.repository.LockRepository;
-import deepple.deepple.community.command.application.profileexchange.exception.*;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
@@ -81,7 +82,8 @@ class ProfileExchangeServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
-                .isInstanceOf(ProfileExchangeAlreadyExistsException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS);
         }
 
         @DisplayName("프로필 교환이 존재하지 않아도, 상대가 Active 상태가 아니면, 예외를 던진다.")
@@ -106,7 +108,8 @@ class ProfileExchangeServiceTest {
 
             // When
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
-                .isInstanceOf(ProfileExchangeResponderNotActiveException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_RESPONDER_INACTIVE);
         }
 
         @DisplayName("프로필 교환 요청자가 응답자를 차단했다면, 예외를 던진다.")
@@ -133,7 +136,8 @@ class ProfileExchangeServiceTest {
 
             // When
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
-                .isInstanceOf(ProfileExchangeHasBlockedException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED);
         }
 
         @DisplayName("프로필 교환 응답자가 요청자를 차단했다면, 예외를 던진다.")
@@ -162,7 +166,8 @@ class ProfileExchangeServiceTest {
 
             // When
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
-                .isInstanceOf(ProfileExchangeHasBlockedException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED);
         }
 
         @DisplayName("프로필 교환이 존재하지 않으면, 프로필 교환을 생성한다.")
@@ -218,9 +223,11 @@ class ProfileExchangeServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> profileExchangeService.approve(profileExchangeId, responderId))
-                .isInstanceOf(ProfileExchangeNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_NOT_FOUND);
             assertThatThrownBy(() -> profileExchangeService.reject(profileExchangeId, responderId))
-                .isInstanceOf(ProfileExchangeNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_NOT_FOUND);
         }
 
         @DisplayName("프로필 교환의 응답자와 파라미터 응답자의 아이디가 서로 다른 경우, 예외 발생.")
@@ -242,9 +249,11 @@ class ProfileExchangeServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> profileExchangeService.approve(profileExchangeId, anotherResponderId))
-                .isInstanceOf(ProfileExchangeResponderMismatchException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_ACCESS_DENIED);
             assertThatThrownBy(() -> profileExchangeService.reject(profileExchangeId, anotherResponderId))
-                .isInstanceOf(ProfileExchangeResponderMismatchException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.PROFILE_EXCHANGE_ACCESS_DENIED);
         }
 
         @DisplayName("프로필 교환 신청을 수락한다.")

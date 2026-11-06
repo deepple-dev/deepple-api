@@ -1,8 +1,8 @@
 package deepple.deepple.community.command.domain.profileexchange;
 
 import deepple.deepple.common.event.Events;
-import deepple.deepple.community.command.domain.profileexchange.exception.InvalidProfileExchangeStatusException;
-import deepple.deepple.community.command.domain.profileexchange.exception.SelfProfileExchangeException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,8 @@ class ProfileExchangeTest {
         // When & Then
         try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
             assertThatThrownBy(() -> ProfileExchange.request(requestId, requestId, senderName))
-                .isInstanceOf(SelfProfileExchangeException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.SELF_PROFILE_EXCHANGE);
         }
     }
 
@@ -63,7 +64,8 @@ class ProfileExchangeTest {
 
                 // When & Then
                 assertThatThrownBy(() -> profileExchange.approve(responderName))
-                    .isInstanceOf(InvalidProfileExchangeStatusException.class);
+                    .isInstanceOf(DeeppleException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.INVALID_PROFILE_EXCHANGE_STATUS);
             }
         }
 

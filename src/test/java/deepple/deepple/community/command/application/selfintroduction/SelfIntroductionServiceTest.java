@@ -1,15 +1,15 @@
 package deepple.deepple.community.command.application.selfintroduction;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.infra.s3.S3Uploader;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
-import deepple.deepple.community.command.application.selfintroduction.exception.NotSelfIntroductionAuthorException;
-import deepple.deepple.community.command.application.selfintroduction.exception.SelfIntroductionNotFoundException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroductionCommandRepository;
 import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import org.assertj.core.api.Assertions;
@@ -61,7 +61,8 @@ public class SelfIntroductionServiceTest {
             Assertions.assertThatThrownBy(
                     () -> selfIntroductionService.write(new SelfIntroductionWriteRequest(title, content, null),
                         memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @DisplayName("셀프 소개를 작성한다.")
@@ -174,7 +175,8 @@ public class SelfIntroductionServiceTest {
             Assertions.assertThatThrownBy(
                     () -> selfIntroductionService.update(new SelfIntroductionWriteRequest(title, content, null),
                         memberId, selfIntroductionId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
@@ -194,7 +196,8 @@ public class SelfIntroductionServiceTest {
             Assertions.assertThatThrownBy(
                     () -> selfIntroductionService.update(new SelfIntroductionWriteRequest(title, content, null),
                         memberId, selfIntroductionId))
-                .isInstanceOf(SelfIntroductionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND);
         }
 
         @Test
@@ -217,7 +220,8 @@ public class SelfIntroductionServiceTest {
             Assertions.assertThatThrownBy(
                     () -> selfIntroductionService.update(new SelfIntroductionWriteRequest(title, content, null),
                         memberId, selfIntroductionId))
-                .isInstanceOf(NotSelfIntroductionAuthorException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.SELF_INTRODUCTION_ACCESS_DENIED);
         }
 
         @Test
@@ -265,7 +269,8 @@ public class SelfIntroductionServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> selfIntroductionService.delete(selfIntroductionId, memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
 
         }
 
@@ -282,7 +287,8 @@ public class SelfIntroductionServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> selfIntroductionService.delete(selfIntroductionId, memberId))
-                .isInstanceOf(SelfIntroductionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND);
         }
 
         @Test
@@ -306,7 +312,8 @@ public class SelfIntroductionServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> selfIntroductionService.delete(selfIntroductionId, memberId))
-                .isInstanceOf(NotSelfIntroductionAuthorException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.SELF_INTRODUCTION_ACCESS_DENIED);
         }
 
         @Test
@@ -349,7 +356,8 @@ public class SelfIntroductionServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> selfIntroductionService.changeOpenStatus(selfIntroductionId, false))
-                .isInstanceOf(SelfIntroductionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND);
         }
 
         @Test
@@ -413,7 +421,8 @@ public class SelfIntroductionServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> selfIntroductionService.getPresignedUrl("a.jpg", memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test

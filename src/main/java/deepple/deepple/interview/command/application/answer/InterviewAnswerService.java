@@ -1,10 +1,7 @@
 package deepple.deepple.interview.command.application.answer;
 
-import deepple.deepple.interview.command.application.answer.exception.InterviewAnswerAccessDeniedException;
-import deepple.deepple.interview.command.application.answer.exception.InterviewAnswerAlreadyExistsException;
-import deepple.deepple.interview.command.application.answer.exception.InterviewAnswerNotFoundException;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionIsNotPublicException;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswerCommandRepository;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
@@ -53,12 +50,18 @@ public class InterviewAnswerService {
 
     private void validateQuestion(Long questionId, Long memberId) {
         InterviewQuestion interviewQuestion = interviewQuestionCommandRepository.findById(questionId)
-            .orElseThrow(InterviewQuestionNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND,
+                "questionId=" + questionId
+            ));
         if (!interviewQuestion.isPublic()) {
-            throw new InterviewQuestionIsNotPublicException();
+            throw new DeeppleException(InterviewErrorCode.INTERVIEW_QUESTION_NOT_PUBLIC, "questionId=" + questionId);
         }
         if (interviewAnswerCommandRepository.existsByQuestionIdAndMemberId(questionId, memberId)) {
-            throw new InterviewAnswerAlreadyExistsException();
+            throw new DeeppleException(
+                InterviewErrorCode.INTERVIEW_ANSWER_ALREADY_EXISTS,
+                "questionId=" + questionId + ", memberId=" + memberId
+            );
         }
     }
 
@@ -73,12 +76,15 @@ public class InterviewAnswerService {
 
     private InterviewAnswer getInterviewAnswer(Long id) {
         return interviewAnswerCommandRepository.findById(id)
-            .orElseThrow(InterviewAnswerNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(InterviewErrorCode.INTERVIEW_ANSWER_NOT_FOUND, "answerId=" + id));
     }
 
     private void validateAnswer(InterviewAnswer interviewAnswer, Long memberId) {
         if (!interviewAnswer.isAnsweredBy(memberId)) {
-            throw new InterviewAnswerAccessDeniedException();
+            throw new DeeppleException(
+                InterviewErrorCode.INTERVIEW_ANSWER_ACCESS_DENIED,
+                "answerId=" + interviewAnswer.getId() + ", memberId=" + memberId
+            );
         }
     }
 }

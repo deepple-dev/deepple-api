@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.member;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidMemberEnumValueException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
 
 @Getter
@@ -48,7 +49,7 @@ public enum Hobby {
         try {
             return Hobby.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidMemberEnumValueException(value);
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_OPTION, "Hobby=" + value, e);
         }
     }
 }

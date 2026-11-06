@@ -1,7 +1,7 @@
 package deepple.deepple.member.command.application.member.sms;
 
-import deepple.deepple.member.command.application.member.exception.CodeNotExistsException;
-import deepple.deepple.member.command.application.member.exception.CodeNotMatchException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.sms.SmsSender;
 import deepple.deepple.member.command.infra.member.AuthMessageRedisRepository;
 import org.assertj.core.api.Assertions;
@@ -53,7 +53,8 @@ class AuthMessageServiceTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> authMessageService.authenticate(phoneNumber, "135790"))
-            .isInstanceOf(CodeNotExistsException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.AUTH_CODE_NOT_FOUND);
     }
 
     @DisplayName("해당 번호의 키가 존재하지 않는 경우, 예외 발생.")
@@ -68,7 +69,8 @@ class AuthMessageServiceTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> authMessageService.authenticate(phoneNumber, code))
-            .isInstanceOf(CodeNotExistsException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.AUTH_CODE_NOT_FOUND);
     }
 
     @DisplayName("키가 일치하지 않는 경우, 예외 발생.")
@@ -84,6 +86,7 @@ class AuthMessageServiceTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> authMessageService.authenticate(phoneNumber, code))
-            .isInstanceOf(CodeNotMatchException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.AUTH_CODE_MISMATCH);
     }
 }

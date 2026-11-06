@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.member;
 
-import deepple.deepple.member.command.domain.member.exception.InvalidKakaoIdException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +16,9 @@ public class KakaoIdTest {
         String kakaoId = "ab";
 
         // When & Then
-        Assertions.assertThatThrownBy(() -> KakaoId.from(kakaoId)).isInstanceOf(InvalidKakaoIdException.class);
+        Assertions.assertThatThrownBy(() -> KakaoId.from(kakaoId))
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_KAKAO_ID);
     }
 
     @Test
@@ -25,7 +28,9 @@ public class KakaoIdTest {
         String kakaoId = "abcd&*";
 
         // When & Then
-        Assertions.assertThatThrownBy(() -> KakaoId.from(kakaoId)).isInstanceOf(InvalidKakaoIdException.class);
+        Assertions.assertThatThrownBy(() -> KakaoId.from(kakaoId))
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_KAKAO_ID);
     }
 
     @Test

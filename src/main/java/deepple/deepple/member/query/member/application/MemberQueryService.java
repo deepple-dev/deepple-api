@@ -1,13 +1,13 @@
 package deepple.deepple.member.query.member.application;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.presentation.member.MemberMapper;
 import deepple.deepple.member.presentation.member.dto.MemberProfileResponse;
 import deepple.deepple.member.query.member.application.event.MemberProfileRetrievedEvent;
-import deepple.deepple.member.query.member.application.exception.ProfileAccessDeniedException;
 import deepple.deepple.member.query.member.infra.MemberQueryRepository;
 import deepple.deepple.member.query.member.view.*;
 import deepple.deepple.member.query.profileimage.ProfileImageQueryRepository;
@@ -27,28 +27,33 @@ public class MemberQueryService {
 
 
     public MemberInfoView getInfoCache(Long memberId) {
-        return memberQueryRepository.findInfoByMemberId(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberQueryRepository.findInfoByMemberId(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     public MemberProfileView getProfile(Long memberId) {
-        return memberQueryRepository.findProfileByMemberId(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberQueryRepository.findProfileByMemberId(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     public MemberContactView getContact(Long memberId) {
-        return memberQueryRepository.findContactsByMemberId(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberQueryRepository.findContactsByMemberId(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     public HeartBalanceView getHeartBalance(Long memberId) {
-        return memberQueryRepository.findHeartBalanceByMemberId(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberQueryRepository.findHeartBalanceByMemberId(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     public MemberProfileResponse getMemberProfile(Long memberId, Long otherMemberId) {
         ProfileAccessView profileAccessView = memberQueryRepository.findProfileAccessViewByMemberId(memberId,
-            otherMemberId).orElseThrow(MemberNotFoundException::new);
-        validateProfileAccessView(profileAccessView, memberId);
+            otherMemberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + otherMemberId));
+        validateProfileAccessView(profileAccessView, memberId, otherMemberId);
 
         OtherMemberProfileView profileView = memberQueryRepository.findOtherProfileByMemberId(memberId, otherMemberId)
-            .orElseThrow(MemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + otherMemberId));
 
         List<InterviewResultView> interviewResultViews = memberQueryRepository.findInterviewsByMemberId(otherMemberId);
 
@@ -64,14 +69,20 @@ public class MemberQueryService {
             profileView.introductionInfo(), interviewResultViews);
     }
 
-    private void validateProfileAccessView(ProfileAccessView profileAccessView, Long memberId) {
+    private void validateProfileAccessView(ProfileAccessView profileAccessView, Long memberId, Long otherMemberId) {
         if (profileAccessView.isBlocked()) { // 차단 당한 경우.
-            throw new ProfileAccessDeniedException();
+            throw new DeeppleException(
+                MemberErrorCode.PROFILE_ACCESS_DENIED,
+                "memberId=" + memberId + ", otherMemberId=" + otherMemberId
+            );
         }
         if (profileAccessView.activityStatus() == null ||
             !ActivityStatus.valueOf(profileAccessView.activityStatus())
                 .equals(ActivityStatus.ACTIVE)) { // 상대방이 활성화 상태가 아닌 경우.
-            throw new ProfileAccessDeniedException();
+            throw new DeeppleException(
+                MemberErrorCode.PROFILE_ACCESS_DENIED,
+                "memberId=" + memberId + ", otherMemberId=" + otherMemberId
+            );
         }
         if (profileAccessView.isIntroduced()) { // 소개를 받은 경우.
             return;
@@ -88,6 +99,9 @@ public class MemberQueryService {
         if (memberId.equals(profileAccessView.profileExchangeResponderId())) { // 프로필 교환 요청을 받은 경우.
             return;
         }
-        throw new ProfileAccessDeniedException();
+        throw new DeeppleException(
+                MemberErrorCode.PROFILE_ACCESS_DENIED,
+                "memberId=" + memberId + ", otherMemberId=" + otherMemberId
+            );
     }
 }

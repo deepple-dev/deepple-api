@@ -1,9 +1,11 @@
 package deepple.deepple.admin.command.application.admin;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.admin.Admin;
 import deepple.deepple.admin.command.domain.admin.AdminCommandRepository;
 import deepple.deepple.admin.command.domain.admin.AdminRole;
 import deepple.deepple.admin.command.domain.admin.ApprovalStatus;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,6 @@ public class AdminAccountService {
 
     private Admin getPendingAdmin(long adminId) {
         return adminCommandRepository.findByIdAndApprovalStatus(adminId, ApprovalStatus.PENDING)
-            .orElseThrow(PendingAdminNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(AdminErrorCode.PENDING_ADMIN_NOT_FOUND, "adminId=" + adminId));
     }
 }

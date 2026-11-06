@@ -1,9 +1,9 @@
 package deepple.deepple.report.command.application;
 
-import deepple.deepple.report.command.application.exception.ReportNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.report.command.domain.Report;
 import deepple.deepple.report.command.domain.ReportCommandRepository;
-import deepple.deepple.report.command.domain.exception.InvalidReportResultException;
+import deepple.deepple.report.command.domain.ReportErrorCode;
 import deepple.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -88,7 +88,8 @@ class AdminReportServiceTest {
             // when & then
             assertThatThrownBy(() ->
                 adminReportService.updateResult(reportId, request, adminId))
-                .isInstanceOf(InvalidReportResultException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_RESULT)
                 .hasMessageContaining("PENDING 으로 결과를 설정할 수 없습니다.");
 
             verify(mockReport, never()).reject(anyLong());
@@ -107,7 +108,8 @@ class AdminReportServiceTest {
             // when & then
             assertThatThrownBy(() ->
                 adminReportService.updateResult(reportId, request, adminId))
-                .isInstanceOf(InvalidReportResultException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_RESULT)
                 .hasMessageContaining("Invalid report result: UNKNOWN");
 
             verify(mockReport, never()).reject(anyLong());
@@ -135,8 +137,8 @@ class AdminReportServiceTest {
         }
 
         @Test
-        @DisplayName("예외 케이스: 존재하지 않는 리포트 ID면 ReportNotFoundException 발생")
-        void shouldThrowReportNotFoundExceptionWhenReportNotFound() {
+        @DisplayName("예외 케이스: 존재하지 않는 리포트 ID면 REPORT_NOT_FOUND 예외발생")
+        void shouldThrowReportNotFoundWhenReportNotFound() {
             // given
             when(reportCommandRepository.findById(reportId))
                 .thenReturn(Optional.empty());
@@ -145,7 +147,8 @@ class AdminReportServiceTest {
             // when & then
             assertThatThrownBy(() ->
                 adminReportService.updateResult(reportId, request, adminId))
-                .isInstanceOf(ReportNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_NOT_FOUND);
 
             verify(reportCommandRepository).findById(reportId);
             verify(reportCommandRepository, never()).save(any());

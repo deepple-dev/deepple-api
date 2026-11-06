@@ -1,8 +1,8 @@
 package deepple.deepple.member.command.application.member;
 
 
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
-import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -39,9 +39,15 @@ public class MemberProfileService {
     public void validateContactTypeSetting(Long memberId, String contactType) {
         Member member = getMemberById(memberId);
         if (PrimaryContactType.PHONE_NUMBER.name().equals(contactType) && member.getPhoneNumber() == null) {
-            throw new ContactTypeSettingNeededException();
+            throw new DeeppleException(
+                MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED,
+                "memberId=" + memberId + ", contactType=" + contactType
+            );
         } else if (PrimaryContactType.KAKAO.name().equals(contactType) && member.getKakaoId() == null) {
-            throw new ContactTypeSettingNeededException();
+            throw new DeeppleException(
+                MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED,
+                "memberId=" + memberId + ", contactType=" + contactType
+            );
         }
     }
 
@@ -104,7 +110,8 @@ public class MemberProfileService {
     }
 
     private Member getMemberById(Long memberId) {
-        return memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     private ActivityStatus getActivityStatus(String status) {

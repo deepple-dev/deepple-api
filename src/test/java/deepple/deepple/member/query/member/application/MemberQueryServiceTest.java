@@ -1,13 +1,13 @@
 package deepple.deepple.member.query.member.application;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.presentation.member.dto.MemberProfileResponse;
 import deepple.deepple.member.presentation.member.dto.ProfileImageInfo;
 import deepple.deepple.member.query.member.application.event.MemberProfileRetrievedEvent;
-import deepple.deepple.member.query.member.application.exception.ProfileAccessDeniedException;
 import deepple.deepple.member.query.member.infra.MemberQueryRepository;
 import deepple.deepple.member.query.member.view.*;
 import deepple.deepple.member.query.profileimage.ProfileImageQueryRepository;
@@ -57,7 +57,8 @@ class MemberQueryServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> memberQueryService.getInfoCache(memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
@@ -73,7 +74,8 @@ class MemberQueryServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> memberQueryService.getProfile(memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
@@ -89,7 +91,8 @@ class MemberQueryServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> memberQueryService.getContact(memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
@@ -105,7 +108,8 @@ class MemberQueryServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> memberQueryService.getHeartBalance(memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
@@ -178,7 +182,8 @@ class MemberQueryServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> memberQueryService.getMemberProfile(memberId, otherMemberId))
-                .isInstanceOf(ProfileAccessDeniedException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.PROFILE_ACCESS_DENIED);
         }
 
         @ParameterizedTest(name = "{1}")

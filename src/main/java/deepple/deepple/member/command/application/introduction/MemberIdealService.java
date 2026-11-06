@@ -1,7 +1,7 @@
 package deepple.deepple.member.command.application.introduction;
 
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealAlreadyExistsException;
-import deepple.deepple.member.command.application.introduction.exception.MemberIdealNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.MemberIdeal;
 import deepple.deepple.member.command.domain.introduction.MemberIdealCommandRepository;
 import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
@@ -20,9 +20,9 @@ public class MemberIdealService {
     private final MemberIdealCommandRepository memberIdealCommandRepository;
 
     @Transactional
-    public void init(long memberId) {
+    public void initIfAbsent(long memberId) {
         if (memberIdealCommandRepository.existsByMemberId(memberId)) {
-            throw new MemberIdealAlreadyExistsException(memberId);
+            return;
         }
         MemberIdeal memberIdeal = MemberIdeal.init(memberId);
         memberIdealCommandRepository.save(memberIdeal);
@@ -41,6 +41,7 @@ public class MemberIdealService {
     }
 
     private MemberIdeal getMemberIdealByMemberId(long memberId) {
-        return memberIdealCommandRepository.findByMemberId(memberId).orElseThrow(MemberIdealNotFoundException::new);
+        return memberIdealCommandRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_IDEAL_NOT_FOUND, "memberId=" + memberId));
     }
 }

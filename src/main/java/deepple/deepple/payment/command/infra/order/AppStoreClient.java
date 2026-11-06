@@ -4,8 +4,8 @@ import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
 import com.apple.itunes.storekit.model.ResponseBodyV2DecodedPayload;
 import com.apple.itunes.storekit.verification.SignedDataVerifier;
 import com.apple.itunes.storekit.verification.VerificationException;
-import deepple.deepple.payment.command.infra.order.exception.AppStoreClientException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidAppReceiptException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class AppStoreClient {
         try {
             return signedDataVerifier.verifyAndDecodeTransaction(signedTransaction);
         } catch (VerificationException exception) {
-            throw new InvalidAppReceiptException(exception);
+            throw new DeeppleException(PaymentErrorCode.INVALID_APP_STORE_RECEIPT, exception.getMessage(), exception);
         }
     }
 
@@ -28,9 +28,9 @@ public class AppStoreClient {
         try {
             return signedDataVerifier.verifyAndDecodeNotification(signedPayload);
         } catch (VerificationException exception) {
-            throw new InvalidAppReceiptException(exception);
+            throw new DeeppleException(PaymentErrorCode.INVALID_APP_STORE_RECEIPT, exception.getMessage(), exception);
         } catch (Exception exception) {
-            throw new AppStoreClientException(exception);
+            throw new DeeppleException(PaymentErrorCode.APP_STORE_UNAVAILABLE, exception.getMessage(), exception);
         }
     }
 }

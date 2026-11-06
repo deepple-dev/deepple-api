@@ -1,6 +1,5 @@
 package deepple.deepple.admin.command.infra.screening;
 
-import deepple.deepple.admin.command.application.screening.DuplicateScreeningException;
 import deepple.deepple.admin.command.application.screening.ScreeningService;
 import deepple.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +19,7 @@ public class ScreeningEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(MemberProfileInitializedEvent event) {
         try {
-            screeningService.create(event.getMemberId());
-        } catch (DuplicateScreeningException e) {
-            log.warn(e.getMessage());
+            screeningService.createIfAbsent(event.getMemberId());
         } catch (Exception e) {
             log.error("Member(id: {})의 Screening 생성 중 예외가 발생했습니다.", event.getMemberId(), e);
         }

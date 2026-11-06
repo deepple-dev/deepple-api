@@ -1,10 +1,9 @@
 package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.common.MockEventsExtension;
-import deepple.deepple.member.command.application.member.exception.ContactTypeSettingNeededException;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.domain.member.*;
-import deepple.deepple.member.command.domain.member.exception.InvalidMemberEnumValueException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,8 +42,9 @@ class MemberProfileServiceTest {
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 
         // Then
-        assertThatThrownBy(() -> memberProfileService.updateMember(memberId, null)).isInstanceOf(
-            MemberNotFoundException.class);
+        assertThatThrownBy(() -> memberProfileService.updateMember(memberId, null))
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
 
     @DisplayName("멤버가 존재하지만 Enum 값이 적절하지 않은 경우, 예외 발생")
@@ -66,7 +66,8 @@ class MemberProfileServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> memberProfileService.updateMember(memberId, invalidRequest))
-            .isInstanceOf(InvalidMemberEnumValueException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PROFILE_OPTION);
     }
 
 
@@ -148,7 +149,8 @@ class MemberProfileServiceTest {
 
             // When
             assertThatThrownBy(() -> memberProfileService.changeProfilePublishStatus(memberId, true))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
@@ -180,7 +182,8 @@ class MemberProfileServiceTest {
             // When
             assertThatThrownBy(
                 () -> memberProfileService.changeMemberActivityStatus(memberId, "TEMPORARY"))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
@@ -215,7 +218,8 @@ class MemberProfileServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> memberProfileService.validateContactTypeSetting(memberId, contactType))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
@@ -248,7 +252,8 @@ class MemberProfileServiceTest {
             // When & Then
             for (String contactType : contactTypes) {
                 assertThatThrownBy(() -> memberProfileService.validateContactTypeSetting(memberId, contactType))
-                    .isInstanceOf(ContactTypeSettingNeededException.class);
+                    .isInstanceOf(DeeppleException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED);
             }
 
         }

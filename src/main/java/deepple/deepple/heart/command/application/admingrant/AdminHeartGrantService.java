@@ -1,8 +1,9 @@
 package deepple.deepple.heart.command.application.admingrant;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.presentation.hearttransaction.AdminHeartGrantRequest;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,10 @@ public class AdminHeartGrantService {
     @Transactional
     public void grant(long adminId, AdminHeartGrantRequest request) {
         Member member = memberCommandRepository.findById(request.memberId())
-            .orElseThrow(MemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                MemberErrorCode.MEMBER_NOT_FOUND,
+                "memberId=" + request.memberId()
+            ));
 
         HeartAmount heartAmount = HeartAmount.from(request.amount());
         member.gainAdminGrantedHeart(heartAmount, adminId, request.reason());

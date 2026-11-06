@@ -1,7 +1,5 @@
 package deepple.deepple.mission.command.domain.mission;
 
-import deepple.deepple.mission.command.domain.mission.exception.InvalidMissionEnumValueException;
-import deepple.deepple.mission.command.domain.mission.exception.MustBePositiveException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,10 +32,10 @@ class MissionTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> ActionType.from(invalidValue))
-                .isInstanceOf(InvalidMissionEnumValueException.class);
+                .isInstanceOf(IllegalArgumentException.class);
 
             Assertions.assertThatThrownBy(() -> FrequencyType.from(invalidValue))
-                .isInstanceOf(InvalidMissionEnumValueException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -66,7 +64,7 @@ class MissionTest {
             Assertions.assertThatThrownBy(
                 () -> Mission.create(actionType, frequencyType, TargetGender.MALE, requiredAttempt, repeatableCount,
                     rewardedHeart,
-                    isPublic)).isInstanceOf(MustBePositiveException.class);
+                    isPublic)).isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test

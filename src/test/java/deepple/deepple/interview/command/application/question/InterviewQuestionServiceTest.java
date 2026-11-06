@@ -1,11 +1,10 @@
 package deepple.deepple.interview.command.application.question;
 
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionAlreadyExistsException;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
 import deepple.deepple.interview.command.domain.question.InterviewQuestionCommandRepository;
-import deepple.deepple.interview.command.domain.question.exception.InvalidInterviewCategoryException;
 import deepple.deepple.interview.presentation.question.dto.InterviewQuestionSaveRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +45,8 @@ class InterviewQuestionServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewQuestionService.createQuestion(request))
-                .isInstanceOf(InterviewQuestionAlreadyExistsException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_QUESTION_ALREADY_EXISTS);
         }
 
         @Test
@@ -62,7 +62,8 @@ class InterviewQuestionServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewQuestionService.createQuestion(request))
-                .isInstanceOf(InvalidInterviewCategoryException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INVALID_INTERVIEW_CATEGORY);
         }
 
         @Test
@@ -102,7 +103,8 @@ class InterviewQuestionServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewQuestionService.updateQuestion(questionId, request))
-                .isInstanceOf(InterviewQuestionNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND);
         }
 
         @Test
@@ -122,7 +124,8 @@ class InterviewQuestionServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewQuestionService.updateQuestion(questionId, request))
-                .isInstanceOf(InvalidInterviewCategoryException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INVALID_INTERVIEW_CATEGORY);
         }
 
         @Test
@@ -145,7 +148,8 @@ class InterviewQuestionServiceTest {
 
             // when & then
             assertThatThrownBy(() -> interviewQuestionService.updateQuestion(questionId, request))
-                .isInstanceOf(InterviewQuestionAlreadyExistsException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INTERVIEW_QUESTION_ALREADY_EXISTS);
         }
 
         @Test

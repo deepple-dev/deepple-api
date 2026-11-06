@@ -1,13 +1,13 @@
 package deepple.deepple.community.command.application.selfintroduction;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.infra.s3.S3Uploader;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
-import deepple.deepple.community.command.application.selfintroduction.exception.NotSelfIntroductionAuthorException;
-import deepple.deepple.community.command.application.selfintroduction.exception.SelfIntroductionNotFoundException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroductionCommandRepository;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -69,15 +69,23 @@ public class SelfIntroductionService {
 
     private void validateSelfIntroductionAuthor(Long memberIdFromSelfIntroduction, Long memberId) {
         if (!memberIdFromSelfIntroduction.equals(memberId)) {
-            throw new NotSelfIntroductionAuthorException();
+            throw new DeeppleException(
+                CommunityErrorCode.SELF_INTRODUCTION_ACCESS_DENIED,
+                "authorId=" + memberIdFromSelfIntroduction + ", memberId=" + memberId
+            );
         }
     }
 
     private SelfIntroduction getSelfIntroductionById(Long id) {
-        return selfIntroductionCommandRepository.findById(id).orElseThrow(SelfIntroductionNotFoundException::new);
+        return selfIntroductionCommandRepository.findById(id)
+            .orElseThrow(() -> new DeeppleException(
+                CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND,
+                "selfIntroductionId=" + id
+            ));
     }
 
     private void validateMemberId(Long memberId) {
-        memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 }

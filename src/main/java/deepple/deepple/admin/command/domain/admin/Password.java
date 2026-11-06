@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidPasswordException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
@@ -26,14 +27,14 @@ public class Password {
 
     private Password(@NonNull String hashedValue) {
         if (hashedValue.isBlank()) {
-            throw new InvalidPasswordException(hashedValue);
+            throw new IllegalArgumentException("비밀번호 해시가 비어 있습니다.");
         }
         this.hashedValue = hashedValue;
     }
 
     public static Password fromRaw(@NonNull String rawValue, PasswordHasher hasher) {
         if (!PASSWORD_PATTERN.matcher(rawValue).matches()) {
-            throw new InvalidPasswordException(rawValue);
+            throw new DeeppleException(AdminErrorCode.INVALID_PASSWORD);
         }
         String hashedValue = hasher.hash(rawValue);
         return new Password(hashedValue);

@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.domain.profileImage.vo;
 
-import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -28,7 +29,7 @@ public class ImageUrl {
 
     private void validateUrl(String value) {
         if (value == null || value.isEmpty()) {
-            throw new InvalidImageUrlException();
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_IMAGE_URL);
         }
     }
 

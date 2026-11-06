@@ -1,10 +1,11 @@
 package deepple.deepple.report.command.application;
 
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.report.command.application.exception.ReportAlreadyExistsException;
 import deepple.deepple.report.command.domain.Report;
 import deepple.deepple.report.command.domain.ReportCommandRepository;
+import deepple.deepple.report.command.domain.ReportErrorCode;
 import deepple.deepple.report.command.domain.ReportReasonType;
 import deepple.deepple.report.presentation.dto.ReportCreateRequest;
 import jakarta.transaction.Transactional;
@@ -27,10 +28,13 @@ public class ReportService {
 
     private void validateRequest(ReportCreateRequest request, long reporterId) {
         if (!memberCommandRepository.existsById(request.reporteeId())) {
-            throw new MemberNotFoundException();
+            throw new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + request.reporteeId());
         }
         if (reportCommandRepository.existsByReporterIdAndReporteeId(reporterId, request.reporteeId())) {
-            throw new ReportAlreadyExistsException();
+            throw new DeeppleException(
+                ReportErrorCode.REPORT_ALREADY_EXISTS,
+                "reporterId=" + reporterId + ", reporteeId=" + request.reporteeId()
+            );
         }
     }
 }

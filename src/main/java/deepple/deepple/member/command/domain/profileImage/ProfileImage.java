@@ -1,7 +1,8 @@
 package deepple.deepple.member.command.domain.profileImage;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.member.command.domain.profileImage.exception.InvalidOrderException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
 import jakarta.persistence.*;
 import lombok.*;
@@ -80,7 +81,7 @@ public class ProfileImage extends BaseEntity {
 
     private void validateOrder(int order) {
         if (order < 0) {
-            throw new InvalidOrderException();
+            throw new DeeppleException(MemberErrorCode.INVALID_PROFILE_IMAGE_ORDER, "order=" + order);
         }
     }
 }

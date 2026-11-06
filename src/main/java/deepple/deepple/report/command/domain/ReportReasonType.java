@@ -1,6 +1,6 @@
 package deepple.deepple.report.command.domain;
 
-import deepple.deepple.report.command.domain.exception.InvalidReportReasonTypeException;
+import deepple.deepple.common.exception.DeeppleException;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(
@@ -27,7 +27,7 @@ public enum ReportReasonType {
         try {
             return ReportReasonType.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidReportReasonTypeException(value);
+            throw new DeeppleException(ReportErrorCode.INVALID_REPORT_REASON_TYPE, "value=" + value, e);
         }
     }
 }

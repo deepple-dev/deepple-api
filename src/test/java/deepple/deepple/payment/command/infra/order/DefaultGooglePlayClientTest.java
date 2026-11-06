@@ -6,8 +6,8 @@ import com.google.api.services.androidpublisher.AndroidPublisher.Purchases.Produ
 import com.google.api.services.androidpublisher.AndroidPublisher.Purchases.Products.Consume;
 import com.google.api.services.androidpublisher.AndroidPublisher.Purchases.Products.Get;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
-import deepple.deepple.payment.command.infra.order.exception.GooglePlayClientException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidGooglePlayReceiptException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -89,7 +89,7 @@ class DefaultGooglePlayClientTest {
             assertThat(result).isEqualTo(purchase);
         }
 
-        @DisplayName("purchaseState가 0이 아니면 InvalidGooglePlayReceiptException을 던진다")
+        @DisplayName("purchaseState가 0이 아니면 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
         @Test
         void whenPurchaseStateNotPurchased_throwsInvalidException() throws IOException {
             // given
@@ -98,10 +98,11 @@ class DefaultGooglePlayClientTest {
 
             // when & then
             assertThatThrownBy(() -> googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN))
-                .isInstanceOf(InvalidGooglePlayReceiptException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
         }
 
-        @DisplayName("purchaseState가 null이면 InvalidGooglePlayReceiptException을 던진다")
+        @DisplayName("purchaseState가 null이면 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
         @Test
         void whenPurchaseStateNull_throwsInvalidException() throws IOException {
             // given
@@ -110,10 +111,11 @@ class DefaultGooglePlayClientTest {
 
             // when & then
             assertThatThrownBy(() -> googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN))
-                .isInstanceOf(InvalidGooglePlayReceiptException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
         }
 
-        @DisplayName("consumptionState가 이미 소비됨(1)이면 InvalidGooglePlayReceiptException을 던진다")
+        @DisplayName("consumptionState가 이미 소비됨(1)이면 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
         @Test
         void whenAlreadyConsumed_throwsInvalidException() throws IOException {
             // given
@@ -122,12 +124,13 @@ class DefaultGooglePlayClientTest {
 
             // when & then
             assertThatThrownBy(() -> googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN))
-                .isInstanceOf(InvalidGooglePlayReceiptException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
         }
 
-        @DisplayName("Google API 통신 실패 시 GooglePlayClientException을 던진다")
+        @DisplayName("Google API 통신 실패 시 GOOGLE_PLAY_UNAVAILABLE 예외를 던진다")
         @Test
-        void whenApiFails_throwsGooglePlayClientException() throws IOException {
+        void whenApiFails_throwsGooglePlayUnavailable() throws IOException {
             // given
             IOException cause = new IOException("network error");
             when(androidPublisher.purchases()).thenReturn(purchases);
@@ -137,7 +140,8 @@ class DefaultGooglePlayClientTest {
 
             // when & then
             assertThatThrownBy(() -> googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN))
-                .isInstanceOf(GooglePlayClientException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE)
                 .hasCause(cause);
         }
     }
@@ -161,9 +165,9 @@ class DefaultGooglePlayClientTest {
             verify(consumeRequest).execute();
         }
 
-        @DisplayName("Google API 통신 실패 시 GooglePlayClientException을 던진다")
+        @DisplayName("Google API 통신 실패 시 GOOGLE_PLAY_UNAVAILABLE 예외를 던진다")
         @Test
-        void whenApiFails_throwsGooglePlayClientException() throws IOException {
+        void whenApiFails_throwsGooglePlayUnavailable() throws IOException {
             // given
             IOException cause = new IOException("network error");
             when(androidPublisher.purchases()).thenReturn(purchases);
@@ -173,7 +177,8 @@ class DefaultGooglePlayClientTest {
 
             // when & then
             assertThatThrownBy(() -> googlePlayClient.consumePurchase(PRODUCT_ID, PURCHASE_TOKEN))
-                .isInstanceOf(GooglePlayClientException.class)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE)
                 .hasCause(cause);
         }
     }

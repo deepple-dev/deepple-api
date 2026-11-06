@@ -1,7 +1,6 @@
 package deepple.deepple.mission.command.domain.mission;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.mission.command.domain.mission.exception.MustBePositiveException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -75,19 +74,19 @@ public class Mission extends BaseEntity {
 
     private void validateRequiredAttempt(int requiredAttempt) {
         if (requiredAttempt <= 0) {
-            throw new MustBePositiveException(requiredAttempt);
+            throw new IllegalArgumentException("requiredAttempt는 0보다 커야 합니다. requiredAttempt=" + requiredAttempt);
         }
     }
 
     private void validateRepeatableCount(int repeatableCount) {
         if (repeatableCount <= 0) {
-            throw new MustBePositiveException(repeatableCount);
+            throw new IllegalArgumentException("repeatableCount는 0보다 커야 합니다. repeatableCount=" + repeatableCount);
         }
     }
 
     private void validateRewardedHearts(int rewardedHeart) {
         if (rewardedHeart <= 0) {
-            throw new MustBePositiveException(rewardedHeart);
+            throw new IllegalArgumentException("rewardedHeart는 0보다 커야 합니다. rewardedHeart=" + rewardedHeart);
         }
     }
 }

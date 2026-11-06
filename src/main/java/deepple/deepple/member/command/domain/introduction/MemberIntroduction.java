@@ -2,8 +2,9 @@ package deepple.deepple.member.command.domain.introduction;
 
 import deepple.deepple.common.entity.BaseEntity;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.event.MemberIntroducedEvent;
-import deepple.deepple.member.command.domain.introduction.exception.InvalidIntroductionMemberIdException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -56,7 +57,7 @@ public class MemberIntroduction extends BaseEntity {
 
     private void validateMemberId(@NonNull Long memberId, @NonNull Long introducedMemberId) {
         if (memberId.equals(introducedMemberId)) {
-            throw new InvalidIntroductionMemberIdException(memberId, introducedMemberId);
+            throw new DeeppleException(MemberErrorCode.SELF_MEMBER_INTRODUCTION, "memberId=" + memberId);
         }
     }
 }

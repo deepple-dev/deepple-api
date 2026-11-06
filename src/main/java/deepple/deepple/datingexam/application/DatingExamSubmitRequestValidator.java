@@ -1,10 +1,11 @@
 package deepple.deepple.datingexam.application;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.dto.DatingExamAnswerInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamQuestionInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamSubjectInfo;
-import deepple.deepple.datingexam.application.exception.InvalidDatingExamSubmitRequestException;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import lombok.NoArgsConstructor;
@@ -41,7 +42,8 @@ public class DatingExamSubmitRequestValidator {
         Long subjectId = request.subjectId();
         Map<Long, Set<Long>> questionsMap = validMap.get(subjectId);
         if (questionsMap == null) {
-            throw new InvalidDatingExamSubmitRequestException(
+            throw new DeeppleException(
+                DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT,
                 "존재하지 않는 subjectId 입니다: " + subjectId
             );
         }
@@ -58,13 +60,15 @@ public class DatingExamSubmitRequestValidator {
             .count() < subjectRequest.answers().size();
 
         if (hasDuplicates) {
-            throw new InvalidDatingExamSubmitRequestException(
+            throw new DeeppleException(
+                DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT,
                 "subjectId=" + subjectRequest.subjectId() + " 에 중복된 questionId가 존재합니다."
             );
         }
 
         if (subjectRequest.answers().size() != questionsMap.size()) {
-            throw new InvalidDatingExamSubmitRequestException(
+            throw new DeeppleException(
+                DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT,
                 "subjectId=" + subjectRequest.subjectId() + " 에 속하는 questionId의 수가 올바르지 않습니다."
             );
         }
@@ -73,7 +77,8 @@ public class DatingExamSubmitRequestValidator {
             Long questionId = answerRequest.questionId();
             Set<Long> validAnswers = questionsMap.get(questionId);
             if (validAnswers == null) {
-                throw new InvalidDatingExamSubmitRequestException(
+                throw new DeeppleException(
+                    DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT,
                     "subjectId=" + subjectRequest.subjectId() + " 에 속하지 않은 questionId 입니다: " + questionId
                 );
             }
@@ -87,7 +92,8 @@ public class DatingExamSubmitRequestValidator {
     ) {
         Long answerId = answerRequest.answerId();
         if (!validAnswers.contains(answerId)) {
-            throw new InvalidDatingExamSubmitRequestException(
+            throw new DeeppleException(
+                DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT,
                 "questionId=" + answerRequest.questionId() + " 에 속하지 않은 answerId 입니다: " + answerId
             );
         }

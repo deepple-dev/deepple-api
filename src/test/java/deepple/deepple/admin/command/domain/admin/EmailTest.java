@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidEmailException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -24,10 +25,11 @@ class EmailTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"@me.com", "example.com", "example@", "example@me", "홍길동@me.com"})
-    @DisplayName("잘못된 형식의 이메일 주소는 InvalidEmailException이 발생합니다.")
+    @DisplayName("잘못된 형식의 이메일 주소는 INVALID_EMAIL 예외가 발생합니다.")
     void throwsExceptionWhenFormatIsInvalid(String invalidEmail) {
         // when & then
         assertThatThrownBy(() -> Email.from(invalidEmail))
-            .isInstanceOf(InvalidEmailException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_EMAIL);
     }
 }

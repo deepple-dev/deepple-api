@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidPhoneNumberException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -21,7 +22,7 @@ public class PhoneNumber {
 
     private PhoneNumber(@NonNull String value) {
         if (!PHONE_NUMBER_PATTERN.matcher(value).matches()) {
-            throw new InvalidPhoneNumberException();
+            throw new DeeppleException(AdminErrorCode.INVALID_PHONE_NUMBER);
         }
         this.value = value;
     }

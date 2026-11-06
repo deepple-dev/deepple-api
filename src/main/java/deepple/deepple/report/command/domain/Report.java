@@ -2,9 +2,9 @@ package deepple.deepple.report.command.domain;
 
 import deepple.deepple.common.entity.BaseEntity;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.report.command.domain.event.ReportCreatedEvent;
 import deepple.deepple.report.command.domain.event.ReportWarnedEvent;
-import deepple.deepple.report.command.domain.exception.InvalidReportResultException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -82,13 +82,16 @@ public class Report extends BaseEntity {
 
     private void validateReport(long reporterId, long reporteeId) {
         if (reporterId == reporteeId) {
-            throw new InvalidReportException("자기 자신을 신고할 수 없습니다.");
+            throw new DeeppleException(ReportErrorCode.SELF_REPORT, "memberId=" + reporterId);
         }
     }
 
     private void validateResult() {
         if (this.result != ReportResult.PENDING) {
-            throw new InvalidReportResultException("이미 처리된 신고입니다.");
+            throw new DeeppleException(
+                ReportErrorCode.REPORT_ALREADY_PROCESSED,
+                "reportId=" + id + ", result=" + result
+            );
         }
     }
 

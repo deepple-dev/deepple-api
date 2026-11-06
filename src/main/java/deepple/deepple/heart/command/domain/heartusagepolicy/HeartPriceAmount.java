@@ -1,6 +1,5 @@
 package deepple.deepple.heart.command.domain.heartusagepolicy;
 
-import deepple.deepple.heart.command.domain.heartusagepolicy.exception.InvalidHeartPriceAmountException;
 import jakarta.persistence.Embeddable;
 import lombok.NonNull;
 
@@ -32,7 +31,7 @@ public class HeartPriceAmount {
 
     private void validateMinPrice(@NonNull Long price) {
         if (price < MIN_PRICE) {
-            throw new InvalidHeartPriceAmountException("price 값이 최소값보다 낮습니다. price=" + price);
+            throw new IllegalArgumentException("price 값이 최소값보다 낮습니다. price=" + price);
         }
     }
 }

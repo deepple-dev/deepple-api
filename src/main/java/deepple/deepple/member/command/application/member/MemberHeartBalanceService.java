@@ -1,7 +1,8 @@
 package deepple.deepple.member.command.application.member;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,6 @@ public class MemberHeartBalanceService {
 
     private Member getMemberById(Long memberId) {
         return memberCommandRepository.findById(memberId)
-            .orElseThrow(MemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 }

@@ -99,8 +99,7 @@ class RefreshTokenServiceTest {
         // when & then
         assertThatThrownBy(() -> refreshTokenService.consume("token"))
             .isInstanceOf(DeeppleException.class)
-            .extracting("errorCode")
-            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
         verify(refreshTokenRepository).deleteAll(OWNER);
     }
 
@@ -114,8 +113,7 @@ class RefreshTokenServiceTest {
         // when & then
         assertThatThrownBy(() -> refreshTokenService.consume("token"))
             .isInstanceOf(DeeppleException.class)
-            .extracting("errorCode")
-            .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 
     @ParameterizedTest
@@ -125,7 +123,6 @@ class RefreshTokenServiceTest {
         // when & then
         assertThatThrownBy(() -> refreshTokenService.consume(token))
             .isInstanceOf(DeeppleException.class)
-            .extracting("errorCode")
-            .isEqualTo(AuthErrorCode.MISSING_REFRESH_TOKEN);
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MISSING_REFRESH_TOKEN);
     }
 }

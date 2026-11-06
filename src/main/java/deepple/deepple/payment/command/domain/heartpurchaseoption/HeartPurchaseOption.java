@@ -2,7 +2,8 @@ package deepple.deepple.payment.command.domain.heartpurchaseoption;
 
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
 import deepple.deepple.common.event.Events;
-import deepple.deepple.payment.command.domain.heartpurchaseoption.exception.InvalidHeartPurchaseOptionException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -64,14 +65,14 @@ public class HeartPurchaseOption extends SoftDeleteBaseEntity {
 
     private void setProductId(@NonNull String productId) {
         if (productId.isBlank()) {
-            throw new InvalidHeartPurchaseOptionException("productId 값이 비어있습니다.");
+            throw new DeeppleException(PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION, "productId 값이 비어있습니다.");
         }
         this.productId = productId;
     }
 
     private void setName(@NonNull String name) {
         if (name.isBlank()) {
-            throw new InvalidHeartPurchaseOptionException("name 값이 비어있습니다.");
+            throw new DeeppleException(PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION, "name 값이 비어있습니다.");
         }
         this.name = name;
     }

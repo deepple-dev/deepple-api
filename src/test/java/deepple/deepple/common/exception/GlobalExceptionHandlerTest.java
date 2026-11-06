@@ -68,6 +68,17 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("DeeppleException에 담은 값은 extension 필드로 응답한다.")
+    void respondDeeppleExceptionProperty() {
+        MvcTestResult result = mockMvc.get()
+            .uri("/deepple-exception-property")
+            .exchange();
+
+        assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("TEST_CONFLICT");
+        assertThat(result).bodyJson().extractingPath("$.retryAfter").isEqualTo("2026-11-07");
+    }
+
+    @Test
     @DisplayName("본문이 없으면 400으로 응답하고 내부 메시지를 노출하지 않는다.")
     void respondMissingBody() {
         MvcTestResult result = mockMvc.post()
@@ -120,6 +131,19 @@ class GlobalExceptionHandlerTest {
         assertThat(result).bodyText().doesNotContain("내부 비밀");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"/illegal-argument", "/illegal-state"})
+    @DisplayName("IllegalArgumentException·IllegalStateException은 코드 버그로 보고 500으로 응답한다.")
+    void respondIllegalArgumentOrStateAsInternalError(String uri) {
+        MvcTestResult result = mockMvc.get()
+            .uri(uri)
+            .exchange();
+
+        assertThat(result).hasStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("INTERNAL_SERVER_ERROR");
+        assertThat(result).bodyText().doesNotContain("내부 상태");
+    }
+
     @SuppressWarnings("unchecked")
     private ObjectProvider<Tracer> tracerProvider() {
         TraceContext traceContext = mock(TraceContext.class);
@@ -153,6 +177,11 @@ class GlobalExceptionHandlerTest {
             throw new DeeppleException(TestErrorCode.TEST_CONFLICT, "memberId=1");
         }
 
+        @GetMapping("/deepple-exception-property")
+        void throwDeeppleExceptionWithProperty() {
+            throw new DeeppleException(TestErrorCode.TEST_CONFLICT).withProperty("retryAfter", "2026-11-07");
+        }
+
         @PostMapping("/body")
         void receiveBody(@Valid @RequestBody TestRequest request) {
         }
@@ -165,6 +194,16 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/cannot-acquire-lock")
         void throwCannotAcquireLock() {
             throw new CannotAcquireLockException("락 획득 실패");
+        }
+
+        @GetMapping("/illegal-argument")
+        void throwIllegalArgument() {
+            throw new IllegalArgumentException("내부 상태 값이 잘못됐습니다.");
+        }
+
+        @GetMapping("/illegal-state")
+        void throwIllegalState() {
+            throw new IllegalStateException("내부 상태가 잘못됐습니다.");
         }
 
         @GetMapping("/unexpected")

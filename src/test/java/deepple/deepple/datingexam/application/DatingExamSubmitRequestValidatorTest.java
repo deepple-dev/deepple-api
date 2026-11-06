@@ -1,10 +1,11 @@
 package deepple.deepple.datingexam.application;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.dto.DatingExamAnswerInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamQuestionInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamSubjectInfo;
-import deepple.deepple.datingexam.application.exception.InvalidDatingExamSubmitRequestException;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.SubjectType;
 import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
@@ -63,7 +64,8 @@ class DatingExamSubmitRequestValidatorTest {
         assertThatThrownBy(() ->
             DatingExamSubmitRequestValidator.validateSubmit(request, info)
         )
-            .isInstanceOf(InvalidDatingExamSubmitRequestException.class)
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT)
             .hasMessageContaining("존재하지 않는 subjectId");
     }
 
@@ -79,7 +81,8 @@ class DatingExamSubmitRequestValidatorTest {
         assertThatThrownBy(() ->
             DatingExamSubmitRequestValidator.validateSubmit(request, info)
         )
-            .isInstanceOf(InvalidDatingExamSubmitRequestException.class)
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT)
             .hasMessageContaining("중복된 questionId");
     }
 
@@ -94,7 +97,8 @@ class DatingExamSubmitRequestValidatorTest {
         assertThatThrownBy(() ->
             DatingExamSubmitRequestValidator.validateSubmit(request, info)
         )
-            .isInstanceOf(InvalidDatingExamSubmitRequestException.class)
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT)
             .hasMessageContaining("속하는 questionId의 수가 올바르지 않습니다");
     }
 
@@ -110,7 +114,8 @@ class DatingExamSubmitRequestValidatorTest {
         assertThatThrownBy(() ->
             DatingExamSubmitRequestValidator.validateSubmit(request, info)
         )
-            .isInstanceOf(InvalidDatingExamSubmitRequestException.class)
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT)
             .hasMessageContaining("속하지 않은 questionId");
     }
 
@@ -126,7 +131,8 @@ class DatingExamSubmitRequestValidatorTest {
         assertThatThrownBy(() ->
             DatingExamSubmitRequestValidator.validateSubmit(request, info)
         )
-            .isInstanceOf(InvalidDatingExamSubmitRequestException.class)
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_DATING_EXAM_SUBMIT)
             .hasMessageContaining("속하지 않은 answerId");
     }
 }

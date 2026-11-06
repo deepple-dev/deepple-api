@@ -1,17 +1,14 @@
 package deepple.deepple.member.command.application.introduction;
 
 import deepple.deepple.block.application.required.BlockRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.required.SoulmateQueryRepository;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberBlockedException;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberNotActiveException;
-import deepple.deepple.member.command.application.introduction.exception.IntroducedMemberNotFoundException;
-import deepple.deepple.member.command.application.introduction.exception.MemberIntroductionAlreadyExistsException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,24 +68,24 @@ public class MemberIntroductionService {
     private void validateSoulmateIntroduction(long memberId, long introducedMemberId) {
         Member member = getMember(memberId);
         if (member.hasSubmittedDatingExam() == false) {
-            throw new IllegalStateException("연애 모의고사를 제출하지 않은 회원은 소울메이트 소개를 받을 수 없습니다. memberId: " + memberId);
+            throw new DeeppleException(MemberErrorCode.DATING_EXAM_NOT_SUBMITTED, "memberId=" + memberId);
         }
         Set<Long> soulmateIds = soulmateQueryRepository.findSameAnswerMemberIds(memberId);
         if (!soulmateIds.contains(introducedMemberId)) {
-            throw new IllegalArgumentException("소울메이트가 아닙니다. introducedMemberId: " + introducedMemberId);
+            throw new DeeppleException(MemberErrorCode.NOT_SOULMATE, "introducedMemberId=" + introducedMemberId);
         }
     }
 
     private void validateSameAnswerIntroduction(long memberId, long introducedMemberId) {
         Set<Long> soulmateIds = soulmateQueryRepository.findSameAnswerMemberIds(memberId);
         if (!soulmateIds.contains(introducedMemberId)) {
-            throw new IllegalArgumentException("같은 답안을 제출한 멤버가 아닙니다. introducedMemberId: " + introducedMemberId);
+            throw new DeeppleException(MemberErrorCode.NOT_SAME_ANSWER_MEMBER, "introducedMemberId=" + introducedMemberId);
         }
     }
 
     private Member getMember(long memberId) {
         return memberCommandRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException("회원이 존재하지 않습니다. memberId: " + memberId));
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
     private void createIntroduction(long memberId, long introducedMemberId, IntroductionType introductionType) {
@@ -99,19 +96,34 @@ public class MemberIntroductionService {
 
     private void validateIntroduction(long memberId, long introducedMemberId) {
         Member introductionMember = memberCommandRepository.findById(introducedMemberId)
-            .orElseThrow(IntroducedMemberNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                MemberErrorCode.MEMBER_NOT_FOUND,
+                "memberId=" + introducedMemberId
+            ));
 
         if (!introductionMember.isActive()) {
-            throw new IntroducedMemberNotActiveException();
+            throw new DeeppleException(
+                MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE,
+                "introducedMemberId=" + introducedMemberId
+            );
         }
         if (blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId)) {
-            throw new IntroducedMemberBlockedException();
+            throw new DeeppleException(
+                MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
+                "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId
+            );
         }
         if (blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId)) {
-            throw new IntroducedMemberBlockedException();
+            throw new DeeppleException(
+                MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
+                "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId
+            );
         }
         if (memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(memberId, introducedMemberId)) {
-            throw new MemberIntroductionAlreadyExistsException();
+            throw new DeeppleException(
+                MemberErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS,
+                "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId
+            );
         }
     }
 }

@@ -1,5 +1,7 @@
 package deepple.deepple.notification.command.application;
 
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.notification.command.domain.NotificationErrorCode;
 import deepple.deepple.notification.command.domain.NotificationPreference;
 import deepple.deepple.notification.command.domain.NotificationPreferenceCommandRepository;
 import deepple.deepple.notification.command.domain.NotificationType;
@@ -23,11 +25,23 @@ public class NotificationPreferenceService {
     private final NotificationPreferenceCommandRepository notificationPreferenceRepository;
 
     @Transactional
-    public void create(long memberId) {
+    public void createIfAbsent(long memberId) {
         if (notificationPreferenceRepository.existsByMemberId(memberId)) {
-            throw new DuplicateNotificationPreferenceException(memberId);
+            return;
         }
         notificationPreferenceRepository.save(NotificationPreference.of(memberId));
+    }
+
+    @Transactional
+    public void changeGloballyIfPresent(long memberId, boolean enabled) {
+        notificationPreferenceRepository.findByMemberId(memberId)
+            .ifPresent(preference -> {
+                if (enabled) {
+                    preference.enableGlobally();
+                } else {
+                    preference.disableGlobally();
+                }
+            });
     }
 
     @Transactional
@@ -65,6 +79,9 @@ public class NotificationPreferenceService {
 
     private NotificationPreference getNotificationPreference(long memberId) {
         return notificationPreferenceRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new NotificationPreferenceNotFoundException(memberId));
+            .orElseThrow(() -> new DeeppleException(
+                NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND,
+                "memberId=" + memberId
+            ));
     }
 }

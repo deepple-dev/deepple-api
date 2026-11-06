@@ -1,8 +1,9 @@
 package deepple.deepple.payment.command.domain.order;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.payment.command.domain.order.exception.InvalidOrderStatusException;
 import jakarta.persistence.*;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,7 +52,10 @@ public class Order extends BaseEntity {
 
     public void refund() {
         if (!isRefundable()) {
-            throw new InvalidOrderStatusException("PAID 상태의 주문만 환불할 수 있습니다. orderStatus=" + status);
+            throw new DeeppleException(
+                PaymentErrorCode.ORDER_NOT_REFUNDABLE,
+                "PAID 상태의 주문만 환불할 수 있습니다. orderStatus=" + status
+            );
         }
         setStatus(OrderStatus.REFUNDED);
     }

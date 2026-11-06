@@ -1,8 +1,9 @@
 package deepple.deepple.member.command.application.introduction;
 
 import deepple.deepple.block.application.required.BlockRepository;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
-import deepple.deepple.member.command.application.introduction.exception.InvalidPersonalityIntroductionUnlockException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
@@ -51,7 +52,8 @@ class PersonalityIntroductionUnlockServiceTest {
         when(personalityIntroductionRedisRepository.findOpenState(memberId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
-            .isInstanceOf(InvalidPersonalityIntroductionUnlockException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
     }
 
     @Test
@@ -63,7 +65,8 @@ class PersonalityIntroductionUnlockServiceTest {
             .thenReturn(Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
 
         assertThatThrownBy(() -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
-            .isInstanceOf(InvalidPersonalityIntroductionUnlockException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
     }
 
     @Test
@@ -76,7 +79,8 @@ class PersonalityIntroductionUnlockServiceTest {
                 List.of(2L, 3L, 4L), LocalDateTime.now())));
 
         assertThatThrownBy(() -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
-            .isInstanceOf(InvalidPersonalityIntroductionUnlockException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
     }
 
     @Test

@@ -2,13 +2,11 @@ package deepple.deepple.common.exception;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -50,7 +48,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DeeppleException.class)
     public ResponseEntity<ProblemDetail> handleDeeppleException(DeeppleException e, HttpServletRequest request) {
-        return respond(e.getErrorCode(), e, request);
+        ResponseEntity<ProblemDetail> response = respond(e.getErrorCode(), e, request);
+        e.getProperties().forEach(response.getBody()::setProperty);
+        return response;
     }
 
     @ExceptionHandler(ConcurrencyFailureException.class)
@@ -59,27 +59,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpServletRequest request
     ) {
         return respond(HttpStatus.CONFLICT, HttpStatus.CONFLICT.name(), CONCURRENCY_FAILURE_MESSAGE, e, request);
-    }
-
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleEntityNotFoundException(
-        EntityNotFoundException e,
-        HttpServletRequest request
-    ) {
-        return respond(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.name(), e.getMessage(), e, request);
-    }
-
-    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
-    public ResponseEntity<ProblemDetail> handleIllegalArgumentOrState(RuntimeException e, HttpServletRequest request) {
-        return respond(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.name(), e.getMessage(), e, request);
-    }
-
-    @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ProblemDetail> handleDataAccessException(DataAccessException e, HttpServletRequest request) {
-        if (e.getMostSpecificCause() instanceof IllegalStateException cause) {
-            return handleIllegalArgumentOrState(cause, request);
-        }
-        return handleUnexpectedException(e, request);
     }
 
     @ExceptionHandler(Exception.class)

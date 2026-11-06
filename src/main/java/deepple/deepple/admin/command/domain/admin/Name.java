@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidNameException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
@@ -26,7 +27,7 @@ public class Name {
 
     private Name(@NonNull String value) {
         if (!NAME_PATTERN.matcher(value).matches()) {
-            throw new InvalidNameException(value);
+            throw new DeeppleException(AdminErrorCode.INVALID_NAME);
         }
         this.value = value;
     }

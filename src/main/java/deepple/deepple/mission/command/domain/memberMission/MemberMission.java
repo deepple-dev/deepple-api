@@ -1,7 +1,6 @@
 package deepple.deepple.mission.command.domain.memberMission;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.mission.command.domain.memberMission.exception.MustNotBeNegativeException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -62,13 +61,13 @@ public class MemberMission extends BaseEntity {
 
     private void validateAttemptCount(int attemptCount) {
         if (attemptCount < 0) {
-            throw new MustNotBeNegativeException(attemptCount);
+            throw new IllegalArgumentException("attemptCount는 음수일 수 없습니다. attemptCount=" + attemptCount);
         }
     }
 
     private void validateSuccessCount(int successCount) {
         if (successCount < 0) {
-            throw new MustNotBeNegativeException(successCount);
+            throw new IllegalArgumentException("successCount는 음수일 수 없습니다. successCount=" + successCount);
         }
     }
 

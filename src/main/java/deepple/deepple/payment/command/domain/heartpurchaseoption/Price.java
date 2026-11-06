@@ -1,6 +1,7 @@
 package deepple.deepple.payment.command.domain.heartpurchaseoption;
 
-import deepple.deepple.payment.command.domain.heartpurchaseoption.exception.InvalidPriceException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
@@ -31,7 +32,10 @@ public class Price {
 
     private void validateMinPrice(Long value) {
         if (value < MIN_PRICE) {
-            throw new InvalidPriceException("price 값이 최소값보다 낮습니다. price=" + value);
+            throw new DeeppleException(
+                PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION,
+                "price 값이 최소값보다 낮습니다. price=" + value
+            );
         }
     }
 }

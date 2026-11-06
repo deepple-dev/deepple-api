@@ -1,10 +1,9 @@
 package deepple.deepple.community.command.domain.selfintroduction;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
-import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionContentException;
-import deepple.deepple.community.command.domain.selfintroduction.exception.InvalidSelfIntroductionTitleException;
-import deepple.deepple.member.command.domain.profileImage.exception.InvalidImageUrlException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -124,7 +123,8 @@ public class SelfIntroductionTest {
 
             // When & Then
             assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
-                .isInstanceOf(InvalidSelfIntroductionTitleException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
         }
 
         @Test
@@ -150,7 +150,8 @@ public class SelfIntroductionTest {
 
             // When & Then
             assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
-                .isInstanceOf(InvalidSelfIntroductionContentException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
         }
 
         @Test
@@ -164,7 +165,8 @@ public class SelfIntroductionTest {
 
             // When & Then
             assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, imageUrl))
-                .isInstanceOf(InvalidImageUrlException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
         }
     }
 

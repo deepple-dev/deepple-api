@@ -1,5 +1,6 @@
 package deepple.deepple.datingexam.application;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmissionResponse;
 import deepple.deepple.datingexam.application.dto.DominantPersonalityTypeResponse;
@@ -7,6 +8,7 @@ import deepple.deepple.datingexam.application.provided.DatingExamFinder;
 import deepple.deepple.datingexam.application.required.DatingExamQueryRepository;
 import deepple.deepple.datingexam.application.required.DatingExamSubmitRepository;
 import deepple.deepple.datingexam.application.required.DatingExamSubmitResultRepository;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.DatingExamSubmit;
 import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
 import deepple.deepple.datingexam.domain.SubjectType;
@@ -36,7 +38,10 @@ public class DatingExamQueryService implements DatingExamFinder {
     @Override
     public DominantPersonalityTypeResponse findDominantPersonalityType(Long memberId) {
         DatingExamSubmitResult result = datingExamSubmitResultRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new IllegalStateException("연애고사 제출 결과가 없습니다. memberId: " + memberId));
+            .orElseThrow(() -> new DeeppleException(
+                DatingExamErrorCode.DATING_EXAM_RESULT_NOT_FOUND,
+                "memberId=" + memberId
+            ));
         return DominantPersonalityTypeResponse.from(result);
     }
 }

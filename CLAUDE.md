@@ -44,9 +44,9 @@
 
 - CQRS 스타일 (대부분의 도메인)
   ```
-  presentation/        컨트롤러, 요청·응답 DTO, 도메인별 ExceptionHandler
+  presentation/        컨트롤러, 요청·응답 DTO
   command/application  쓰기 서비스
-  command/domain       엔티티, 값 객체, 도메인 이벤트, 리포지토리 인터페이스
+  command/domain       엔티티, 값 객체, 도메인 이벤트, 리포지토리 인터페이스, ErrorCode
   command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
   query/               읽기 전용 조회 (QueryDSL)
   ```
@@ -54,7 +54,7 @@
   ```
   adapter/             webapi, database, listener 등 입출력
   application/         provided(제공 포트), required(필요 포트), 서비스
-  domain/              엔티티, 값 객체
+  domain/              엔티티, 값 객체, ErrorCode
   ```
 
 ## 코딩 규칙

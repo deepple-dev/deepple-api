@@ -2,8 +2,8 @@ package deepple.deepple.payment.command.infra.order;
 
 import com.google.api.services.androidpublisher.AndroidPublisher;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
-import deepple.deepple.payment.command.infra.order.exception.GooglePlayClientException;
-import deepple.deepple.payment.command.infra.order.exception.InvalidGooglePlayReceiptException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +40,7 @@ public class DefaultGooglePlayClient implements GooglePlayClient {
                 .consume(packageName, productId, purchaseToken)
                 .execute();
         } catch (IOException e) {
-            throw new GooglePlayClientException(e);
+            throw new DeeppleException(PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE, e.getMessage(), e);
         }
     }
 
@@ -50,22 +50,24 @@ public class DefaultGooglePlayClient implements GooglePlayClient {
                 .get(packageName, productId, purchaseToken)
                 .execute();
         } catch (IOException e) {
-            throw new GooglePlayClientException(e);
+            throw new DeeppleException(PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE, e.getMessage(), e);
         }
     }
 
     private void verifyPurchaseState(ProductPurchase purchase) {
         Integer purchaseState = purchase.getPurchaseState();
         if (purchaseState == null || purchaseState != PURCHASE_STATE_PURCHASED) {
-            throw new InvalidGooglePlayReceiptException(
-                "유효하지 않은 Google Play 구매 상태입니다. purchaseState=" + purchaseState);
+            throw new DeeppleException(
+                PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT,
+                "유효하지 않은 Google Play 구매 상태입니다. purchaseState=" + purchaseState
+            );
         }
     }
 
     private void verifyConsumptionState(ProductPurchase purchase) {
         Integer consumptionState = purchase.getConsumptionState();
         if (consumptionState != null && consumptionState == CONSUMPTION_STATE_CONSUMED) {
-            throw new InvalidGooglePlayReceiptException("이미 소비된 Google Play 구매입니다.");
+            throw new DeeppleException(PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT, "이미 소비된 Google Play 구매입니다.");
         }
     }
 }

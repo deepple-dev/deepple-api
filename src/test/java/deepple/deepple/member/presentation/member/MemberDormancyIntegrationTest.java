@@ -104,8 +104,7 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
             .atMost(Duration.ofSeconds(5))
             .untilAsserted(() -> assertThatThrownBy(() -> refreshTokenService.consume(otherDeviceToken))
                 .isInstanceOf(DeeppleException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN));
+                .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN));
     }
 
     private Long saveMember(ActivityStatus status) {

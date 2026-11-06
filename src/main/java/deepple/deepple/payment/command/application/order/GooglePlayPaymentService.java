@@ -2,9 +2,10 @@ package deepple.deepple.payment.command.application.order;
 
 import com.google.api.services.androidpublisher.model.ProductPurchase;
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.order.event.GooglePlayReceiptVerifiedEvent;
 import deepple.deepple.payment.command.infra.order.GooglePlayClient;
-import deepple.deepple.payment.command.infra.order.exception.GooglePlayClientException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,10 @@ public class GooglePlayPaymentService {
     private void consumeSafely(String productId, String purchaseToken, String orderId) {
         try {
             googlePlayClient.consumePurchase(productId, purchaseToken);
-        } catch (GooglePlayClientException e) {
+        } catch (DeeppleException e) {
+            if (e.getErrorCode() != PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE) {
+                throw e;
+            }
             log.error("Google Play consume 실패 - 3일 내 수동 조치 필요. orderId={}, productId={}",
                 orderId, productId, e);
         }

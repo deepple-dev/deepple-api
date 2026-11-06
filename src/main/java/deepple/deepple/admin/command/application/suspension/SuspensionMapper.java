@@ -1,6 +1,8 @@
 package deepple.deepple.admin.command.application.suspension;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
+import deepple.deepple.common.exception.DeeppleException;
 import lombok.NoArgsConstructor;
 
 import static lombok.AccessLevel.PRIVATE;
@@ -12,7 +14,7 @@ public class SuspensionMapper {
         try {
             return SuspensionStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidSuspensionStatusException(status.toUpperCase());
+            throw new DeeppleException(AdminErrorCode.INVALID_SUSPENSION_STATUS, "value=" + status, e);
         }
     }
 }

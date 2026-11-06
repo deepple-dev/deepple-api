@@ -1,7 +1,7 @@
 package deepple.deepple.heart.command.domain.heartransaction.vo;
 
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InsufficientHeartBalanceException;
-import deepple.deepple.heart.command.domain.hearttransaction.exception.InvalidHeartAmountException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.heart.command.domain.HeartErrorCode;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +53,7 @@ class HeartBalanceTest {
             // when
             // then
             assertThatThrownBy(() -> heartBalance.gainPurchaseHeart(heartAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -65,7 +65,7 @@ class HeartBalanceTest {
             // when
             // then
             assertThatThrownBy(() -> heartBalance.gainPurchaseHeart(heartAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
@@ -94,7 +94,7 @@ class HeartBalanceTest {
             // when
             // then
             assertThatThrownBy(() -> heartBalance.gainMissionHeart(heartAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -106,7 +106,7 @@ class HeartBalanceTest {
             // when
             // then
             assertThatThrownBy(() -> heartBalance.gainMissionHeart(heartAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
@@ -163,7 +163,7 @@ class HeartBalanceTest {
             HeartAmount refundAmount = HeartAmount.from(10L);
             // when & then
             assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(refundAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -175,7 +175,7 @@ class HeartBalanceTest {
             HeartAmount refundAmount = HeartAmount.from(0L);
             // when & then
             assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(refundAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -286,7 +286,8 @@ class HeartBalanceTest {
             // when
             // then
             assertThatThrownBy(() -> heartBalance.useHeart(heartAmount))
-                .isInstanceOf(InsufficientHeartBalanceException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", HeartErrorCode.INSUFFICIENT_HEART_BALANCE);
         }
 
         @Test
@@ -336,7 +337,7 @@ class HeartBalanceTest {
             // when
             // then
             assertThatThrownBy(() -> heartBalance.useHeart(heartAmount))
-                .isInstanceOf(InvalidHeartAmountException.class);
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 }

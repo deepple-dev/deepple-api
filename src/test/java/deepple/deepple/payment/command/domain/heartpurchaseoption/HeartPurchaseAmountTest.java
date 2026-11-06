@@ -1,6 +1,7 @@
 package deepple.deepple.payment.command.domain.heartpurchaseoption;
 
-import deepple.deepple.payment.command.domain.heartpurchaseoption.exception.InvalidHeartPurchaseAmountException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,8 @@ class HeartPurchaseAmountTest {
 
         // when, then
         assertThatThrownBy(() -> HeartPurchaseAmount.from(amount))
-            .isInstanceOf(InvalidHeartPurchaseAmountException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION);
     }
 
     @Test

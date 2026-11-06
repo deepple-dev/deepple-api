@@ -1,12 +1,13 @@
 package deepple.deepple.mission.command.application.memberMission;
 
 import deepple.deepple.common.MockEventsExtension;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
 import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.mission.command.application.memberMission.exception.MemberNotFoundException;
 import deepple.deepple.mission.command.domain.memberMission.MemberMission;
 import deepple.deepple.mission.command.domain.memberMission.MemberMissionCommandRepository;
 import deepple.deepple.mission.command.domain.mission.*;
@@ -81,7 +82,8 @@ public class MemberMissionServiceTest {
             // When & Then
             Assertions.assertThatThrownBy(
                     () -> memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name()))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
 

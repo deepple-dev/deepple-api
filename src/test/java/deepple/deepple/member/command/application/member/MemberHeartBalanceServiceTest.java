@@ -1,7 +1,8 @@
 package deepple.deepple.member.command.application.member;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +39,8 @@ class MemberHeartBalanceServiceTest {
 
             // when & then
             assertThatThrownBy(() -> memberHeartBalanceService.grantPurchasedHearts(memberId, 100L))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
@@ -71,7 +73,8 @@ class MemberHeartBalanceServiceTest {
 
             // when & then
             assertThatThrownBy(() -> memberHeartBalanceService.grantMissionHearts(memberId, 50L, "Daily Login"))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
@@ -105,7 +108,8 @@ class MemberHeartBalanceServiceTest {
 
             // when & then
             assertThatThrownBy(() -> memberHeartBalanceService.refundPurchasedHearts(memberId, 100L))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test

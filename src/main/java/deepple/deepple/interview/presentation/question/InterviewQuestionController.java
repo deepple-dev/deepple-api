@@ -2,8 +2,9 @@ package deepple.deepple.interview.presentation.question;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.response.BaseResponse;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.query.condition.InterviewQuestionSearchCondition;
 import deepple.deepple.interview.query.question.InterviewQuestionQueryRepository;
 import deepple.deepple.interview.query.question.view.InterviewQuestionView;
@@ -41,7 +42,10 @@ public class InterviewQuestionController {
     ) {
         InterviewQuestionView view = interviewQuestionQueryRepository
             .findQuestionByIdWithMemberId(id, memberId)
-            .orElseThrow(InterviewQuestionNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND,
+                "questionId=" + id
+            ));
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
     }
 }

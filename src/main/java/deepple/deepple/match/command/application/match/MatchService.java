@@ -1,19 +1,18 @@
 package deepple.deepple.match.command.application.match;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.repository.LockRepository;
-import deepple.deepple.match.command.application.match.exception.ExistsMatchException;
-import deepple.deepple.match.command.application.match.exception.InvalidMatchUpdateException;
-import deepple.deepple.match.command.application.match.exception.MatchNotFoundException;
 import deepple.deepple.match.command.domain.match.*;
+import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import deepple.deepple.match.command.domain.match.vo.Message;
 import deepple.deepple.match.presentation.dto.MatchRequestDto;
 import deepple.deepple.match.presentation.dto.MatchResponseDto;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +35,15 @@ public class MatchService {
         long responderId = request.responderId();
         String requesterName = findNickname(requesterId);
         MatchType matchType = getMatchType(requesterId, responderId);
-        MatchContactType contactType = MatchContactType.valueOf(request.contactType());
+        MatchContactType contactType = MatchContactType.from(request.contactType());
 
         String key = generateKey(requesterId, responderId);
         lockRepository.withNamedLock(key, () -> {
             if (existsMutualMatch(requesterId, responderId)) {
-                throw new ExistsMatchException();
+                throw new DeeppleException(
+                    MatchErrorCode.MATCH_ALREADY_EXISTS,
+                    "requesterId=" + requesterId + ", responderId=" + responderId
+                );
             }
 
             Match match = Match.request(
@@ -75,7 +77,7 @@ public class MatchService {
         Match match = getWaitingMatchByIdAndResponderId(matchId, responderId);
         validateMatch(match);
         String responderName = findNickname(responderId);
-        MatchContactType contactType = MatchContactType.valueOf(respondDto.contactType());
+        MatchContactType contactType = MatchContactType.from(respondDto.contactType());
         match.approve(Message.from(respondDto.responseMessage()), responderName, contactType);
     }
 
@@ -97,7 +99,7 @@ public class MatchService {
     @Transactional
     public void readReceivedMatch(Long matchId, Long readerId) {
         Match match = matchRepository.findByIdAndResponderId(matchId, readerId)
-            .orElseThrow(MatchNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MatchErrorCode.MATCH_NOT_FOUND, "matchId=" + matchId));
         match.read(readerId);
     }
 
@@ -105,19 +107,25 @@ public class MatchService {
     public void read(Long readerId, Long matchRequesterId, Long matchResponderId) {
         validateReader(readerId, matchRequesterId, matchResponderId);
         Match match = matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId)
-            .orElseThrow(MatchNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                MatchErrorCode.MATCH_NOT_FOUND,
+                "requesterId=" + matchRequesterId + ", responderId=" + matchResponderId
+            ));
         match.read(readerId);
     }
 
     private void validateReader(Long readerId, Long matchRequesterId, Long matchResponderId) {
         if (!readerId.equals(matchRequesterId) && !readerId.equals(matchResponderId)) {
-            throw new IllegalArgumentException("readerId가 매치 당사자가 아닙니다.");
+            throw new DeeppleException(
+                MatchErrorCode.MATCH_ACCESS_DENIED,
+                "readerId=" + readerId + ", requesterId=" + matchRequesterId + ", responderId=" + matchResponderId
+            );
         }
     }
 
     private String findNickname(long memberId) {
         return memberCommandRepository.findById(memberId)
-            .orElseThrow(() -> new EntityNotFoundException("Member not found. id: " + memberId))
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId))
             .getProfile()
             .getNickname()
             .getValue();
@@ -133,29 +141,35 @@ public class MatchService {
 
     private Match getWaitingMatchByIdAndResponderId(Long id, Long responderId) {
         Match match = matchRepository.findByIdAndResponderId(id, responderId)
-            .orElseThrow(MatchNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MatchErrorCode.MATCH_NOT_FOUND, "matchId=" + id));
 
         if (match.getStatus() != MatchStatus.WAITING) {
-            throw new InvalidMatchUpdateException();
+            throw new DeeppleException(
+                MatchErrorCode.INVALID_MATCH_STATUS_CHANGE,
+                "matchId=" + id + ", status=" + match.getStatus()
+            );
         }
         return match;
     }
 
     private Match getRejectedMatchByIdAndRequesterId(Long id, Long requesterId) {
         Match match = matchRepository.findByIdAndRequesterId(id, requesterId)
-            .orElseThrow(MatchNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(MatchErrorCode.MATCH_NOT_FOUND, "matchId=" + id));
 
         if (match.getStatus() != MatchStatus.REJECTED) {
-            throw new InvalidMatchUpdateException();
+            throw new DeeppleException(
+                MatchErrorCode.INVALID_MATCH_STATUS_CHANGE,
+                "matchId=" + id + ", status=" + match.getStatus()
+            );
         }
         return match;
     }
 
     private void validateMatch(Match match) {
-        Member member = memberCommandRepository.findById(match.getRequesterId()).orElseThrow(
-            () -> new EntityNotFoundException("매치 요청자를 찾을 수 없습니다." + match.getRequesterId()));
+        Member member = memberCommandRepository.findById(match.getRequesterId())
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + match.getRequesterId()));
         if (!member.isActive()) {
-            throw new IllegalStateException("매치 요청자가 활성 상태가 아닙니다.");
+            throw new DeeppleException(MatchErrorCode.MATCH_REQUESTER_INACTIVE, "requesterId=" + member.getId());
         }
     }
 }

@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.application.admin;
 
 import deepple.deepple.admin.command.domain.admin.*;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
@@ -73,7 +74,9 @@ public class AdminAuthService {
 
     private void validateEmailUniqueness(String email) {
         adminCommandRepository.findByEmail(Email.from(email))
-            .ifPresent(admin -> {throw new DuplicateEmailException();});
+            .ifPresent(admin -> {
+                throw new DeeppleException(AdminErrorCode.ADMIN_EMAIL_ALREADY_EXISTS);
+            });
     }
 
     private Admin createAdmin(AdminSignupRequest request) {
@@ -85,12 +88,12 @@ public class AdminAuthService {
     private Admin findAdminByEmail(String email) {
         return adminCommandRepository.findByEmail(Email.from(email))
             .filter(admin -> !admin.isDeleted())
-            .orElseThrow(AdminNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(AdminErrorCode.INVALID_CREDENTIALS, "존재하지 않는 관리자입니다."));
     }
 
     private void validateApproved(Admin admin) {
         if (!admin.isApproved()) {
-            throw new AdminNotApprovedException();
+            throw new DeeppleException(AdminErrorCode.ADMIN_NOT_APPROVED, "adminId=" + admin.getId());
         }
     }
 }

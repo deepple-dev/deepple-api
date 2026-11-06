@@ -1,6 +1,7 @@
 package deepple.deepple.match.command.domain.match.vo;
 
-import deepple.deepple.match.command.domain.match.exception.InvalidMessageException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,8 @@ public class MessageTest {
 
         // When & Then
         Assertions.assertThatThrownBy(() -> Message.from(value))
-            .isInstanceOf(InvalidMessageException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_MESSAGE);
     }
 
     @Test

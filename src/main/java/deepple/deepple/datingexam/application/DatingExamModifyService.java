@@ -1,11 +1,13 @@
 package deepple.deepple.datingexam.application;
 
 import deepple.deepple.common.event.Events;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import deepple.deepple.datingexam.application.dto.DatingExamInfoResponse;
 import deepple.deepple.datingexam.application.provided.DatingExamSubmitter;
 import deepple.deepple.datingexam.application.required.*;
 import deepple.deepple.datingexam.domain.*;
+import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +45,10 @@ public class DatingExamModifyService implements DatingExamSubmitter {
 
     private void validateSubmit(DatingExamSubmitRequest submitRequest, DatingExamSubject subject, Long memberId) {
         if (datingExamSubmitRepository.existsByMemberIdAndSubjectId(memberId, submitRequest.subjectId())) {
-            throw new IllegalStateException("이미 제출한 과목입니다.");
+            throw new DeeppleException(
+                DatingExamErrorCode.DATING_EXAM_ALREADY_SUBMITTED,
+                "memberId=" + memberId + ", subjectId=" + submitRequest.subjectId()
+            );
         }
         DatingExamInfoResponse validDatingExamInfo = datingExamQueryRepository
             .findDatingExamInfo(subject.getType());
@@ -52,7 +57,10 @@ public class DatingExamModifyService implements DatingExamSubmitter {
 
     private DatingExamSubject getDatingExamSubject(Long subjectId) {
         return datingExamSubjectRepository.findById(subjectId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 과목입니다. subjectId: " + subjectId));
+            .orElseThrow(() -> new DeeppleException(
+                DatingExamErrorCode.DATING_EXAM_SUBJECT_NOT_FOUND,
+                "subjectId=" + subjectId
+            ));
     }
 
     private void checkAndPublishAllRequiredSubjectsSubmitted(DatingExamSubject subject, Long memberId) {

@@ -1,7 +1,8 @@
 package deepple.deepple.member.command.domain.introduction;
 
 import deepple.deepple.common.entity.BaseEntity;
-import deepple.deepple.member.command.domain.introduction.exception.InvalidMemberIdealException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
 import deepple.deepple.member.command.domain.member.*;
 import jakarta.persistence.*;
@@ -114,7 +115,7 @@ public class MemberIdeal extends BaseEntity {
 
     private void setCities(@NonNull Set<City> cities) {
         if (cities.size() > 2) {
-            throw new InvalidMemberIdealException("멤버 이상형의 지역은 2개를 초과할 수 없습니다.");
+            throw new DeeppleException(MemberErrorCode.INVALID_IDEAL_CITY_COUNT, "count=" + cities.size());
         }
         this.cities = cities;
     }

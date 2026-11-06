@@ -1,8 +1,7 @@
 package deepple.deepple.member.command.application.member;
 
-import deepple.deepple.member.command.application.member.exception.KakaoIdAlreadyExistsException;
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
-import deepple.deepple.member.command.application.member.exception.PhoneNumberAlreadyExistsException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
@@ -32,17 +31,18 @@ public class MemberContactService {
 
     private void validatePhoneNumber(String phoneNumber, Long memberId) {
         if (memberCommandRepository.existsByPhoneNumberAndIdNot(phoneNumber, memberId)) {
-            throw new PhoneNumberAlreadyExistsException();
+            throw new DeeppleException(MemberErrorCode.PHONE_NUMBER_ALREADY_EXISTS, "memberId=" + memberId);
         }
     }
 
     private void validateKakaoId(String kakaoId, Long memberId) {
         if (memberCommandRepository.existsByKakaoIdAndIdNot(kakaoId, memberId)) {
-            throw new KakaoIdAlreadyExistsException();
+            throw new DeeppleException(MemberErrorCode.KAKAO_ID_ALREADY_EXISTS, "memberId=" + memberId);
         }
     }
 
     private Member getMemberById(Long memberId) {
-        return memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 }

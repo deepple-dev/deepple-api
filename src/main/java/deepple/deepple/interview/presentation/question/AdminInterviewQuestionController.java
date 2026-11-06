@@ -1,9 +1,10 @@
 package deepple.deepple.interview.presentation.question;
 
 import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.interview.command.application.question.InterviewQuestionService;
-import deepple.deepple.interview.command.application.question.exception.InterviewQuestionNotFoundException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.presentation.question.dto.InterviewQuestionSaveRequest;
 import deepple.deepple.interview.query.question.AdminInterviewQuestionQueryRepository;
 import deepple.deepple.interview.query.question.view.AdminInterviewQuestionView;
@@ -60,7 +61,10 @@ public class AdminInterviewQuestionController {
         @PathVariable Long id
     ) {
         AdminInterviewQuestionView view = adminInterviewQuestionQueryRepository.findAdminInterviewQuestionById(id)
-            .orElseThrow(InterviewQuestionNotFoundException::new);
+            .orElseThrow(() -> new DeeppleException(
+                InterviewErrorCode.INTERVIEW_QUESTION_NOT_FOUND,
+                "questionId=" + id
+            ));
         return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
     }
 }

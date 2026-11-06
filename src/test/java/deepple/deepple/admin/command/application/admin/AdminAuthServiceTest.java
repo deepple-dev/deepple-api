@@ -1,10 +1,10 @@
 package deepple.deepple.admin.command.application.admin;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.admin.Admin;
 import deepple.deepple.admin.command.domain.admin.AdminCommandRepository;
 import deepple.deepple.admin.command.domain.admin.Email;
 import deepple.deepple.admin.command.domain.admin.PasswordHasher;
-import deepple.deepple.admin.command.domain.admin.exception.InvalidPasswordException;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
@@ -85,8 +85,8 @@ class AdminAuthServiceTest {
         }
 
         @Test
-        @DisplayName("이미 존재하는 이메일로 회원가입을 시도하면 DuplicateEmailException이 발생합니다.")
-        void throwDuplicateEmailExceptionWhenEmailAlreadyExists() {
+        @DisplayName("이미 존재하는 이메일로 회원가입을 시도하면 ADMIN_EMAIL_ALREADY_EXISTS 예외가 발생합니다.")
+        void throwAdminEmailAlreadyExistsWhenEmailAlreadyExists() {
             // given
             String email = "exists@example.com";
             AdminSignupRequest request = new AdminSignupRequest(email, "password123^^", "홍길동", "01012345678");
@@ -94,15 +94,17 @@ class AdminAuthServiceTest {
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(mock(Admin.class)));
 
             // when & then
-            assertThatThrownBy(() -> adminAuthService.signup(request)).isInstanceOf(DuplicateEmailException.class);
+            assertThatThrownBy(() -> adminAuthService.signup(request))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.ADMIN_EMAIL_ALREADY_EXISTS);
 
             verify(adminCommandRepository, never()).save(any(Admin.class));
             verify(passwordHasher, never()).hash(anyString());
         }
 
         @Test
-        @DisplayName("비밀번호 규칙을 만족하지 못하면 InvalidPasswordException이 발생합니다.")
-        void throwInvalidPasswordExceptionWhenPasswordIsInvalid() {
+        @DisplayName("비밀번호 규칙을 만족하지 못하면 INVALID_PASSWORD 예외가 발생합니다.")
+        void throwInvalidPasswordWhenPasswordIsInvalid() {
             // given
             String email = "test2@example.com";
             String invalidPassword = "short12^^";
@@ -111,7 +113,9 @@ class AdminAuthServiceTest {
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> adminAuthService.signup(request)).isInstanceOf(InvalidPasswordException.class);
+            assertThatThrownBy(() -> adminAuthService.signup(request))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_PASSWORD);
 
             verify(adminCommandRepository).findByEmail(Email.from(email));
             verify(passwordHasher, never()).hash(anyString());
@@ -155,8 +159,8 @@ class AdminAuthServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 이메일로 로그인을 시도하면 AdminNotFoundException이 발생합니다.")
-        void loginThrowsAdminNotFoundException() {
+        @DisplayName("존재하지 않는 이메일로 로그인을 시도하면 INVALID_CREDENTIALS 예외가 발생합니다.")
+        void loginThrowsInvalidCredentials() {
             // given
             String email = "invalid@example.com";
             String requestPassword = "password123^^";
@@ -165,12 +169,14 @@ class AdminAuthServiceTest {
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotFoundException.class);
+            assertThatThrownBy(() -> adminAuthService.login(request))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_CREDENTIALS);
         }
 
         @Test
-        @DisplayName("삭제된 관리자가 로그인을 시도하면 AdminNotFoundException이 발생합니다.")
-        void loginThrowsAdminNotFoundExceptionWhenDeleted() {
+        @DisplayName("삭제된 관리자가 로그인을 시도하면 INVALID_CREDENTIALS 예외가 발생합니다.")
+        void loginThrowsInvalidCredentialsWhenDeleted() {
             // given
             String email = "deleted@example.com";
             AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
@@ -178,13 +184,15 @@ class AdminAuthServiceTest {
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
 
             // when & then
-            assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotFoundException.class);
+            assertThatThrownBy(() -> adminAuthService.login(request))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_CREDENTIALS);
             verify(refreshTokenService, never()).issue(any());
         }
 
         @Test
-        @DisplayName("승인되지 않은 관리자가 로그인하면 AdminNotApprovedException이 발생하고 토큰을 발급하지 않습니다.")
-        void loginThrowsAdminNotApprovedExceptionWhenPending() {
+        @DisplayName("승인되지 않은 관리자가 로그인하면 ADMIN_NOT_APPROVED 예외가 발생하고 토큰을 발급하지 않습니다.")
+        void loginThrowsAdminNotApprovedWhenPending() {
             // given
             String email = "pending@example.com";
             AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
@@ -192,7 +200,9 @@ class AdminAuthServiceTest {
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
 
             // when & then
-            assertThatThrownBy(() -> adminAuthService.login(request)).isInstanceOf(AdminNotApprovedException.class);
+            assertThatThrownBy(() -> adminAuthService.login(request))
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.ADMIN_NOT_APPROVED);
             verify(refreshTokenService, never()).issue(any());
         }
     }
@@ -239,8 +249,7 @@ class AdminAuthServiceTest {
             // when & then
             assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
                 .isInstanceOf(DeeppleException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
             verify(refreshTokenService).revokeAll(owner);
             verify(refreshTokenService, never()).issue(any());
         }
@@ -254,8 +263,7 @@ class AdminAuthServiceTest {
             // when & then
             assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
                 .isInstanceOf(DeeppleException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
             verify(adminCommandRepository, never()).findById(any());
         }
     }

@@ -1,6 +1,7 @@
 package deepple.deepple.interview.command.domain.question;
 
-import deepple.deepple.interview.command.domain.question.exception.InvalidInterviewQuestionContentException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,8 @@ class InterviewQuestionTest {
 
             // when & then
             assertThatThrownBy(() -> InterviewQuestion.of(content, interviewCategory, isPublic))
-                .isInstanceOf(InvalidInterviewQuestionContentException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INVALID_INTERVIEW_QUESTION_CONTENT);
         }
 
         @Test
@@ -90,7 +92,8 @@ class InterviewQuestionTest {
 
             // when & then
             assertThatThrownBy(() -> interviewQuestion.update(content, interviewCategory, isPublic))
-                .isInstanceOf(InvalidInterviewQuestionContentException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", InterviewErrorCode.INVALID_INTERVIEW_QUESTION_CONTENT);
         }
 
         @Test

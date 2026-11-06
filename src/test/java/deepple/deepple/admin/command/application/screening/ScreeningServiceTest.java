@@ -1,10 +1,12 @@
 package deepple.deepple.admin.command.application.screening;
 
+import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.RejectionReasonType;
 import deepple.deepple.admin.command.domain.screening.Screening;
 import deepple.deepple.admin.command.domain.screening.ScreeningCommandRepository;
 import deepple.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import deepple.deepple.admin.presentation.screening.ScreeningRejectRequest;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,20 +31,35 @@ class ScreeningServiceTest {
     private ScreeningService screeningService;
 
     @Nested
-    @DisplayName("create() 테스트")
-    class Create {
+    @DisplayName("createIfAbsent() 테스트")
+    class CreateIfAbsent {
 
         @Test
-        @DisplayName("Screening을 생성하고 저장합니다.")
+        @DisplayName("심사가 없으면 Screening을 생성하고 저장합니다.")
         void createNewMemberScreening() {
             // given
             long memberId = 100L;
+            when(screeningCommandRepository.existsByMemberId(memberId)).thenReturn(false);
 
             // when
-            screeningService.create(memberId);
+            screeningService.createIfAbsent(memberId);
 
             // then
             verify(screeningCommandRepository).save(any(Screening.class));
+        }
+
+        @Test
+        @DisplayName("이미 심사가 있으면 저장하지 않습니다.")
+        void skipWhenScreeningExists() {
+            // given
+            long memberId = 100L;
+            when(screeningCommandRepository.existsByMemberId(memberId)).thenReturn(true);
+
+            // when
+            screeningService.createIfAbsent(memberId);
+
+            // then
+            verify(screeningCommandRepository, never()).save(any(Screening.class));
         }
     }
 
@@ -86,7 +103,7 @@ class ScreeningServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 Screening이면 ScreeningNotFoundException을 던집니다.")
+        @DisplayName("존재하지 않는 Screening이면 SCREENING_NOT_FOUND 예외를 던집니다.")
         void throwExceptionWhenScreeningDoesNotExist() {
             // given
             long screeningId = 1L;
@@ -94,7 +111,8 @@ class ScreeningServiceTest {
 
             // when & then
             assertThatThrownBy(() -> screeningService.approve(screeningId, new ScreeningApproveRequest(1L), 999L))
-                .isInstanceOf(ScreeningNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.SCREENING_NOT_FOUND);
         }
     }
 
@@ -123,7 +141,7 @@ class ScreeningServiceTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 Screening이면 ScreeningNotFoundException을 던집니다.")
+        @DisplayName("존재하지 않는 Screening이면 SCREENING_NOT_FOUND 예외를 던집니다.")
         void throwExceptionWhenRejectingNonExistentScreening() {
             // given
             long screeningId = 1L;
@@ -133,11 +151,12 @@ class ScreeningServiceTest {
 
             // when & then
             assertThatThrownBy(() -> screeningService.reject(screeningId, 999L, request))
-                .isInstanceOf(ScreeningNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.SCREENING_NOT_FOUND);
         }
 
         @Test
-        @DisplayName("존재하지 않는 반려 사유인 경우 InvalidRejectionReasonException을 던집니다.")
+        @DisplayName("존재하지 않는 반려 사유인 경우 INVALID_REJECTION_REASON 예외를 던집니다.")
         void throwExceptionWhenRejectionReasonNonExists() {
             // given
             long screeningId = 1L;
@@ -148,7 +167,8 @@ class ScreeningServiceTest {
 
             // when & then
             assertThatThrownBy(() -> screeningService.reject(screeningId, 999L, request))
-                .isInstanceOf(InvalidRejectionReasonException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_REJECTION_REASON);
         }
     }
 }

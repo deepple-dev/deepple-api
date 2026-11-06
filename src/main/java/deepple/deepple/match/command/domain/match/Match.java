@@ -3,7 +3,7 @@ package deepple.deepple.match.command.domain.match;
 import deepple.deepple.common.entity.BaseEntity;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.match.command.domain.match.event.*;
-import deepple.deepple.match.command.domain.match.exception.InvalidMatchStatusChangeException;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.match.command.domain.match.vo.Message;
 import jakarta.persistence.*;
 import lombok.*;
@@ -109,13 +109,19 @@ public class Match extends BaseEntity {
 
     private void validateChangeStatus() {
         if (status != MatchStatus.WAITING) {
-            throw new InvalidMatchStatusChangeException();
+            throw new DeeppleException(
+                MatchErrorCode.INVALID_MATCH_STATUS_CHANGE,
+                "matchId=" + id + ", status=" + status
+            );
         }
     }
 
     private void validateChangeRejectChecked() {
         if (status != MatchStatus.REJECTED) {
-            throw new InvalidMatchStatusChangeException();
+            throw new DeeppleException(
+                MatchErrorCode.INVALID_MATCH_STATUS_CHANGE,
+                "matchId=" + id + ", status=" + status
+            );
         }
     }
 }

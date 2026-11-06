@@ -1,6 +1,7 @@
 package deepple.deepple.member.command.application.member;
 
-import deepple.deepple.member.command.application.member.exception.MemberNotFoundException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Grade;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -27,6 +28,7 @@ public class AdminMemberService {
     }
 
     private Member getMember(long memberId) {
-        return memberCommandRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        return memberCommandRepository.findById(memberId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 }

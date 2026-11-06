@@ -13,8 +13,8 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import deepple.deepple.member.command.application.member.dto.TokenPairResponse;
-import deepple.deepple.member.command.application.member.exception.*;
 import deepple.deepple.member.command.application.member.sms.AuthMessageService;
+import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -112,9 +113,11 @@ class MemberAuthServiceTest {
             );
 
             // Then
-            Assertions.assertThat(exception).isInstanceOf(TemporarilySuspendedMemberException.class);
-            TemporarilySuspendedMemberException suspensionException = (TemporarilySuspendedMemberException) exception;
-            Assertions.assertThat(suspensionException.getSuspensionExpireAt()).isEqualTo(
+            Assertions.assertThat(exception)
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_TEMPORARILY_SUSPENDED);
+            DeeppleException suspensionException = (DeeppleException) exception;
+            Assertions.assertThat(suspensionException.getProperties().get("suspensionExpireAt")).isEqualTo(
                 LocalDateTime.ofInstant(suspensionExpireAt, java.time.ZoneId.systemDefault())
             );
         }
@@ -132,7 +135,8 @@ class MemberAuthServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.login(phoneNumber, code))
-                .isInstanceOf(PermanentlySuspendedMemberException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_PERMANENTLY_SUSPENDED);
         }
 
         @Test
@@ -150,7 +154,8 @@ class MemberAuthServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.login(phoneNumber, code))
-                .isInstanceOf(MemberDeletedException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_DELETED);
         }
 
         @Test
@@ -257,7 +262,7 @@ class MemberAuthServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.login(phoneNumber, code))
-                .isInstanceOf(MemberLoginConflictException.class);
+                .isInstanceOf(ConcurrencyFailureException.class);
         }
 
         @Test
@@ -326,7 +331,8 @@ class MemberAuthServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.refresh(REFRESH_TOKEN))
-                .isInstanceOf(PermanentlySuspendedMemberException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_PERMANENTLY_SUSPENDED);
             Mockito.verify(refreshTokenService).revokeAll(TokenOwner.member(memberId));
             Mockito.verify(refreshTokenService, Mockito.never()).issue(Mockito.any());
         }
@@ -359,8 +365,7 @@ class MemberAuthServiceTest {
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.refresh(REFRESH_TOKEN))
                 .isInstanceOf(DeeppleException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
             Mockito.verify(memberCommandRepository, Mockito.never()).findById(Mockito.anyLong());
         }
     }
@@ -377,7 +382,8 @@ class MemberAuthServiceTest {
 
             // When & Then
             Assertions.assertThatThrownBy(() -> memberAuthService.delete(memberId))
-                .isInstanceOf(MemberNotFoundException.class);
+                .isInstanceOf(DeeppleException.class)
+                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         @DisplayName("존재하는 경우, 회원을 SoftDelete 하고 모든 리프레시 토큰을 폐기한다.")

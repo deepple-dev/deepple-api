@@ -1,7 +1,7 @@
 package deepple.deepple.payment.command.application.order;
 
-import deepple.deepple.payment.command.application.order.exception.HeartPurchaseOptionNotFoundException;
-import deepple.deepple.payment.command.application.order.exception.OrderAlreadyExistsException;
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
 import deepple.deepple.payment.command.domain.order.Order;
@@ -27,7 +27,10 @@ public class OrderService {
 
     private void verifyTransactionId(String transactionId, PaymentMethod paymentMethod) {
         if (orderCommandRepository.existsByTransactionIdAndPaymentMethod(transactionId, paymentMethod)) {
-            throw new OrderAlreadyExistsException();
+            throw new DeeppleException(
+                PaymentErrorCode.ORDER_ALREADY_EXISTS,
+                "transactionId=" + transactionId + ", paymentMethod=" + paymentMethod
+            );
         }
     }
 
@@ -40,8 +43,10 @@ public class OrderService {
         String normalizedProductId = productId.toUpperCase();
         HeartPurchaseOption heartPurchaseOption = heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(
                 normalizedProductId)
-            .orElseThrow(
-                () -> new HeartPurchaseOptionNotFoundException("하트 구매 옵션이 존재하지 않습니다. product id:" + productId));
+            .orElseThrow(() -> new DeeppleException(
+                PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND,
+                "하트 구매 옵션이 존재하지 않습니다. product id:" + productId
+            ));
         heartPurchaseOption.purchase(memberId, quantity);
     }
 }

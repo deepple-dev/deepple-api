@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
-import deepple.deepple.admin.command.domain.admin.exception.InvalidNameException;
+import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -24,10 +25,11 @@ class NameTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "12345678910", "홍길동123^^", "John Doe"})
-    @DisplayName("잘못된 형식의 이름은 InvalidNameException이 발생합니다.")
-    void throwInvalidNameExceptionWhenFormatIsInvalid(String invalidName) {
+    @DisplayName("잘못된 형식의 이름은 INVALID_NAME 예외가 발생합니다.")
+    void throwInvalidNameWhenFormatIsInvalid(String invalidName) {
         // when & then
         assertThatThrownBy(() -> Name.from(invalidName))
-            .isInstanceOf(InvalidNameException.class);
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.INVALID_NAME);
     }
 }
