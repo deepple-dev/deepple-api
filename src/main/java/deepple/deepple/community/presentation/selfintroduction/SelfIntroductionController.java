@@ -1,12 +1,13 @@
 package deepple.deepple.community.presentation.selfintroduction;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.infra.s3.dto.PresignedUrlResponse;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.community.command.application.selfintroduction.SelfIntroductionService;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchCondition;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchRequest;
+import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSummaryViews;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteResponse;
 import deepple.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
@@ -34,74 +35,67 @@ public class SelfIntroductionController {
 
     @Operation(summary = "셀프 소개 작성 API")
     @PostMapping
-    public ResponseEntity<BaseResponse<SelfIntroductionWriteResponse>> write(
+    public ResponseEntity<SelfIntroductionWriteResponse> write(
         @RequestBody @Valid SelfIntroductionWriteRequest request,
         @CurrentMemberId long memberId) {
         boolean hasProcessedMission = selfIntroductionService.write(request, memberId);
-        return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK, new SelfIntroductionWriteResponse(hasProcessedMission)));
+        return ResponseEntity.ok(new SelfIntroductionWriteResponse(hasProcessedMission));
     }
 
     @Operation(summary = "셀프 소개 이미지 업로드용 preSignedUrl 생성")
     @PostMapping("/presigned-url")
-    public ResponseEntity<BaseResponse<PresignedUrlResponse>> getPresignedUrl(
+    public ResponseEntity<PresignedUrlResponse> getPresignedUrl(
         @RequestBody @Valid PresignedUrlPostRequest request,
         @CurrentMemberId long memberId) {
-        return ResponseEntity.ok(
-            BaseResponse.of(StatusType.OK,
-                selfIntroductionService.getPresignedUrl(request.fileName(), memberId))
-        );
+        return ResponseEntity.ok(selfIntroductionService.getPresignedUrl(request.fileName(), memberId));
     }
 
     @Operation(summary = "셀프 소개 수정 API")
     @PatchMapping("/{id}")
-    public ResponseEntity<BaseResponse<Void>> update(@PathVariable Long id,
+    public ResponseEntity<Void> update(@PathVariable Long id,
         @RequestBody @Valid SelfIntroductionWriteRequest request, @CurrentMemberId long memberId) {
         selfIntroductionService.update(request, memberId, id);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "셀프 소개 삭제 API")
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse<Void>> delete(@PathVariable Long id, @CurrentMemberId long memberId) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, @CurrentMemberId long memberId) {
         selfIntroductionService.delete(id, memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "셀프 소개 목록 조회 API")
     @GetMapping
-    public ResponseEntity<BaseResponse<List<SelfIntroductionSummaryView>>> getIntroductions(
+    public ResponseEntity<SelfIntroductionSummaryViews> getIntroductions(
         @CurrentMemberId long memberId,
         @ParameterObject @ModelAttribute SelfIntroductionSearchRequest searchRequest
     ) {
         SelfIntroductionSearchCondition searchCondition = SelfIntroductionMapper.toSelfIntroductionSearchCondition(
             searchRequest);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK,
-            selfIntroductionQueryRepository.findSelfIntroductions(searchCondition, searchRequest.lastId(),
-                memberId)));
+        List<SelfIntroductionSummaryView> views = selfIntroductionQueryRepository.findSelfIntroductions(
+            searchCondition, searchRequest.lastId(), memberId);
+        return ResponseEntity.ok(new SelfIntroductionSummaryViews(views));
     }
 
     @Operation(summary = "자신의 셀프 소개 목록 조회 API")
     @GetMapping("/my")
-    public ResponseEntity<BaseResponse<List<SelfIntroductionSummaryView>>> getMyIntroductions(
+    public ResponseEntity<SelfIntroductionSummaryViews> getMyIntroductions(
         @CurrentMemberId long memberId,
         @RequestParam(required = false) Long lastId
     ) {
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK,
-            selfIntroductionQueryRepository.findMySelfIntroductions(lastId, memberId)));
+        List<SelfIntroductionSummaryView> views = selfIntroductionQueryRepository.findMySelfIntroductions(
+            lastId, memberId);
+        return ResponseEntity.ok(new SelfIntroductionSummaryViews(views));
     }
 
     @Operation(summary = "셀프 소개 상세 조회 API")
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<SelfIntroductionView>> getIntroduction(@PathVariable Long id,
+    public ResponseEntity<SelfIntroductionView> getIntroduction(@PathVariable Long id,
         @CurrentMemberId long memberId) {
-        SelfIntroductionView view = selfIntroductionQueryRepository.findSelfIntroductionByIdWithMemberId(id,
-            memberId).orElse(null);
-        if (view == null) {
-            return ResponseEntity.status(404)
-                .body(BaseResponse.from(StatusType.NOT_FOUND));
-        }
-
-        return ResponseEntity.ok().body(BaseResponse.of(StatusType.OK, view));
+        SelfIntroductionView view = selfIntroductionQueryRepository.findSelfIntroductionByIdWithMemberId(id, memberId)
+            .orElseThrow(() -> new DeeppleException(
+                CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND, "selfIntroductionId=" + id));
+        return ResponseEntity.ok(view);
     }
 }

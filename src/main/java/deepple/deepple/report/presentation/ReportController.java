@@ -1,8 +1,6 @@
 package deepple.deepple.report.presentation;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.report.command.application.ReportService;
 import deepple.deepple.report.presentation.dto.ReportCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,9 +22,9 @@ public class ReportController {
 
     @Operation(summary = "신고하기")
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> report(@Valid @RequestBody ReportCreateRequest request,
+    public ResponseEntity<Void> report(@Valid @RequestBody ReportCreateRequest request,
         @CurrentMemberId long memberId) {
         reportService.report(request, memberId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 }

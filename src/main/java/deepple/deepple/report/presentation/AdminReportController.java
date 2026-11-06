@@ -1,9 +1,7 @@
 package deepple.deepple.report.presentation;
 
 import deepple.deepple.auth.presentation.CurrentAdminId;
-import deepple.deepple.common.enums.StatusType;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.report.command.application.AdminReportService;
 import deepple.deepple.report.command.domain.ReportErrorCode;
 import deepple.deepple.report.presentation.dto.ReportResultUpdateRequest;
@@ -31,30 +29,30 @@ public class AdminReportController {
 
     @Operation(summary = "신고 처리 결정")
     @PatchMapping("/{id}/result")
-    public ResponseEntity<BaseResponse<Void>> updateResult(
+    public ResponseEntity<Void> updateResult(
         @PathVariable long id,
         @Valid @RequestBody ReportResultUpdateRequest request,
         @CurrentAdminId long adminId
     ) {
         adminReportService.updateResult(id, request, adminId);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "신고 목록 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<ReportView>>> getPage(
+    public ResponseEntity<Page<ReportView>> getPage(
         @ModelAttribute ReportSearchCondition condition,
         @PageableDefault(size = 100) Pageable pageable
     ) {
         Page<ReportView> page = reportQueryRepository.getPage(condition, pageable);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, page));
+        return ResponseEntity.ok(page);
     }
 
     @Operation(summary = "신고 상세 조회")
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<ReportDetailView>> getReport(@PathVariable long id) {
+    public ResponseEntity<ReportDetailView> getReport(@PathVariable long id) {
         ReportDetailView view = reportQueryRepository.findReportDetailView(id)
             .orElseThrow(() -> new DeeppleException(ReportErrorCode.REPORT_NOT_FOUND, "reportId=" + id));
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, view));
+        return ResponseEntity.ok(view);
     }
 }

@@ -64,7 +64,7 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
 
         MvcTestResult result = post("/member/profile/active");
 
-        assertThat(result).hasStatusOk();
+        assertThat(result).hasStatus(HttpStatus.NO_CONTENT);
         assertThat(statusOf(memberId)).isEqualTo(ActivityStatus.ACTIVE);
     }
 
@@ -98,7 +98,7 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
 
         MvcTestResult result = post("/member/profile/dormant");
 
-        assertThat(result).hasStatusOk();
+        assertThat(result).hasStatus(HttpStatus.NO_CONTENT);
         assertThat(statusOf(memberId)).isEqualTo(ActivityStatus.DORMANT);
         await()
             .atMost(Duration.ofSeconds(5))

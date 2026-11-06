@@ -1,7 +1,5 @@
 package deepple.deepple.payment.presentation.heartpurchaseoption;
 
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.payment.command.application.heartpurchaseoption.HeartPurchaseOptionService;
 import deepple.deepple.payment.presentation.heartpurchaseoption.dto.HeartPurchaseOptionCreateRequest;
 import deepple.deepple.payment.query.heartpurchaseoption.HeartPurchaseOptionQueryRepository;
@@ -27,24 +25,24 @@ public class AdminHeartPurchaseOptionController {
 
     @Operation(summary = "하트 구매 옵션 생성")
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> create(@Valid @RequestBody HeartPurchaseOptionCreateRequest request) {
+    public ResponseEntity<Void> create(@Valid @RequestBody HeartPurchaseOptionCreateRequest request) {
         heartPurchaseOptionService.create(request);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "하트 구매 옵션 삭제")
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         heartPurchaseOptionService.delete(id);
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "하트 구매 옵션 목록 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<HeartPurchaseOptionView>>> getPage(
+    public ResponseEntity<Page<HeartPurchaseOptionView>> getPage(
         @ModelAttribute HeartPurchaseOptionSearchCondition condition,
         @PageableDefault(size = 100) Pageable pageable) {
         Page<HeartPurchaseOptionView> page = heartPurchaseOptionQueryRepository.findPage(condition, pageable);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, page));
+        return ResponseEntity.ok(page);
     }
 }

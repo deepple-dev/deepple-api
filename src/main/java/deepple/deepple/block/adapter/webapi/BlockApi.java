@@ -3,8 +3,6 @@ package deepple.deepple.block.adapter.webapi;
 import deepple.deepple.auth.presentation.CurrentMemberId;
 import deepple.deepple.block.adapter.webapi.dto.BlockCreateRequest;
 import deepple.deepple.block.application.provided.BlockCommander;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -23,12 +21,12 @@ public class BlockApi {
     private final BlockCommander blockCommander;
 
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> createBlock(
+    public ResponseEntity<Void> createBlock(
         @RequestBody @Valid BlockCreateRequest request,
         @CurrentMemberId long memberId
     ) {
         Long blockerId = memberId;
         blockCommander.createBlock(blockerId, request.blockedId());
-        return ResponseEntity.ok(BaseResponse.from(StatusType.OK));
+        return ResponseEntity.noContent().build();
     }
 }

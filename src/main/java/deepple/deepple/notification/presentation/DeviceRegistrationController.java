@@ -1,7 +1,6 @@
 package deepple.deepple.notification.presentation;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.notification.command.application.DeviceRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static deepple.deepple.common.enums.StatusType.OK;
 
 @Tag(name = "기기 설정 API")
 @RestController
@@ -25,11 +23,11 @@ public class DeviceRegistrationController {
 
     @Operation(summary = "기기 등록 및 업데이트")
     @PostMapping
-    public ResponseEntity<BaseResponse<Void>> register(
+    public ResponseEntity<Void> register(
         @Valid @RequestBody DeviceRegisterRequest request,
         @CurrentMemberId long memberId
     ) {
         deviceRegistrationService.register(memberId, request);
-        return ResponseEntity.ok(BaseResponse.from(OK));
+        return ResponseEntity.noContent().build();
     }
 }

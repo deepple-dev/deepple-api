@@ -1,7 +1,5 @@
 package deepple.deepple.payment.presentation.refund;
 
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.payment.query.refund.RefundQueryRepository;
 import deepple.deepple.payment.query.refund.condition.RefundSearchCondition;
 import deepple.deepple.payment.query.refund.view.RefundView;
@@ -26,10 +24,10 @@ public class AdminRefundController {
 
     @Operation(summary = "환불 목록 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<Page<RefundView>>> getPage(
+    public ResponseEntity<Page<RefundView>> getPage(
         @ModelAttribute RefundSearchCondition condition,
         @PageableDefault(size = 20) Pageable pageable) {
         Page<RefundView> page = refundQueryRepository.findPage(condition, pageable);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, page));
+        return ResponseEntity.ok(page);
     }
 }

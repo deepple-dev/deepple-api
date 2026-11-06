@@ -59,7 +59,7 @@
 
 ## 코딩 규칙
 
-- 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 성공 응답은 `BaseResponse`로 감싸고, 오류 응답은 `GlobalExceptionHandler`가 ProblemDetail로 만든다.
+- 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 성공 응답은 감싸지 않고 응답 객체를 그대로 돌려준다(목록은 `MatchViews(matches, hasMore)`처럼 리소스 복수형 필드를 가진 객체로 감싸고, 본문이 없으면 204). 오류 응답은 `GlobalExceptionHandler`가 ProblemDetail로 만든다.
 - 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
   - 발행: `Events.raise(event)` (`common/event`), 이벤트는 `Event`를 상속
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`
@@ -90,6 +90,7 @@
 |---|---|---|
 | `java.md` | 타입·이름·작성 규칙, Lombok | 모든 Java 파일 |
 | `swagger.md` | API 문서화 | `presentation`, `adapter/webapi`, `query` |
+| `exception.md` | 예외 던지기, ErrorCode, 오류 응답 | `src/main` Java 파일 |
 | `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `infra`, `adapter`, `common/config` |
 | `db.md` | 마이그레이션, 컬럼 타입 | 마이그레이션, 엔티티(`domain`) |
 | `test.md` | 테스트 종류별 작성 방식 | `src/test` |

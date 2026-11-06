@@ -1,8 +1,6 @@
 package deepple.deepple.heart.presentation.hearttransaction;
 
 import deepple.deepple.auth.presentation.CurrentMemberId;
-import deepple.deepple.common.enums.StatusType;
-import deepple.deepple.common.response.BaseResponse;
 import deepple.deepple.heart.query.hearttransaction.HeartTransactionQueryService;
 import deepple.deepple.heart.query.hearttransaction.condition.HeartTransactionSearchCondition;
 import deepple.deepple.heart.query.hearttransaction.view.HeartTransactionViews;
@@ -24,12 +22,12 @@ public class HeartTransactionController {
 
     @Operation(summary = "하트 내역 조회")
     @GetMapping
-    public ResponseEntity<BaseResponse<HeartTransactionViews>> getHeartTransactions(
+    public ResponseEntity<HeartTransactionViews> getHeartTransactions(
         @ModelAttribute HeartTransactionSearchCondition condition,
         @CurrentMemberId long memberId
     ) {
         final HeartTransactionViews views = heartTransactionQueryService.findHeartTransactions(
             memberId, condition);
-        return ResponseEntity.ok(BaseResponse.of(StatusType.OK, views));
+        return ResponseEntity.ok(views);
     }
 }
