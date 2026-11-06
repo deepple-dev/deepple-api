@@ -52,7 +52,10 @@ public class NotificationSendService {
                 template.generateBody(request.params())
             ))
             .orElseGet(() -> {
-                log.error("[알림 템플릿 조회 실패] type={}, receiverId={}", request.notificationType(), request.receiverId());
+                log.atError()
+                    .addKeyValue("notificationType", request.notificationType())
+                    .addKeyValue("receiverId", request.receiverId())
+                    .log("알림 템플릿 없음");
                 saveFailedNotification(request, FAILED_TEMPLATE_NOT_FOUND);
                 return null;
             });
@@ -68,7 +71,9 @@ public class NotificationSendService {
                 return canSend;
             })
             .orElseGet(() -> {
-                log.warn("[알림 설정 조회 실패] receiverId={}", notification.getReceiverId());
+                log.atWarn()
+                    .addKeyValue("receiverId", notification.getReceiverId())
+                    .log("알림 설정 없음");
                 saveFailedNotification(notification, FAILED_PREFERENCE_NOT_FOUND);
                 return false;
             });
@@ -77,7 +82,6 @@ public class NotificationSendService {
     private DeviceRegistration findReceiversActiveDevice(Notification notification) {
         return reader.findActiveDevice(notification.getReceiverId())
             .orElseGet(() -> {
-                log.warn("[디바이스 정보 조회 실패] receiverId={}", notification.getReceiverId());
                 saveFailedNotification(notification, FAILED_DEVICE_NOT_FOUND);
                 return null;
             });
@@ -101,13 +105,20 @@ public class NotificationSendService {
             notification.markAsSent();
             writer.save(notification);
         } catch (Exception e) {
-            log.warn("[알림 전송 실패] receiverId={}, type={}", notification.getReceiverId(), notification.getType(), e);
+            log.atWarn()
+                .setCause(e)
+                .addKeyValue("receiverId", notification.getReceiverId())
+                .addKeyValue("notificationType", notification.getType())
+                .log("알림 전송 실패");
             saveFailedNotification(notification, FAILED_EXCEPTION);
         }
     }
 
     private void handleUnsupportedChannel(Notification notification, NotificationSendRequest request) {
-        log.warn("[지원하지 않는 채널] channel={}, receiverId={}", request.channelType(), request.receiverId());
+        log.atWarn()
+            .addKeyValue("channel", request.channelType())
+            .addKeyValue("receiverId", request.receiverId())
+            .log("지원하지 않는 알림 채널");
         saveFailedNotification(notification, FAILED_UNSUPPORTED_CHANNEL);
     }
 

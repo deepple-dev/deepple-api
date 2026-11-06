@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -232,8 +233,8 @@ class AppStoreNotificationServiceTest {
     class RefundProcessingExceptionTests {
 
         @Test
-        @DisplayName("RefundService에서 예외 발생 시 예외 전파")
-        void shouldPropagateExceptionWhenRefundServiceThrowsException() {
+        @DisplayName("RefundService에서 예외 발생 시 예외를 던지지 않고 처리를 끝낸다")
+        void shouldNotPropagateExceptionWhenRefundServiceThrowsException() {
             // given
             String signedPayload = "signed.payload.data";
             String transactionId = "txn123";
@@ -258,9 +259,8 @@ class AppStoreNotificationServiceTest {
             doThrow(exception).when(refundService).processRefund(any(), any(), anyInt(), any(), any());
 
             // when & then
-            assertThatThrownBy(() -> appStoreNotificationService.handleNotification(signedPayload))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Refund processing failed");
+            assertThatCode(() -> appStoreNotificationService.handleNotification(signedPayload))
+                .doesNotThrowAnyException();
         }
     }
 

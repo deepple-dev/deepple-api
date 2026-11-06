@@ -39,7 +39,7 @@ public class AppStoreClientConfig {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    log.warn("Failed to close InputStream", e);
+                    log.atWarn().setCause(e).log("App Store 인증서 파일 닫기 실패");
                 }
             });
         }

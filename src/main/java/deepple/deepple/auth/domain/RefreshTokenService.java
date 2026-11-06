@@ -59,7 +59,10 @@ public class RefreshTokenService {
             return used.owner();
         }
 
-        log.warn("이미 사용한 리프레시 토큰이 다시 사용되어 모든 리프레시 토큰을 폐기합니다. owner={}", used.owner());
+        log.atWarn()
+            .addKeyValue("ownerRole", used.owner().role())
+            .addKeyValue("ownerId", used.owner().id())
+            .log("리프레시 토큰 재사용 감지, 모든 리프레시 토큰 폐기");
         refreshTokenRepository.deleteAll(used.owner());
         throw new DeeppleException(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }

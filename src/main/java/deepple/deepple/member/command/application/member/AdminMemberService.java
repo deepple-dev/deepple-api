@@ -7,9 +7,11 @@ import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.presentation.member.dto.AdminMemberSettingUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminMemberService {
@@ -25,6 +27,7 @@ public class AdminMemberService {
             request.isVip(),
             request.isPushNotificationEnabled()
         );
+        log.atInfo().addKeyValue("memberId", memberId).log("관리자 회원 설정 변경");
     }
 
     private Member getMember(long memberId) {

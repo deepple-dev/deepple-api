@@ -38,7 +38,7 @@ public class RefundService {
         NotificationType notificationType
     ) {
         if (isDuplicateRefund(transactionId)) {
-            log.info("이미 환불 처리된 거래입니다. transactionId: {}", transactionId);
+            log.atInfo().addKeyValue("transactionId", transactionId).log("이미 환불된 거래");
             return;
         }
 
@@ -50,10 +50,13 @@ public class RefundService {
             saveRefund(order, productId, quantity, refundAmount, notificationType);
             raiseRefundEvent(order.getMemberId(), refundAmount, transactionId);
 
-            log.info("환불 처리 완료. transactionId: {}, memberId: {}, amount: {}",
-                transactionId, order.getMemberId(), refundAmount);
+            log.atInfo()
+                .addKeyValue("transactionId", transactionId)
+                .addKeyValue("memberId", order.getMemberId())
+                .addKeyValue("amount", refundAmount)
+                .log("환불 완료");
         } catch (DataIntegrityViolationException e) {
-            log.info("이미 환불 처리된 거래입니다 (동시 요청). transactionId: {}", transactionId);
+            log.atInfo().addKeyValue("transactionId", transactionId).log("이미 환불된 거래(동시 요청)");
         }
     }
 

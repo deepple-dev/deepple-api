@@ -40,8 +40,11 @@ public class GooglePlayPaymentService {
             if (e.getErrorCode() != PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE) {
                 throw e;
             }
-            log.error("Google Play consume 실패 - 3일 내 수동 조치 필요. orderId={}, productId={}",
-                orderId, productId, e);
+            log.atError()
+                .setCause(e)
+                .addKeyValue("orderId", orderId)
+                .addKeyValue("productId", productId)
+                .log("Google Play consume 실패, 3일 안에 수동 조치 필요");
         }
     }
 }

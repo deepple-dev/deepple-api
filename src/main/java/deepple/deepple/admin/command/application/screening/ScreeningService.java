@@ -38,6 +38,7 @@ public class ScreeningService {
         }
 
         screening.approve(adminId);
+        logScreening(screening, "프로필 심사 승인");
     }
 
     @Transactional
@@ -49,6 +50,14 @@ public class ScreeningService {
         }
 
         screening.reject(adminId, toRejectionReasonType(request.rejectionReason()));
+        logScreening(screening, "프로필 심사 반려");
+    }
+
+    private void logScreening(Screening screening, String message) {
+        log.atInfo()
+            .addKeyValue("screeningId", screening.getId())
+            .addKeyValue("memberId", screening.getMemberId())
+            .log(message);
     }
 
     @Transactional

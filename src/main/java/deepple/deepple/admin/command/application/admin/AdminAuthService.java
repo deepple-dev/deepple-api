@@ -13,11 +13,13 @@ import deepple.deepple.auth.domain.TokenProvider;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.common.exception.DeeppleException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminAuthService {
@@ -31,6 +33,7 @@ public class AdminAuthService {
     public AdminSignupResponse signup(AdminSignupRequest request) {
         validateEmailUniqueness(request.email());
         Admin newAdmin = createAdmin(request);
+        log.atInfo().addKeyValue("adminId", newAdmin.getId()).log("관리자 가입 신청");
         return AdminAuthMapper.toSignupResponse(newAdmin);
     }
 
@@ -40,6 +43,7 @@ public class AdminAuthService {
         admin.matchPassword(request.password(), passwordHasher);
         validateApproved(admin);
 
+        log.atInfo().addKeyValue("adminId", admin.getId()).log("관리자 로그인");
         return issueTokens(admin);
     }
 

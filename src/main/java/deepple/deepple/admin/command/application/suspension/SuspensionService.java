@@ -4,6 +4,7 @@ import deepple.deepple.admin.command.domain.suspension.*;
 import deepple.deepple.admin.presentation.suspension.SuspendRequest;
 import deepple.deepple.common.event.Events;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 import static deepple.deepple.admin.command.application.suspension.SuspensionMapper.toSuspensionStatus;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SuspensionService {
@@ -37,6 +39,7 @@ public class SuspensionService {
     public void delete(long memberId) {
         suspensionCommandRepository.deleteByMemberId(memberId);
         Events.raise(MemberUnsuspendedEvent.of(memberId));
+        log.atInfo().addKeyValue("memberId", memberId).log("회원 정지 해제");
     }
 
     private void createOrUpdateSuspension(long adminId, long memberId, SuspensionStatus status) {
@@ -50,6 +53,7 @@ public class SuspensionService {
             suspensionCommandRepository.save(newSuspension);
 
             registerTemporaryScheduler(newSuspension.getMemberId(), newSuspension.getExpireAt());
+            logSuspension(memberId, status);
         }
 
         if (status == SuspensionStatus.PERMANENT) {
@@ -60,7 +64,15 @@ public class SuspensionService {
                     suspensionCommandRepository.save(newSuspension);
                 }
             );
+            logSuspension(memberId, status);
         }
+    }
+
+    private void logSuspension(long memberId, SuspensionStatus status) {
+        log.atInfo()
+            .addKeyValue("memberId", memberId)
+            .addKeyValue("suspensionStatus", status)
+            .log("회원 정지");
     }
 
     private void registerTemporaryScheduler(long memberId, Instant expireAt) {

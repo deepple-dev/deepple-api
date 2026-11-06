@@ -202,7 +202,7 @@ class MemberAuthServiceTest {
             String code = "01012345678";
             Instant fixedInstant = Instant.parse("2024-01-01T00:00:00Z");
 
-            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class)) {
+            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS)) {
                 mockedInstant.when(Instant::now).thenReturn(fixedInstant);
 
                 when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(member));
@@ -228,7 +228,7 @@ class MemberAuthServiceTest {
             String code = "01012345678";
             Instant fixedInstant = Instant.parse("2024-01-01T00:00:00Z");
 
-            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class)) {
+            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS)) {
                 mockedInstant.when(Instant::now).thenReturn(fixedInstant);
 
                 when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.empty());
@@ -272,7 +272,7 @@ class MemberAuthServiceTest {
             String code = "01012345678";
             Instant fixedInstant = Instant.parse("2024-01-01T00:00:00Z");
 
-            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class)) {
+            try (MockedStatic<Instant> mockedInstant = Mockito.mockStatic(Instant.class, Mockito.CALLS_REAL_METHODS)) {
                 mockedInstant.when(Instant::now).thenReturn(fixedInstant);
 
                 when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(member));

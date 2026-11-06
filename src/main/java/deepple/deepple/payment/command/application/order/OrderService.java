@@ -9,8 +9,10 @@ import deepple.deepple.payment.command.domain.order.OrderCommandRepository;
 import deepple.deepple.payment.command.domain.order.PaymentMethod;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -23,6 +25,12 @@ public class OrderService {
         verifyTransactionId(transactionId, paymentMethod);
         createOrder(memberId, transactionId, paymentMethod);
         purchaseHeart(memberId, productId, quantity);
+        log.atInfo()
+            .addKeyValue("transactionId", transactionId)
+            .addKeyValue("productId", productId)
+            .addKeyValue("quantity", quantity)
+            .addKeyValue("paymentMethod", paymentMethod)
+            .log("결제 완료");
     }
 
     private void verifyTransactionId(String transactionId, PaymentMethod paymentMethod) {

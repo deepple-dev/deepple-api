@@ -35,6 +35,9 @@ public class WarningService {
 
         warningCommandRepository.save(warning);
 
-        log.info("멤버(id: {})에 경고(id: {}) 발행", memberId, warning.getId());
+        log.atInfo()
+            .addKeyValue("memberId", memberId)
+            .addKeyValue("warningId", warning.getId())
+            .log("경고 발행");
     }
 }
