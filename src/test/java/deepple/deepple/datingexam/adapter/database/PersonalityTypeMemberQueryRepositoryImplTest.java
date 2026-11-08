@@ -1,13 +1,14 @@
 package deepple.deepple.datingexam.adapter.database;
 
-import deepple.deepple.block.domain.Block;
+import deepple.deepple.block.fixture.BlockFixture;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
 import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
+import deepple.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,6 @@ class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport
 
     @Autowired
     private PersonalityTypeMemberQueryRepositoryImpl repository;
-
-    private int phoneSeq = 0;
 
     @Test
     @DisplayName("대표 유형이 일치하는 반대 성별·공개·활성 회원만 최신 가입순으로 조회하고, 다른 유형·동성·비공개·비활성·차단·본인은 제외한다.")
@@ -71,37 +70,30 @@ class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport
     }
 
     private Member createMember(Gender gender, boolean isProfilePublic, ActivityStatus activityStatus) {
-        Member member = Member.fromPhoneNumber(nextPhoneNumber());
+        Member member = MemberFixture.builder()
+            .gender(gender)
+            .profilePublic(isProfilePublic)
+            .activityStatus(activityStatus)
+            .build();
         em.persist(member);
-        member.updateProfile(MemberProfile.builder().gender(gender).build());
-        if (isProfilePublic) {
-            member.publishProfile();
-        }
-        em.flush();
-
-        if (activityStatus == ActivityStatus.ACTIVE) {
-            member.changeActivityStatus(ActivityStatus.ACTIVE);
-        }
-        if (activityStatus == ActivityStatus.DORMANT && member.isActive()) {
-            member.changeActivityStatus(ActivityStatus.DORMANT);
-        }
         em.flush();
         return member;
     }
 
     private void createSubmitResult(Long memberId, AnswerPersonalityType type) {
-        DatingExamSubmitResult result = DatingExamSubmitResult.create(memberId);
-        result.addCounts(Map.of(type, 1));
+        DatingExamSubmitResult result = DatingExamSubmitResultFixture.builder()
+            .memberId(memberId)
+            .counts(Map.of(type, 1))
+            .build();
         em.persist(result);
         em.flush();
     }
 
     private void createBlock(Long blockerId, Long blockedId) {
-        em.persist(Block.of(blockerId, blockedId));
+        em.persist(BlockFixture.builder()
+            .blockerId(blockerId)
+            .blockedId(blockedId)
+            .build());
         em.flush();
-    }
-
-    private String nextPhoneNumber() {
-        return String.format("010%08d", phoneSeq++);
     }
 }

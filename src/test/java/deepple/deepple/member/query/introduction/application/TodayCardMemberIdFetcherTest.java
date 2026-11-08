@@ -8,6 +8,7 @@ import deepple.deepple.member.command.domain.introduction.MemberIdealCommandRepo
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.member.query.introduction.intra.IntroductionQueryRepository;
 import deepple.deepple.member.query.introduction.intra.IntroductionRedisRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -109,8 +110,7 @@ class TodayCardMemberIdFetcherTest {
         when(introductionRedisRepository.findIntroductionMemberIds(cacheKeyPrefix.getPrefix() + memberId))
             .thenReturn(Set.of());
 
-        Member member = mock(Member.class);
-        when(member.getId()).thenReturn(memberId);
+        Member member = MemberFixture.builder().id(memberId).build();
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
@@ -134,11 +134,9 @@ class TodayCardMemberIdFetcherTest {
         when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
         when(memberIdeal.isUpdated()).thenReturn(false);
 
-        Member member = mock(Member.class);
-        when(member.getId()).thenReturn(memberId);
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
         Gender memberGender = Gender.MALE;
-        when(member.getGender()).thenReturn(memberGender);
+        Member member = MemberFixture.builder().id(memberId).gender(memberGender).build();
+        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
         Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
@@ -174,11 +172,9 @@ class TodayCardMemberIdFetcherTest {
         when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
         when(memberIdeal.isUpdated()).thenReturn(true);
 
-        Member member = mock(Member.class);
-        when(member.getId()).thenReturn(memberId);
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
         Gender memberGender = Gender.MALE;
-        when(member.getGender()).thenReturn(memberGender);
+        Member member = MemberFixture.builder().id(memberId).gender(memberGender).build();
+        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
         Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 

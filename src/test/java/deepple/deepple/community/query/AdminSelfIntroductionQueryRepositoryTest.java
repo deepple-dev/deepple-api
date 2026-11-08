@@ -2,13 +2,13 @@ package deepple.deepple.community.query;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
+import deepple.deepple.community.fixture.SelfIntroductionFixture;
 import deepple.deepple.community.presentation.selfintroduction.dto.AdminSelfIntroductionSearchCondition;
 import deepple.deepple.community.query.selfintroduction.AdminSelfIntroductionQueryRepository;
 import deepple.deepple.community.query.selfintroduction.view.AdminSelfIntroductionView;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,43 +40,36 @@ class AdminSelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
 
     @BeforeEach
     void setUp() {
-
-        manMember = Member.fromPhoneNumber("01012345678");
-        womanMember = Member.fromPhoneNumber("01098765432");
-
-        entityManager.persist(manMember);
-        entityManager.persist(womanMember);
-
-        MemberProfile manProfile = MemberProfile
-            .builder()
-            .nickname(Nickname.from("남자닉네임"))
+        manMember = MemberFixture.builder()
+            .phoneNumber("01012345678")
+            .nickname("남자닉네임")
             .gender(Gender.MALE)
             .build();
-
-        MemberProfile womanProfile = MemberProfile
-            .builder()
-            .nickname(Nickname.from("여자닉네임"))
+        womanMember = MemberFixture.builder()
+            .phoneNumber("01098765432")
+            .nickname("여자닉네임")
             .gender(Gender.FEMALE)
             .build();
 
-        manMember.updateProfile(manProfile);
-        womanMember.updateProfile(womanProfile);
-
+        entityManager.persist(manMember);
+        entityManager.persist(womanMember);
         entityManager.flush();
 
         selfIntroductionsByMan = new ArrayList<>();
         selfIntroductionsByWoman = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {
-            SelfIntroduction selfIntroductionByMan = SelfIntroduction.write(manMember.getId(), "제목" + i,
-                "내용은 30자 이상이어야합니다... 30자를 채우자!! " + i, null);
-            SelfIntroduction selfIntroductionByWoman = SelfIntroduction.write(womanMember.getId(), "제목입니다." + i,
-                "내용입니다. 내용은 30자 이상이어야합니다... 30자를 채우자!! " + i, null);
-
-            if (i % 2 == 0) {
-                selfIntroductionByMan.close();
-                selfIntroductionByWoman.close();
-            }
+            SelfIntroduction selfIntroductionByMan = SelfIntroductionFixture.builder()
+                .memberId(manMember.getId())
+                .title("제목" + i)
+                .content("내용은 30자 이상이어야합니다... 30자를 채우자!! " + i)
+                .opened(i % 2 == 0)
+                .build();
+            SelfIntroduction selfIntroductionByWoman = SelfIntroductionFixture.builder()
+                .memberId(womanMember.getId())
+                .title("제목입니다." + i)
+                .content("내용입니다. 내용은 30자 이상이어야합니다... 30자를 채우자!! " + i)
+                .build();
 
             entityManager.persist(selfIntroductionByMan);
             entityManager.persist(selfIntroductionByWoman);
@@ -132,6 +125,7 @@ class AdminSelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
             condition, pageRequest);
 
         // Then
+        AssertionsForClassTypes.assertThat(selfIntroductionViews.getContent().isEmpty()).isFalse();
         for (AdminSelfIntroductionView view : selfIntroductionViews.getContent()) {
             AssertionsForClassTypes.assertThat(view.isOpened()).isTrue();
         }

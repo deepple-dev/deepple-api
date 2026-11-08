@@ -6,6 +6,7 @@ import deepple.deepple.heart.presentation.hearttransaction.AdminHeartGrantReques
 import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 class AdminHeartGrantServiceTest {
@@ -37,8 +37,7 @@ class AdminHeartGrantServiceTest {
         long amount = 50L;
         String reason = "CS 보상";
 
-        Member member = Member.fromPhoneNumber("01012345678");
-        setField(member, "id", memberId);
+        Member member = MemberFixture.builder().id(memberId).build();
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
         AdminHeartGrantRequest request = new AdminHeartGrantRequest(memberId, amount, reason);

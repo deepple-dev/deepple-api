@@ -5,6 +5,7 @@ import deepple.deepple.interview.command.domain.InterviewErrorCode;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
 import deepple.deepple.interview.command.domain.question.InterviewQuestionCommandRepository;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.interview.presentation.question.dto.InterviewQuestionSaveRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -112,7 +114,9 @@ class InterviewQuestionServiceTest {
         void throwsExceptionWhenInterviewCategoryDoesNotExist() {
             // given
             Long questionId = 1L;
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(questionId)
+                .build();
 
             String updatedContent = "updated content";
             String updatedCategory = "notExist";
@@ -134,8 +138,10 @@ class InterviewQuestionServiceTest {
             // given
             Long questionId = 1L;
             String content = "content";
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.getContent()).thenReturn(content);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(questionId)
+                .content(content)
+                .build();
 
             String updatedContent = "updated content";
             String updatedCategory = InterviewCategory.SOCIAL.name();
@@ -158,8 +164,10 @@ class InterviewQuestionServiceTest {
             // given
             Long questionId = 1L;
             String content = "content";
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.getContent()).thenReturn(content);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(questionId)
+                .content(content)
+                .build();
 
             String updatedContent = "updated content";
             String updatedCategory = InterviewCategory.SOCIAL.name();
@@ -174,7 +182,9 @@ class InterviewQuestionServiceTest {
             interviewQuestionService.updateQuestion(questionId, request);
 
             // then
-            verify(interviewQuestion).update(updatedContent, InterviewCategory.SOCIAL, false);
+            assertThat(interviewQuestion.getContent()).isEqualTo(updatedContent);
+            assertThat(interviewQuestion.getCategory()).isEqualTo(InterviewCategory.SOCIAL);
+            assertThat(interviewQuestion.isPublic()).isFalse();
         }
 
         @Test
@@ -183,8 +193,10 @@ class InterviewQuestionServiceTest {
             // given
             Long questionId = 1L;
             String content = "content";
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.getContent()).thenReturn(content);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(questionId)
+                .content(content)
+                .build();
 
             String updatedContent = "updated content";
             String updatedCategory = InterviewCategory.SOCIAL.name();
@@ -198,7 +210,9 @@ class InterviewQuestionServiceTest {
             interviewQuestionService.updateQuestion(questionId, request);
 
             // then
-            verify(interviewQuestion).update(updatedContent, InterviewCategory.SOCIAL, false);
+            assertThat(interviewQuestion.getContent()).isEqualTo(updatedContent);
+            assertThat(interviewQuestion.getCategory()).isEqualTo(InterviewCategory.SOCIAL);
+            assertThat(interviewQuestion.isPublic()).isFalse();
         }
     }
 

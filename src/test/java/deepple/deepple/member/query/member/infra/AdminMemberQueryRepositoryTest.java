@@ -2,20 +2,21 @@ package deepple.deepple.member.query.member.infra;
 
 import deepple.deepple.admin.command.domain.warning.Warning;
 import deepple.deepple.admin.command.domain.warning.WarningReasonType;
+import deepple.deepple.admin.fixture.WarningFixture;
 import deepple.deepple.common.support.RepositoryTestSupport;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
+import deepple.deepple.interview.fixture.InterviewAnswerFixture;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.member.command.domain.member.*;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import deepple.deepple.member.query.member.condition.AdminMemberSearchCondition;
 import deepple.deepple.member.query.member.view.*;
 import deepple.deepple.notification.command.domain.NotificationPreference;
+import deepple.deepple.notification.fixture.NotificationPreferenceFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,17 +47,17 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
 
     private Member createMember(String phoneNumber, String nickname, ActivityStatus activityStatus, Gender gender,
         Grade grade) {
-        Member member = Member.fromPhoneNumber(phoneNumber);
-        entityManager.persist(member);
-        member.gainPurchaseHeart(HeartAmount.from(100L));
-        member.gainMissionHeart(HeartAmount.from(50L), "연애고사 제출");
-        member.updateGrade(grade);
-        MemberProfile memberProfile = MemberProfile.builder()
-            .nickname(Nickname.from(nickname))
+        Member member = MemberFixture.builder()
+            .phoneNumber(phoneNumber)
+            .activityStatus(activityStatus)
+            .grade(grade)
+            .purchaseHeartBalance(100L)
+            .missionHeartBalance(50L)
+            .nickname(nickname)
             .gender(gender)
             .job(Job.OTHERS)
             .drinkingStatus(DrinkingStatus.NONE)
-            .region(Region.of(District.ANDONG_SI))
+            .district(District.ANDONG_SI)
             .height(175)
             .mbti(Mbti.ENFJ)
             .highestEducation(HighestEducation.DOCTORATE)
@@ -64,17 +66,18 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
             .smokingStatus(SmokingStatus.NONE)
             .yearOfBirth(1997)
             .build();
-        member.updateProfile(memberProfile);
+        entityManager.persist(member);
         entityManager.flush();
-
-        if (activityStatus == ActivityStatus.DORMANT) {
-            member.changeActivityStatus(ActivityStatus.DORMANT);
-        }
         return member;
     }
 
     private Warning createWarning(long adminId, long memberId) {
-        var warning = Warning.issue(adminId, memberId, 0, Set.of(WarningReasonType.INAPPROPRIATE_INTERVIEW), true);
+        Warning warning = WarningFixture.builder()
+            .adminId(adminId)
+            .memberId(memberId)
+            .reasonTypes(new HashSet<>(Set.of(WarningReasonType.INAPPROPRIATE_INTERVIEW)))
+            .critical(true)
+            .build();
         entityManager.persist(warning);
         return warning;
     }
@@ -327,37 +330,47 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
         }
 
         private InterviewQuestion createInterviewQuestion(String content) {
-            InterviewQuestion question = InterviewQuestion.of(content, InterviewCategory.PERSONAL, true);
+            InterviewQuestion question = InterviewQuestionFixture.builder()
+                .content(content)
+                .category(InterviewCategory.PERSONAL)
+                .publicQuestion(true)
+                .build();
             entityManager.persist(question);
             return question;
         }
 
         private InterviewAnswer createInterviewAnswer(long questionId, long memberId, String content) {
-            InterviewAnswer answer = InterviewAnswer.of(questionId, memberId, content);
+            InterviewAnswer answer = InterviewAnswerFixture.builder()
+                .questionId(questionId)
+                .memberId(memberId)
+                .content(content)
+                .build();
             entityManager.persist(answer);
             return answer;
         }
 
         private List<ProfileImage> createProfileImages(long memberId, String imageUrl) {
-            ProfileImage profileImage1 = ProfileImage.builder()
+            ProfileImage profileImage1 = ProfileImageFixture.builder()
                 .memberId(memberId)
-                .imageUrl(ImageUrl.from(imageUrl + "1"))
+                .imageUrl(imageUrl + "1")
                 .order(1)
-                .isPrimary(true)
+                .primary(true)
                 .build();
             entityManager.persist(profileImage1);
-            ProfileImage profileImage2 = ProfileImage.builder()
+            ProfileImage profileImage2 = ProfileImageFixture.builder()
                 .memberId(memberId)
-                .imageUrl(ImageUrl.from(imageUrl + "2"))
+                .imageUrl(imageUrl + "2")
                 .order(2)
-                .isPrimary(false)
+                .primary(false)
                 .build();
             entityManager.persist(profileImage2);
             return List.of(profileImage1, profileImage2);
         }
 
         private NotificationPreference createNotificationPreference(long memberId) {
-            NotificationPreference notificationPreference = NotificationPreference.of(memberId);
+            NotificationPreference notificationPreference = NotificationPreferenceFixture.builder()
+                .memberId(memberId)
+                .build();
             entityManager.persist(notificationPreference);
             return notificationPreference;
         }

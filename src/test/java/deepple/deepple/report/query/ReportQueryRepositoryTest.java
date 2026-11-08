@@ -2,11 +2,11 @@ package deepple.deepple.report.query;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.report.command.domain.Report;
 import deepple.deepple.report.command.domain.ReportReasonType;
 import deepple.deepple.report.command.domain.ReportResult;
+import deepple.deepple.report.fixture.ReportFixture;
 import deepple.deepple.report.query.condition.ReportSearchCondition;
 import deepple.deepple.report.query.view.ReportDetailView;
 import deepple.deepple.report.query.view.ReportView;
@@ -33,22 +33,23 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
     private ReportQueryRepository reportQueryRepository;
 
     private Member createMember(String phoneNumber, String nickname) {
-        Member member = Member.fromPhoneNumber(phoneNumber);
-        entityManager.persist(member);
-        MemberProfile profile = MemberProfile.builder()
-            .nickname(Nickname.from(nickname))
+        Member member = MemberFixture.builder()
+            .phoneNumber(phoneNumber)
+            .nickname(nickname)
             .build();
-        member.updateProfile(profile);
+        entityManager.persist(member);
         return member;
     }
 
     private Report createReport(Member reporter, Member reportee, ReportReasonType reason, ReportResult result) {
-        Report report = Report.of(reporter.getId(), reportee.getId(), reason, "test content");
-        if (result == ReportResult.REJECTED) {
-            report.reject(1L);
-        } else if (result == ReportResult.WARNED) {
-            report.warn(1L);
-        }
+        Report report = ReportFixture.builder()
+            .reporterId(reporter.getId())
+            .reporteeId(reportee.getId())
+            .reason(reason)
+            .content("test content")
+            .result(result)
+            .adminId(result == ReportResult.PENDING ? null : 1L)
+            .build();
         entityManager.persist(report);
         return report;
     }

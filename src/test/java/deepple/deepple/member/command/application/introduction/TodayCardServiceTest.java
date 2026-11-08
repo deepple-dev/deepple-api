@@ -4,7 +4,10 @@ import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
+import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.MemberIntroductionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,10 +40,14 @@ class TodayCardServiceTest {
         final long memberId = 1L;
         Set<Long> todayCardMemberIds = Set.of(2L, 3L);
 
-        final MemberIntroduction memberIntroduction1 = mock(MemberIntroduction.class);
-        when(memberIntroduction1.getIntroducedMemberId()).thenReturn(2L);
-        final MemberIntroduction memberIntroduction2 = mock(MemberIntroduction.class);
-        when(memberIntroduction2.getIntroducedMemberId()).thenReturn(3L);
+        final MemberIntroduction memberIntroduction1 = MemberIntroductionFixture.builder()
+            .memberId(memberId)
+            .introducedMemberId(2L)
+            .build();
+        final MemberIntroduction memberIntroduction2 = MemberIntroductionFixture.builder()
+            .memberId(memberId)
+            .introducedMemberId(3L)
+            .build();
 
         when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(memberId,
             todayCardMemberIds))
@@ -84,8 +91,7 @@ class TodayCardServiceTest {
             todayCardMemberIds))
             .thenReturn(List.of());
 
-        Member inactiveMember = mock(Member.class);
-        when(inactiveMember.isActive()).thenReturn(false);
+        Member inactiveMember = MemberFixture.builder().activityStatus(ActivityStatus.DORMANT).build();
 
         when(memberCommandRepository.findAllById(todayCardMemberIds)).thenReturn(List.of(inactiveMember));
 
@@ -107,9 +113,7 @@ class TodayCardServiceTest {
             todayCardMemberIds))
             .thenReturn(List.of());
 
-        Member activeMember = mock(Member.class);
-        when(activeMember.isActive()).thenReturn(true);
-        when(activeMember.getId()).thenReturn(2L);
+        Member activeMember = MemberFixture.builder().id(2L).build();
 
         when(memberCommandRepository.findAllById(todayCardMemberIds)).thenReturn(List.of(activeMember));
 

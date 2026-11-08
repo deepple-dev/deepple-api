@@ -3,6 +3,7 @@ package deepple.deepple.match.command.domain.match;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.match.command.domain.match.vo.Message;
+import deepple.deepple.match.fixture.MatchFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -97,18 +98,11 @@ public class MatchTest {
         @DisplayName("현재 값이 Waiting 상태가 아닌 경우, 예외 반환")
         void throwsExceptionWhenStatusIsNotWaiting() {
             // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
             Message responseMessage = Message.from("매칭을 수락합니다.");
-            Match match;
-            MatchType type = MatchType.MATCH;
             MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-                match.expire();
-            }
+            Match match = MatchFixture.builder()
+                .status(MatchStatus.EXPIRED)
+                .build();
 
             // When & Then
             Assertions.assertThatThrownBy(() -> match.approve(responseMessage, "testUser", contactType))
@@ -120,17 +114,11 @@ public class MatchTest {
         @DisplayName("현재 값이 Waiting 상태인 경우, 예외 반환")
         void changeStatus() {
             // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
             Message responseMessage = Message.from("매칭을 수락합니다.");
-            MatchType type = MatchType.MATCH;
             MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+            Match match = MatchFixture.builder().build();
 
-            Match match;
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-
                 // When
                 match.approve(responseMessage, "testUser", contactType);
             }
@@ -144,16 +132,7 @@ public class MatchTest {
         @DisplayName("현재 값이 Reject 상태가 아닌 경우, Check 상태로 변경 시, 예외 반환")
         void throwsExceptionWhenStatusIsNotReject() {
             // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
-            MatchType type = MatchType.MATCH;
-            Match match;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-            }
+            Match match = MatchFixture.builder().build();
 
             // When & Then
             Assertions.assertThatThrownBy(match::checkRejected)
@@ -165,17 +144,9 @@ public class MatchTest {
         @DisplayName("현재 값이 Reject 상태인 경우, Check 상태로 변경.")
         void changeStatusToCheck() {
             // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            Match match;
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-                match.reject("testUser");
-            }
+            Match match = MatchFixture.builder()
+                .status(MatchStatus.REJECTED)
+                .build();
 
             // When
             match.checkRejected();
@@ -194,14 +165,10 @@ public class MatchTest {
             // Given
             Long requesterId = 1L;
             Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            Match match;
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-            }
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             // When
             match.read(responderId);
@@ -216,14 +183,10 @@ public class MatchTest {
             // Given
             Long requesterId = 1L;
             Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            Match match;
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-            }
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             // When
             match.read(requesterId);
@@ -238,14 +201,10 @@ public class MatchTest {
             // Given
             Long requesterId = 1L;
             Long responderId = 2L;
-            Message requestMessage = Message.from("매칭을 요청합니다.");
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            Match match;
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                match = Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
-            }
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             // When
             match.read(responderId);

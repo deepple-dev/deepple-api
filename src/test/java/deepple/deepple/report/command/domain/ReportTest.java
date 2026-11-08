@@ -4,13 +4,12 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.report.command.domain.event.ReportCreatedEvent;
 import deepple.deepple.report.command.domain.event.ReportWarnedEvent;
+import deepple.deepple.report.fixture.ReportFixture;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-
-import java.lang.reflect.Field;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -102,7 +101,7 @@ class ReportTest {
         void changesReportResultToRejected() {
             // given
             Long adminId = 1L;
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
+            Report report = ReportFixture.builder().build();
 
             // when
             report.reject(adminId);
@@ -116,8 +115,7 @@ class ReportTest {
         void throwsExceptionWhenReportResultIsNotPending() {
             // given
             Long adminId = 1L;
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
-            report.reject(adminId); // 상태를 REJECTED로 변경
+            Report report = ReportFixture.builder().result(ReportResult.REJECTED).adminId(adminId).build();
 
             // when, then
             assertThatThrownBy(() -> report.reject(adminId))
@@ -130,7 +128,7 @@ class ReportTest {
         void throwsExceptionWhenAdminIdIsNull() {
             // given
             Long adminId = null;
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
+            Report report = ReportFixture.builder().build();
 
             // when, then
             assertThatThrownBy(() -> report.reject(adminId)).isInstanceOf(NullPointerException.class);
@@ -144,7 +142,7 @@ class ReportTest {
         @DisplayName("version이 null인 경우 hasVersionConflict가 NullPointerException을 던진다.")
         void throwsExceptionWhenVersionIsNull() {
             // given
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
+            Report report = ReportFixture.builder().build();
 
             // when, then
             assertThatThrownBy(() -> report.hasVersionConflict(1L))
@@ -153,12 +151,9 @@ class ReportTest {
 
         @Test
         @DisplayName("같은 version을 입력하면 false를 반환한다.")
-        void shouldReturnFalseWhenVersionMatches() throws Exception {
+        void shouldReturnFalseWhenVersionMatches() {
             // given
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
-            Field versionField = Report.class.getDeclaredField("version");
-            versionField.setAccessible(true);
-            versionField.set(report, 5L);
+            Report report = ReportFixture.builder().version(5L).build();
 
             // when
             boolean result = report.hasVersionConflict(5L);
@@ -169,12 +164,9 @@ class ReportTest {
 
         @Test
         @DisplayName("다른 version을 입력하면 true를 반환한다.")
-        void shouldReturnTrueWhenVersionDiffers() throws Exception {
+        void shouldReturnTrueWhenVersionDiffers() {
             // given
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
-            Field versionField = Report.class.getDeclaredField("version");
-            versionField.setAccessible(true);
-            versionField.set(report, 5L);
+            Report report = ReportFixture.builder().version(5L).build();
 
             // when
             boolean result = report.hasVersionConflict(3L);
@@ -192,7 +184,7 @@ class ReportTest {
         void shouldChangeResultToWarnedAndRaiseEvent() {
             // given
             Long adminId = 1L;
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
+            Report report = ReportFixture.builder().build();
 
             // when
             report.warn(adminId);
@@ -211,8 +203,7 @@ class ReportTest {
         void throwsExceptionWhenReportResultIsNotPending() {
             // given
             Long adminId = 1L;
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
-            report.warn(adminId);
+            Report report = ReportFixture.builder().result(ReportResult.WARNED).adminId(adminId).build();
 
             // when, then
             assertThatThrownBy(() -> report.warn(adminId))
@@ -225,7 +216,7 @@ class ReportTest {
         void throwsExceptionWhenAdminIdIsNull() {
             // given
             Long adminId = null;
-            Report report = Report.of(1L, 2L, ReportReasonType.ETC, "content");
+            Report report = ReportFixture.builder().build();
 
             // when, then
             assertThatThrownBy(() -> report.warn(adminId)).isInstanceOf(NullPointerException.class);

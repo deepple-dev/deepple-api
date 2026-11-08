@@ -3,6 +3,7 @@ package deepple.deepple.interview.query.question;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.interview.query.question.view.AdminInterviewQuestionView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,9 +44,21 @@ class AdminInterviewQuestionQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("인터뷰 질문 페이지네이션 조회")
         void findAdminInterviewQuestionPage() {
             // given
-            InterviewQuestion question1 = InterviewQuestion.of("질문1", InterviewCategory.PERSONAL, true);
-            InterviewQuestion question2 = InterviewQuestion.of("질문2", InterviewCategory.SOCIAL, false);
-            InterviewQuestion question3 = InterviewQuestion.of("질문3", InterviewCategory.ROMANTIC, true);
+            InterviewQuestion question1 = InterviewQuestionFixture.builder()
+                .content("질문1")
+                .category(InterviewCategory.PERSONAL)
+                .publicQuestion(true)
+                .build();
+            InterviewQuestion question2 = InterviewQuestionFixture.builder()
+                .content("질문2")
+                .category(InterviewCategory.SOCIAL)
+                .publicQuestion(false)
+                .build();
+            InterviewQuestion question3 = InterviewQuestionFixture.builder()
+                .content("질문3")
+                .category(InterviewCategory.ROMANTIC)
+                .publicQuestion(true)
+                .build();
             entityManager.persist(question1);
             entityManager.persist(question2);
             entityManager.persist(question3);
@@ -82,7 +95,11 @@ class AdminInterviewQuestionQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("인터뷰 질문 단건 조회")
         void findAdminInterviewQuestionById() {
             // given
-            InterviewQuestion question = InterviewQuestion.of("질문1", InterviewCategory.PERSONAL, true);
+            InterviewQuestion question = InterviewQuestionFixture.builder()
+                .content("질문1")
+                .category(InterviewCategory.PERSONAL)
+                .publicQuestion(true)
+                .build();
             entityManager.persist(question);
             entityManager.flush();
 
@@ -104,7 +121,11 @@ class AdminInterviewQuestionQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("존재하지 않는 인터뷰 질문 단건 조회")
         void findAdminInterviewQuestionByIdNotFound() {
             // given
-            InterviewQuestion question = InterviewQuestion.of("질문1", InterviewCategory.PERSONAL, true);
+            InterviewQuestion question = InterviewQuestionFixture.builder()
+                .content("질문1")
+                .category(InterviewCategory.PERSONAL)
+                .publicQuestion(true)
+                .build();
             entityManager.persist(question);
             entityManager.flush();
 

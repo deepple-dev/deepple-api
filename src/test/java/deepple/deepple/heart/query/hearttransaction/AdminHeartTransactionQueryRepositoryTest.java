@@ -2,14 +2,12 @@ package deepple.deepple.heart.query.hearttransaction;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
+import deepple.deepple.heart.fixture.HeartTransactionFixture;
 import deepple.deepple.heart.query.hearttransaction.condition.AdminHeartTransactionSearchCondition;
 import deepple.deepple.heart.query.hearttransaction.view.AdminHeartTransactionView;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -272,22 +270,22 @@ class AdminHeartTransactionQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember(String phoneNumber, String nickname) {
-        Member member = Member.fromPhoneNumber(phoneNumber);
-        entityManager.persist(member);
-        MemberProfile memberProfile = MemberProfile.builder()
-            .nickname(Nickname.from(nickname))
+        Member member = MemberFixture.builder()
+            .phoneNumber(phoneNumber)
+            .nickname(nickname)
             .build();
-        member.updateProfile(memberProfile);
+        entityManager.persist(member);
         return member;
     }
 
     private HeartTransaction createHeartTransaction(Long memberId) {
-        return HeartTransaction.of(
-            memberId,
-            TransactionType.PURCHASE,
-            TransactionType.PURCHASE.getDescription(),
-            HeartAmount.from(100L),
-            HeartBalance.of(100L, 200L)
-        );
+        return HeartTransactionFixture.builder()
+            .memberId(memberId)
+            .transactionType(TransactionType.PURCHASE)
+            .content(TransactionType.PURCHASE.getDescription())
+            .amount(100L)
+            .missionHeartBalance(100L)
+            .purchaseHeartBalance(200L)
+            .build();
     }
 }

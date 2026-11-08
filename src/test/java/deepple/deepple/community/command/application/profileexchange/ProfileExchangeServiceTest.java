@@ -8,11 +8,11 @@ import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
+import deepple.deepple.community.fixture.ProfileExchangeFixture;
+import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import org.junit.jupiter.api.BeforeEach;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,14 +27,15 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith({MockitoExtension.class, MockEventsExtension.class})
 class ProfileExchangeServiceTest {
 
-    Member sender = Member.fromPhoneNumber("01012345678");
+    Member sender = MemberFixture.builder()
+        .id(1L)
+        .nickname("닉네임")
+        .build();
     @Mock
     private MemberCommandRepository memberCommandRepository;
 
@@ -49,16 +50,6 @@ class ProfileExchangeServiceTest {
 
     @InjectMocks
     private ProfileExchangeService profileExchangeService;
-
-    @BeforeEach
-    void setUp() {
-        MemberProfile memberProfile = MemberProfile.builder()
-            .nickname(Nickname.from("닉네임"))
-            .build();
-        setField(sender, "id", 1L);
-
-        sender.updateProfile(memberProfile);
-    }
 
     @Nested
     @DisplayName("프로필 교환 요청")
@@ -95,8 +86,10 @@ class ProfileExchangeServiceTest {
 
             when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
                 .thenReturn(false);
-            Member responder = mock(Member.class);
-            when(responder.isActive()).thenReturn(false);
+            Member responder = MemberFixture.builder()
+                .id(responderId)
+                .activityStatus(ActivityStatus.DORMANT)
+                .build();
             when(memberCommandRepository.findById(responderId))
                 .thenReturn(Optional.of(responder));
 
@@ -121,8 +114,9 @@ class ProfileExchangeServiceTest {
 
             when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
                 .thenReturn(false);
-            Member responder = mock(Member.class);
-            when(responder.isActive()).thenReturn(true);
+            Member responder = MemberFixture.builder()
+                .id(responderId)
+                .build();
             when(memberCommandRepository.findById(responderId))
                 .thenReturn(Optional.of(responder));
             when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
@@ -149,8 +143,9 @@ class ProfileExchangeServiceTest {
 
             when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
                 .thenReturn(false);
-            Member responder = mock(Member.class);
-            when(responder.isActive()).thenReturn(true);
+            Member responder = MemberFixture.builder()
+                .id(responderId)
+                .build();
             when(memberCommandRepository.findById(responderId))
                 .thenReturn(Optional.of(responder));
             when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
@@ -179,8 +174,9 @@ class ProfileExchangeServiceTest {
 
             when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
                 .thenReturn(false);
-            Member responder = mock(Member.class);
-            when(responder.isActive()).thenReturn(true);
+            Member responder = MemberFixture.builder()
+                .id(responderId)
+                .build();
             when(memberCommandRepository.findById(responderId))
                 .thenReturn(Optional.of(responder));
             when(memberCommandRepository.findById(requesterId))
@@ -239,8 +235,11 @@ class ProfileExchangeServiceTest {
             long responderId = 3L;
             long anotherResponderId = 4L;
 
-            ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId,
-                sender.getProfile().getNickname().getValue());
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .id(profileExchangeId)
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             when(profileExchangeRepository.findById(profileExchangeId))
                 .thenReturn(Optional.of(profileExchange));
@@ -263,8 +262,11 @@ class ProfileExchangeServiceTest {
             long profileExchangeId = 1L;
             long requesterId = 2L;
             long responderId = 3L;
-            ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId,
-                sender.getProfile().getNickname().getValue());
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .id(profileExchangeId)
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             when(profileExchangeRepository.findById(profileExchangeId))
                 .thenReturn(Optional.of(profileExchange));
@@ -285,8 +287,11 @@ class ProfileExchangeServiceTest {
             long profileExchangeId = 1L;
             long requesterId = 2L;
             long responderId = 3L;
-            ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId,
-                sender.getProfile().getNickname().getValue());
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .id(profileExchangeId)
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             when(profileExchangeRepository.findById(profileExchangeId))
                 .thenReturn(Optional.of(profileExchange));

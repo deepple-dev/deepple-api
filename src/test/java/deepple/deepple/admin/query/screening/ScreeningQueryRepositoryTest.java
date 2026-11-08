@@ -1,12 +1,11 @@
 package deepple.deepple.admin.query.screening;
 
 import deepple.deepple.admin.command.domain.screening.Screening;
+import deepple.deepple.admin.fixture.ScreeningFixture;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +36,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member2);
         em.persist(member3);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -72,8 +71,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member1);
         em.persist(member2);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -107,8 +106,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member1);
         em.persist(member2);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -140,8 +139,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member1);
         em.persist(member2);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -174,8 +173,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member1);
         em.persist(member2);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -208,8 +207,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member1);
         em.persist(member2);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -243,8 +242,8 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(member1);
         em.persist(member2);
 
-        Screening screening1 = Screening.from(member1.getId());
-        Screening screening2 = Screening.from(member2.getId());
+        Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
+        Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
         em.persist(screening1);
         em.persist(screening2);
 
@@ -272,14 +271,10 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember(String nickname, String phoneNumber) {
-        return Member.builder()
-            .phoneNumber(PhoneNumber.from(phoneNumber))
-            .profile(
-                MemberProfile.builder()
-                    .nickname(Nickname.from(nickname))
-                    .gender(Gender.MALE)
-                    .build()
-            )
+        return MemberFixture.builder()
+            .phoneNumber(phoneNumber)
+            .nickname(nickname)
+            .gender(Gender.MALE)
             .build();
     }
 }

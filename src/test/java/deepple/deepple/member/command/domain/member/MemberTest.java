@@ -11,8 +11,8 @@ import deepple.deepple.member.command.domain.member.event.MemberProfileInitializ
 import deepple.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
 import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.MemberProfileFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,8 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
-
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -57,8 +55,7 @@ class MemberTest {
         @DisplayName("관리자는 회원 상태와 관계없이 휴면으로 바꿀 수 있다.")
         void changeActivityStatusToDormant() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            setField(member, "id", 1L);
+            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.INITIAL).build();
 
             // When
             member.changeActivityStatus(ActivityStatus.DORMANT);
@@ -71,9 +68,7 @@ class MemberTest {
         @DisplayName("심사가 승인되면 활동 중이 된다.")
         void approveScreening() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            setField(member, "id", 1L);
-            setField(member, "activityStatus", ActivityStatus.WAITING_SCREENING);
+            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.WAITING_SCREENING).build();
 
             try (MockedStatic<Events> events = mockStatic(Events.class)) {
                 // When
@@ -89,9 +84,7 @@ class MemberTest {
         @DisplayName("활동 중인 회원은 휴면으로 전환할 수 있다.")
         void deactivateWhenActive() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            setField(member, "id", 1L);
-            setField(member, "activityStatus", ActivityStatus.ACTIVE);
+            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.ACTIVE).build();
 
             try (MockedStatic<Events> events = mockStatic(Events.class)) {
                 // When
@@ -108,8 +101,7 @@ class MemberTest {
         @DisplayName("활동 중이 아닌 회원은 휴면으로 전환할 수 없다.")
         void rejectDeactivateWhenNotActive(ActivityStatus status) {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            setField(member, "activityStatus", status);
+            Member member = MemberFixture.builder().activityStatus(status).build();
 
             // When & Then
             Assertions.assertThatThrownBy(member::deactivate)
@@ -122,9 +114,7 @@ class MemberTest {
         @DisplayName("휴면 회원은 휴면을 해제해 활동 중이 된다.")
         void reactivateWhenDormant() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            setField(member, "id", 1L);
-            setField(member, "activityStatus", ActivityStatus.DORMANT);
+            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.DORMANT).build();
 
             try (MockedStatic<Events> events = mockStatic(Events.class)) {
                 // When
@@ -141,8 +131,7 @@ class MemberTest {
         @DisplayName("휴면이 아닌 회원은 휴면을 해제할 수 없다.")
         void rejectReactivateWhenNotDormant(ActivityStatus status) {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            setField(member, "activityStatus", status);
+            Member member = MemberFixture.builder().activityStatus(status).build();
 
             // When & Then
             Assertions.assertThatThrownBy(member::reactivate)
@@ -155,7 +144,7 @@ class MemberTest {
         @DisplayName("멤버의 카카오 아이디를 변경합니다.")
         void changeMemberKakaoId() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
+            Member member = MemberFixture.builder().build();
             String kakaoId = "kongtae";
 
             // When
@@ -169,7 +158,7 @@ class MemberTest {
         @DisplayName("멤버의 휴대폰 번호를 변경합니다.")
         void changeMemberPhoneNumber() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
+            Member member = MemberFixture.builder().build();
             String phoneNumber = "01087564321";
 
             // When
@@ -187,9 +176,8 @@ class MemberTest {
         @DisplayName("멤버가 하트를 구매하면 구매 하트 잔액이 증가합니다.")
         void shouldIncreasePurchaseHeartBalanceWhenMemberPurchasesHeart() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
             Long memberId = 1L;
-            setField(member, "id", memberId);
+            Member member = MemberFixture.builder().id(memberId).build();
             HeartAmount purchaseHeartAmount = HeartAmount.from(100L);
             HeartBalance expectedHeartBalance = HeartBalance.init().gainPurchaseHeart(purchaseHeartAmount);
 
@@ -208,8 +196,7 @@ class MemberTest {
         @DisplayName("멤버가 하트를 사용하면 하트 잔액이 차감됩니다.")
         void shouldDeductHeartBalanceWhenMemberUsesHeart() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            member.gainPurchaseHeart(HeartAmount.from(100L));
+            Member member = MemberFixture.builder().purchaseHeartBalance(100L).build();
             HeartAmount usingheartAmount = HeartAmount.from(-10L);
             HeartAmount expectedHeartAmount = HeartAmount.from(90L);
             HeartBalance expectedHeartBalance = HeartBalance.init().gainPurchaseHeart(expectedHeartAmount);
@@ -229,7 +216,7 @@ class MemberTest {
         @DisplayName("멤버가 미션을 수행하면 미션 하트 잔액이 증가합니다.")
         void shouldIncreaseMissionHeartBalanceWhenMemberCompletesMission() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
+            Member member = MemberFixture.builder().build();
             HeartAmount missionHeartAmount = HeartAmount.from(100L);
             HeartBalance expectedHeartBalance = HeartBalance.init().gainMissionHeart(missionHeartAmount);
 
@@ -249,9 +236,8 @@ class MemberTest {
         void shouldIncreaseMissionHeartBalanceAndRaiseEventWhenAdminGrants() {
             try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
                 // Given
-                Member member = Member.fromPhoneNumber("01012345678");
                 Long memberId = 1L;
-                setField(member, "id", memberId);
+                Member member = MemberFixture.builder().id(memberId).build();
                 HeartAmount grantAmount = HeartAmount.from(50L);
                 Long adminId = 99L;
                 String reason = "CS 보상";
@@ -284,9 +270,8 @@ class MemberTest {
         void shouldUpdateMemberSettings() {
             try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
                 // Given
-                Member member = Member.fromPhoneNumber("01012345678");
                 Long memberId = 1L;
-                setField(member, "id", memberId);
+                Member member = MemberFixture.builder().id(memberId).build();
                 Grade grade = Grade.GOLD;
                 final boolean isVip = true;
                 final boolean isPushNotificationEnabled = false;
@@ -314,7 +299,7 @@ class MemberTest {
         @DisplayName("멤버의 프로필을 공개합니다.")
         void shouldPublishMemberProfile() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
+            Member member = MemberFixture.builder().build();
 
             // When
             member.publishProfile();
@@ -332,24 +317,14 @@ class MemberTest {
         @DisplayName("최초로 멤버 프로필을 초기화 시 멤버 프로필을 업데이트 하고 이벤트를 발행합니다.")
         void shouldUpdateMemberProfileAndRaiseEventWhenInitializingProfileForTheFirstTime() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
             Long memberId = 1L;
-            setField(member, "id", memberId);
-
-            MemberProfile profile = MemberProfile.builder()
-                .nickname(Nickname.from("nickname"))
-                .yearOfBirth(1998)
-                .gender(Gender.MALE)
-                .height(175)
-                .job(Job.JOB_SEARCHING)
-                .hobbies(Set.of(Hobby.BOARD_GAMES, Hobby.ANIMATION))
-                .mbti(Mbti.ISTJ)
-                .region(Region.of(District.ANSAN_SI))
-                .smokingStatus(SmokingStatus.DAILY)
-                .drinkingStatus(DrinkingStatus.NONE)
-                .highestEducation(HighestEducation.ASSOCIATE)
-                .religion(Religion.BUDDHIST)
+            Member member = MemberFixture.builder()
+                .id(memberId)
+                .activityStatus(ActivityStatus.INITIAL)
+                .noProfile()
                 .build();
+
+            MemberProfile profile = MemberProfileFixture.builder().build();
 
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class);
                 MockedStatic<MemberProfileInitializedEvent> memberProfileInitializedEventMockedStatic = mockStatic(
@@ -394,7 +369,7 @@ class MemberTest {
         @DisplayName("멤버를 삭제 상태로 변경하고, deletedAt 필드를 설정합니다.")
         void shouldMarkMemberAsDeleted() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
+            Member member = MemberFixture.builder().build();
 
             // When
             member.delete();

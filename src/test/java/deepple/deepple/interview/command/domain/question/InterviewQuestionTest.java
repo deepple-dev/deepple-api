@@ -2,6 +2,7 @@ package deepple.deepple.interview.command.domain.question;
 
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.interview.command.domain.InterviewErrorCode;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ class InterviewQuestionTest {
         @DisplayName("update 메서드에서 필드 값이 null이면 예외를 던집니다.")
         void throwsExceptionWhenFieldValueIsNull(String fieldName) {
             // given
-            InterviewQuestion interviewQuestion = InterviewQuestion.of("body", InterviewCategory.PERSONAL, true);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder().build();
             String content = fieldName.equals("body is null") ? null : "updated body";
             InterviewCategory interviewCategory =
                 fieldName.equals("interviewCategory is null") ? null : InterviewCategory.SOCIAL;
@@ -85,7 +86,7 @@ class InterviewQuestionTest {
         @DisplayName("update 메서드에서 content가 blank이면 예외를 던집니다.")
         void throwsExceptionWhenContentIsBlank() {
             // given
-            InterviewQuestion interviewQuestion = InterviewQuestion.of("body", InterviewCategory.PERSONAL, true);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder().build();
             String content = " ";
             InterviewCategory interviewCategory = InterviewCategory.SOCIAL;
             boolean isPublic = false;
@@ -100,7 +101,7 @@ class InterviewQuestionTest {
         @DisplayName("update 메서드에서 필드 값이 정상이면 InterviewQuestion 객체를 업데이트 합니다.")
         void updateInterviewQuestionObjectWhenFieldValuesAreValid() {
             // given
-            InterviewQuestion interviewQuestion = InterviewQuestion.of("body", InterviewCategory.PERSONAL, true);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder().build();
             String content = "updated body";
             InterviewCategory interviewCategory = InterviewCategory.SOCIAL;
             boolean isPublic = false;

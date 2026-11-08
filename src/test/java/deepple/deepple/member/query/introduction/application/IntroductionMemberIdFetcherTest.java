@@ -8,6 +8,8 @@ import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Grade;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.MemberIdealFixture;
 import deepple.deepple.member.query.introduction.intra.IntroductionQueryRepository;
 import deepple.deepple.member.query.introduction.intra.IntroductionRedisRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -102,9 +104,9 @@ class IntroductionMemberIdFetcherTest {
 
         Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
-        MemberIdeal memberIdeal = mock(MemberIdeal.class);
+        MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
         when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
-        Member member = mock(Member.class);
+        Member member = MemberFixture.builder().id(memberId).build();
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
         IntroductionSearchCondition dummyCondition = IntroductionSearchCondition.ofGrade(excludedMemberIds, memberIdeal,
@@ -138,7 +140,7 @@ class IntroductionMemberIdFetcherTest {
 
         Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
-        MemberIdeal memberIdeal = mock(MemberIdeal.class);
+        MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
         when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 
@@ -169,7 +171,7 @@ class IntroductionMemberIdFetcherTest {
 
         when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
-        MemberIdeal memberIdeal = mock(MemberIdeal.class);
+        MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
         IntroductionSearchCondition dummyCondition = IntroductionSearchCondition.ofGrade(excludedMemberIds, memberIdeal,
             Gender.MALE, Grade.DIAMOND);
         IntroductionMemberIdFetcher.IntroductionConditionSupplier<Grade> supplier =

@@ -2,8 +2,8 @@ package deepple.deepple.notification.command.application;
 
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.notification.command.domain.NotificationErrorCode;
-import deepple.deepple.notification.command.domain.NotificationPreference;
 import deepple.deepple.notification.command.domain.NotificationPreferenceCommandRepository;
+import deepple.deepple.notification.fixture.NotificationPreferenceFixture;
 import deepple.deepple.notification.presentation.NotificationPreferenceSetRequest;
 import deepple.deepple.notification.presentation.NotificationPreferenceToggleRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -70,7 +70,7 @@ class NotificationPreferenceServiceTest {
     void changeGloballyIfPresentChangesPreference() {
         // given
         long memberId = 3L;
-        var pref = NotificationPreference.of(memberId);
+        var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
 
         // when
@@ -96,8 +96,10 @@ class NotificationPreferenceServiceTest {
     void enableGloballySetsTrue() {
         // given
         long memberId = 3L;
-        var pref = NotificationPreference.of(memberId);
-        pref.disableGlobally();
+        var pref = NotificationPreferenceFixture.builder()
+            .memberId(memberId)
+            .enabledGlobally(false)
+            .build();
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
 
         // when
@@ -125,7 +127,7 @@ class NotificationPreferenceServiceTest {
     void disableGloballySetsFalse() {
         // given
         long memberId = 4L;
-        var pref = NotificationPreference.of(memberId);
+        var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
 
         // when
@@ -140,7 +142,7 @@ class NotificationPreferenceServiceTest {
     void enableForTypeSetsTrue() {
         // given
         long memberId = 5L;
-        var pref = NotificationPreference.of(memberId);
+        var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
         pref.disableForNotificationType(LIKE);
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
         var req = new NotificationPreferenceToggleRequest("LIKE");
@@ -169,7 +171,7 @@ class NotificationPreferenceServiceTest {
     void disableForTypeSetsFalse() {
         // given
         long memberId = 6L;
-        var pref = NotificationPreference.of(memberId);
+        var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
         var req = new NotificationPreferenceToggleRequest("MATCH_REQUEST");
 
@@ -196,7 +198,7 @@ class NotificationPreferenceServiceTest {
     @DisplayName("setNotificationPreferences(): 전달된 문자열 키를 enum으로 매핑하여 업데이트")
     void setNotificationPreferencesUpdatesSpecifiedTypes() {
         long memberId = 10L;
-        var pref = NotificationPreference.of(memberId);
+        var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
 
         var updates = Map.of(MATCH_REQUEST.name(), false, LIKE.name(), false);

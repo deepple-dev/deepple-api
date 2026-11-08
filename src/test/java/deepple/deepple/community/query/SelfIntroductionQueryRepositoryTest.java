@@ -4,18 +4,20 @@ import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
+import deepple.deepple.community.fixture.ProfileExchangeFixture;
+import deepple.deepple.community.fixture.SelfIntroductionFixture;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchCondition;
 import deepple.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import deepple.deepple.community.query.selfintroduction.view.SelfIntroductionView;
 import deepple.deepple.datingexam.domain.AnswerPersonalityType;
 import deepple.deepple.datingexam.domain.DatingExamSubmitResult;
+import deepple.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
+import deepple.deepple.like.fixture.LikeFixture;
 import deepple.deepple.member.command.domain.member.*;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.member.query.member.AgeConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,44 +52,42 @@ public class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
 
         @BeforeEach
         void setUp() {
-            maleMember = Member.fromPhoneNumber("01012345678");
-            femaleMember = Member.fromPhoneNumber("01012345679");
+            maleMember = MemberFixture.builder()
+                .phoneNumber("01012345678")
+                .gender(Gender.MALE)
+                .district(District.GANGBUK_GU)
+                .yearOfBirth(AgeConverter.toYearOfBirth(25))
+                .nickname("male")
+                .build();
+            femaleMember = MemberFixture.builder()
+                .phoneNumber("01012345679")
+                .gender(Gender.FEMALE)
+                .district(District.DONG_GU_DAEJEON)
+                .yearOfBirth(AgeConverter.toYearOfBirth(35))
+                .nickname("female")
+                .build();
             entityManager.persist(maleMember);
             entityManager.persist(femaleMember);
-
-            MemberProfile maleMemberProfile = MemberProfile.builder()
-                .gender(Gender.MALE)
-                .region(Region.of(District.GANGBUK_GU))
-                .yearOfBirth(AgeConverter.toYearOfBirth(25))
-                .nickname(Nickname.from("male"))
-                .build();
-
-            MemberProfile femaleMemberProfile = MemberProfile.builder()
-                .gender(Gender.FEMALE)
-                .region(Region.of(District.DONG_GU_DAEJEON))
-                .yearOfBirth(AgeConverter.toYearOfBirth(35))
-                .nickname(Nickname.from("female"))
-                .build();
-
-            maleMember.updateProfile(maleMemberProfile);
-            femaleMember.updateProfile(femaleMemberProfile);
             entityManager.flush();
 
             // 셀프 소개 글 작성.
             // 남자 6개, 여자 6개
             for (int i = 0; i < 6; i++) {
-                SelfIntroduction maleSelfIntroduction = SelfIntroduction.write(maleMember.getId(), "제목" + i,
-                    "내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i, null);
-                SelfIntroduction femaleSelfIntroduction = SelfIntroduction.write(femaleMember.getId(), "제목" + i,
-                    "내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i, null);
+                SelfIntroduction maleSelfIntroduction = SelfIntroductionFixture.builder()
+                    .memberId(maleMember.getId())
+                    .title("제목" + i)
+                    .content("내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i)
+                    .opened(i % 2 == 0)
+                    .build();
+                SelfIntroduction femaleSelfIntroduction = SelfIntroductionFixture.builder()
+                    .memberId(femaleMember.getId())
+                    .title("제목" + i)
+                    .content("내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i)
+                    .opened(i % 2 == 0)
+                    .build();
 
                 selfIntroductions.add(maleSelfIntroduction);
                 selfIntroductions.add(femaleSelfIntroduction);
-
-                if (i % 2 == 0) {
-                    maleSelfIntroduction.open();
-                    femaleSelfIntroduction.open();
-                }
 
                 entityManager.persist(maleSelfIntroduction);
                 entityManager.persist(femaleSelfIntroduction);
@@ -156,8 +156,10 @@ public class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("연애가치관 테스트를 완료한 멤버의 글은 유형 정보를 포함하고, 완료하지 않은 멤버의 글은 유형 정보가 없다.")
         void getSelfIntroductionsWithPersonalityType() {
             // Given
-            DatingExamSubmitResult maleResult = DatingExamSubmitResult.create(maleMember.getId());
-            maleResult.addCounts(Map.of(AnswerPersonalityType.STIMULATING_ADVENTURER, 5));
+            DatingExamSubmitResult maleResult = DatingExamSubmitResultFixture.builder()
+                .memberId(maleMember.getId())
+                .counts(Map.of(AnswerPersonalityType.STIMULATING_ADVENTURER, 5))
+                .build();
             entityManager.persist(maleResult);
             entityManager.flush();
 
@@ -319,37 +321,44 @@ public class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
             hobbies = Set.of(hobby, hobby2);
 
             // 멤버 데이터 생성.
-            member = Member.fromPhoneNumber("01012345678");
-            targetMember = Member.fromPhoneNumber("01056781234");
-            entityManager.persist(member);
-            entityManager.persist(targetMember);
-
-            MemberProfile memberProfile = MemberProfile.builder()
+            member = MemberFixture.builder()
+                .phoneNumber("01012345678")
+                .build();
+            targetMember = MemberFixture.builder()
+                .phoneNumber("01056781234")
                 .mbti(Mbti.ENFJ)
-                .region(Region.of(District.GANGBUK_GU))
-                .nickname(Nickname.from("닉네임"))
+                .district(District.GANGBUK_GU)
+                .nickname("닉네임")
                 .yearOfBirth(AgeConverter.toYearOfBirth(25))
                 .hobbies(Set.of(hobby, hobby2))
                 .build();
-
-            targetMember.updateProfile(memberProfile);
+            entityManager.persist(member);
+            entityManager.persist(targetMember);
 
             entityManager.flush();
 
             // 좋아요 데이터 생성
-            like = Like.of(member.getId(), targetMember.getId(), LikeLevel.HIGHLY_INTERESTED);
+            like = LikeFixture.builder()
+                .senderId(member.getId())
+                .receiverId(targetMember.getId())
+                .level(LikeLevel.HIGHLY_INTERESTED)
+                .build();
             entityManager.persist(like);
 
             // 셀프 소개 데이터 생성.
-            selfIntroduction = SelfIntroduction.write(
-                targetMember.getId(), "제목", "내용은 50자를 넘어야합니다. 50자를 넘어야 합니다. 50자를 넘어야..", null
-            );
+            selfIntroduction = SelfIntroductionFixture.builder()
+                .memberId(targetMember.getId())
+                .title("제목")
+                .content("내용은 50자를 넘어야합니다. 50자를 넘어야 합니다. 50자를 넘어야..")
+                .build();
 
 
             // 프로필 교환 데이터 생성.
-            ProfileExchange profileExchange = ProfileExchange.request(member.getId(), targetMember.getId(),
-                "MemberName");
-            profileExchange.approve(targetMember.getProfile().getNickname().getValue());
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .requesterId(member.getId())
+                .responderId(targetMember.getId())
+                .status(ProfileExchangeStatus.APPROVE)
+                .build();
             entityManager.persist(profileExchange);
             entityManager.persist(selfIntroduction);
 
@@ -392,8 +401,10 @@ public class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("작성자가 연애가치관 테스트를 완료한 경우, 상세 조회에 유형 정보가 포함됩니다.")
         void findSelfIntroductionWithPersonalityType() {
             // Given
-            DatingExamSubmitResult result = DatingExamSubmitResult.create(targetMember.getId());
-            result.addCounts(Map.of(AnswerPersonalityType.REALISTIC_SHELTER, 5));
+            DatingExamSubmitResult result = DatingExamSubmitResultFixture.builder()
+                .memberId(targetMember.getId())
+                .counts(Map.of(AnswerPersonalityType.REALISTIC_SHELTER, 5))
+                .build();
             entityManager.persist(result);
             entityManager.flush();
 

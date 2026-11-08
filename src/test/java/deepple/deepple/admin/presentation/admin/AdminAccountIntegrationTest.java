@@ -3,11 +3,10 @@ package deepple.deepple.admin.presentation.admin;
 import deepple.deepple.admin.command.domain.admin.Admin;
 import deepple.deepple.admin.command.domain.admin.AdminCommandRepository;
 import deepple.deepple.admin.command.domain.admin.AdminRole;
+import deepple.deepple.admin.command.domain.admin.ApprovalStatus;
 import deepple.deepple.admin.command.domain.admin.Email;
-import deepple.deepple.admin.command.domain.admin.Name;
-import deepple.deepple.admin.command.domain.admin.Password;
 import deepple.deepple.admin.command.domain.admin.PasswordHasher;
-import deepple.deepple.admin.command.domain.admin.PhoneNumber;
+import deepple.deepple.admin.fixture.AdminFixture;
 import deepple.deepple.common.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,13 +39,14 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        Admin superAdmin = Admin.builder()
-            .email(Email.from(SUPER_ADMIN_EMAIL))
-            .password(Password.fromRaw(SUPER_ADMIN_PASSWORD, passwordHasher))
-            .name(Name.from("슈퍼관리자"))
-            .phoneNumber(PhoneNumber.from("01000000000"))
+        Admin superAdmin = AdminFixture.builder()
+            .email(SUPER_ADMIN_EMAIL)
+            .hashedPassword(passwordHasher.hash(SUPER_ADMIN_PASSWORD))
+            .name("슈퍼관리자")
+            .phoneNumber("01000000000")
+            .role(AdminRole.SUPER_ADMIN)
+            .approvalStatus(ApprovalStatus.APPROVED)
             .build();
-        superAdmin.approve(AdminRole.SUPER_ADMIN);
         adminCommandRepository.save(superAdmin);
     }
 

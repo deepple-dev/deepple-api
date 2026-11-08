@@ -1,18 +1,19 @@
 package deepple.deepple.datingexam.adapter.database;
 
 import deepple.deepple.block.domain.Block;
+import deepple.deepple.block.fixture.BlockFixture;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.support.RepositoryTestSupport;
-import deepple.deepple.datingexam.domain.DatingExamAnswerEncoder;
 import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.DatingExamSubject;
 import deepple.deepple.datingexam.domain.DatingExamSubmit;
 import deepple.deepple.datingexam.domain.SubjectType;
-import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
+import deepple.deepple.datingexam.fixture.DatingExamSubjectFixture;
+import deepple.deepple.datingexam.fixture.DatingExamSubmitFixture;
 import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,8 +24,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
     @Autowired
@@ -36,52 +35,47 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
     @Nested
     @DisplayName("소울 메이트 아이디 목록을 조회할 때,")
     class FindSoulmateIds {
-        private final DatingExamAnswerEncoder encoder = mock(DatingExamAnswerEncoder.class);
-
         private Member createMemberAndSubmit(String phoneNumber, Gender gender, boolean isProfilePublic,
             ActivityStatus activityStatus, String answer, Long subjectId) {
-            Member member = Member.fromPhoneNumber(phoneNumber);
-            em.persist(member);
-            MemberProfile profile = MemberProfile.builder()
+            Member member = MemberFixture.builder()
+                .phoneNumber(phoneNumber)
                 .gender(gender)
+                .profilePublic(isProfilePublic)
+                .activityStatus(activityStatus)
                 .build();
-            member.updateProfile(profile);
-            if (isProfilePublic) {
-                member.publishProfile();
-            }
+            em.persist(member);
             em.flush();
-
-            if (activityStatus == ActivityStatus.DORMANT && member.isActive()) {
-                member.changeActivityStatus(ActivityStatus.DORMANT);
-            }
-
-            if (activityStatus == ActivityStatus.ACTIVE) {
-                member.changeActivityStatus(ActivityStatus.ACTIVE);
-            }
 
             createSubmit(subjectId, member.getId(), answer);
             return member;
         }
 
         private Block createBlock(Long blockerId, Long blockedId) {
-            Block block = Block.of(blockerId, blockedId);
+            Block block = BlockFixture.builder()
+                .blockerId(blockerId)
+                .blockedId(blockedId)
+                .build();
             em.persist(block);
             em.flush();
             return block;
         }
 
         private DatingExamSubject createSubject(String name, SubjectType subjectType) {
-            DatingExamSubject subject = DatingExamSubject.create(name, subjectType);
+            DatingExamSubject subject = DatingExamSubjectFixture.builder()
+                .name(name)
+                .type(subjectType)
+                .build();
             em.persist(subject);
             em.flush();
             return subject;
         }
 
         private void createSubmit(Long subjectId, Long memberId, String answer) {
-            DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
-            when(request.subjectId()).thenReturn(subjectId);
-            when(encoder.encode(request)).thenReturn(answer);
-            DatingExamSubmit datingExamSubmit = DatingExamSubmit.from(request, encoder, memberId);
+            DatingExamSubmit datingExamSubmit = DatingExamSubmitFixture.builder()
+                .memberId(memberId)
+                .subjectId(subjectId)
+                .answers(answer)
+                .build();
             em.persist(datingExamSubmit);
             em.flush();
         }
@@ -228,7 +222,9 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
         @DisplayName("연애 모의고사 필수 과목 제출 기록이 없다면 예외를 던진다.")
         void throwsExceptionWhenNoDatingExamSubmit() {
             // given
-            Member member = Member.fromPhoneNumber("01000000000");
+            Member member = MemberFixture.builder()
+                .phoneNumber("01000000000")
+                .build();
             em.persist(member);
             em.flush();
 

@@ -3,6 +3,7 @@ package deepple.deepple.community.command.domain.profileexchange;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.community.command.domain.CommunityErrorCode;
+import deepple.deepple.community.fixture.ProfileExchangeFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -55,13 +56,12 @@ class ProfileExchangeTest {
         @DisplayName("이미 완료된 요청에 응답할 경우, 예외 발생")
         void throwsExceptionWhenStatusIsNotWaiting() {
             // Given
-            String requesterName = "requester";
             String responderName = "responder";
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .status(ProfileExchangeStatus.APPROVE)
+                .build();
 
             try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
-                ProfileExchange profileExchange = ProfileExchange.request(1L, 2L, requesterName);
-                profileExchange.approve(responderName);
-
                 // When & Then
                 assertThatThrownBy(() -> profileExchange.approve(responderName))
                     .isInstanceOf(DeeppleException.class)
@@ -73,12 +73,10 @@ class ProfileExchangeTest {
         @DisplayName("수락")
         void approve() {
             // Given
-            String requesterName = "requester";
             String responderName = "responder";
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder().build();
 
             try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
-                ProfileExchange profileExchange = ProfileExchange.request(1L, 2L, requesterName);
-
                 // When
                 profileExchange.approve(responderName);
 
@@ -91,12 +89,10 @@ class ProfileExchangeTest {
         @DisplayName("거절")
         void reject() {
             // Given
-            String requesterName = "requester";
             String responderName = "responder";
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder().build();
 
             try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
-                ProfileExchange profileExchange = ProfileExchange.request(1L, 2L, requesterName);
-
                 // When
                 profileExchange.reject(responderName);
 

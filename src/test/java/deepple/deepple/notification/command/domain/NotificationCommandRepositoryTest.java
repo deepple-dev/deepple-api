@@ -1,6 +1,7 @@
 package deepple.deepple.notification.command.domain;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
+import deepple.deepple.notification.fixture.NotificationFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,12 @@ class NotificationCommandRepositoryTest extends RepositoryTestSupport {
     @DisplayName("DB의 CURRENT_TIMESTAMP로 저장한 읽음 시각이 앱의 현재 시각과 같은 시간대다.")
     void markAllAsReadWithAppTimeZone() {
         // given
-        Notification notification = Notification.create(SYSTEM, 1L, 2L, LIKE, "title", "body");
+        Notification notification = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(2L)
+            .type(LIKE)
+            .build();
         em.persist(notification);
         em.flush();
         em.clear();

@@ -7,10 +7,10 @@ import deepple.deepple.like.command.domain.LikeCommandRepository;
 import deepple.deepple.like.command.domain.LikeErrorCode;
 import deepple.deepple.like.presentation.LikeLevelRequest;
 import deepple.deepple.like.presentation.LikeSendRequest;
-import deepple.deepple.member.command.domain.member.Member;
+import deepple.deepple.member.command.domain.member.ActivityStatus;
+import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.mission.command.application.memberMission.MemberMissionService;
 import deepple.deepple.mission.command.domain.mission.ActionType;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LikeSendServiceTest {
@@ -56,19 +57,8 @@ class LikeSendServiceTest {
 
         when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
-        var mockNickname = mock(Nickname.class);
-        when(mockNickname.getValue()).thenReturn("nickname");
-
-        var mockProfile = mock(MemberProfile.class);
-        when(mockProfile.getNickname()).thenReturn(mockNickname);
-
-        var sender = mock(Member.class);
-        when(sender.getProfile()).thenReturn(mockProfile);
-        when(sender.getId()).thenReturn(senderId);
-        var receiver = mock(Member.class);
-        when(receiver.isActive()).thenReturn(true);
-        when(sender.hasSameGender(receiver)).thenReturn(false);
-        when(receiver.getId()).thenReturn(receiverId);
+        var sender = MemberFixture.builder().id(senderId).nickname("nickname").gender(Gender.MALE).build();
+        var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
 
         when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
         when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
@@ -117,9 +107,8 @@ class LikeSendServiceTest {
 
         when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
-        var sender = mock(Member.class);
-        var receiver = mock(Member.class);
-        when(receiver.isActive()).thenReturn(false);
+        var sender = MemberFixture.builder().id(senderId).build();
+        var receiver = MemberFixture.builder().id(receiverId).activityStatus(ActivityStatus.DORMANT).build();
 
         when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
         when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
@@ -141,10 +130,8 @@ class LikeSendServiceTest {
 
         when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
-        var sender = mock(Member.class);
-        var receiver = mock(Member.class);
-        when(receiver.isActive()).thenReturn(true);
-        when(sender.hasSameGender(receiver)).thenReturn(true);
+        var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
+        var receiver = MemberFixture.builder().id(receiverId).gender(Gender.MALE).build();
 
         when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
         when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
@@ -166,12 +153,8 @@ class LikeSendServiceTest {
 
         when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
-        var sender = mock(Member.class);
-        when(sender.getId()).thenReturn(senderId);
-        var receiver = mock(Member.class);
-        when(receiver.isActive()).thenReturn(true);
-        when(sender.hasSameGender(receiver)).thenReturn(false);
-        when(receiver.getId()).thenReturn(receiverId);
+        var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
+        var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
 
         when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
         when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
@@ -195,12 +178,8 @@ class LikeSendServiceTest {
 
         when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
-        var sender = mock(Member.class);
-        when(sender.getId()).thenReturn(senderId);
-        var receiver = mock(Member.class);
-        when(receiver.isActive()).thenReturn(true);
-        when(sender.hasSameGender(receiver)).thenReturn(false);
-        when(receiver.getId()).thenReturn(receiverId);
+        var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
+        var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
 
         when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
         when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));

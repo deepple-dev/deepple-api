@@ -1,13 +1,11 @@
 package deepple.deepple.member.command.domain.member;
 
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
+import deepple.deepple.member.fixture.MemberProfileFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Calendar;
 import java.util.Set;
 
 class MemberProfileTest {
@@ -15,20 +13,7 @@ class MemberProfileTest {
     @Test
     void isNeededProfileSettingWhenNullValueExists() {
         // Given
-        MemberProfile memberProfile = MemberProfile.builder()
-            .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
-            .height(180)
-            .job(Job.JOB_SEARCHING)
-            .mbti(Mbti.ENFJ)
-            .drinkingStatus(DrinkingStatus.NONE)
-            .smokingStatus(SmokingStatus.VAPE)
-            .religion(Religion.NONE)
-            .highestEducation(HighestEducation.DOCTORATE)
-            .gender(Gender.MALE)
-            .nickname(Nickname.from("Hello"))
-            .hobbies(Set.of(Hobby.ANIMATION))
-            .region(null)
-            .build();
+        MemberProfile memberProfile = MemberProfileFixture.builder().district(null).build();
 
         // When & Then
         Assertions.assertThat(memberProfile.isProfileSettingNeeded()).isTrue();
@@ -38,20 +23,7 @@ class MemberProfileTest {
     @Test
     void isNeededProfileSettingWhenHobbyListIsEmpty() {
         // Given
-        MemberProfile memberProfile = MemberProfile.builder()
-            .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
-            .height(180)
-            .job(Job.JOB_SEARCHING)
-            .mbti(Mbti.ENFJ)
-            .drinkingStatus(DrinkingStatus.NONE)
-            .smokingStatus(SmokingStatus.VAPE)
-            .religion(Religion.NONE)
-            .highestEducation(HighestEducation.DOCTORATE)
-            .gender(Gender.MALE)
-            .nickname(Nickname.from("Hello"))
-            .hobbies(Set.of())
-            .region(Region.of(District.GANGBUK_GU))
-            .build();
+        MemberProfile memberProfile = MemberProfileFixture.builder().hobbies(Set.of()).build();
 
         // When & Then
         Assertions.assertThat(memberProfile.isProfileSettingNeeded()).isTrue();
@@ -61,20 +33,7 @@ class MemberProfileTest {
     @Test
     void isNeededProfileSettingWhenHobbyListIsNotEmptyAndNullValueDoesntNotExist() {
         // Given
-        MemberProfile memberProfile = MemberProfile.builder()
-            .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
-            .height(180)
-            .job(Job.JOB_SEARCHING)
-            .mbti(Mbti.ENFJ)
-            .drinkingStatus(DrinkingStatus.NONE)
-            .smokingStatus(SmokingStatus.VAPE)
-            .religion(Religion.NONE)
-            .highestEducation(HighestEducation.DOCTORATE)
-            .gender(Gender.MALE)
-            .nickname(Nickname.from("Hello"))
-            .hobbies(Set.of(Hobby.ANIMATION))
-            .region(Region.of(District.GANGBUK_GU))
-            .build();
+        MemberProfile memberProfile = MemberProfileFixture.builder().hobbies(Set.of(Hobby.ANIMATION)).build();
 
         // When & Then
         Assertions.assertThat(memberProfile.isProfileSettingNeeded()).isFalse();

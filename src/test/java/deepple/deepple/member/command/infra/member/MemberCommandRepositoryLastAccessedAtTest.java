@@ -3,6 +3,7 @@ package deepple.deepple.member.command.infra.member;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ class MemberCommandRepositoryLastAccessedAtTest extends RepositoryTestSupport {
     @DisplayName("updateLastAccessedAt 호출 시 last_accessed_at만 갱신되고 updatedAt은 변하지 않는다")
     void updatesLastAccessedAtWithoutTouchingUpdatedAt() {
         // Given
-        Member member = Member.fromPhoneNumber("01012345678");
+        Member member = MemberFixture.builder().build();
         entityManager.persist(member);
         entityManager.flush();
         entityManager.clear();

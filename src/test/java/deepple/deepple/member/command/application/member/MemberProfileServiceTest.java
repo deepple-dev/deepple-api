@@ -4,6 +4,7 @@ import deepple.deepple.common.MockEventsExtension;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.domain.member.*;
 import deepple.deepple.member.command.domain.MemberErrorCode;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,7 +23,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith({MockEventsExtension.class, MockitoExtension.class})
 class MemberProfileServiceTest {
@@ -60,7 +60,10 @@ class MemberProfileServiceTest {
             "Daejeon", "OTHER", "ENFJ",
             "DAILY", "QUIT", "BUDDHIST", hobbies.stream().map(Enum::name).collect(Collectors.toSet()), job.name()
         );
-        Member existingMember = Member.fromPhoneNumber("01012345678");
+        Member existingMember = MemberFixture.builder()
+            .activityStatus(ActivityStatus.INITIAL)
+            .noProfile()
+            .build();
 
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
@@ -87,8 +90,11 @@ class MemberProfileServiceTest {
             "DONG_GU_DAEJEON", "OTHER", "ENFJ",
             "DAILY", "QUIT", "BUDDHIST", hobbies.stream().map(Enum::name).collect(Collectors.toSet()), job.name()
         );
-        Member existingMember = Member.fromPhoneNumber("01012345678");
-        setField(existingMember, "id", memberId);
+        Member existingMember = MemberFixture.builder()
+            .id(memberId)
+            .activityStatus(ActivityStatus.INITIAL)
+            .noProfile()
+            .build();
 
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
@@ -118,8 +124,11 @@ class MemberProfileServiceTest {
             null, "OTHER", "ENFJ",
             "DAILY", "QUIT", "BUDDHIST", null, job.name()
         );
-        Member existingMember = Member.fromPhoneNumber("01012345678");
-        setField(existingMember, "id", memberId);
+        Member existingMember = MemberFixture.builder()
+            .id(memberId)
+            .activityStatus(ActivityStatus.INITIAL)
+            .noProfile()
+            .build();
 
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
@@ -158,14 +167,14 @@ class MemberProfileServiceTest {
         void callsPublishProfileMethodWhenMemberExists() {
             // Given
             final long memberId = 1L;
-            Member member = mock(Member.class);
+            Member member = MemberFixture.builder().id(memberId).profilePublic(false).build();
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
             // When
             memberProfileService.changeProfilePublishStatus(memberId, true);
 
             // Then
-            verify(member, times(1)).publishProfile();
+            assertThat(member.isProfilePublic()).isTrue();
         }
     }
 
@@ -192,16 +201,15 @@ class MemberProfileServiceTest {
             // Given
             final long memberId = 1L;
             String activityStatus = "TEMPORARY";
-            Member member = mock(Member.class);
-            member.publishProfile();
+            Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
             // When
             memberProfileService.changeMemberActivityStatus(memberId, activityStatus);
 
             // Then
-            verify(member, times(1)).changeActivityStatus(ActivityStatus.SUSPENDED_TEMPORARILY);
-            verify(member, times(1)).nonPublishProfile();
+            assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.SUSPENDED_TEMPORARILY);
+            assertThat(member.isProfilePublic()).isFalse();
         }
     }
 
@@ -228,7 +236,7 @@ class MemberProfileServiceTest {
             // Given
             final Long memberId = 1L;
             final String contactType = null;
-            Member member = Member.builder().build();
+            Member member = MemberFixture.builder().id(memberId).build();
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
             // When

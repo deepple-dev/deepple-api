@@ -1,5 +1,6 @@
 package deepple.deepple.notification.command.domain;
 
+import deepple.deepple.notification.fixture.NotificationFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +45,10 @@ class NotificationTest {
     @DisplayName("markAsRead 호출 후 isRead가 true로 변경되고 readAt이 설정됨")
     void markAsReadChangesState() {
         // given
-        var notification = Notification.create(SYSTEM, 1L, 2L, LIKE, "t", "b");
+        var notification = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .type(LIKE)
+            .build();
 
         // when
         notification.markAsRead();
@@ -58,7 +62,10 @@ class NotificationTest {
     @DisplayName("markAsRead를 여러 번 호출해도 readAt은 최초 한 번만 설정됨")
     void markAsReadIdempotent() {
         // given
-        var notification = Notification.create(SYSTEM, 1L, 2L, LIKE, "t", "b");
+        var notification = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .type(LIKE)
+            .build();
 
         // when
         notification.markAsRead();
@@ -73,7 +80,9 @@ class NotificationTest {
     @DisplayName("markAsSent 호출 시 status가 SENT로 변경됨")
     void markAsSentSetsStatus() {
         // given
-        var notification = Notification.create(MEMBER, 1L, 2L, LIKE, "t", "b");
+        var notification = NotificationFixture.builder()
+            .type(LIKE)
+            .build();
 
         // when
         notification.markAsSent();

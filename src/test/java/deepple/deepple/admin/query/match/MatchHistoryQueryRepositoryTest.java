@@ -3,13 +3,11 @@ package deepple.deepple.admin.query.match;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.match.command.domain.match.Match;
 import deepple.deepple.match.command.domain.match.MatchContactType;
-import deepple.deepple.match.command.domain.match.MatchType;
-import deepple.deepple.match.command.domain.match.vo.Message;
+import deepple.deepple.match.command.domain.match.MatchStatus;
+import deepple.deepple.match.fixture.MatchFixture;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,8 +67,15 @@ class MatchHistoryQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(responder);
 
         Match waitingMatch = createMatch(requester, responder, "대기 중");
-        Match matchedMatch = createMatch(responder, requester, "매칭됨");
-        matchedMatch.approve(Message.from("수락합니다"), "요청자", MatchContactType.KAKAO);
+        Match matchedMatch = MatchFixture.builder()
+            .requesterId(responder.getId())
+            .responderId(requester.getId())
+            .requestMessage("매칭됨")
+            .requesterContactType(MatchContactType.KAKAO)
+            .status(MatchStatus.MATCHED)
+            .responseMessage("수락합니다")
+            .responderContactType(MatchContactType.KAKAO)
+            .build();
 
         em.persist(waitingMatch);
         em.persist(matchedMatch);
@@ -277,9 +283,16 @@ class MatchHistoryQueryRepositoryTest extends RepositoryTestSupport {
         em.persist(requester);
         em.persist(responder);
 
-        Match match = createMatch(requester, responder, "안녕하세요");
-        match.read(responder.getId());
-        match.approve(Message.from("반갑습니다"), "응답자", MatchContactType.KAKAO);
+        Match match = MatchFixture.builder()
+            .requesterId(requester.getId())
+            .responderId(responder.getId())
+            .requestMessage("안녕하세요")
+            .requesterContactType(MatchContactType.KAKAO)
+            .status(MatchStatus.MATCHED)
+            .responseMessage("반갑습니다")
+            .responderContactType(MatchContactType.KAKAO)
+            .readByResponderAt(LocalDateTime.now())
+            .build();
         em.persist(match);
 
         em.flush();
@@ -301,25 +314,19 @@ class MatchHistoryQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember(String nickname, String phoneNumber) {
-        return Member.builder()
-            .phoneNumber(PhoneNumber.from(phoneNumber))
-            .profile(
-                MemberProfile.builder()
-                    .nickname(Nickname.from(nickname))
-                    .gender(Gender.MALE)
-                    .build()
-            )
+        return MemberFixture.builder()
+            .phoneNumber(phoneNumber)
+            .nickname(nickname)
+            .gender(Gender.MALE)
             .build();
     }
 
     private Match createMatch(Member requester, Member responder, String requestMessage) {
-        return Match.request(
-            requester.getId(),
-            responder.getId(),
-            Message.from(requestMessage),
-            requester.getProfile().getNickname().getValue(),
-            MatchType.MATCH,
-            MatchContactType.KAKAO
-        );
+        return MatchFixture.builder()
+            .requesterId(requester.getId())
+            .responderId(responder.getId())
+            .requestMessage(requestMessage)
+            .requesterContactType(MatchContactType.KAKAO)
+            .build();
     }
 }

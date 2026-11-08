@@ -4,6 +4,7 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
+import deepple.deepple.payment.fixture.HeartPurchaseOptionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -69,11 +70,9 @@ class HeartPurchaseOptionTest {
     void publishEventWhenCallPurchaseMethod() {
         // given
         Long amount = 10L;
-        HeartPurchaseAmount heartPurchaseAmount = HeartPurchaseAmount.from(amount);
-        Price price = Price.from(1000L);
-        String productId = "productId";
-        String name = "name";
-        HeartPurchaseOption heartPurchaseOption = HeartPurchaseOption.of(heartPurchaseAmount, price, productId, name);
+        HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
+            .amount(amount)
+            .build();
         Long memberId = 1L;
         Integer quantity = 5;
         Long expectedAmount = amount * quantity;

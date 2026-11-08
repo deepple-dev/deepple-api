@@ -4,6 +4,7 @@ import deepple.deepple.admin.command.domain.suspension.Suspension;
 import deepple.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import deepple.deepple.admin.command.domain.suspension.SuspensionPolicy;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
+import deepple.deepple.admin.fixture.SuspensionFixture;
 import deepple.deepple.admin.presentation.suspension.SuspendRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,11 @@ class SuspensionServiceTest {
         // given
         var adminId = 11L;
         var memberId = 21L;
-        var existing = Suspension.createTemporary(1L, memberId);
+        var existing = SuspensionFixture.builder()
+            .adminId(1L)
+            .memberId(memberId)
+            .status(SuspensionStatus.TEMPORARY)
+            .build();
         var request = new SuspendRequest("PERMANENT");
         given(suspensionCommandRepository.findByMemberId(memberId))
             .willReturn(Optional.of(existing));
@@ -135,7 +140,11 @@ class SuspensionServiceTest {
         var memberId = 23L;
         var warningCount = 5L;
         // 기존 엔티티를 임시 정지 상태로 생성
-        var existing = Suspension.createTemporary(1L, memberId);
+        var existing = SuspensionFixture.builder()
+            .adminId(1L)
+            .memberId(memberId)
+            .status(SuspensionStatus.TEMPORARY)
+            .build();
         given(suspensionPolicy.evaluate(warningCount))
             .willReturn(SuspensionStatus.PERMANENT);
         given(suspensionCommandRepository.findByMemberId(memberId))

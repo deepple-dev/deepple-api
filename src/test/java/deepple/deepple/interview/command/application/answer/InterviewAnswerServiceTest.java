@@ -6,6 +6,8 @@ import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswerCommandRepository;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
 import deepple.deepple.interview.command.domain.question.InterviewQuestionCommandRepository;
+import deepple.deepple.interview.fixture.InterviewAnswerFixture;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.interview.presentation.answer.dto.InterviewAnswerSaveRequest;
 import deepple.deepple.interview.presentation.answer.dto.InterviewAnswerUpdateRequest;
 import deepple.deepple.mission.command.application.memberMission.MemberMissionService;
@@ -68,8 +70,10 @@ class InterviewAnswerServiceTest {
             InterviewAnswerSaveRequest request = new InterviewAnswerSaveRequest(interviewQuestionId, answerContent);
             Long memberId = 2L;
 
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.isPublic()).thenReturn(false);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(interviewQuestionId)
+                .publicQuestion(false)
+                .build();
             when(interviewQuestionCommandRepository.findById(interviewQuestionId)).thenReturn(
                 Optional.of(interviewQuestion));
 
@@ -88,8 +92,10 @@ class InterviewAnswerServiceTest {
             InterviewAnswerSaveRequest request = new InterviewAnswerSaveRequest(interviewQuestionId, answerContent);
             Long memberId = 2L;
 
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.isPublic()).thenReturn(true);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(interviewQuestionId)
+                .publicQuestion(true)
+                .build();
             when(interviewQuestionCommandRepository.findById(interviewQuestionId)).thenReturn(
                 Optional.of(interviewQuestion));
             when(interviewAnswerCommandRepository.existsByQuestionIdAndMemberId(interviewQuestionId,
@@ -111,8 +117,10 @@ class InterviewAnswerServiceTest {
             InterviewAnswerSaveRequest request = new InterviewAnswerSaveRequest(interviewQuestionId, answerContent);
             Long memberId = 2L;
 
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.isPublic()).thenReturn(true);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(interviewQuestionId)
+                .publicQuestion(true)
+                .build();
             when(interviewQuestionCommandRepository.findById(interviewQuestionId)).thenReturn(
                 Optional.of(interviewQuestion));
             when(interviewAnswerCommandRepository.existsByMemberId(memberId)).thenReturn(false);
@@ -147,8 +155,10 @@ class InterviewAnswerServiceTest {
             InterviewAnswerSaveRequest request = new InterviewAnswerSaveRequest(interviewQuestionId, answerContent);
             Long memberId = 2L;
 
-            InterviewQuestion interviewQuestion = mock(InterviewQuestion.class);
-            when(interviewQuestion.isPublic()).thenReturn(true);
+            InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder()
+                .id(interviewQuestionId)
+                .publicQuestion(true)
+                .build();
             when(interviewQuestionCommandRepository.findById(interviewQuestionId)).thenReturn(
                 Optional.of(interviewQuestion));
             when(interviewAnswerCommandRepository.existsByMemberId(memberId)).thenReturn(true);
@@ -201,8 +211,10 @@ class InterviewAnswerServiceTest {
             InterviewAnswerUpdateRequest request = new InterviewAnswerUpdateRequest(answerContent);
             Long memberId = 2L;
 
-            InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
-            when(interviewAnswer.isAnsweredBy(memberId)).thenReturn(false);
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .id(answerId)
+                .memberId(3L)
+                .build();
             when(interviewAnswerCommandRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
             // when & then
@@ -220,15 +232,17 @@ class InterviewAnswerServiceTest {
             InterviewAnswerUpdateRequest request = new InterviewAnswerUpdateRequest(answerContent);
             Long memberId = 2L;
 
-            InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
-            when(interviewAnswer.isAnsweredBy(memberId)).thenReturn(true);
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .id(answerId)
+                .memberId(memberId)
+                .build();
             when(interviewAnswerCommandRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
             // when
             interviewAnswerService.updateAnswer(answerId, request, memberId);
 
             // then
-            verify(interviewAnswer).updateContent(answerContent);
+            assertThat(interviewAnswer.getContent()).isEqualTo(answerContent);
         }
     }
 
@@ -257,8 +271,10 @@ class InterviewAnswerServiceTest {
             Long answerId = 1L;
             Long memberId = 2L;
 
-            InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
-            when(interviewAnswer.isAnsweredBy(memberId)).thenReturn(false);
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .id(answerId)
+                .memberId(3L)
+                .build();
             when(interviewAnswerCommandRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
             // when & then
@@ -274,8 +290,10 @@ class InterviewAnswerServiceTest {
             Long answerId = 1L;
             Long memberId = 2L;
 
-            InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
-            when(interviewAnswer.isAnsweredBy(memberId)).thenReturn(true);
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .id(answerId)
+                .memberId(memberId)
+                .build();
             when(interviewAnswerCommandRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
             // when

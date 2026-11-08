@@ -9,7 +9,9 @@ import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
+import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,8 +66,10 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member introducedMember = mock(Member.class);
-        when(introducedMember.isActive()).thenReturn(false);
+        Member introducedMember = MemberFixture.builder()
+            .id(introducedMemberId)
+            .activityStatus(ActivityStatus.DORMANT)
+            .build();
         when(memberCommandRepository.findById(introducedMemberId)).thenReturn(Optional.of(introducedMember));
 
         // when & then
@@ -81,8 +85,7 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member introducedMember = mock(Member.class);
-        when(introducedMember.isActive()).thenReturn(true);
+        Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
         when(memberCommandRepository.findById(introducedMemberId)).thenReturn(Optional.of(introducedMember));
         when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId)).thenReturn(true);
 
@@ -99,8 +102,7 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member introducedMember = mock(Member.class);
-        when(introducedMember.isActive()).thenReturn(true);
+        Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
         when(memberCommandRepository.findById(introducedMemberId)).thenReturn(Optional.of(introducedMember));
         when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId)).thenReturn(false);
         when(blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId)).thenReturn(true);
@@ -119,8 +121,7 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member introducedMember = mock(Member.class);
-        when(introducedMember.isActive()).thenReturn(true);
+        Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
         when(memberCommandRepository.findById(introducedMemberId)).thenReturn(Optional.of(introducedMember));
         when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId)).thenReturn(false);
         when(blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId)).thenReturn(false);
@@ -140,8 +141,7 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member introducedMember = mock(Member.class);
-        when(introducedMember.isActive()).thenReturn(true);
+        Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
         when(memberCommandRepository.findById(introducedMemberId)).thenReturn(Optional.of(introducedMember));
         when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId)).thenReturn(false);
         when(blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId)).thenReturn(false);
@@ -168,8 +168,7 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member member = mock(Member.class);
-        when(member.hasSubmittedDatingExam()).thenReturn(false);
+        Member member = MemberFixture.builder().id(memberId).datingExamSubmitted(false).build();
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
         // when & then
@@ -185,8 +184,7 @@ class MemberIntroductionServiceTest {
         long memberId = 1L;
         long introducedMemberId = 2L;
 
-        Member member = mock(Member.class);
-        when(member.hasSubmittedDatingExam()).thenReturn(true);
+        Member member = MemberFixture.builder().id(memberId).datingExamSubmitted(true).build();
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(soulmateQueryRepository.findSameAnswerMemberIds(memberId)).thenReturn(
             Set.of(3L, 4L, 5L)

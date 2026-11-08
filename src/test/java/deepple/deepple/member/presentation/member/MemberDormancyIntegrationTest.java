@@ -11,6 +11,7 @@ import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.infra.member.MemberCommandJpaRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -44,9 +44,6 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberCommandJpaRepository memberCommandJpaRepository;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
 
     private Long memberId;
 
@@ -108,11 +105,10 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
     }
 
     private Long saveMember(ActivityStatus status) {
-        return transactionTemplate.execute(tx -> {
-            Member member = memberCommandRepository.save(Member.fromPhoneNumber("01055550001"));
-            member.changeActivityStatus(status);
-            return member.getId();
-        });
+        Member member = MemberFixture.builder()
+            .activityStatus(status)
+            .build();
+        return memberCommandRepository.save(member).getId();
     }
 
     private ActivityStatus statusOf(long id) {

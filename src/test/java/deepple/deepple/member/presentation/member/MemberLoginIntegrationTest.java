@@ -8,6 +8,7 @@ import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.infra.member.AuthMessageRedisRepository;
 import deepple.deepple.member.command.infra.member.MemberCommandJpaRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,11 +90,12 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
     }
 
     private Long saveMember(ActivityStatus status) {
-        return transactionTemplate.execute(tx -> {
-            Member member = memberCommandRepository.save(Member.fromPhoneNumber(PHONE_NUMBER));
-            member.changeActivityStatus(status);
-            return member.getId();
-        });
+        Member member = MemberFixture.builder()
+            .phoneNumber(PHONE_NUMBER)
+            .activityStatus(status)
+            .noProfile()
+            .build();
+        return memberCommandRepository.save(member).getId();
     }
 
     private LocalDateTime saveTemporarySuspension(long memberId) {

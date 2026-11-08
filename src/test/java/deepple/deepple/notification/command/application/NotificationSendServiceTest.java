@@ -4,8 +4,9 @@ import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.notification.command.domain.DeviceRegistration;
 import deepple.deepple.notification.command.domain.Notification;
 import deepple.deepple.notification.command.domain.NotificationErrorCode;
-import deepple.deepple.notification.command.domain.NotificationPreference;
 import deepple.deepple.notification.command.domain.NotificationSender;
+import deepple.deepple.notification.fixture.DeviceRegistrationFixture;
+import deepple.deepple.notification.fixture.NotificationPreferenceFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,8 +84,10 @@ class NotificationSendServiceTest {
         when(reader.findTemplate(LIKE))
             .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
 
-        var pref = NotificationPreference.of(1L);
-        pref.disableGlobally();
+        var pref = NotificationPreferenceFixture.builder()
+            .memberId(1L)
+            .enabledGlobally(false)
+            .build();
         when(reader.findPreference(1L)).thenReturn(Optional.of(pref));
 
         // when
@@ -105,9 +108,13 @@ class NotificationSendServiceTest {
         when(reader.findTemplate(LIKE))
             .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
         when(reader.findPreference(20L))
-            .thenReturn(Optional.of(NotificationPreference.of(20L)));
+            .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(20L).build()));
         when(reader.findActiveDevice(20L))
-            .thenReturn(Optional.of(DeviceRegistration.of(20L, "device", "token")));
+            .thenReturn(Optional.of(DeviceRegistrationFixture.builder()
+                .memberId(20L)
+                .deviceId("device")
+                .registrationToken("token")
+                .build()));
 
         var sender = mock(NotificationSender.class);
         when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));
@@ -128,7 +135,7 @@ class NotificationSendServiceTest {
         when(reader.findTemplate(LIKE))
             .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
         when(reader.findPreference(30L))
-            .thenReturn(Optional.of(NotificationPreference.of(30L)));
+            .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(30L).build()));
         when(reader.findActiveDevice(30L)).thenReturn(Optional.empty());
 
         // when
@@ -149,9 +156,13 @@ class NotificationSendServiceTest {
         when(reader.findTemplate(LIKE))
             .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
         when(reader.findPreference(20L))
-            .thenReturn(Optional.of(NotificationPreference.of(20L)));
+            .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(20L).build()));
         when(reader.findActiveDevice(20L))
-            .thenReturn(Optional.of(DeviceRegistration.of(20L, "device", "token")));
+            .thenReturn(Optional.of(DeviceRegistrationFixture.builder()
+                .memberId(20L)
+                .deviceId("device")
+                .registrationToken("token")
+                .build()));
         when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.empty());
 
         // when
@@ -172,9 +183,13 @@ class NotificationSendServiceTest {
         when(reader.findTemplate(LIKE))
             .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
         when(reader.findPreference(20L))
-            .thenReturn(Optional.of(NotificationPreference.of(20L)));
+            .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(20L).build()));
         when(reader.findActiveDevice(20L))
-            .thenReturn(Optional.of(DeviceRegistration.of(20L, "device", "token")));
+            .thenReturn(Optional.of(DeviceRegistrationFixture.builder()
+                .memberId(20L)
+                .deviceId("device")
+                .registrationToken("token")
+                .build()));
 
         var sender = mock(NotificationSender.class);
         when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));

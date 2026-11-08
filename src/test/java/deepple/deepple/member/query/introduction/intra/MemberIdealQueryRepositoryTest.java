@@ -3,14 +3,15 @@ package deepple.deepple.member.query.introduction.intra;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.introduction.MemberIdeal;
-import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
 import deepple.deepple.member.command.domain.member.*;
+import deepple.deepple.member.fixture.MemberIdealFixture;
 import deepple.deepple.member.query.introduction.application.MemberIdealView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,8 +41,8 @@ class MemberIdealQueryRepositoryTest extends RepositoryTestSupport {
     void returnMemberIdealViewWhenMemberIdealIsExists() {
         // given
         long memberId = 1L;
-        MemberIdeal memberIdeal = MemberIdeal.init(memberId);
-        AgeRange ageRange = AgeRange.of(20, 30);
+        int minAge = 20;
+        int maxAge = 30;
         Hobby hobby1 = Hobby.ANIMATION;
         Hobby hobby2 = Hobby.BOARD_GAMES;
         Set<Hobby> hobbies = Set.of(hobby1, hobby2);
@@ -49,7 +50,16 @@ class MemberIdealQueryRepositoryTest extends RepositoryTestSupport {
         Religion religion = Religion.CHRISTIAN;
         SmokingStatus smokingStatus = SmokingStatus.NONE;
         DrinkingStatus drinkingStatus = DrinkingStatus.NONE;
-        memberIdeal.update(ageRange, hobbies, cities, religion, smokingStatus, drinkingStatus);
+        MemberIdeal memberIdeal = MemberIdealFixture.builder()
+            .memberId(memberId)
+            .minAge(minAge)
+            .maxAge(maxAge)
+            .hobbies(new HashSet<>(hobbies))
+            .cities(new HashSet<>(cities))
+            .religion(religion)
+            .smokingStatus(smokingStatus)
+            .drinkingStatus(drinkingStatus)
+            .build();
         entityManager.persist(memberIdeal);
         entityManager.flush();
 
@@ -57,8 +67,8 @@ class MemberIdealQueryRepositoryTest extends RepositoryTestSupport {
         MemberIdealView memberIdealView = memberIdealQueryRepository.findMemberIdealByMemberId(memberId).get();
 
         // then
-        assertThat(memberIdealView.minAge()).isEqualTo(ageRange.getMinAge());
-        assertThat(memberIdealView.maxAge()).isEqualTo(ageRange.getMaxAge());
+        assertThat(memberIdealView.minAge()).isEqualTo(minAge);
+        assertThat(memberIdealView.maxAge()).isEqualTo(maxAge);
         assertThat(memberIdealView.hobbies()).containsExactlyInAnyOrder(
             hobbies.stream().map(Hobby::name).toArray(String[]::new));
         assertThat(memberIdealView.cities()).containsExactlyInAnyOrder(

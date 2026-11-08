@@ -12,6 +12,8 @@ import deepple.deepple.payment.command.domain.order.event.HeartRefundedEvent;
 import deepple.deepple.payment.command.domain.refund.NotificationType;
 import deepple.deepple.payment.command.domain.refund.Refund;
 import deepple.deepple.payment.command.domain.refund.RefundCommandRepository;
+import deepple.deepple.payment.fixture.HeartPurchaseOptionFixture;
+import deepple.deepple.payment.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -62,16 +64,22 @@ class RefundServiceTest {
             Long heartAmount = 50L;
             Long orderId = 1L;
 
-            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
-            when(order.getId()).thenReturn(orderId);
-            HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
+            Order order = OrderFixture.builder()
+                .id(orderId)
+                .memberId(memberId)
+                .transactionId(transactionId)
+                .paymentMethod(paymentMethod)
+                .build();
+            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
+                .productId(productId)
+                .amount(heartAmount)
+                .build();
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
             when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
                 .thenReturn(Optional.of(order));
             when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
                 .thenReturn(Optional.of(heartPurchaseOption));
-            when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
             // when & then
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
@@ -114,16 +122,22 @@ class RefundServiceTest {
             Long heartAmount = 30L;
             Long orderId = 1L;
 
-            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
-            when(order.getId()).thenReturn(orderId);
-            HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
+            Order order = OrderFixture.builder()
+                .id(orderId)
+                .memberId(memberId)
+                .transactionId(transactionId)
+                .paymentMethod(paymentMethod)
+                .build();
+            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
+                .productId(productId)
+                .amount(heartAmount)
+                .build();
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
             when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
                 .thenReturn(Optional.of(order));
             when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
                 .thenReturn(Optional.of(heartPurchaseOption));
-            when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
             // when & then
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
@@ -210,7 +224,11 @@ class RefundServiceTest {
             NotificationType notificationType = NotificationType.REFUND;
             Long memberId = 100L;
 
-            Order order = Order.of(memberId, transactionId, paymentMethod);
+            Order order = OrderFixture.builder()
+                .memberId(memberId)
+                .transactionId(transactionId)
+                .paymentMethod(paymentMethod)
+                .build();
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
             when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
@@ -246,16 +264,22 @@ class RefundServiceTest {
             Long heartAmount = 50L;
             Long orderId = 1L;
 
-            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
-            when(order.getId()).thenReturn(orderId);
-            HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
+            Order order = OrderFixture.builder()
+                .id(orderId)
+                .memberId(memberId)
+                .transactionId(transactionId)
+                .paymentMethod(paymentMethod)
+                .build();
+            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
+                .productId(productId)
+                .amount(heartAmount)
+                .build();
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
             when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
                 .thenReturn(Optional.of(order));
             when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
                 .thenReturn(Optional.of(heartPurchaseOption));
-            when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
             // when & then
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
@@ -287,16 +311,22 @@ class RefundServiceTest {
             Long heartAmount = 50L;
             Long orderId = 1L;
 
-            Order order = spy(Order.of(memberId, transactionId, paymentMethod));
-            when(order.getId()).thenReturn(orderId);
-            HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
+            Order order = spy(OrderFixture.builder()
+                .id(orderId)
+                .memberId(memberId)
+                .transactionId(transactionId)
+                .paymentMethod(paymentMethod)
+                .build());
+            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
+                .productId(productId)
+                .amount(heartAmount)
+                .build();
 
             when(refundCommandRepository.existsByTransactionId(transactionId)).thenReturn(false);
             when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
                 .thenReturn(Optional.of(order));
             when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
                 .thenReturn(Optional.of(heartPurchaseOption));
-            when(heartPurchaseOption.getHeartAmount()).thenReturn(heartAmount);
 
             // when & then
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {

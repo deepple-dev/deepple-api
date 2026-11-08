@@ -4,6 +4,7 @@ import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
+import deepple.deepple.community.fixture.SelfIntroductionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -177,10 +178,7 @@ public class SelfIntroductionTest {
         @DisplayName("셀프 소개를 비공개로 변경한다.")
         void updateClose() {
             // Given
-            Long memberId = 1L;
-            String title = "셀프 소개 제목";
-            String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(memberId, title, content, null);
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder().build();
 
             // When
             selfIntroduction.close();
@@ -193,10 +191,7 @@ public class SelfIntroductionTest {
         @DisplayName("셀프 소개를 공개로 변경한다.")
         void updateOpen() {
             // Given
-            Long memberId = 1L;
-            String title = "셀프 소개 제목";
-            String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(memberId, title, content, null);
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder().build();
 
             // When
             selfIntroduction.open();
@@ -210,7 +205,10 @@ public class SelfIntroductionTest {
         void addImage() {
             // Given
             String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(1L, "title", content, null);
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .title("title")
+                .content(content)
+                .build();
             String newImageUrl = "https://example.com/image.jpg";
 
             // When
@@ -225,8 +223,11 @@ public class SelfIntroductionTest {
         void removeImage() {
             // Given
             String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(1L, "title", content,
-                "https://example.com/image.jpg");
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .title("title")
+                .content(content)
+                .imageUrl("https://example.com/image.jpg")
+                .build();
 
             // When
             selfIntroduction.update("title", content, null);
@@ -240,8 +241,11 @@ public class SelfIntroductionTest {
         void replaceImage() {
             // Given
             String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(1L, "title", content,
-                "https://example.com/old.jpg");
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .title("title")
+                .content(content)
+                .imageUrl("https://example.com/old.jpg")
+                .build();
             String newImageUrl = "https://example.com/new.jpg";
 
             // When

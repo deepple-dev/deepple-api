@@ -1,0 +1,30 @@
+package deepple.deepple.notification.fixture;
+
+import deepple.deepple.notification.command.domain.NotificationPreference;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
+@Setter
+@Accessors(fluent = true, chain = true)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class NotificationPreferenceFixture {
+
+    private Long id;
+    private long memberId = 1L;
+    private boolean enabledGlobally = true;
+
+    public static NotificationPreferenceFixture builder() {
+        return new NotificationPreferenceFixture();
+    }
+
+    public NotificationPreference build() {
+        NotificationPreference preference = NotificationPreference.of(memberId);
+        setField(preference, "id", id);
+        setField(preference, "isEnabledGlobally", enabledGlobally);
+        return preference;
+    }
+}

@@ -9,6 +9,9 @@ import deepple.deepple.datingexam.domain.*;
 import deepple.deepple.datingexam.domain.DatingExamErrorCode;
 import deepple.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import deepple.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
+import deepple.deepple.datingexam.fixture.DatingExamAnswerFixture;
+import deepple.deepple.datingexam.fixture.DatingExamSubjectFixture;
+import deepple.deepple.datingexam.fixture.DatingExamSubmitFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -73,18 +76,23 @@ class DatingExamModifyServiceTest {
             DatingExamInfoResponse infoResponse = mock(DatingExamInfoResponse.class);
             when(datingExamQueryRepository.findDatingExamInfo(SubjectType.REQUIRED)).thenReturn(infoResponse);
 
-            DatingExamAnswer mockAnswer = mock(DatingExamAnswer.class);
-            when(mockAnswer.getPersonalityType()).thenReturn(AnswerPersonalityType.DECISIVE_INDEPENDENT);
-            when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(mockAnswer));
+            DatingExamAnswer answer = DatingExamAnswerFixture.builder()
+                .id(answerId)
+                .personalityType(AnswerPersonalityType.DECISIVE_INDEPENDENT)
+                .build();
+            when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(answer));
             when(datingExamSubmitResultRepository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit = mockStatic(DatingExamSubmit.class);
                 MockedStatic<DatingExamSubmitRequestValidator> mockedValidator = mockStatic(
                     DatingExamSubmitRequestValidator.class)
             ) {
-                DatingExamSubmit mockSubmit = mock(DatingExamSubmit.class);
+                DatingExamSubmit submit = DatingExamSubmitFixture.builder()
+                    .memberId(memberId)
+                    .subjectId(subjectId)
+                    .build();
                 mockedDatingExamSubmit.when(() -> DatingExamSubmit.from(request, answerEncoder, memberId))
-                    .thenReturn(mockSubmit);
+                    .thenReturn(submit);
                 mockedValidator.when(
                         () -> DatingExamSubmitRequestValidator.validateSubmit(request, infoResponse))
                     .thenAnswer(invocation -> null);
@@ -94,7 +102,7 @@ class DatingExamModifyServiceTest {
 
                 // Then
                 mockedDatingExamSubmit.verify(() -> DatingExamSubmit.from(request, answerEncoder, memberId));
-                verify(datingExamSubmitRepository).save(mockSubmit);
+                verify(datingExamSubmitRepository).save(submit);
                 verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
             }
         }
@@ -124,7 +132,9 @@ class DatingExamModifyServiceTest {
             DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
             when(request.subjectId()).thenReturn(subjectId);
 
-            DatingExamSubject subject = mock(DatingExamSubject.class);
+            DatingExamSubject subject = DatingExamSubjectFixture.builder()
+                .id(subjectId)
+                .build();
             when(datingExamSubjectRepository.findById(subjectId)).thenReturn(Optional.of(subject));
 
             when(datingExamSubmitRepository.existsByMemberIdAndSubjectId(memberId, subjectId)).thenReturn(true);
@@ -146,10 +156,10 @@ class DatingExamModifyServiceTest {
             when(request.subjectId()).thenReturn(subjectId);
             when(request.answers()).thenReturn(List.of(new AnswerSubmitRequest(1L, answerId)));
 
-            DatingExamSubject subject = mock(DatingExamSubject.class);
-            when(subject.getType()).thenReturn(SubjectType.REQUIRED);
-            when(subject.isRequired()).thenReturn(true);
-            when(subject.getId()).thenReturn(subjectId);
+            DatingExamSubject subject = DatingExamSubjectFixture.builder()
+                .id(subjectId)
+                .type(SubjectType.REQUIRED)
+                .build();
             when(datingExamSubjectRepository.findById(subjectId)).thenReturn(Optional.of(subject));
 
             when(datingExamSubmitRepository.existsByMemberIdAndSubjectId(memberId, subjectId)).thenReturn(false);
@@ -157,9 +167,11 @@ class DatingExamModifyServiceTest {
             DatingExamInfoResponse infoResponse = mock(DatingExamInfoResponse.class);
             when(datingExamQueryRepository.findDatingExamInfo(SubjectType.REQUIRED)).thenReturn(infoResponse);
 
-            DatingExamAnswer mockAnswer = mock(DatingExamAnswer.class);
-            when(mockAnswer.getPersonalityType()).thenReturn(AnswerPersonalityType.DECISIVE_INDEPENDENT);
-            when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(mockAnswer));
+            DatingExamAnswer answer = DatingExamAnswerFixture.builder()
+                .id(answerId)
+                .personalityType(AnswerPersonalityType.DECISIVE_INDEPENDENT)
+                .build();
+            when(datingExamAnswerRepository.findAllByIdIn(List.of(answerId))).thenReturn(List.of(answer));
             when(datingExamSubmitResultRepository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit = mockStatic(DatingExamSubmit.class);
@@ -167,24 +179,26 @@ class DatingExamModifyServiceTest {
                     DatingExamSubmitRequestValidator.class);
                 MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
 
-                DatingExamSubmit mockSubmit = mock(DatingExamSubmit.class);
-                when(mockSubmit.getSubjectId()).thenReturn(subjectId);
+                DatingExamSubmit submit = DatingExamSubmitFixture.builder()
+                    .memberId(memberId)
+                    .subjectId(subjectId)
+                    .build();
                 mockedDatingExamSubmit.when(() -> DatingExamSubmit.from(request, answerEncoder, memberId))
-                    .thenReturn(mockSubmit);
+                    .thenReturn(submit);
                 mockedValidator.when(
                         () -> DatingExamSubmitRequestValidator.validateSubmit(request, infoResponse))
                     .thenAnswer(invocation -> null);
                 when(datingExamSubjectRepository.findAllByType(SubjectType.REQUIRED))
                     .thenReturn(Set.of(subject));
 
-                when(datingExamSubmitRepository.findAllByMemberId(memberId)).thenReturn(Set.of(mockSubmit));
+                when(datingExamSubmitRepository.findAllByMemberId(memberId)).thenReturn(Set.of(submit));
 
                 // When
                 datingExamModifyService.submitSubject(request, memberId);
 
                 // Then
                 mockedDatingExamSubmit.verify(() -> DatingExamSubmit.from(request, answerEncoder, memberId));
-                verify(datingExamSubmitRepository).save(mockSubmit);
+                verify(datingExamSubmitRepository).save(submit);
                 verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
                 mockedEvents.verify(() -> Events.raise(eq(AllRequiredSubjectSubmittedEvent.of(memberId))));
             }

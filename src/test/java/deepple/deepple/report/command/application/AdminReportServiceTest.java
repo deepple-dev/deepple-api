@@ -4,6 +4,7 @@ import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.report.command.domain.Report;
 import deepple.deepple.report.command.domain.ReportCommandRepository;
 import deepple.deepple.report.command.domain.ReportErrorCode;
+import deepple.deepple.report.fixture.ReportFixture;
 import deepple.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,8 +18,14 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import java.util.Optional;
 
 import static deepple.deepple.report.command.domain.ReportResult.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AdminReportServiceTest {
@@ -35,12 +42,16 @@ class AdminReportServiceTest {
         private final long reportId = 1L;
         private final long adminId = 100L;
         private final long version = 0L;
-        private Report mockReport;
+        private Report report;
 
         private void stubFindReport() {
-            mockReport = mock(Report.class);
+            stubFindReport(version);
+        }
+
+        private void stubFindReport(long reportVersion) {
+            report = ReportFixture.builder().id(reportId).version(reportVersion).build();
             when(reportCommandRepository.findById(reportId))
-                .thenReturn(Optional.of(mockReport));
+                .thenReturn(Optional.of(report));
         }
 
         @Test
@@ -49,14 +60,13 @@ class AdminReportServiceTest {
             // given
             stubFindReport();
             var request = new ReportResultUpdateRequest(version, REJECTED.name());
-            when(mockReport.hasVersionConflict(version)).thenReturn(false);
 
             // when
             adminReportService.updateResult(reportId, request, adminId);
 
             // then
-            verify(mockReport).reject(adminId);
-            verify(mockReport, never()).warn(anyLong());
+            assertThat(report.getResult()).isEqualTo(REJECTED);
+            assertThat(report.getAdminId()).isEqualTo(adminId);
             verify(reportCommandRepository, never()).save(any());
         }
 
@@ -66,14 +76,13 @@ class AdminReportServiceTest {
             // given
             stubFindReport();
             var request = new ReportResultUpdateRequest(version, WARNED.name());
-            when(mockReport.hasVersionConflict(version)).thenReturn(false);
 
             // when
             adminReportService.updateResult(reportId, request, adminId);
 
             // then
-            verify(mockReport).warn(adminId);
-            verify(mockReport, never()).reject(anyLong());
+            assertThat(report.getResult()).isEqualTo(WARNED);
+            assertThat(report.getAdminId()).isEqualTo(adminId);
             verify(reportCommandRepository, never()).save(any());
         }
 
@@ -83,7 +92,6 @@ class AdminReportServiceTest {
             // given
             stubFindReport();
             var request = new ReportResultUpdateRequest(version, PENDING.name());
-            when(mockReport.hasVersionConflict(version)).thenReturn(false);
 
             // when & then
             assertThatThrownBy(() ->
@@ -92,8 +100,8 @@ class AdminReportServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_RESULT)
                 .hasMessageContaining("PENDING 으로 결과를 설정할 수 없습니다.");
 
-            verify(mockReport, never()).reject(anyLong());
-            verify(mockReport, never()).warn(anyLong());
+            assertThat(report.getResult()).isEqualTo(PENDING);
+            assertThat(report.getAdminId()).isNull();
             verify(reportCommandRepository, never()).save(any());
         }
 
@@ -103,7 +111,6 @@ class AdminReportServiceTest {
             // given
             stubFindReport();
             var request = new ReportResultUpdateRequest(version, "UNKNOWN");
-            when(mockReport.hasVersionConflict(version)).thenReturn(false);
 
             // when & then
             assertThatThrownBy(() ->
@@ -112,8 +119,8 @@ class AdminReportServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_RESULT)
                 .hasMessageContaining("Invalid report result: UNKNOWN");
 
-            verify(mockReport, never()).reject(anyLong());
-            verify(mockReport, never()).warn(anyLong());
+            assertThat(report.getResult()).isEqualTo(PENDING);
+            assertThat(report.getAdminId()).isNull();
             verify(reportCommandRepository, never()).save(any());
         }
 
@@ -121,9 +128,8 @@ class AdminReportServiceTest {
         @DisplayName("예외 케이스: 버전 충돌 시 OptimisticLockingFailureException 발생")
         void shouldThrowOptimisticLockingFailureExceptionWhenVersionConflict() {
             // given
-            stubFindReport();
+            stubFindReport(version + 1);
             var request = new ReportResultUpdateRequest(version, REJECTED.name());
-            when(mockReport.hasVersionConflict(version)).thenReturn(true);
 
             // when & then
             assertThatThrownBy(() ->
@@ -131,8 +137,8 @@ class AdminReportServiceTest {
                 .isInstanceOf(OptimisticLockingFailureException.class)
                 .hasMessageContaining("신고를 처리할 수 없습니다.");
 
-            verify(mockReport, never()).reject(anyLong());
-            verify(mockReport, never()).warn(anyLong());
+            assertThat(report.getResult()).isEqualTo(PENDING);
+            assertThat(report.getAdminId()).isNull();
             verify(reportCommandRepository, never()).save(any());
         }
 
@@ -158,7 +164,8 @@ class AdminReportServiceTest {
         @DisplayName("예외 케이스: null 요청 객체 전달 시 NPE 발생")
         void shouldThrowNullPointerExceptionWhenRequestIsNull() {
             // given
-            stubFindReport();
+            report = spy(ReportFixture.builder().id(reportId).version(version).build());
+            when(reportCommandRepository.findById(reportId)).thenReturn(Optional.of(report));
 
             // when & then
             assertThatThrownBy(() ->
@@ -166,7 +173,8 @@ class AdminReportServiceTest {
                 .isInstanceOf(NullPointerException.class);
 
             verify(reportCommandRepository).findById(reportId);
-            verify(mockReport, never()).hasVersionConflict(anyLong());
+            verify(report, never()).hasVersionConflict(anyLong());
+            assertThat(report.getResult()).isEqualTo(PENDING);
             verify(reportCommandRepository, never()).save(any());
         }
     }
