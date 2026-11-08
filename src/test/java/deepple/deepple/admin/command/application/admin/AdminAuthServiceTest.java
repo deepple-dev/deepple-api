@@ -3,8 +3,11 @@ package deepple.deepple.admin.command.application.admin;
 import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.admin.Admin;
 import deepple.deepple.admin.command.domain.admin.AdminCommandRepository;
+import deepple.deepple.admin.command.domain.admin.AdminRole;
+import deepple.deepple.admin.command.domain.admin.ApprovalStatus;
 import deepple.deepple.admin.command.domain.admin.Email;
 import deepple.deepple.admin.command.domain.admin.PasswordHasher;
+import deepple.deepple.admin.fixture.AdminFixture;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginRequest;
 import deepple.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import deepple.deepple.admin.presentation.admin.dto.AdminSignupRequest;
@@ -29,11 +32,17 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 class AdminAuthServiceTest {
+
+    private static final String HASHED_PASSWORD = "hashed-password123^^";
 
     @Mock
     private AdminCommandRepository adminCommandRepository;
@@ -91,7 +100,7 @@ class AdminAuthServiceTest {
             String email = "exists@example.com";
             AdminSignupRequest request = new AdminSignupRequest(email, "password123^^", "홍길동", "01012345678");
 
-            when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(mock(Admin.class)));
+            when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(AdminFixture.builder().build()));
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.signup(request))
@@ -127,9 +136,6 @@ class AdminAuthServiceTest {
     @DisplayName("로그인")
     class Login {
 
-        @Mock
-        private Admin admin;
-
         @Test
         @DisplayName("유효한 이메일과 비밀번호로 로그인하면 access token과 refresh token을 발급받고, refresh token은 관리자 역할로 발급합니다.")
         void issueTokensWhenLoginIsValid() {
@@ -138,10 +144,15 @@ class AdminAuthServiceTest {
             String requestPassword = "password123^^";
             AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
 
-            when(admin.getId()).thenReturn(1L);
-            when(admin.isApproved()).thenReturn(true);
-            when(admin.getTokenRole()).thenReturn(Role.ADMIN);
+            Admin admin = AdminFixture.builder()
+                .id(1L)
+                .email(email)
+                .hashedPassword(HASHED_PASSWORD)
+                .role(AdminRole.ADMIN)
+                .approvalStatus(ApprovalStatus.APPROVED)
+                .build();
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+            when(passwordHasher.matches(requestPassword, HASHED_PASSWORD)).thenReturn(true);
 
             String newAccessToken = "accessToken";
             String newRefreshToken = "refreshToken";
@@ -180,7 +191,8 @@ class AdminAuthServiceTest {
             // given
             String email = "deleted@example.com";
             AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
-            when(admin.isDeleted()).thenReturn(true);
+            Admin admin = AdminFixture.builder().email(email).build();
+            admin.delete();
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
 
             // when & then
@@ -195,9 +207,15 @@ class AdminAuthServiceTest {
         void loginThrowsAdminNotApprovedWhenPending() {
             // given
             String email = "pending@example.com";
-            AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
-            when(admin.isApproved()).thenReturn(false);
+            String requestPassword = "password123^^";
+            AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
+            Admin admin = AdminFixture.builder()
+                .email(email)
+                .hashedPassword(HASHED_PASSWORD)
+                .approvalStatus(ApprovalStatus.PENDING)
+                .build();
             when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+            when(passwordHasher.matches(requestPassword, HASHED_PASSWORD)).thenReturn(true);
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.login(request))
@@ -213,18 +231,17 @@ class AdminAuthServiceTest {
 
         private static final String REFRESH_TOKEN = "refreshToken";
 
-        @Mock
-        private Admin admin;
-
         @Test
         @DisplayName("승인된 관리자가 갱신하면 현재 역할로 새 토큰을 발급합니다.")
         void issueTokensWithCurrentRole() {
             // given
             when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(new TokenOwner(1L, Role.ADMIN));
+            Admin admin = AdminFixture.builder()
+                .id(1L)
+                .role(AdminRole.SUPER_ADMIN)
+                .approvalStatus(ApprovalStatus.APPROVED)
+                .build();
             when(adminCommandRepository.findById(1L)).thenReturn(Optional.of(admin));
-            when(admin.getId()).thenReturn(1L);
-            when(admin.isApproved()).thenReturn(true);
-            when(admin.getTokenRole()).thenReturn(Role.SUPER_ADMIN);
             when(tokenProvider.createAccessToken(eq(1L), eq(Role.SUPER_ADMIN), any(Instant.class)))
                 .thenReturn("accessToken");
             when(refreshTokenService.issue(new TokenOwner(1L, Role.SUPER_ADMIN))).thenReturn("newRefreshToken");
@@ -243,8 +260,11 @@ class AdminAuthServiceTest {
             // given
             TokenOwner owner = new TokenOwner(1L, Role.ADMIN);
             when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(owner);
+            Admin admin = AdminFixture.builder()
+                .id(1L)
+                .approvalStatus(ApprovalStatus.PENDING)
+                .build();
             when(adminCommandRepository.findById(1L)).thenReturn(Optional.of(admin));
-            when(admin.isApproved()).thenReturn(false);
 
             // when & then
             assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))

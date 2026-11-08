@@ -1,16 +1,16 @@
 package deepple.deepple.like.query;
 
 import deepple.deepple.block.domain.Block;
+import deepple.deepple.block.fixture.BlockFixture;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
+import deepple.deepple.like.fixture.LikeFixture;
 import deepple.deepple.member.command.domain.member.District;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -306,7 +306,11 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
         likes = new ArrayList<>();
         for (final Member sender : senders) {
             for (final Member receiver : receivers) {
-                var like = Like.of(sender.getId(), receiver.getId(), LikeLevel.INTERESTED);
+                var like = LikeFixture.builder()
+                    .senderId(sender.getId())
+                    .receiverId(receiver.getId())
+                    .level(LikeLevel.INTERESTED)
+                    .build();
                 likes.add(like);
                 em.persist(like);
             }
@@ -319,7 +323,11 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
                 if (sender.getId() % 2 == 0) {
                     continue;
                 }
-                var like = Like.of(receiver.getId(), sender.getId(), LikeLevel.HIGHLY_INTERESTED);
+                var like = LikeFixture.builder()
+                    .senderId(receiver.getId())
+                    .receiverId(sender.getId())
+                    .level(LikeLevel.HIGHLY_INTERESTED)
+                    .build();
                 likes.add(like);
                 em.persist(like);
             }
@@ -327,28 +335,30 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember(String phone, String nickname, District district) {
-        var member = Member.fromPhoneNumber(phone);
-        em.persist(member);
-        var profile = MemberProfile.builder()
-            .nickname(Nickname.from(nickname))
-            .region(Region.of(district))
+        var member = MemberFixture.builder()
+            .phoneNumber(phone)
+            .nickname(nickname)
+            .district(district)
             .yearOfBirth(1995)
             .build();
-        member.updateProfile(profile);
+        em.persist(member);
         return member;
     }
 
     private ProfileImage createProfileImage(long memberId, String url) {
-        return ProfileImage.builder()
+        return ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl(ImageUrl.from(url))
-            .isPrimary(true)
+            .imageUrl(url)
+            .primary(true)
             .order(1)
             .build();
     }
 
     private void createBlock(long blockerId, long blockedMemberId) {
-        Block block = Block.of(blockerId, blockedMemberId);
+        Block block = BlockFixture.builder()
+            .blockerId(blockerId)
+            .blockedId(blockedMemberId)
+            .build();
         em.persist(block);
         em.flush();
     }

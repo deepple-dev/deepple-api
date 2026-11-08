@@ -8,10 +8,11 @@ import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import deepple.deepple.community.command.domain.selfintroduction.SelfIntroductionCommandRepository;
 import deepple.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
+import deepple.deepple.community.fixture.SelfIntroductionFixture;
 import deepple.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
 import deepple.deepple.member.command.domain.MemberErrorCode;
-import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -74,7 +75,7 @@ public class SelfIntroductionServiceTest {
             String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
 
             // When
             selfIntroductionService.write(new SelfIntroductionWriteRequest(title, content, null), memberId);
@@ -98,7 +99,7 @@ public class SelfIntroductionServiceTest {
             String imageUrl = "https://example.com/image.jpg";
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
 
             // When
             selfIntroductionService.write(new SelfIntroductionWriteRequest(title, content, imageUrl), memberId);
@@ -118,7 +119,7 @@ public class SelfIntroductionServiceTest {
             String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(false);
 
             try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
@@ -141,7 +142,7 @@ public class SelfIntroductionServiceTest {
             String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(true);
 
             try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
@@ -189,7 +190,7 @@ public class SelfIntroductionServiceTest {
             String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId)).thenReturn(Optional.empty());
 
             // When & Then
@@ -209,10 +210,15 @@ public class SelfIntroductionServiceTest {
             String title = "셀프 소개 제목";
             String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(1L, title, content, null);
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .id(selfIntroductionId)
+                .memberId(1L)
+                .title(title)
+                .content(content)
+                .build();
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
                 .thenReturn(Optional.of(selfIntroduction));
 
@@ -235,10 +241,15 @@ public class SelfIntroductionServiceTest {
             String updatedContent = "셀프 소개 내용입니다. 최소 내용이 100자 이상입니다~!!! (100자 이상)";
             String newImageUrl = "https://example.com/image.jpg";
 
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(memberId, title, content, null);
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .id(selfIntroductionId)
+                .memberId(memberId)
+                .title(title)
+                .content(content)
+                .build();
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
                 .thenReturn(Optional.of(selfIntroduction));
 
@@ -282,7 +293,7 @@ public class SelfIntroductionServiceTest {
             Long memberId = 2L;
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId)).thenReturn(Optional.empty());
 
             // When & Then
@@ -298,15 +309,13 @@ public class SelfIntroductionServiceTest {
             Long selfIntroductionId = 1L;
             Long memberId = 2L;
 
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(
-                1L,
-                "셀프 소개 제목",
-                "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)",
-                null
-            );
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .id(selfIntroductionId)
+                .memberId(1L)
+                .build();
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
                 .thenReturn(Optional.of(selfIntroduction));
 
@@ -323,15 +332,13 @@ public class SelfIntroductionServiceTest {
             Long selfIntroductionId = 1L;
             Long memberId = 2L;
 
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(
-                memberId,
-                "셀프 소개 제목",
-                "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)",
-                null
-            );
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .id(selfIntroductionId)
+                .memberId(memberId)
+                .build();
 
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
                 .thenReturn(Optional.of(selfIntroduction));
 
@@ -366,13 +373,11 @@ public class SelfIntroductionServiceTest {
             // Given
             Long selfIntroductionId = 1L;
             Long memberId = 2L;
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(
-                memberId,
-                "셀프 소개 제목",
-                "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)",
-                null
-            );
-            selfIntroduction.close();
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .id(selfIntroductionId)
+                .memberId(memberId)
+                .opened(false)
+                .build();
 
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
                 .thenReturn(Optional.of(selfIntroduction));
@@ -390,12 +395,10 @@ public class SelfIntroductionServiceTest {
             // Given
             Long selfIntroductionId = 1L;
             Long memberId = 2L;
-            SelfIntroduction selfIntroduction = SelfIntroduction.write(
-                memberId,
-                "셀프 소개 제목",
-                "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)",
-                null
-            );
+            SelfIntroduction selfIntroduction = SelfIntroductionFixture.builder()
+                .id(selfIntroductionId)
+                .memberId(memberId)
+                .build();
 
             Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
                 .thenReturn(Optional.of(selfIntroduction));
@@ -433,7 +436,7 @@ public class SelfIntroductionServiceTest {
             String fileName = "a.jpg";
             PresignedUrlResponse expected = new PresignedUrlResponse("https://put", "https://obj");
             Mockito.when(memberCommandRepository.findById(memberId))
-                .thenReturn(Optional.of(Mockito.mock(Member.class)));
+                .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
             Mockito.when(s3Uploader.getPresignedUrl(eq(fileName), eq(memberId), eq("self-introduction")))
                 .thenReturn(expected);
 

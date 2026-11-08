@@ -5,14 +5,13 @@ import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.common.repository.LockRepository;
 import deepple.deepple.match.command.domain.match.*;
 import deepple.deepple.match.command.domain.match.MatchErrorCode;
-import deepple.deepple.match.command.domain.match.vo.Message;
 import deepple.deepple.match.presentation.dto.MatchRequestDto;
+import deepple.deepple.match.fixture.MatchFixture;
 import deepple.deepple.match.presentation.dto.MatchResponseDto;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,14 +58,12 @@ class MatchServiceTest {
     }
 
     private void mockMember(Long memberId, String nickname) {
-        Member member = mock(Member.class);
-        MemberProfile profile = mock(MemberProfile.class);
-        Nickname nicknameObj = mock(Nickname.class);
+        Member member = MemberFixture.builder()
+            .id(memberId)
+            .nickname(nickname)
+            .build();
 
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
-        when(member.getProfile()).thenReturn(profile);
-        when(profile.getNickname()).thenReturn(nicknameObj);
-        when(nicknameObj.getValue()).thenReturn(nickname);
     }
 
     @Nested
@@ -173,11 +170,12 @@ class MatchServiceTest {
             String responseMessage = "매치 수락할게요";
             MatchContactType contactType = MatchContactType.PHONE_NUMBER;
             MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
-            MatchType type = MatchType.MATCH;
 
-            Match match = Match.request(requesterId, responderId, Message.from(responseMessage), "name", type,
-                contactType);
-            match.reject("name");
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .status(MatchStatus.REJECTED)
+                .build();
 
             when(matchRepository.findByIdAndResponderId(matchId, responderId))
                 .thenReturn(Optional.of(match));
@@ -196,21 +194,23 @@ class MatchServiceTest {
             Long responderId = 2L;
             Long matchId = 3L;
             String responseMessage = "매치 수락할게요";
-            MatchType type = MatchType.MATCH;
             MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(requesterId, responderId, Message.from(responseMessage), "name", type,
-                contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
 
             when(matchRepository.findByIdAndResponderId(matchId, responderId))
                 .thenReturn(Optional.of(match));
 
-            Member requester = mock(Member.class);
-            when(requester.isActive()).thenReturn(true);
+            Member requester = MemberFixture.builder()
+                .id(requesterId)
+                .build();
             when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
 
-            mockMember(responderId, "responderName");
+            mockMember(responderId, "responder");
 
             // When
             matchService.approve(matchId, responderId, responseDto);
@@ -251,12 +251,13 @@ class MatchServiceTest {
             Long matchId = 3L;
             String responseMessage = "매치 수락할게요";
 
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-            Match match = Match.request(requesterId, responderId, Message.from(responseMessage), "name", type,
-                contactType);
-            match.approve(Message.from(responseMessage), "name", contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .status(MatchStatus.MATCHED)
+                .responseMessage(responseMessage)
+                .responderContactType(MatchContactType.PHONE_NUMBER)
+                .build();
 
             when(matchRepository.findByIdAndResponderId(matchId, responderId))
                 .thenReturn(Optional.of(match));
@@ -274,21 +275,21 @@ class MatchServiceTest {
             Long requesterId = 1L;
             Long responderId = 2L;
             Long matchId = 3L;
-            String requestMessage = "매치 신청할게요";
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-            Match match = Match.request(requesterId, responderId, Message.from(requestMessage), "name", type,
-                contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             when(matchRepository.findByIdAndResponderId(matchId, responderId))
                 .thenReturn(Optional.of(match));
 
-            Member requester = mock(Member.class);
-            when(requester.isActive()).thenReturn(true);
+            Member requester = MemberFixture.builder()
+                .id(requesterId)
+                .build();
             when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
 
-            mockMember(responderId, "responderName");
+            mockMember(responderId, "responder");
 
             // When
             matchService.reject(matchId, responderId);
@@ -310,12 +311,11 @@ class MatchServiceTest {
             Long requesterId = 1L;
             Long responderId = 2L;
             Long matchId = 3L;
-            String requestMessage = "매치 신청할게요";
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-            Match match = Match.request(requesterId, responderId, Message.from(requestMessage), "name", type,
-                contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
                 .thenReturn(Optional.of(match));
@@ -349,19 +349,19 @@ class MatchServiceTest {
             Long requesterId = 1L;
             Long responderId = 2L;
             Long matchId = 3L;
-            String requestMessage = "매치 신청할게요";
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-            Match match = Match.request(requesterId, responderId, Message.from(requestMessage), "name", type,
-                contactType);
-            match.reject("name");
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .status(MatchStatus.REJECTED)
+                .build();
 
             when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
                 .thenReturn(Optional.of(match));
 
-            Member requester = mock(Member.class);
-            when(requester.isActive()).thenReturn(true);
+            Member requester = MemberFixture.builder()
+                .id(requesterId)
+                .build();
             when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
 
             // When
@@ -398,8 +398,10 @@ class MatchServiceTest {
             Long requesterId = 1L;
             Long responderId = 2L;
             Long matchId = 3L;
-            Match match = Match.request(requesterId, responderId, Message.from("매칭을 요청합니다."),
-                "name", MatchType.MATCH, MatchContactType.PHONE_NUMBER);
+            Match match = MatchFixture.builder()
+                .requesterId(requesterId)
+                .responderId(responderId)
+                .build();
 
             when(matchRepository.findByIdAndResponderId(matchId, responderId))
                 .thenReturn(Optional.of(match));

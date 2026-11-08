@@ -1,6 +1,7 @@
 package deepple.deepple.admin.command.domain.admin;
 
 import deepple.deepple.admin.command.domain.AdminErrorCode;
+import deepple.deepple.admin.fixture.AdminFixture;
 import deepple.deepple.common.enums.Role;
 import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
@@ -47,11 +48,8 @@ class AdminTest {
     @DisplayName("비밀번호가 일치하지 않으면 PasswordMismatchException이 발생합니다.")
     void throwsPasswordMismatchExceptionWhenPasswordMismatch() {
         // given
-        Admin admin = Admin.builder()
-            .email(Email.from("example@me.com"))
-            .password(Password.fromHashed("hashed-password"))
-            .name(Name.from("홍길동"))
-            .phoneNumber(PhoneNumber.from("01012345678"))
+        Admin admin = AdminFixture.builder()
+            .hashedPassword("hashed-password")
             .build();
 
         String rawPassword = "raw-password";
@@ -68,7 +66,12 @@ class AdminTest {
     @DisplayName("가입한 관리자는 승인되지 않은 상태입니다.")
     void newAdminIsNotApproved() {
         // given
-        Admin admin = createAdmin();
+        Admin admin = Admin.builder()
+            .email(Email.from("example@me.com"))
+            .password(Password.fromHashed("hashed-password"))
+            .name(Name.from("홍길동"))
+            .phoneNumber(PhoneNumber.from("01012345678"))
+            .build();
 
         // when & then
         assertThat(admin.isApproved()).isFalse();
@@ -79,7 +82,10 @@ class AdminTest {
     @DisplayName("승인하면 선택한 역할에 맞는 토큰 역할을 갖습니다.")
     void approveWithRole(AdminRole adminRole, Role tokenRole) {
         // given
-        Admin admin = createAdmin();
+        Admin admin = AdminFixture.builder()
+            .role(null)
+            .approvalStatus(ApprovalStatus.PENDING)
+            .build();
 
         // when
         admin.approve(adminRole);
@@ -93,21 +99,14 @@ class AdminTest {
     @DisplayName("이미 승인된 관리자를 다시 승인하면 예외가 발생합니다.")
     void approveAlreadyApprovedAdmin() {
         // given
-        Admin admin = createAdmin();
-        admin.approve(AdminRole.ADMIN);
+        Admin admin = AdminFixture.builder()
+            .role(AdminRole.ADMIN)
+            .approvalStatus(ApprovalStatus.APPROVED)
+            .build();
 
         // when & then
         assertThatThrownBy(() -> admin.approve(AdminRole.SUPER_ADMIN))
             .isInstanceOf(DeeppleException.class)
             .hasFieldOrPropertyWithValue("errorCode", AdminErrorCode.ADMIN_NOT_PENDING);
-    }
-
-    private Admin createAdmin() {
-        return Admin.builder()
-            .email(Email.from("example@me.com"))
-            .password(Password.fromHashed("hashed-password"))
-            .name(Name.from("홍길동"))
-            .phoneNumber(PhoneNumber.from("01012345678"))
-            .build();
     }
 }

@@ -1,7 +1,7 @@
 package deepple.deepple.notification.query;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
-import deepple.deepple.notification.command.domain.NotificationPreference;
+import deepple.deepple.notification.fixture.NotificationPreferenceFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findByMemberId(): 존재하는 회원의 알림 설정 조회")
     void findByMemberIdExistingMember() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().memberId(1L).build();
         preference.disableForNotificationType(LIKE);
         preference.enableForNotificationType(MATCH_REQUEST);
         em.persist(preference);
@@ -48,7 +48,7 @@ class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findByMemberId(): 존재하지 않는 회원의 알림 설정 조회")
     void findByMemberIdNonExistingMember() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().memberId(1L).build();
         em.persist(preference);
         em.flush();
         em.clear();
@@ -64,8 +64,10 @@ class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findByMemberId(): 전역 알림이 비활성화된 경우")
     void findByMemberIdGloballyDisabled() {
         // given
-        var preference = NotificationPreference.of(2L);
-        preference.disableGlobally();
+        var preference = NotificationPreferenceFixture.builder()
+            .memberId(2L)
+            .enabledGlobally(false)
+            .build();
         preference.enableForNotificationType(LIKE);
         em.persist(preference);
         em.flush();
@@ -87,7 +89,7 @@ class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findByMemberId(): 기본 설정 확인 (모든 알림 활성화)")
     void findByMemberIdDefaultSettings() {
         // given
-        var preference = NotificationPreference.of(3L);
+        var preference = NotificationPreferenceFixture.builder().memberId(3L).build();
         em.persist(preference);
         em.flush();
         em.clear();
@@ -112,7 +114,7 @@ class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findByMemberId(): 일부 알림 타입만 비활성화된 경우")
     void findByMemberIdPartiallyDisabled() {
         // given
-        var preference = NotificationPreference.of(4L);
+        var preference = NotificationPreferenceFixture.builder().memberId(4L).build();
         preference.disableForNotificationType(LIKE);
         preference.enableForNotificationType(MATCH_REQUEST);
         preference.enableForNotificationType(PROFILE_EXCHANGE_REQUEST);

@@ -1,5 +1,6 @@
 package deepple.deepple.notification.command.domain;
 
+import deepple.deepple.notification.fixture.NotificationPreferenceFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ class NotificationPreferenceTest {
     @DisplayName("disableGlobally(): 글로벌 비활성화 시 모든 타입 수신 불가")
     void disableGloballyDisablesAllTypes() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
 
         // when
         preference.disableGlobally();
@@ -47,8 +48,9 @@ class NotificationPreferenceTest {
     @DisplayName("enableGlobally(): 글로벌 활성화 시 원복 확인")
     void enableGloballyRestoresAllTypes() {
         // given
-        var preference = NotificationPreference.of(1L);
-        preference.disableGlobally();
+        var preference = NotificationPreferenceFixture.builder()
+            .enabledGlobally(false)
+            .build();
 
         // when
         preference.enableGlobally();
@@ -63,7 +65,7 @@ class NotificationPreferenceTest {
     @DisplayName("disableForNotificationType(): 특정 타입만 비활성화")
     void disableForNotificationTypeAffectsOnlyThatType() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
 
         // when
         preference.disableForNotificationType(MATCH_REQUEST);
@@ -77,7 +79,7 @@ class NotificationPreferenceTest {
     @DisplayName("enableForNotificationType(): 특정 타입만 활성화")
     void enableForNotificationTypeRestoresOnlyThatType() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
         preference.disableForNotificationType(MATCH_REQUEST);
 
         // when
@@ -91,7 +93,7 @@ class NotificationPreferenceTest {
     @DisplayName("isDisabledForType(): 내부 맵 값 그대로 반환")
     void isDisabledForTypeReflectsInternalMap() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
         boolean before = preference.isDisabledForType(MATCH_REQUEST);
 
         // when
@@ -107,7 +109,7 @@ class NotificationPreferenceTest {
     @DisplayName("getNotificationPreferences(): 반환된 맵은 내부 상태의 복사본이어야 함")
     void getNotificationPreferencesReturnsCopy() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
 
         // when
         Map<NotificationType, Boolean> returnedPreferences = preference.getNotificationPreferences();
@@ -122,7 +124,7 @@ class NotificationPreferenceTest {
     @DisplayName("updateNotificationPreferences(): 지정된 타입만 업데이트")
     void updateNotificationPreferencesUpdatesSpecifiedTypes() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
         Map<NotificationType, Boolean> updates = new EnumMap<>(NotificationType.class);
         updates.put(MATCH_REQUEST, false);
         updates.put(LIKE, false);
@@ -140,7 +142,7 @@ class NotificationPreferenceTest {
     @DisplayName("설정에 없는 타입: 수신 가능으로 판단")
     void missingTypeIsEnabled() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
         setField(preference, "preferences", new EnumMap<>(Map.of(MATCH_REQUEST, false)));
 
         // when & then
@@ -153,7 +155,7 @@ class NotificationPreferenceTest {
     @DisplayName("getNotificationPreferences(): 설정에 없는 타입도 수신 가능으로 포함")
     void getNotificationPreferencesIncludesMissingTypes() {
         // given
-        var preference = NotificationPreference.of(1L);
+        var preference = NotificationPreferenceFixture.builder().build();
         setField(preference, "preferences", new EnumMap<>(Map.of(MATCH_REQUEST, false)));
 
         // when

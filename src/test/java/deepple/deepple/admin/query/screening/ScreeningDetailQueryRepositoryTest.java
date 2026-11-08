@@ -1,17 +1,18 @@
 package deepple.deepple.admin.query.screening;
 
 import deepple.deepple.admin.command.domain.screening.Screening;
+import deepple.deepple.admin.fixture.ScreeningFixture;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
+import deepple.deepple.interview.fixture.InterviewAnswerFixture;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.PhoneNumber;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ class ScreeningDetailQueryRepositoryTest extends RepositoryTestSupport {
         Member member = createMember();
         long memberId = (Long) em.persistAndGetId(member);
 
-        Screening screening = Screening.from(memberId);
+        Screening screening = ScreeningFixture.builder().memberId(memberId).build();
         long screeningId = (Long) em.persistAndGetId(screening);
 
         ProfileImage profileImage1 = createProfileImage(memberId, "image_url_1", true);
@@ -51,8 +52,16 @@ class ScreeningDetailQueryRepositoryTest extends RepositoryTestSupport {
         long question2Id = (Long) em.persistAndGetId(question2);
         em.persist(question3);
 
-        InterviewAnswer answer1 = InterviewAnswer.of(question1Id, memberId, "answer for question1");
-        InterviewAnswer answer2 = InterviewAnswer.of(question2Id, memberId, "answer for question2");
+        InterviewAnswer answer1 = InterviewAnswerFixture.builder()
+            .questionId(question1Id)
+            .memberId(memberId)
+            .content("answer for question1")
+            .build();
+        InterviewAnswer answer2 = InterviewAnswerFixture.builder()
+            .questionId(question2Id)
+            .memberId(memberId)
+            .content("answer for question2")
+            .build();
         em.persist(answer1);
         em.persist(answer2);
 
@@ -83,27 +92,27 @@ class ScreeningDetailQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember() {
-        return Member.builder()
-            .phoneNumber(PhoneNumber.from("01011111111"))
-            .profile(
-                MemberProfile.builder()
-                    .nickname(Nickname.from("member"))
-                    .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
-                    .gender(Gender.MALE)
-                    .build()
-            )
+        return MemberFixture.builder()
+            .phoneNumber("01011111111")
+            .nickname("member")
+            .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25)
+            .gender(Gender.MALE)
             .build();
     }
 
     private ProfileImage createProfileImage(long memberId, String imageUrl, boolean isPrimary) {
-        return ProfileImage.builder()
+        return ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl(ImageUrl.from(imageUrl))
-            .isPrimary(isPrimary)
+            .imageUrl(imageUrl)
+            .primary(isPrimary)
             .build();
     }
 
     private InterviewQuestion createInterviewQuestion(String question1, boolean isPublic) {
-        return InterviewQuestion.of(question1, InterviewCategory.PERSONAL, isPublic);
+        return InterviewQuestionFixture.builder()
+            .content(question1)
+            .category(InterviewCategory.PERSONAL)
+            .publicQuestion(isPublic)
+            .build();
     }
 }

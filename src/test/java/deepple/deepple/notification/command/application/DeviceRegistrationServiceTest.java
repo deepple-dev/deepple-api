@@ -1,7 +1,7 @@
 package deepple.deepple.notification.command.application;
 
-import deepple.deepple.notification.command.domain.DeviceRegistration;
 import deepple.deepple.notification.command.domain.DeviceRegistrationCommandRepository;
+import deepple.deepple.notification.fixture.DeviceRegistrationFixture;
 import deepple.deepple.notification.presentation.DeviceRegisterRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,11 @@ class DeviceRegistrationServiceTest {
         // given
         long memberId = 2L;
         var request = new DeviceRegisterRequest("new-device-456", "new-token");
-        var existing = spy(DeviceRegistration.of(memberId, "old-device", "old-token"));
+        var existing = spy(DeviceRegistrationFixture.builder()
+            .memberId(memberId)
+            .deviceId("old-device")
+            .registrationToken("old-token")
+            .build());
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(existing));
 
         // when
@@ -65,8 +69,12 @@ class DeviceRegistrationServiceTest {
     void activateByMemberIdActivatesExistingDevice() {
         // given
         long memberId = 3L;
-        var existing = spy(DeviceRegistration.of(memberId, "device-123", "token"));
-        existing.deactivate();
+        var existing = spy(DeviceRegistrationFixture.builder()
+            .memberId(memberId)
+            .deviceId("device-123")
+            .registrationToken("token")
+            .active(false)
+            .build());
         when(repository.findByMemberId(memberId)).thenReturn(Optional.of(existing));
 
         // when
@@ -95,7 +103,11 @@ class DeviceRegistrationServiceTest {
     void deactivateByMemberIdDeactivatesActiveDevice() {
         // given
         long memberId = 5L;
-        var existing = spy(DeviceRegistration.of(memberId, "device-123", "token"));
+        var existing = spy(DeviceRegistrationFixture.builder()
+            .memberId(memberId)
+            .deviceId("device-123")
+            .registrationToken("token")
+            .build());
         when(repository.findByMemberIdAndIsActiveTrue(memberId)).thenReturn(Optional.of(existing));
 
         // when

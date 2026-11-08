@@ -3,6 +3,7 @@ package deepple.deepple.member.command.application.member;
 import deepple.deepple.admin.command.domain.suspension.Suspension;
 import deepple.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import deepple.deepple.admin.command.domain.suspension.SuspensionStatus;
+import deepple.deepple.admin.fixture.SuspensionFixture;
 import deepple.deepple.auth.domain.AuthErrorCode;
 import deepple.deepple.auth.domain.RefreshTokenService;
 import deepple.deepple.auth.domain.TokenOwner;
@@ -19,6 +20,7 @@ import deepple.deepple.member.command.domain.member.ActivityStatus;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import deepple.deepple.member.command.domain.member.event.MemberLoggedInEvent;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,13 +34,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class, MockEventsExtension.class})
@@ -72,15 +72,19 @@ class MemberAuthServiceTest {
 
         @BeforeEach
         void setUp() {
-            member = Member.fromPhoneNumber("01012345678");
             memberId = 1L;
-            ReflectionTestUtils.setField(member, "id", memberId);
-            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.ACTIVE);
+            member = MemberFixture.builder()
+                .id(memberId)
+                .phoneNumber("01012345678")
+                .noProfile()
+                .build();
 
-            permanentStoppedMember = Member.fromPhoneNumber("01012345678");
-            ReflectionTestUtils.setField(permanentStoppedMember, "id", 2L);
-            ReflectionTestUtils.setField(permanentStoppedMember, "activityStatus",
-                ActivityStatus.SUSPENDED_PERMANENTLY);
+            permanentStoppedMember = MemberFixture.builder()
+                .id(2L)
+                .phoneNumber("01012345678")
+                .activityStatus(ActivityStatus.SUSPENDED_PERMANENTLY)
+                .noProfile()
+                .build();
         }
 
         @Test
@@ -91,15 +95,19 @@ class MemberAuthServiceTest {
             String phoneNumber = "01012341234";
             String code = "012345";
 
-            Member temporarySuspensionMember = mock(Member.class);
-            when(temporarySuspensionMember.getId()).thenReturn(memberId);
-            when(temporarySuspensionMember.isDeleted()).thenReturn(false);
-            when(temporarySuspensionMember.getActivityStatus()).thenReturn(ActivityStatus.SUSPENDED_TEMPORARILY);
+            Member temporarySuspensionMember = MemberFixture.builder()
+                .id(memberId)
+                .phoneNumber(phoneNumber)
+                .activityStatus(ActivityStatus.SUSPENDED_TEMPORARILY)
+                .build();
 
             Instant suspensionExpireAt = Instant.now().plus(3, java.time.temporal.ChronoUnit.DAYS);
 
-            Suspension suspension = mock(Suspension.class);
-            when(suspension.getExpireAt()).thenReturn(suspensionExpireAt);
+            Suspension suspension = SuspensionFixture.builder()
+                .memberId(memberId)
+                .status(SuspensionStatus.TEMPORARY)
+                .expireAt(suspensionExpireAt)
+                .build();
 
             when(memberCommandRepository.findByPhoneNumber(phoneNumber))
                 .thenReturn(Optional.of(temporarySuspensionMember));
@@ -145,7 +153,7 @@ class MemberAuthServiceTest {
             // Given
             String phoneNumber = "01012345678";
             String code = "01012345678";
-            Member deletedMember = Member.fromPhoneNumber("01012345678");
+            Member deletedMember = MemberFixture.builder().phoneNumber(phoneNumber).build();
             deletedMember.delete();
 
             when(memberCommandRepository.findByPhoneNumber(phoneNumber))
@@ -164,7 +172,12 @@ class MemberAuthServiceTest {
             // Given
             String phoneNumber = "01012345678";
             String code = "01012345678";
-            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.DORMANT);
+            member = MemberFixture.builder()
+                .id(memberId)
+                .phoneNumber(phoneNumber)
+                .activityStatus(ActivityStatus.DORMANT)
+                .noProfile()
+                .build();
 
             when(memberCommandRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(member));
             Mockito.doNothing().when(authMessageService).authenticate(phoneNumber, code);
@@ -302,8 +315,7 @@ class MemberAuthServiceTest {
         void updatesLastAccessedAtOnRefresh() {
             // Given
             long memberId = 1L;
-            Member member = Member.fromPhoneNumber("01012345678");
-            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.ACTIVE);
+            Member member = MemberFixture.builder().id(memberId).build();
             when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(memberId));
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
             when(jwtProvider.createAccessToken(Mockito.eq(memberId), Mockito.eq(Role.MEMBER), Mockito.any()))
@@ -324,8 +336,10 @@ class MemberAuthServiceTest {
         void revokeAllWhenSuspendedMemberRefreshes() {
             // Given
             long memberId = 2L;
-            Member member = Member.fromPhoneNumber("01012345678");
-            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.SUSPENDED_PERMANENTLY);
+            Member member = MemberFixture.builder()
+                .id(memberId)
+                .activityStatus(ActivityStatus.SUSPENDED_PERMANENTLY)
+                .build();
             when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(memberId));
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
@@ -342,8 +356,10 @@ class MemberAuthServiceTest {
         void refreshDormantMember() {
             // Given
             long memberId = 3L;
-            Member member = Member.fromPhoneNumber("01012345678");
-            ReflectionTestUtils.setField(member, "activityStatus", ActivityStatus.DORMANT);
+            Member member = MemberFixture.builder()
+                .id(memberId)
+                .activityStatus(ActivityStatus.DORMANT)
+                .build();
             when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(TokenOwner.member(memberId));
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
             when(refreshTokenService.issue(TokenOwner.member(memberId))).thenReturn("newRefreshToken");
@@ -391,7 +407,7 @@ class MemberAuthServiceTest {
         void softDeleteWhenMemberIsFound() {
             // Given
             long memberId = 1L;
-            Member member = Member.fromPhoneNumber("01012345678");
+            Member member = MemberFixture.builder().id(memberId).build();
             when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
             // When

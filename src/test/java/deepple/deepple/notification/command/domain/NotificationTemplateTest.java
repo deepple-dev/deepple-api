@@ -1,5 +1,6 @@
 package deepple.deepple.notification.command.domain;
 
+import deepple.deepple.notification.fixture.NotificationTemplateFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +34,11 @@ class NotificationTemplateTest {
     @DisplayName("generateTitle(): 템플릿 파라미터가 전달된 값으로 치환됨")
     void generateTitleReplacesParams() {
         // given
-        var tpl = NotificationTemplate.of(LIKE, "좋아요: {sender}님이 보냄", "");
+        var tpl = NotificationTemplateFixture.builder()
+            .type(LIKE)
+            .titleTemplate("좋아요: {sender}님이 보냄")
+            .bodyTemplate("")
+            .build();
         var params = Map.of("sender", "Alice");
 
         // when
@@ -47,7 +52,11 @@ class NotificationTemplateTest {
     @DisplayName("generateBody(): 누락된 파라미터는 '{error}'로 대체됨")
     void generateBodyMissingParam() {
         // given
-        var tpl = NotificationTemplate.of(LIKE, "", "이벤트: {event}, 사용자: {user}");
+        var tpl = NotificationTemplateFixture.builder()
+            .type(LIKE)
+            .titleTemplate("")
+            .bodyTemplate("이벤트: {event}, 사용자: {user}")
+            .build();
         var params = Map.of("event", "LIKE");
 
         // when
@@ -61,7 +70,11 @@ class NotificationTemplateTest {
     @DisplayName("generateTitle(): 플레이스홀더가 없으면 원본 템플릿 반환")
     void generateTitleWithoutPlaceholders() {
         // given
-        var tpl = NotificationTemplate.of(LIKE, "고정 텍스트", "");
+        var tpl = NotificationTemplateFixture.builder()
+            .type(LIKE)
+            .titleTemplate("고정 텍스트")
+            .bodyTemplate("")
+            .build();
 
         // when
         var title = tpl.generateTitle(Map.of());
@@ -74,7 +87,11 @@ class NotificationTemplateTest {
     @DisplayName("updateTitleTemplate(), updateBodyTemplate(): 템플릿 내용이 변경됨")
     void updateTemplates() {
         // given
-        var tpl = NotificationTemplate.of(MATCH_REQUEST, "old {x}", "old {y}");
+        var tpl = NotificationTemplateFixture.builder()
+            .type(MATCH_REQUEST)
+            .titleTemplate("old {x}")
+            .bodyTemplate("old {y}")
+            .build();
 
         // when
         tpl.updateTitleTemplate("new {a}");
@@ -89,7 +106,7 @@ class NotificationTemplateTest {
     @DisplayName("activate(), deactivate(): 활성화 상태가 토글됨")
     void activateDeactivate() {
         // given
-        var tpl = NotificationTemplate.of(LIKE, "", "");
+        var tpl = NotificationTemplateFixture.builder().build();
         tpl.deactivate();
         assertThat(tpl.isActive()).isFalse();
 

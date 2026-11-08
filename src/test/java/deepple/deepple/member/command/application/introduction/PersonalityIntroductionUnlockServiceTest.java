@@ -9,6 +9,7 @@ import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.member.query.introduction.intra.PersonalityIntroductionOpenState;
 import deepple.deepple.member.query.introduction.intra.PersonalityIntroductionRedisRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -164,8 +165,7 @@ class PersonalityIntroductionUnlockServiceTest {
     }
 
     private void givenValidTarget(long memberId, long targetMemberId) {
-        Member target = mock(Member.class);
-        when(target.isActive()).thenReturn(true);
+        Member target = MemberFixture.builder().id(targetMemberId).build();
         when(memberCommandRepository.findById(targetMemberId)).thenReturn(Optional.of(target));
         when(blockRepository.existsByBlockerIdAndBlockedId(memberId, targetMemberId)).thenReturn(false);
         when(blockRepository.existsByBlockerIdAndBlockedId(targetMemberId, memberId)).thenReturn(false);

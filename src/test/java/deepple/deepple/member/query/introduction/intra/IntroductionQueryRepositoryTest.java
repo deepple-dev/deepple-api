@@ -3,13 +3,14 @@ package deepple.deepple.member.query.introduction.intra;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
+import deepple.deepple.like.fixture.LikeFixture;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.member.*;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Region;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.MemberIntroductionFixture;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import deepple.deepple.member.query.introduction.application.IntroductionSearchCondition;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,37 +53,30 @@ class IntroductionQueryRepositoryTest extends RepositoryTestSupport {
             Hobby hobby3 = Hobby.CAMPING;
             Hobby hobby4 = Hobby.BADMINTON_AND_TENNIS;
 
-            Member member1 = Member.fromPhoneNumber("01011111111");
-            entityManager.persist(member1);
-            MemberProfile profile1 = MemberProfile.builder()
+            Member member1 = MemberFixture.builder()
                 .yearOfBirth(currentYear - 19) // 20살
                 .hobbies(Set.of(hobby1, hobby2))
                 .religion(Religion.BUDDHIST)
-                .region(Region.of(District.DONG_GU_DAEJEON))
+                .district(District.DONG_GU_DAEJEON)
                 .smokingStatus(SmokingStatus.DAILY)
                 .drinkingStatus(DrinkingStatus.SOCIAL)
                 .gender(Gender.MALE)
+                .profilePublic(true)
                 .build();
-            member1.updateProfile(profile1);
-            member1.publishProfile();
-
+            entityManager.persist(member1);
             entityManager.flush();
 
-            Member member2 = Member.fromPhoneNumber("01022222222");
-            entityManager.persist(member2);
-            MemberProfile profile2 = MemberProfile.builder()
+            Member member2 = MemberFixture.builder()
                 .yearOfBirth(currentYear - 39) // 40살
                 .hobbies(Set.of(hobby3, hobby4))
                 .religion(Religion.NONE)
-                .region(deepple.deepple.member.command.domain.member.vo.Region.of(District.GANGNAM_GU))
+                .district(District.GANGNAM_GU)
                 .smokingStatus(SmokingStatus.NONE)
                 .drinkingStatus(DrinkingStatus.NONE)
                 .gender(Gender.FEMALE)
+                .profilePublic(!fieldName.equals("isProfilePublic"))
                 .build();
-            member2.updateProfile(profile2);
-            if (!fieldName.equals("isProfilePublic")) {
-                member2.publishProfile();
-            }
+            entityManager.persist(member2);
             entityManager.flush();
 
 
@@ -152,65 +146,71 @@ class IntroductionQueryRepositoryTest extends RepositoryTestSupport {
             Hobby hobby3 = Hobby.CAMPING;
             Hobby hobby4 = Hobby.BADMINTON_AND_TENNIS;
 
-            Member me = Member.fromPhoneNumber("01011111111");
-            entityManager.persist(me);
-            MemberProfile profile1 = MemberProfile.builder()
+            Member me = MemberFixture.builder()
                 .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
                 .hobbies(Set.of(hobby1, hobby2))
                 .religion(Religion.BUDDHIST)
-                .region(Region.of(District.DONG_GU_DAEJEON))
+                .district(District.DONG_GU_DAEJEON)
                 .smokingStatus(SmokingStatus.DAILY)
                 .drinkingStatus(DrinkingStatus.SOCIAL)
                 .build();
-            me.updateProfile(profile1);
+            entityManager.persist(me);
             entityManager.flush();
 
-            Member introductionTargetMember = Member.fromPhoneNumber("01022222222");
-            entityManager.persist(introductionTargetMember);
-            MemberProfile introductionTargetMemberProfile = MemberProfile.builder()
+            Member introductionTargetMember = MemberFixture.builder()
                 .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
                 .hobbies(Set.of(hobby3, hobby4))
                 .religion(Religion.NONE)
-                .region(Region.of(District.GANGBUK_GU))
+                .district(District.GANGBUK_GU)
                 .smokingStatus(SmokingStatus.NONE)
                 .drinkingStatus(DrinkingStatus.NONE)
                 .mbti(Mbti.ISTP)
                 .build();
-            introductionTargetMember.updateProfile(introductionTargetMemberProfile);
+            entityManager.persist(introductionTargetMember);
             entityManager.flush();
 
-            ProfileImage primaryProfileImage = ProfileImage.builder()
+            ProfileImage primaryProfileImage = ProfileImageFixture.builder()
                 .memberId(introductionTargetMember.getId())
-                .imageUrl(ImageUrl.from("https://example.com"))
-                .isPrimary(true)
+                .imageUrl("https://example.com")
+                .primary(true)
                 .order(1)
                 .build();
 
-            ProfileImage nonPrimaryProfileImage = ProfileImage.builder()
+            ProfileImage nonPrimaryProfileImage = ProfileImageFixture.builder()
                 .memberId(introductionTargetMember.getId())
-                .imageUrl(ImageUrl.from("https://example2.com"))
-                .isPrimary(false)
+                .imageUrl("https://example2.com")
+                .primary(false)
                 .order(2)
                 .build();
 
             entityManager.persist(primaryProfileImage);
             entityManager.persist(nonPrimaryProfileImage);
 
-            Like like = Like.of(me.getId(), introductionTargetMember.getId(), LikeLevel.INTERESTED);
+            Like like = LikeFixture.builder()
+                .senderId(me.getId())
+                .receiverId(introductionTargetMember.getId())
+                .level(LikeLevel.INTERESTED)
+                .build();
             entityManager.persist(like);
             entityManager.flush();
 
             IntroductionType type = IntroductionType.DIAMOND_GRADE;
 
             if (fieldName.equals("introduced")) {
-                MemberIntroduction memberIntroduction = MemberIntroduction.of(me.getId(),
-                    introductionTargetMember.getId(), type);
+                MemberIntroduction memberIntroduction = MemberIntroductionFixture.builder()
+                    .memberId(me.getId())
+                    .introducedMemberId(introductionTargetMember.getId())
+                    .type(type)
+                    .build();
                 entityManager.persist(memberIntroduction);
                 entityManager.flush();
             }
             if (fieldName.equals("notIntroduced1")) {
-                MemberIntroduction memberIntroduction = MemberIntroduction.of(introductionTargetMember.getId(),
-                    me.getId(), type);
+                MemberIntroduction memberIntroduction = MemberIntroductionFixture.builder()
+                    .memberId(introductionTargetMember.getId())
+                    .introducedMemberId(me.getId())
+                    .type(type)
+                    .build();
                 entityManager.persist(memberIntroduction);
                 entityManager.flush();
             }
@@ -252,51 +252,48 @@ class IntroductionQueryRepositoryTest extends RepositoryTestSupport {
             Hobby hobby3 = Hobby.CAMPING;
             Hobby hobby4 = Hobby.BADMINTON_AND_TENNIS;
 
-            Member me = Member.fromPhoneNumber("01011111111");
-            entityManager.persist(me);
-            MemberProfile profile1 = MemberProfile.builder()
+            Member me = MemberFixture.builder()
                 .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
                 .hobbies(Set.of(hobby1, hobby2))
                 .religion(Religion.BUDDHIST)
-                .region(Region.of(District.DONG_GU_DAEJEON))
+                .district(District.DONG_GU_DAEJEON)
                 .smokingStatus(SmokingStatus.DAILY)
                 .drinkingStatus(DrinkingStatus.SOCIAL)
                 .build();
-            me.updateProfile(profile1);
+            entityManager.persist(me);
             entityManager.flush();
 
-            Member isIntroducedTrueMember = Member.fromPhoneNumber("01022222222");
+            Member isIntroducedTrueMember = MemberFixture.builder()
+                .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
+                .hobbies(Set.of(hobby3, hobby4))
+                .religion(Religion.NONE)
+                .district(District.GANGBUK_GU)
+                .smokingStatus(SmokingStatus.NONE)
+                .drinkingStatus(DrinkingStatus.NONE)
+                .mbti(Mbti.ISTP)
+                .build();
             entityManager.persist(isIntroducedTrueMember);
-            MemberProfile isIntroducedTrueMemberProfile = MemberProfile.builder()
-                .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
-                .hobbies(Set.of(hobby3, hobby4))
-                .religion(Religion.NONE)
-                .region(Region.of(District.GANGBUK_GU))
-                .smokingStatus(SmokingStatus.NONE)
-                .drinkingStatus(DrinkingStatus.NONE)
-                .mbti(Mbti.ISTP)
-                .build();
-            isIntroducedTrueMember.updateProfile(isIntroducedTrueMemberProfile);
             entityManager.flush();
 
-            Member isIntroducedFalseMember = Member.fromPhoneNumber("01033333333");
-            entityManager.persist(isIntroducedFalseMember);
-            MemberProfile isIntroducedFalseMemberProfile = MemberProfile.builder()
+            Member isIntroducedFalseMember = MemberFixture.builder()
                 .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
                 .hobbies(Set.of(hobby3, hobby4))
                 .religion(Religion.NONE)
-                .region(Region.of(District.GANGBUK_GU))
+                .district(District.GANGBUK_GU)
                 .smokingStatus(SmokingStatus.NONE)
                 .drinkingStatus(DrinkingStatus.NONE)
                 .mbti(Mbti.ISTP)
                 .build();
-            isIntroducedFalseMember.updateProfile(isIntroducedFalseMemberProfile);
+            entityManager.persist(isIntroducedFalseMember);
             entityManager.flush();
 
             IntroductionType type = IntroductionType.DIAMOND_GRADE;
 
-            MemberIntroduction memberIntroduction = MemberIntroduction.of(me.getId(), isIntroducedTrueMember.getId(),
-                type);
+            MemberIntroduction memberIntroduction = MemberIntroductionFixture.builder()
+                .memberId(me.getId())
+                .introducedMemberId(isIntroducedTrueMember.getId())
+                .type(type)
+                .build();
             entityManager.persist(memberIntroduction);
             entityManager.flush();
 

@@ -2,9 +2,8 @@ package deepple.deepple.heart.query.hearttransaction;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
+import deepple.deepple.heart.fixture.HeartTransactionFixture;
 import deepple.deepple.heart.query.hearttransaction.condition.HeartTransactionSearchCondition;
 import deepple.deepple.heart.query.hearttransaction.view.HeartTransactionView;
 import org.junit.jupiter.api.DisplayName;
@@ -137,8 +136,14 @@ class HeartTransactionQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private HeartTransaction createHeartTransaction(final long memberId) {
-        final HeartTransaction heartTransaction = HeartTransaction.of(memberId, TransactionType.PURCHASE,
-            TransactionType.PURCHASE.getDescription(), HeartAmount.from(10L), HeartBalance.of(100L, 100L));
+        final HeartTransaction heartTransaction = HeartTransactionFixture.builder()
+            .memberId(memberId)
+            .transactionType(TransactionType.PURCHASE)
+            .content(TransactionType.PURCHASE.getDescription())
+            .amount(10L)
+            .missionHeartBalance(100L)
+            .purchaseHeartBalance(100L)
+            .build();
         entityManager.persist(heartTransaction);
         return heartTransaction;
     }

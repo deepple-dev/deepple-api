@@ -2,6 +2,7 @@ package deepple.deepple.admin.command.domain.screening;
 
 import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
+import deepple.deepple.admin.fixture.ScreeningFixture;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,7 @@ class ScreeningTest {
         void approvePendingScreening() {
             // given
             final long memberId = 10L;
-            Screening screening = Screening.from(memberId);
+            Screening screening = ScreeningFixture.builder().memberId(memberId).build();
 
             // when
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
@@ -69,8 +70,12 @@ class ScreeningTest {
         void approveRejectedScreening() {
             // given
             final long memberId = 10L;
-            Screening screening = Screening.from(memberId);
-            screening.reject(1L, RejectionReasonType.CONTACT_IN_PROFILE);
+            Screening screening = ScreeningFixture.builder()
+                .memberId(memberId)
+                .adminId(1L)
+                .status(ScreeningStatus.REJECTED)
+                .rejectionReason(RejectionReasonType.CONTACT_IN_PROFILE)
+                .build();
 
             // when
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
@@ -92,8 +97,11 @@ class ScreeningTest {
         void approveApprovedScreening() {
             // given
             final long memberId = 10L;
-            Screening screening = Screening.from(memberId);
-            screening.approve(1L);
+            Screening screening = ScreeningFixture.builder()
+                .memberId(memberId)
+                .adminId(1L)
+                .status(ScreeningStatus.APPROVED)
+                .build();
 
             try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
                 screening.approve(2L);
@@ -118,7 +126,7 @@ class ScreeningTest {
         @DisplayName("PENDING 상태인 Screening을 reject하면, REJECTED 상태가 되며 거절 사유가 설정됩니다.")
         void rejectPendingScreening() {
             // given
-            Screening screening = Screening.from(2L);
+            Screening screening = ScreeningFixture.builder().memberId(2L).build();
 
             // when
             screening.reject(3L, RejectionReasonType.INAPPROPRIATE_IMAGE);
@@ -133,8 +141,12 @@ class ScreeningTest {
         @DisplayName("REJECTED 상태인 Screening을 다시 reject하면, 재거절이 가능하며 거절 사유가 덮어씌워집니다.")
         void rejectRejectedScreening() {
             // given
-            Screening screening = Screening.from(2L);
-            screening.reject(3L, RejectionReasonType.INAPPROPRIATE_IMAGE);
+            Screening screening = ScreeningFixture.builder()
+                .memberId(2L)
+                .adminId(3L)
+                .status(ScreeningStatus.REJECTED)
+                .rejectionReason(RejectionReasonType.INAPPROPRIATE_IMAGE)
+                .build();
 
             // when
             screening.reject(4L, RejectionReasonType.CONTACT_IN_PROFILE);
@@ -149,8 +161,11 @@ class ScreeningTest {
         @DisplayName("APPROVED 상태인 Screening을 reject하려고 하면 예외가 발생합니다.")
         void rejectApprovedScreeningThrowsException() {
             // given
-            Screening screening = Screening.from(2L);
-            screening.approve(10L);
+            Screening screening = ScreeningFixture.builder()
+                .memberId(2L)
+                .adminId(10L)
+                .status(ScreeningStatus.APPROVED)
+                .build();
 
             // when & then
             assertThatThrownBy(() -> screening.reject(11L, RejectionReasonType.CONTACT_IN_PROFILE))

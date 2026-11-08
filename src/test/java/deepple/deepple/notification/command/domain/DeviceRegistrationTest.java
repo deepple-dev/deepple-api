@@ -1,5 +1,6 @@
 package deepple.deepple.notification.command.domain;
 
+import deepple.deepple.notification.fixture.DeviceRegistrationFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ class DeviceRegistrationTest {
     @DisplayName("deactivate(): 활성화 상태를 false로 변경")
     void deactivateSetsInactive() {
         // given
-        var reg = DeviceRegistration.of(1L, "device-123", "token");
+        var reg = DeviceRegistrationFixture.builder().build();
 
         // when
         reg.deactivate();
@@ -41,7 +42,7 @@ class DeviceRegistrationTest {
     @DisplayName("activate(): 비활성화된 상태를 true로 복원")
     void activateRestoresActive() {
         // given
-        var reg = DeviceRegistration.of(1L, "device-123", "token");
+        var reg = DeviceRegistrationFixture.builder().build();
         reg.deactivate();
         assertThat(reg.isActive()).isFalse();
 
@@ -56,8 +57,10 @@ class DeviceRegistrationTest {
     @DisplayName("refreshRegistrationToken(): 토큰 갱신 및 자동 활성화")
     void refreshRegistrationTokenUpdatesTokenAndActivates() {
         // given
-        var reg = DeviceRegistration.of(1L, "device-123", "old-token");
-        reg.deactivate();
+        var reg = DeviceRegistrationFixture.builder()
+            .registrationToken("old-token")
+            .active(false)
+            .build();
         String newToken = "new-token-xyz";
 
         // when
@@ -72,8 +75,11 @@ class DeviceRegistrationTest {
     @DisplayName("update(): 디바이스 ID와 토큰 갱신 및 activate() 호출")
     void updateUpdatesDeviceIdAndTokenAndCallsActivate() {
         // given
-        var reg = DeviceRegistration.of(1L, "old-device", "old-token");
-        reg.deactivate();
+        var reg = DeviceRegistrationFixture.builder()
+            .deviceId("old-device")
+            .registrationToken("old-token")
+            .active(false)
+            .build();
         String newDeviceId = "new-device-456";
         String newToken = "new-token-xyz";
 

@@ -4,7 +4,8 @@ import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.vo.KakaoId;
+import deepple.deepple.member.command.domain.member.PrimaryContactType;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -33,15 +33,14 @@ public class MemberContactServiceTest {
         @DisplayName("휴대폰 번호 변경 테스트")
         class PhoneNumberUpdateTest {
 
-            Member member = Member.fromPhoneNumber("01012345678");
-            Member anotherMember = Member.fromPhoneNumber("01098765432");
+            Member member = MemberFixture.builder().id(1L).phoneNumber("01012345678").build();
+            Member anotherMember = MemberFixture.builder().id(2L).phoneNumber("01098765432").build();
 
             @Test
             @DisplayName("변경한 핸드폰 번호가 다른 멤버가 사용중인 핸드폰 번호인 경우 실패.")
             void isFailWhenUpdatedNumberIsAnotherMemberPhoneNumber() {
                 // Given
                 String updatePhoneNumber = anotherMember.getPhoneNumber();
-                ReflectionTestUtils.setField(member, "id", 1L);
 
                 Mockito.when(memberCommandRepository.existsByPhoneNumberAndIdNot(Mockito.any(), Mockito.any()))
                     .thenReturn(true);
@@ -92,8 +91,7 @@ public class MemberContactServiceTest {
         @DisplayName("카카오 아이디 업데이트 테스트")
         class KakaoIdUpdateTest {
 
-            Member member = Member.fromPhoneNumber("01012345678");
-            Member anotherMember = Member.fromPhoneNumber("01098765432");
+            Member member = MemberFixture.builder().id(1L).phoneNumber("01012345678").build();
 
             @Test
             @DisplayName("변경한 카카오 아이디가 다른 멤버가 사용중인 경우 실패.")
@@ -132,7 +130,12 @@ public class MemberContactServiceTest {
             void isSuccessWhenUpdatedKakaoIdIsOwnKakaoId() {
                 // Given
                 String kakaoId = "kakaoId";
-                member.changePrimaryContactTypeToKakao(KakaoId.from(kakaoId));
+                member = MemberFixture.builder()
+                    .id(1L)
+                    .phoneNumber("01012345678")
+                    .kakaoId(kakaoId)
+                    .primaryContactType(PrimaryContactType.KAKAO)
+                    .build();
 
                 Mockito.when(memberCommandRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.any()))
                     .thenReturn(false);

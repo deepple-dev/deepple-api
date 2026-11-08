@@ -1,9 +1,8 @@
 package deepple.deepple.payment.query.heartpurchaseoption;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
-import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseAmount;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
-import deepple.deepple.payment.command.domain.heartpurchaseoption.Price;
+import deepple.deepple.payment.fixture.HeartPurchaseOptionFixture;
 import deepple.deepple.payment.query.heartpurchaseoption.condition.HeartPurchaseOptionSearchCondition;
 import deepple.deepple.payment.query.heartpurchaseoption.view.HeartPurchaseOptionView;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,12 +42,12 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
         );
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        final HeartPurchaseOption productId1 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-            "productId1",
-            "하트 구매 옵션 1"
-        );
+        final HeartPurchaseOption productId1 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId1")
+            .name("하트 구매 옵션 1")
+            .build();
         entityManager.persist(productId1);
         entityManager.flush();
 
@@ -83,19 +82,18 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
         );
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        final HeartPurchaseOption productId1 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-
-            "productId1",
-            "하트 구매 옵션 1"
-        );
-        final HeartPurchaseOption productId2 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-            "productId2",
-            "하트 구매 옵션 2"
-        );
+        final HeartPurchaseOption productId1 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId1")
+            .name("하트 구매 옵션 1")
+            .build();
+        final HeartPurchaseOption productId2 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId2")
+            .name("하트 구매 옵션 2")
+            .build();
         entityManager.persist(productId1);
         entityManager.persist(productId2);
         entityManager.flush();
@@ -124,19 +122,18 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
         );
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        final HeartPurchaseOption productId1 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-
-            "productId1",
-            "하트 구매 옵션 1"
-        );
-        final HeartPurchaseOption productId2 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-            "productId2",
-            "하트 구매 옵션 2"
-        );
+        final HeartPurchaseOption productId1 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId1")
+            .name("하트 구매 옵션 1")
+            .build();
+        final HeartPurchaseOption productId2 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId2")
+            .name("하트 구매 옵션 2")
+            .build();
         entityManager.persist(productId1);
         entityManager.persist(productId2);
         entityManager.flush();
@@ -157,12 +154,12 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("하트 구매 옵션 페이지 조회 createdDateGoe condition 테스트")
     void findPageWithCreatedDateGoeCondition() {
         // given
-        final HeartPurchaseOption productId1 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-            "productId1",
-            "하트 구매 옵션 1"
-        );
+        final HeartPurchaseOption productId1 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId1")
+            .name("하트 구매 옵션 1")
+            .build();
         entityManager.persist(productId1);
         entityManager.flush();
 
@@ -204,12 +201,12 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("하트 구매 옵션 페이지 조회 createdDateLoe condition 테스트")
     void findPageWithCreatedDateLoeCondition() {
         // given
-        final HeartPurchaseOption productId1 = HeartPurchaseOption.of(
-            HeartPurchaseAmount.from(100L),
-            Price.from(1000L),
-            "productId1",
-            "하트 구매 옵션 1"
-        );
+        final HeartPurchaseOption productId1 = HeartPurchaseOptionFixture.builder()
+            .amount(100L)
+            .price(1000L)
+            .productId("productId1")
+            .name("하트 구매 옵션 1")
+            .build();
         entityManager.persist(productId1);
         entityManager.flush();
 

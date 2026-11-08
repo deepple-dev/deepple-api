@@ -1,7 +1,7 @@
 package deepple.deepple.match.command.domain.match;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
-import deepple.deepple.match.command.domain.match.vo.Message;
+import deepple.deepple.match.fixture.MatchFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,12 +21,11 @@ class MatchRepositoryTest extends RepositoryTestSupport {
         // Given
         Long responderId = 1L;
         Long requesterId = 2L;
-        String requestMessage = "매치를 신청합니다.";
-        MatchType type = MatchType.MATCH;
-        MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-        Match match = Match.request(requesterId, responderId, Message.from(requestMessage), "testUser", type,
-            contactType);
+        Match match = MatchFixture.builder()
+            .requesterId(requesterId)
+            .responderId(responderId)
+            .build();
 
         entityManager.persist(match);
         entityManager.flush();
@@ -62,13 +61,12 @@ class MatchRepositoryTest extends RepositoryTestSupport {
         // Given
         Long requesterId = 1L;
         Long responderId = 2L;
-        String requestMessage = "매치를 신청합니다.";
-        MatchType type = MatchType.MATCH;
-        MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-        Match match = Match.request(requesterId, responderId, Message.from(requestMessage), "testUser", type,
-            contactType);
-        match.expire();
+        Match match = MatchFixture.builder()
+            .requesterId(requesterId)
+            .responderId(responderId)
+            .status(MatchStatus.EXPIRED)
+            .build();
 
         entityManager.persist(match);
         entityManager.flush();
@@ -88,14 +86,12 @@ class MatchRepositoryTest extends RepositoryTestSupport {
         // Given
         Long requesterId = 1L;
         Long responderId = 2L;
-        String requestMessage = "매치를 신청합니다.";
-        MatchType type = MatchType.MATCH;
-        MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-        Match match = Match.request(requesterId, responderId, Message.from(requestMessage), "testUser", type,
-            contactType);
-        match.reject("testUser");
-        match.checkRejected();
+        Match match = MatchFixture.builder()
+            .requesterId(requesterId)
+            .responderId(responderId)
+            .status(MatchStatus.REJECT_CHECKED)
+            .build();
 
         entityManager.persist(match);
         entityManager.flush();

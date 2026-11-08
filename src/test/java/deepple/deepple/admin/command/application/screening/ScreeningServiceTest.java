@@ -4,6 +4,8 @@ import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.RejectionReasonType;
 import deepple.deepple.admin.command.domain.screening.Screening;
 import deepple.deepple.admin.command.domain.screening.ScreeningCommandRepository;
+import deepple.deepple.admin.command.domain.screening.ScreeningStatus;
+import deepple.deepple.admin.fixture.ScreeningFixture;
 import deepple.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import deepple.deepple.admin.presentation.screening.ScreeningRejectRequest;
 import deepple.deepple.common.exception.DeeppleException;
@@ -17,9 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ScreeningServiceTest {
@@ -92,14 +97,15 @@ class ScreeningServiceTest {
             long screeningId = 1L;
             long adminId = 999L;
 
-            Screening screening = mock(Screening.class);
+            Screening screening = ScreeningFixture.builder().id(screeningId).version(1L).build();
             when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.of(screening));
 
             // when
             screeningService.approve(screeningId, new ScreeningApproveRequest(1L), adminId);
 
             // then
-            verify(screening).approve(adminId);
+            assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
+            assertThat(screening.getAdminId()).isEqualTo(adminId);
         }
 
         @Test
@@ -127,7 +133,7 @@ class ScreeningServiceTest {
             long screeningId = 1L;
             long adminId = 999L;
 
-            Screening screening = mock(Screening.class);
+            Screening screening = ScreeningFixture.builder().id(screeningId).version(1L).build();
             when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.of(screening));
 
             String rejectionReason = "STOLEN_IMAGE";
@@ -137,7 +143,9 @@ class ScreeningServiceTest {
             screeningService.reject(screeningId, adminId, request);
 
             // then
-            verify(screening).reject(adminId, RejectionReasonType.STOLEN_IMAGE);
+            assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.REJECTED);
+            assertThat(screening.getAdminId()).isEqualTo(adminId);
+            assertThat(screening.getRejectionReason()).isEqualTo(RejectionReasonType.STOLEN_IMAGE);
         }
 
         @Test
@@ -160,7 +168,7 @@ class ScreeningServiceTest {
         void throwExceptionWhenRejectionReasonNonExists() {
             // given
             long screeningId = 1L;
-            Screening screening = mock(Screening.class);
+            Screening screening = ScreeningFixture.builder().id(screeningId).version(1L).build();
             when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.of(screening));
 
             ScreeningRejectRequest request = new ScreeningRejectRequest("NON_EXISTING_REASON", 1L);

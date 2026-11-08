@@ -6,6 +6,7 @@ import deepple.deepple.member.command.domain.introduction.MemberIdeal;
 import deepple.deepple.member.command.domain.introduction.MemberIdealCommandRepository;
 import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
 import deepple.deepple.member.command.domain.member.*;
+import deepple.deepple.member.fixture.MemberIdealFixture;
 import deepple.deepple.member.presentation.introduction.dto.MemberIdealUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
@@ -82,14 +84,19 @@ class MemberIdealServiceTest {
         @DisplayName("memberIdeal이 존재하는 경우 memberIdeal을 업데이트한다.")
         void updateMemberIdeal() {
             long memberId = 1L;
-            MemberIdeal memberIdeal = mock(MemberIdeal.class);
+            MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
             when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
 
             // when
             memberIdealService.update(request, memberId);
 
             // then
-            verify(memberIdeal).update(ageRange, hobbies, cities, religion, smokingStatus, drinkingStatus);
+            assertThat(memberIdeal.getAgeRange()).isEqualTo(ageRange);
+            assertThat(memberIdeal.getHobbies()).isEqualTo(hobbies);
+            assertThat(memberIdeal.getCities()).isEqualTo(cities);
+            assertThat(memberIdeal.getReligion()).isEqualTo(religion);
+            assertThat(memberIdeal.getSmokingStatus()).isEqualTo(smokingStatus);
+            assertThat(memberIdeal.getDrinkingStatus()).isEqualTo(drinkingStatus);
         }
     }
 

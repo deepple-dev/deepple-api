@@ -3,15 +3,13 @@ package deepple.deepple.match.query;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.match.command.domain.match.Match;
 import deepple.deepple.match.command.domain.match.MatchContactType;
-import deepple.deepple.match.command.domain.match.MatchType;
-import deepple.deepple.match.command.domain.match.vo.Message;
+import deepple.deepple.match.command.domain.match.MatchStatus;
+import deepple.deepple.match.fixture.MatchFixture;
 import deepple.deepple.member.command.domain.member.District;
 import deepple.deepple.member.command.domain.member.Member;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,14 +48,18 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
             if (responder.getId().equals(targetMember.getId())) {
                 continue;
             }
-            Match match = Match
-                .request(targetMember.getId(), responder.getId(), Message.from("Hello"), "알림용이름", MatchType.MATCH,
-                    MatchContactType.PHONE_NUMBER);
+            MatchFixture matchFixture = MatchFixture.builder()
+                .requesterId(targetMember.getId())
+                .responderId(responder.getId())
+                .requestMessage("Hello");
 
             if (i % 2 == 0) {
-                match.approve(Message.from("Hi"), "알림용이름", MatchContactType.PHONE_NUMBER);
+                matchFixture
+                    .status(MatchStatus.MATCHED)
+                    .responseMessage("Hi")
+                    .responderContactType(MatchContactType.PHONE_NUMBER);
             }
-            em.persist(match);
+            em.persist(matchFixture.build());
         }
 
         // When
@@ -90,14 +93,18 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
             if (requester.getId().equals(targetMember.getId())) {
                 continue;
             }
-            Match match = Match
-                .request(requester.getId(), targetMember.getId(), Message.from("Hello"), "알림용이름", MatchType.MATCH,
-                    MatchContactType.PHONE_NUMBER);
+            MatchFixture matchFixture = MatchFixture.builder()
+                .requesterId(requester.getId())
+                .responderId(targetMember.getId())
+                .requestMessage("Hello");
 
             if (i % 2 == 0) {
-                match.approve(Message.from("Hi"), "알림용이름", MatchContactType.PHONE_NUMBER);
+                matchFixture
+                    .status(MatchStatus.MATCHED)
+                    .responseMessage("Hi")
+                    .responderContactType(MatchContactType.PHONE_NUMBER);
             }
-            em.persist(match);
+            em.persist(matchFixture.build());
         }
 
         // When
@@ -129,13 +136,19 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
         Member readResponder = members.get(1);
         Member unreadResponder = members.get(2);
 
-        Match readMatch = Match.request(requester.getId(), readResponder.getId(), Message.from("Hello"),
-            "알림용이름", MatchType.MATCH, MatchContactType.PHONE_NUMBER);
-        readMatch.read(readResponder.getId());
+        Match readMatch = MatchFixture.builder()
+            .requesterId(requester.getId())
+            .responderId(readResponder.getId())
+            .requestMessage("Hello")
+            .readByResponderAt(LocalDateTime.now())
+            .build();
         em.persist(readMatch);
 
-        Match unreadMatch = Match.request(requester.getId(), unreadResponder.getId(), Message.from("Hello"),
-            "알림용이름", MatchType.MATCH, MatchContactType.PHONE_NUMBER);
+        Match unreadMatch = MatchFixture.builder()
+            .requesterId(requester.getId())
+            .responderId(unreadResponder.getId())
+            .requestMessage("Hello")
+            .build();
         em.persist(unreadMatch);
 
         // when
@@ -168,23 +181,20 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember(String phone, String nickname, District district) {
-        var member = Member.fromPhoneNumber(phone);
-        em.persist(member);
-        var profile = MemberProfile.builder()
-            .nickname(Nickname.from(nickname))
-            .region(Region.of(district))
+        Member member = MemberFixture.builder()
+            .phoneNumber(phone)
+            .nickname(nickname)
+            .district(district)
             .yearOfBirth(1995)
             .build();
-        member.updateProfile(profile);
+        em.persist(member);
         return member;
     }
 
     private ProfileImage createProfileImage(long memberId, String url) {
-        return ProfileImage.builder()
+        return ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl(ImageUrl.from(url))
-            .isPrimary(true)
-            .order(1)
+            .imageUrl(url)
             .build();
     }
 }

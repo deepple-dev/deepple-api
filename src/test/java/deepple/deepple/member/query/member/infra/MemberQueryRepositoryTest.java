@@ -3,25 +3,27 @@ package deepple.deepple.member.query.member.infra;
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
+import deepple.deepple.community.fixture.ProfileExchangeFixture;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
+import deepple.deepple.interview.fixture.InterviewAnswerFixture;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.like.command.domain.Like;
 import deepple.deepple.like.command.domain.LikeLevel;
+import deepple.deepple.like.fixture.LikeFixture;
 import deepple.deepple.match.command.domain.match.Match;
 import deepple.deepple.match.command.domain.match.MatchContactType;
-import deepple.deepple.match.command.domain.match.MatchType;
-import deepple.deepple.match.command.domain.match.vo.Message;
+import deepple.deepple.match.command.domain.match.MatchStatus;
+import deepple.deepple.match.fixture.MatchFixture;
 import deepple.deepple.member.command.domain.introduction.IntroductionType;
 import deepple.deepple.member.command.domain.introduction.MemberIntroduction;
 import deepple.deepple.member.command.domain.member.*;
-import deepple.deepple.member.command.domain.member.vo.KakaoId;
 import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
-import deepple.deepple.member.command.domain.member.vo.Region;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.MemberFixture;
+import deepple.deepple.member.fixture.MemberIntroductionFixture;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import deepple.deepple.member.query.member.view.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +31,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Calendar;
@@ -69,15 +70,12 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
             Hobby hobby1 = Hobby.ANIMATION;
             Hobby hobby2 = Hobby.BOARD_GAMES;
 
-            Member member = Member.fromPhoneNumber("01012345678");
-            entityManager.persist(member);
-
-            MemberProfile updateProfile = MemberProfile.builder()
+            Member member = MemberFixture.builder()
                 .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
                 .height(20)
                 .highestEducation(HighestEducation.ASSOCIATE)
-                .nickname(Nickname.from("nickname"))
-                .region(Region.of(District.DONG_GU_DAEJEON))
+                .nickname("nickname")
+                .district(District.DONG_GU_DAEJEON)
                 .gender(Gender.MALE)
                 .smokingStatus(SmokingStatus.DAILY)
                 .mbti(Mbti.ENFJ)
@@ -86,14 +84,16 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
                 .job(job)
                 .hobbies(Set.of(hobby1, hobby2))
                 .build();
-
-            member.updateProfile(updateProfile);
+            entityManager.persist(member);
             entityManager.flush();
 
-            InterviewQuestion interviewQuestion1 = InterviewQuestion.of("인터뷰 질문 내용1", InterviewCategory.PERSONAL, true);
-            InterviewQuestion interviewQuestion2 = InterviewQuestion.of("인터뷰 질문 내용2", InterviewCategory.ROMANTIC, true);
-            InterviewQuestion interviewQuestion3 = InterviewQuestion.of("인터뷰 질문 내용3", InterviewCategory.PERSONAL, true);
-            InterviewQuestion interviewQuestion4 = InterviewQuestion.of("인터뷰 질문 내용4", InterviewCategory.PERSONAL,
+            InterviewQuestion interviewQuestion1 = createInterviewQuestion("인터뷰 질문 내용1", InterviewCategory.PERSONAL,
+                true);
+            InterviewQuestion interviewQuestion2 = createInterviewQuestion("인터뷰 질문 내용2", InterviewCategory.ROMANTIC,
+                true);
+            InterviewQuestion interviewQuestion3 = createInterviewQuestion("인터뷰 질문 내용3", InterviewCategory.PERSONAL,
+                true);
+            InterviewQuestion interviewQuestion4 = createInterviewQuestion("인터뷰 질문 내용4", InterviewCategory.PERSONAL,
                 false);
 
             entityManager.persist(interviewQuestion1);
@@ -102,11 +102,11 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
             entityManager.persist(interviewQuestion4);
             entityManager.flush();
 
-            InterviewAnswer interviewAnswer1 = InterviewAnswer.of(interviewQuestion1.getId(), member.getId(),
+            InterviewAnswer interviewAnswer1 = createInterviewAnswer(interviewQuestion1.getId(), member.getId(),
                 "인터뷰 질문 답변1");
-            InterviewAnswer interviewAnswer2 = InterviewAnswer.of(interviewQuestion2.getId(), member.getId(),
+            InterviewAnswer interviewAnswer2 = createInterviewAnswer(interviewQuestion2.getId(), member.getId(),
                 "인터뷰 질문 답변2");
-            InterviewAnswer interviewAnswer4 = InterviewAnswer.of(interviewQuestion2.getId(), member.getId(),
+            InterviewAnswer interviewAnswer4 = createInterviewAnswer(interviewQuestion2.getId(), member.getId(),
                 "인터뷰 질문 답변4");
 
             entityManager.persist(interviewAnswer1);
@@ -186,26 +186,23 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("존재하는 경우, 프로필 정보 조회")
         void getProfileWhenMemberIdExists() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            entityManager.persist(member);
-
-            MemberProfile memberProfile = MemberProfile.builder()
-                .nickname(Nickname.from("nickname"))
+            Member member = MemberFixture.builder()
+                .nickname("nickname")
                 .yearOfBirth(1998)
                 .gender(Gender.MALE)
                 .height(175)
                 .job(Job.JOB_SEARCHING)
                 .hobbies(Set.of(Hobby.BOARD_GAMES, Hobby.ANIMATION))
                 .mbti(Mbti.ISTJ)
-                .region(Region.of(District.ANSAN_SI))
+                .district(District.ANSAN_SI)
                 .smokingStatus(SmokingStatus.DAILY)
                 .drinkingStatus(DrinkingStatus.NONE)
                 .highestEducation(HighestEducation.ASSOCIATE)
                 .religion(Religion.BUDDHIST)
                 .build();
-
-            member.updateProfile(memberProfile);
+            entityManager.persist(member);
             entityManager.flush();
+            MemberProfile memberProfile = member.getProfile();
 
             // When
             MemberProfileView memberProfileView = memberQueryRepository.findProfileByMemberId(member.getId())
@@ -251,8 +248,10 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("아이디가 존재하는 경우 연락처 조회 성공.")
         void isSuccessWhenMemberIsExists() {
             // Given
-            Member member = Member.fromPhoneNumber("01012345678");
-            member.changePrimaryContactTypeToKakao(KakaoId.from("kakaoId"));
+            Member member = MemberFixture.builder()
+                .kakaoId("kakaoId")
+                .primaryContactType(PrimaryContactType.KAKAO)
+                .build();
             entityManager.persist(member);
             entityManager.flush();
 
@@ -287,15 +286,12 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
             Hobby hobby2 = Hobby.BOARD_GAMES;
 
 
-            otherMember = Member.fromPhoneNumber("01012345678");
-            entityManager.persist(otherMember);
-
-            MemberProfile updateProfile = MemberProfile.builder()
+            otherMember = MemberFixture.builder()
                 .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
                 .height(20)
                 .highestEducation(HighestEducation.ASSOCIATE)
-                .nickname(Nickname.from("nickname"))
-                .region(Region.of(District.DONG_GU_DAEJEON))
+                .nickname("nickname")
+                .district(District.DONG_GU_DAEJEON)
                 .gender(Gender.MALE)
                 .smokingStatus(SmokingStatus.DAILY)
                 .mbti(Mbti.ENFJ)
@@ -304,33 +300,36 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
                 .job(job)
                 .hobbies(Set.of(hobby1, hobby2))
                 .build();
-
-            otherMember.updateProfile(updateProfile);
+            entityManager.persist(otherMember);
             entityManager.flush();
 
 
-            member = Member.fromPhoneNumber("01012345679");
+            member = MemberFixture.builder().build();
             entityManager.persist(member);
             entityManager.flush();
 
             // 좋아요 생성.
-            Like like = Like.of(member.getId(), otherMember.getId(), likeLevel);
+            Like like = LikeFixture.builder()
+                .senderId(member.getId())
+                .receiverId(otherMember.getId())
+                .level(likeLevel)
+                .build();
             entityManager.persist(like);
             entityManager.flush();
 
             // 프로필 이미지.
-            ProfileImage profileImage1 = ProfileImage.builder()
+            ProfileImage profileImage1 = ProfileImageFixture.builder()
                 .memberId(otherMember.getId())
                 .order(1)
-                .imageUrl(ImageUrl.from(profileImageUrl))
-                .isPrimary(true)
+                .imageUrl(profileImageUrl)
+                .primary(true)
                 .build();
 
-            ProfileImage profileImage2 = ProfileImage.builder()
+            ProfileImage profileImage2 = ProfileImageFixture.builder()
                 .memberId(otherMember.getId())
                 .order(2)
-                .imageUrl(ImageUrl.from("secondaryImage"))
-                .isPrimary(false)
+                .imageUrl("secondaryImage")
+                .primary(false)
                 .build();
 
             entityManager.persist(profileImage1);
@@ -378,11 +377,13 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("상대방과의 매치가 만료된 경우, 기본 정보만 조회")
         void getBasicInfoWhenExpiredMatchExists() {
             // Given
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(member.getId(), otherMember.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
-            match.expire();
+            Match match = MatchFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember.getId())
+                .requestMessage("매치 신청합니다.")
+                .status(MatchStatus.EXPIRED)
+                .requesterContactType(MatchContactType.PHONE_NUMBER)
+                .build();
             entityManager.persist(match);
             entityManager.flush();
 
@@ -409,12 +410,13 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("상대방과의 매치를 거절 확인한 경우, 기본 정보만 조회")
         void getBasicInfoWhenRejectCheckedMatchExists() {
             // Given
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(member.getId(), otherMember.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
-            match.reject("testUser");
-            match.checkRejected();
+            Match match = MatchFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember.getId())
+                .requestMessage("매치 신청합니다.")
+                .status(MatchStatus.REJECT_CHECKED)
+                .requesterContactType(MatchContactType.PHONE_NUMBER)
+                .build();
             entityManager.persist(match);
             entityManager.flush();
 
@@ -443,10 +445,13 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("상대방에게 매치를 요청한 경우, 기본 정보와 연락처를 제외한 매치 정보를 함께 조회.")
         void getBasicInfoWithMatchInfoNotIncludingContactWhenWaitingMatchExists() {
             // Given
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(member.getId(), otherMember.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember.getId())
+                .requestMessage("매치 신청합니다.")
+                .status(MatchStatus.WAITING)
+                .requesterContactType(MatchContactType.PHONE_NUMBER)
+                .build();
             entityManager.persist(match);
             entityManager.flush();
 
@@ -476,11 +481,15 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("상대방이 매치를 수락한 경우, 기본 정보와 연락처를 포함한 매치 정보를 조회.")
         void getBasicInfoWithMatchInfoIncludingContactWhenWaitingMatchNotExists() {
             // Given
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(member.getId(), otherMember.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
-            match.approve(Message.from("매치 수락합니다!"), "testUser", contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember.getId())
+                .requestMessage("매치 신청합니다.")
+                .responseMessage("매치 수락합니다!")
+                .status(MatchStatus.MATCHED)
+                .requesterContactType(MatchContactType.PHONE_NUMBER)
+                .responderContactType(MatchContactType.PHONE_NUMBER)
+                .build();
             entityManager.persist(match);
             entityManager.flush();
 
@@ -510,11 +519,13 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("상대방이 매치를 거절한 경우, 기본 정보와 연락처를 제외한 매치 정보를 함께 조회.")
         void getBasicInfoWithMatchInfoNotIncludingContactWhenWaitingMatchNotExists() {
             // Given
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(member.getId(), otherMember.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
-            match.reject("testUser");
+            Match match = MatchFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember.getId())
+                .requestMessage("매치 신청합니다.")
+                .status(MatchStatus.REJECTED)
+                .requesterContactType(MatchContactType.PHONE_NUMBER)
+                .build();
             entityManager.persist(match);
             entityManager.flush();
 
@@ -545,7 +556,11 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @Test
         void getProfileExchangeInfoWhenProfileExchangeExists() {
             // Given
-            ProfileExchange profileExchange = ProfileExchange.request(member.getId(), otherMember.getId(), "프로필요청자.");
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember.getId())
+                .status(ProfileExchangeStatus.WAITING)
+                .build();
             entityManager.persist(profileExchange);
             entityManager.flush();
 
@@ -568,13 +583,15 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         void getLastAccessedAt() {
             // Given
             LocalDateTime accessedAt = LocalDateTime.of(2026, 1, 1, 12, 0);
-            ReflectionTestUtils.setField(otherMember, "lastAccessedAt", accessedAt);
-            entityManager.persist(otherMember);
+            Member accessedMember = MemberFixture.builder()
+                .lastAccessedAt(accessedAt)
+                .build();
+            entityManager.persist(accessedMember);
             entityManager.flush();
 
             // When
             OtherMemberProfileView view = memberQueryRepository.findOtherProfileByMemberId(member.getId(),
-                    otherMember.getId())
+                    accessedMember.getId())
                 .orElse(null);
 
             // Then
@@ -641,10 +658,13 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
 
         @BeforeEach
         void setUp() {
-            InterviewQuestion interviewQuestion1 = InterviewQuestion.of("인터뷰 질문 내용1", InterviewCategory.PERSONAL, true);
-            InterviewQuestion interviewQuestion2 = InterviewQuestion.of("인터뷰 질문 내용2", InterviewCategory.ROMANTIC, true);
-            InterviewQuestion interviewQuestion3 = InterviewQuestion.of("인터뷰 질문 내용3", InterviewCategory.PERSONAL, true);
-            InterviewQuestion interviewQuestion4 = InterviewQuestion.of("인터뷰 질문 내용4", InterviewCategory.PERSONAL,
+            InterviewQuestion interviewQuestion1 = createInterviewQuestion("인터뷰 질문 내용1", InterviewCategory.PERSONAL,
+                true);
+            InterviewQuestion interviewQuestion2 = createInterviewQuestion("인터뷰 질문 내용2", InterviewCategory.ROMANTIC,
+                true);
+            InterviewQuestion interviewQuestion3 = createInterviewQuestion("인터뷰 질문 내용3", InterviewCategory.PERSONAL,
+                true);
+            InterviewQuestion interviewQuestion4 = createInterviewQuestion("인터뷰 질문 내용4", InterviewCategory.PERSONAL,
                 false);
 
             entityManager.persist(interviewQuestion1);
@@ -653,12 +673,15 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
             entityManager.persist(interviewQuestion4);
             entityManager.flush();
 
-            InterviewAnswer interviewAnswer1 = InterviewAnswer.of(interviewQuestion1.getId(), memberId, "인터뷰 질문 답변1");
-            InterviewAnswer interviewAnswer2 = InterviewAnswer.of(interviewQuestion2.getId(), memberId, "인터뷰 질문 답변2");
-            InterviewAnswer interviewAnswer4 = InterviewAnswer.of(interviewQuestion2.getId(), memberId, "인터뷰 질문 답변4");
-
-            InterviewAnswer otherMemberInterviewAnswer = InterviewAnswer.of(interviewQuestion1.getId(), otherMemberId,
+            InterviewAnswer interviewAnswer1 = createInterviewAnswer(interviewQuestion1.getId(), memberId,
                 "인터뷰 질문 답변1");
+            InterviewAnswer interviewAnswer2 = createInterviewAnswer(interviewQuestion2.getId(), memberId,
+                "인터뷰 질문 답변2");
+            InterviewAnswer interviewAnswer4 = createInterviewAnswer(interviewQuestion2.getId(), memberId,
+                "인터뷰 질문 답변4");
+
+            InterviewAnswer otherMemberInterviewAnswer = createInterviewAnswer(interviewQuestion1.getId(),
+                otherMemberId, "인터뷰 질문 답변1");
 
             entityManager.persist(interviewAnswer1);
             entityManager.persist(interviewAnswer2);
@@ -735,11 +758,12 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         @DisplayName("존재하는 멤버의 경우, 하트 잔액 view를 반환한다.")
         void returnHeartBalanceViewWhenMemberIsExists() {
             // given
-            Member member = Member.fromPhoneNumber("01012345678");
-            HeartAmount purchaseHeartAmount = HeartAmount.from(10L);
-            member.gainPurchaseHeart(purchaseHeartAmount);
-            HeartAmount missionHeartAmount = HeartAmount.from(5L);
-            member.gainMissionHeart(missionHeartAmount, "연애 모의고사 최초 제출");
+            long purchaseHeartBalance = 10L;
+            long missionHeartBalance = 5L;
+            Member member = MemberFixture.builder()
+                .purchaseHeartBalance(purchaseHeartBalance)
+                .missionHeartBalance(missionHeartBalance)
+                .build();
             entityManager.persist(member);
             entityManager.flush();
 
@@ -748,10 +772,9 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
                 .orElse(null);
 
             // then
-            assertThat(heartBalanceView.purchaseHeartBalance()).isEqualTo(purchaseHeartAmount.getAmount());
-            assertThat(heartBalanceView.missionHeartBalance()).isEqualTo(missionHeartAmount.getAmount());
-            assertThat(heartBalanceView.totalHeartBalance())
-                .isEqualTo(purchaseHeartAmount.getAmount() + missionHeartAmount.getAmount());
+            assertThat(heartBalanceView.purchaseHeartBalance()).isEqualTo(purchaseHeartBalance);
+            assertThat(heartBalanceView.missionHeartBalance()).isEqualTo(missionHeartBalance);
+            assertThat(heartBalanceView.totalHeartBalance()).isEqualTo(purchaseHeartBalance + missionHeartBalance);
         }
     }
 
@@ -764,9 +787,9 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
 
         @BeforeEach
         void setUp() {
-            member = Member.fromPhoneNumber("01012345677");
-            otherMember1 = Member.fromPhoneNumber("01012345678");
-            otherMember2 = Member.fromPhoneNumber("01012345679");
+            member = MemberFixture.builder().build();
+            otherMember1 = MemberFixture.builder().build();
+            otherMember2 = MemberFixture.builder().build();
 
             entityManager.persist(member);
             entityManager.persist(otherMember1);
@@ -774,37 +797,57 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
             entityManager.flush();
 
             // 이상형 소개.
-            MemberIntroduction memberIntroduction = MemberIntroduction.of(member.getId(), otherMember1.getId(),
-                IntroductionType.DIAMOND_GRADE);
-            MemberIntroduction memberIntroduction2 = MemberIntroduction.of(member.getId(), otherMember2.getId(),
-                IntroductionType.DIAMOND_GRADE);
+            MemberIntroduction memberIntroduction = MemberIntroductionFixture.builder()
+                .memberId(member.getId())
+                .introducedMemberId(otherMember1.getId())
+                .type(IntroductionType.DIAMOND_GRADE)
+                .build();
+            MemberIntroduction memberIntroduction2 = MemberIntroductionFixture.builder()
+                .memberId(member.getId())
+                .introducedMemberId(otherMember2.getId())
+                .type(IntroductionType.DIAMOND_GRADE)
+                .build();
             entityManager.persist(memberIntroduction);
             entityManager.persist(memberIntroduction2);
             entityManager.flush();
 
             // 좋아요.
-            Like like = Like.of(otherMember1.getId(), member.getId(), LikeLevel.INTERESTED);
-            Like like2 = Like.of(member.getId(), otherMember2.getId(), LikeLevel.HIGHLY_INTERESTED);
+            Like like = LikeFixture.builder()
+                .senderId(otherMember1.getId())
+                .receiverId(member.getId())
+                .level(LikeLevel.INTERESTED)
+                .build();
+            Like like2 = LikeFixture.builder()
+                .senderId(member.getId())
+                .receiverId(otherMember2.getId())
+                .level(LikeLevel.HIGHLY_INTERESTED)
+                .build();
             entityManager.persist(like);
             entityManager.persist(like2);
             entityManager.flush();
 
             // 매치 신청.
-            MatchType type = MatchType.MATCH;
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = Match.request(member.getId(), otherMember1.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
-            Match match2 = Match.request(otherMember2.getId(), member.getId(), Message.from("매치 신청합니다."), "testUser",
-                type, contactType);
+            Match match = MatchFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember1.getId())
+                .build();
+            Match match2 = MatchFixture.builder()
+                .requesterId(otherMember2.getId())
+                .responderId(member.getId())
+                .build();
             entityManager.persist(match);
             entityManager.persist(match2);
             entityManager.flush();
 
             // 프로필 교환 신청.
-            ProfileExchange profileExchange = ProfileExchange.request(otherMember1.getId(), member.getId(),
-                "otherMember1");
-            ProfileExchange profileExchange2 = ProfileExchange.request(member.getId(), otherMember2.getId(),
-                "otherMember2");
+            ProfileExchange profileExchange = ProfileExchangeFixture.builder()
+                .requesterId(otherMember1.getId())
+                .responderId(member.getId())
+                .build();
+            ProfileExchange profileExchange2 = ProfileExchangeFixture.builder()
+                .requesterId(member.getId())
+                .responderId(otherMember2.getId())
+                .build();
             entityManager.persist(profileExchange);
             entityManager.persist(profileExchange2);
             entityManager.flush();
@@ -898,5 +941,22 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
             assertThat(view.profileExchangeStatus()).isEqualTo(ProfileExchangeStatus.WAITING.name());
             assertThat(view.likeReceived()).isFalse();
         }
+    }
+
+    private InterviewQuestion createInterviewQuestion(String content, InterviewCategory category,
+        boolean publicQuestion) {
+        return InterviewQuestionFixture.builder()
+            .content(content)
+            .category(category)
+            .publicQuestion(publicQuestion)
+            .build();
+    }
+
+    private InterviewAnswer createInterviewAnswer(long questionId, long memberId, String content) {
+        return InterviewAnswerFixture.builder()
+            .questionId(questionId)
+            .memberId(memberId)
+            .content(content)
+            .build();
     }
 }

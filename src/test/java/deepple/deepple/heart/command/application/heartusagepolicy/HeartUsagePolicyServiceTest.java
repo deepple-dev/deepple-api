@@ -3,17 +3,16 @@ package deepple.deepple.heart.command.application.heartusagepolicy;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionSubtype;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
-import deepple.deepple.heart.command.domain.heartusagepolicy.HeartPriceAmount;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartUsagePolicy;
 import deepple.deepple.heart.command.domain.heartusagepolicy.HeartUsagePolicyCommandRepository;
+import deepple.deepple.heart.fixture.HeartUsagePolicyFixture;
 import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,14 +58,12 @@ class HeartUsagePolicyServiceTest {
     @DisplayName("하트 사용 정책이 없는 경우 예외 발생")
     void shouldThrowExceptionWhenHeartUsagePolicyNotFound() {
         // given
-        Member member = Member.fromPhoneNumber("01012345678");
         Long memberId = 1L;
-        setField(member, "id", memberId);
         Gender gender = Gender.MALE;
-        MemberProfile memberProfile = MemberProfile.builder()
+        Member member = MemberFixture.builder()
+            .id(memberId)
             .gender(gender)
             .build();
-        setField(member, "profile", memberProfile);
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
         TransactionType transactionType = TransactionType.MESSAGE;
         String content = transactionType.getDescription();
@@ -88,25 +85,24 @@ class HeartUsagePolicyServiceTest {
     @DisplayName("하트 사용량이 0인 경우 경우 하트 사용 처리하지 않음")
     void shouldNotProcessHeartUsageWhenHeartAmountIsZero() {
         // given
-        Member member = Member.fromPhoneNumber("01012345678");
-        // vip는 하트 사용량 0
-        setField(member, "isVip", true);
         Long memberId = 1L;
-        setField(member, "id", memberId);
         Gender gender = Gender.MALE;
-        MemberProfile memberProfile = MemberProfile.builder()
+        // vip는 하트 사용량 0
+        Member member = MemberFixture.builder()
+            .id(memberId)
+            .vip(true)
             .gender(gender)
+            .purchaseHeartBalance(100L)
+            .missionHeartBalance(100L)
             .build();
-        setField(member, "profile", memberProfile);
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
-        HeartBalance heartBalanceBeforeUsingHeart = HeartBalance.init();
-        setField(heartBalanceBeforeUsingHeart, "purchaseHeartBalance", 100L);
-        setField(heartBalanceBeforeUsingHeart, "missionHeartBalance", 100L);
-        setField(member, "heartBalance", heartBalanceBeforeUsingHeart);
         TransactionType transactionType = TransactionType.MESSAGE;
-        HeartPriceAmount heartPriceAmount = HeartPriceAmount.from(10L);
-        HeartUsagePolicy heartUsagePolicy = HeartUsagePolicy.of(transactionType, gender, heartPriceAmount);
+        HeartUsagePolicy heartUsagePolicy = HeartUsagePolicyFixture.builder()
+            .transactionType(transactionType)
+            .gender(gender)
+            .price(10L)
+            .build();
 
         when(heartUsagePolicyCommandRepository.findByGenderAndTransactionType(gender, transactionType))
             .thenReturn(Optional.of(heartUsagePolicy));
@@ -125,23 +121,22 @@ class HeartUsagePolicyServiceTest {
     @DisplayName("VIP 멤버가 아닌 경우 하트 사용 정책에 따라 하트 사용량 계산")
     void shouldCalculateHeartAmountAccordingToHeartUsagePolicy() {
         // given
-        Member member = Member.fromPhoneNumber("01012345678");
         Long memberId = 1L;
-        setField(member, "id", memberId);
         Gender gender = Gender.MALE;
-        MemberProfile memberProfile = MemberProfile.builder()
+        Member member = MemberFixture.builder()
+            .id(memberId)
             .gender(gender)
+            .purchaseHeartBalance(100L)
+            .missionHeartBalance(100L)
             .build();
-        setField(member, "profile", memberProfile);
         when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
-        HeartBalance heartBalanceBeforeUsingHeart = HeartBalance.init();
-        setField(heartBalanceBeforeUsingHeart, "purchaseHeartBalance", 100L);
-        setField(heartBalanceBeforeUsingHeart, "missionHeartBalance", 100L);
-        setField(member, "heartBalance", heartBalanceBeforeUsingHeart);
         TransactionType transactionType = TransactionType.MESSAGE;
-        HeartPriceAmount heartPriceAmount = HeartPriceAmount.from(10L);
-        HeartUsagePolicy heartUsagePolicy = HeartUsagePolicy.of(transactionType, gender, heartPriceAmount);
+        HeartUsagePolicy heartUsagePolicy = HeartUsagePolicyFixture.builder()
+            .transactionType(transactionType)
+            .gender(gender)
+            .price(10L)
+            .build();
 
         when(heartUsagePolicyCommandRepository.findByGenderAndTransactionType(gender, transactionType))
             .thenReturn(Optional.of(heartUsagePolicy));

@@ -2,6 +2,7 @@ package deepple.deepple.interview.command.domain.answer;
 
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.interview.command.domain.InterviewErrorCode;
+import deepple.deepple.interview.fixture.InterviewAnswerFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -69,9 +70,7 @@ class InterviewAnswerTest {
         @DisplayName("updateContent 메서드에서 content가 null이면 예외를 던집니다.")
         void throwsExceptionWhenContentIsNull() {
             // given
-            Long questionId = 1L;
-            Long memberId = 2L;
-            InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, "content");
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder().build();
 
             // when & then
             assertThatThrownBy(() -> interviewAnswer.updateContent(null))
@@ -82,9 +81,7 @@ class InterviewAnswerTest {
         @DisplayName("updateContent 메서드에서 content가 blank이면 예외를 던집니다.")
         void throwsExceptionWhenContentIsBlank() {
             // given
-            Long questionId = 1L;
-            Long memberId = 2L;
-            InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, "content");
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder().build();
 
             // when & then
             assertThatThrownBy(() -> interviewAnswer.updateContent(" "))
@@ -96,10 +93,9 @@ class InterviewAnswerTest {
         @DisplayName("updateContent 메서드에서 content가 정상이면 content를 업데이트합니다.")
         void updateContentWhenContentIsValid() {
             // given
-            Long questionId = 1L;
-            Long memberId = 2L;
-            String prevContent = "content";
-            InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, prevContent);
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .content("content")
+                .build();
 
             // when
             String updatedContent = "updated content";
@@ -118,9 +114,7 @@ class InterviewAnswerTest {
         @DisplayName("isAnsweredBy 메서드에서 memberId가 null이면 예외를 던집니다.")
         void throwsExceptionWhenMemberIdIsNull() {
             // given
-            Long questionId = 1L;
-            Long memberId = 2L;
-            InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, "content");
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder().build();
 
             // when & then
             Long nullMemberId = null;
@@ -132,9 +126,10 @@ class InterviewAnswerTest {
         @DisplayName("isAnsweredBy 메서드에서 memberId가 interviewAnswer.memberId와 일치하면 true를 반환합니다.")
         void returnTrueWhenMemberIdIsValid() {
             // given
-            Long questionId = 1L;
             Long memberId = 2L;
-            InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, "content");
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .memberId(memberId)
+                .build();
 
             // when
             boolean result = interviewAnswer.isAnsweredBy(memberId);
@@ -147,9 +142,10 @@ class InterviewAnswerTest {
         @DisplayName("isAnsweredBy 메서드에서 memberId가 interviewAnswer.memberId와 일치하지 않으면 false를 반환합니다.")
         void returnFalseWhenMemberIdIsInvalid() {
             // given
-            Long questionId = 1L;
             Long memberId = 2L;
-            InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, "content");
+            InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder()
+                .memberId(memberId)
+                .build();
 
             // when
             boolean result = interviewAnswer.isAnsweredBy(3L);

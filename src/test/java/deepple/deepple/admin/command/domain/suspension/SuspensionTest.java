@@ -1,5 +1,6 @@
 package deepple.deepple.admin.command.domain.suspension;
 
+import deepple.deepple.admin.fixture.SuspensionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +54,11 @@ class SuspensionTest {
     @DisplayName("changeToPermanent(): TEMPORARY 상태를 PERMANENT로 변경")
     void changeToPermanentFromTemporary() {
         // given
-        var suspension = Suspension.createTemporary(1L, 2L);
+        var suspension = SuspensionFixture.builder()
+            .adminId(1L)
+            .memberId(2L)
+            .status(SuspensionStatus.TEMPORARY)
+            .build();
         var newAdminId = 123L;
 
         // when
@@ -69,7 +74,12 @@ class SuspensionTest {
     @DisplayName("changeToPermanent(): 이미 PERMANENT 상태인 경우 변경되지 않음")
     void changeToPermanentWhenAlreadyPermanent() {
         // given
-        var suspension = Suspension.createPermanent(1L, 2L);
+        var suspension = SuspensionFixture.builder()
+            .adminId(1L)
+            .memberId(2L)
+            .status(SuspensionStatus.PERMANENT)
+            .expireAt(null)
+            .build();
         var originalAdminId = suspension.getAdminId();
         var originalExpireAt = suspension.getExpireAt();
 

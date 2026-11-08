@@ -4,9 +4,12 @@ import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.interview.command.domain.answer.InterviewAnswer;
 import deepple.deepple.interview.command.domain.question.InterviewCategory;
 import deepple.deepple.interview.command.domain.question.InterviewQuestion;
+import deepple.deepple.interview.fixture.InterviewAnswerFixture;
+import deepple.deepple.interview.fixture.InterviewQuestionFixture;
 import deepple.deepple.interview.query.condition.InterviewQuestionSearchCondition;
 import deepple.deepple.interview.query.question.view.InterviewQuestionView;
 import deepple.deepple.member.command.domain.member.Member;
+import deepple.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,19 +36,29 @@ class InterviewQuestionQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     private Member createMember(String phoneNumber) {
-        Member member = Member.fromPhoneNumber(phoneNumber);
+        Member member = MemberFixture.builder()
+            .phoneNumber(phoneNumber)
+            .build();
         entityManager.persist(member);
         return member;
     }
 
     private InterviewQuestion createInterviewQuestion(String content, InterviewCategory category, boolean isPublic) {
-        InterviewQuestion question = InterviewQuestion.of(content, category, isPublic);
+        InterviewQuestion question = InterviewQuestionFixture.builder()
+            .content(content)
+            .category(category)
+            .publicQuestion(isPublic)
+            .build();
         entityManager.persist(question);
         return question;
     }
 
     private InterviewAnswer createInterviewAnswer(Long questionId, Long memberId, String content) {
-        InterviewAnswer answer = InterviewAnswer.of(questionId, memberId, content);
+        InterviewAnswer answer = InterviewAnswerFixture.builder()
+            .questionId(questionId)
+            .memberId(memberId)
+            .content(content)
+            .build();
         entityManager.persist(answer);
         return answer;
     }

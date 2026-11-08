@@ -7,6 +7,9 @@ import deepple.deepple.datingexam.application.dto.DatingExamQuestionInfo;
 import deepple.deepple.datingexam.application.dto.DatingExamSubjectInfo;
 import deepple.deepple.datingexam.application.required.DatingExamQueryRepository;
 import deepple.deepple.datingexam.domain.*;
+import deepple.deepple.datingexam.fixture.DatingExamAnswerFixture;
+import deepple.deepple.datingexam.fixture.DatingExamQuestionFixture;
+import deepple.deepple.datingexam.fixture.DatingExamSubjectFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,17 +36,38 @@ class DatingExamQueryRepositoryImplTest extends RepositoryTestSupport {
         em.getEntityManager().createNativeQuery("delete from dating_exam_question").executeUpdate();
         em.getEntityManager().createNativeQuery("delete from dating_exam_subject").executeUpdate();
 
-        subj1 = DatingExamSubject.create("Subj1", SubjectType.OPTIONAL);
+        subj1 = DatingExamSubjectFixture.builder()
+            .name("Subj1")
+            .type(SubjectType.OPTIONAL)
+            .build();
         em.persist(subj1);
 
-        q11 = DatingExamQuestion.create(subj1.getId(), "q11");
-        q12 = DatingExamQuestion.create(subj1.getId(), "q12");
+        q11 = DatingExamQuestionFixture.builder()
+            .subjectId(subj1.getId())
+            .content("q11")
+            .build();
+        q12 = DatingExamQuestionFixture.builder()
+            .subjectId(subj1.getId())
+            .content("q12")
+            .build();
         em.persist(q11);
         em.persist(q12);
 
-        a111 = DatingExamAnswer.create(q11.getId(), "ans111", AnswerPersonalityType.DECISIVE_INDEPENDENT);
-        a112 = DatingExamAnswer.create(q11.getId(), "ans112", AnswerPersonalityType.GROWING_RUNNING_MATE);
-        a113 = DatingExamAnswer.create(q12.getId(), "ans113", AnswerPersonalityType.DEVOTED_ROMANTIC);
+        a111 = DatingExamAnswerFixture.builder()
+            .questionId(q11.getId())
+            .content("ans111")
+            .personalityType(AnswerPersonalityType.DECISIVE_INDEPENDENT)
+            .build();
+        a112 = DatingExamAnswerFixture.builder()
+            .questionId(q11.getId())
+            .content("ans112")
+            .personalityType(AnswerPersonalityType.GROWING_RUNNING_MATE)
+            .build();
+        a113 = DatingExamAnswerFixture.builder()
+            .questionId(q12.getId())
+            .content("ans113")
+            .personalityType(AnswerPersonalityType.DEVOTED_ROMANTIC)
+            .build();
         em.persist(a111);
         em.persist(a112);
         em.persist(a113);
@@ -91,12 +115,22 @@ class DatingExamQueryRepositoryImplTest extends RepositoryTestSupport {
     @DisplayName("다른 subject의 question이 섞이지 않는다.")
     void optionalDoesNotIncludeQuestionsFromOtherSubjects() {
         // given: 새로운 OPTIONAL 과목과 그에 속한 질문/답변 추가
-        DatingExamSubject subj2 = DatingExamSubject.create("Subj2", SubjectType.OPTIONAL);
+        DatingExamSubject subj2 = DatingExamSubjectFixture.builder()
+            .name("Subj2")
+            .type(SubjectType.OPTIONAL)
+            .build();
         em.persist(subj2);
 
-        DatingExamQuestion q21 = DatingExamQuestion.create(subj2.getId(), "q21");
+        DatingExamQuestion q21 = DatingExamQuestionFixture.builder()
+            .subjectId(subj2.getId())
+            .content("q21")
+            .build();
         em.persist(q21);
-        DatingExamAnswer a211 = DatingExamAnswer.create(q21.getId(), "ans211", AnswerPersonalityType.REALISTIC_SHELTER);
+        DatingExamAnswer a211 = DatingExamAnswerFixture.builder()
+            .questionId(q21.getId())
+            .content("ans211")
+            .personalityType(AnswerPersonalityType.REALISTIC_SHELTER)
+            .build();
         em.persist(a211);
 
         em.flush();

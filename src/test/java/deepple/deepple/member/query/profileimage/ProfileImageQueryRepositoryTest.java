@@ -2,7 +2,7 @@ package deepple.deepple.member.query.profileimage;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
 import deepple.deepple.member.command.domain.profileImage.ProfileImage;
-import deepple.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import deepple.deepple.member.fixture.ProfileImageFixture;
 import deepple.deepple.member.query.profileimage.view.ProfileImageView;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -24,17 +24,17 @@ public class ProfileImageQueryRepositoryTest extends RepositoryTestSupport {
     void findMyProfileImages() {
         // Given
         Long memberId = 1L;
-        ProfileImage profileImage1 = ProfileImage.builder()
+        ProfileImage profileImage1 = ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl(ImageUrl.from("https://example.com"))
-            .isPrimary(true)
+            .imageUrl("https://example.com")
+            .primary(true)
             .order(1)
             .build();
 
-        ProfileImage profileImage2 = ProfileImage.builder()
+        ProfileImage profileImage2 = ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl(ImageUrl.from("https://example2.com"))
-            .isPrimary(false)
+            .imageUrl("https://example2.com")
+            .primary(false)
             .order(2)
             .build();
 

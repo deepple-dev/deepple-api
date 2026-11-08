@@ -6,11 +6,12 @@ import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Gender;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
-import deepple.deepple.member.command.domain.member.vo.MemberProfile;
-import deepple.deepple.member.command.domain.member.vo.Nickname;
+import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.mission.command.domain.memberMission.MemberMission;
 import deepple.deepple.mission.command.domain.memberMission.MemberMissionCommandRepository;
 import deepple.deepple.mission.command.domain.mission.*;
+import deepple.deepple.mission.fixture.MemberMissionFixture;
+import deepple.deepple.mission.fixture.MissionFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -61,16 +61,25 @@ public class MemberMissionServiceTest {
 
         @BeforeEach
         void setUp() {
-            mission = Mission.create(ActionType.LIKE, FrequencyType.DAILY, TargetGender.MALE, requiredAttempt,
-                repeatableCount, rewardedHeart, true);
-            member = Member.fromPhoneNumber("01012345689");
-            ReflectionTestUtils.setField(member, "id", memberId);
-            member.updateProfile(MemberProfile.builder()
+            mission = MissionFixture.builder()
+                .id(missionId)
+                .actionType(ActionType.LIKE)
+                .frequencyType(FrequencyType.DAILY)
+                .targetGender(TargetGender.MALE)
+                .requiredAttempt(requiredAttempt)
+                .repeatableCount(repeatableCount)
+                .rewardedHeart(rewardedHeart)
+                .publicMission(true)
+                .build();
+            member = MemberFixture.builder()
+                .id(memberId)
                 .gender(Gender.MALE)
-                .nickname(Nickname.from("닉네임"))
-                .build());
-            memberMission = MemberMission.create(memberId, missionId);
-            ReflectionTestUtils.setField(mission, "id", missionId);
+                .nickname("닉네임")
+                .build();
+            memberMission = MemberMissionFixture.builder()
+                .memberId(memberId)
+                .missionId(missionId)
+                .build();
         }
 
         @Test
@@ -139,7 +148,12 @@ public class MemberMissionServiceTest {
         @DisplayName("멤버가 해당 미션을 완료한 경우, 해당 멤버-미션을 수행하지 않습니다.")
         void notDoMemberMissionWhenIsCompleted() {
             // Given
-            MemberMission completedMemberMission = Mockito.mock(MemberMission.class);
+            MemberMission completedMemberMission = MemberMissionFixture.builder()
+                .memberId(memberId)
+                .missionId(missionId)
+                .successCount(repeatableCount)
+                .completed(true)
+                .build();
             Mockito.when(missionCommandRepository.findByActionTypeAndTargetGender(mission.getActionType(),
                     mission.getTargetGender()))
                 .thenReturn(List.of(mission));
@@ -150,7 +164,6 @@ public class MemberMissionServiceTest {
                 .thenReturn(Optional.of(member));
             Mockito.when(memberMissionCommandRepository.findByMemberIdAndMissionIdOnToday(memberId, missionId))
                 .thenReturn(Optional.of(completedMemberMission));
-            Mockito.when(completedMemberMission.isCompleted()).thenReturn(true);
 
             // When
             boolean hasProcessedMission = memberMissionService.executeMissionsByAction(memberId,
@@ -158,8 +171,8 @@ public class MemberMissionServiceTest {
 
             // Then
             Mockito.verify(memberMissionCommandRepository, Mockito.never()).save(Mockito.any(MemberMission.class));
-            Mockito.verify(completedMemberMission, Mockito.never())
-                .countPlus(mission.getRequiredAttempt(), mission.getRepeatableCount());
+            assertThat(completedMemberMission.getSuccessCount()).isEqualTo(repeatableCount);
+            assertThat(completedMemberMission.getAttemptCount()).isZero();
             assertThat(hasProcessedMission).isFalse();
         }
     }

@@ -1,5 +1,6 @@
 package deepple.deepple.mission.command.domain.memberMission;
 
+import deepple.deepple.mission.fixture.MemberMissionFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,7 +45,10 @@ public class MemberMissionTest {
             int repeatableCount = 2;
             long missionId = 1L;
             long memberId = 2L;
-            MemberMission memberMission = MemberMission.create(memberId, missionId);
+            MemberMission memberMission = MemberMissionFixture.builder()
+                .memberId(memberId)
+                .missionId(missionId)
+                .build();
 
             // When
             memberMission.countPlus(requiredAttempt, repeatableCount);
@@ -63,7 +67,10 @@ public class MemberMissionTest {
             int repeatableCount = 1;
             long missionId = 1L;
             long memberId = 2L;
-            MemberMission memberMission = MemberMission.create(missionId, memberId);
+            MemberMission memberMission = MemberMissionFixture.builder()
+                .memberId(memberId)
+                .missionId(missionId)
+                .build();
 
             // When
             memberMission.countPlus(requiredAttempt, repeatableCount);

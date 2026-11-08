@@ -4,6 +4,7 @@ import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
+import deepple.deepple.payment.fixture.HeartPurchaseOptionFixture;
 import deepple.deepple.payment.presentation.heartpurchaseoption.dto.HeartPurchaseOptionCreateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -106,8 +107,8 @@ class HeartPurchaseOptionServiceTest {
         @DisplayName("이미 삭제된 id로 삭제 요청 시 예외 발생")
         void throwExceptionWhenProductIdAlreadyDeleted() {
             // Given
-            HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
-            when(heartPurchaseOption.isDeleted()).thenReturn(true);
+            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder().build();
+            heartPurchaseOption.delete();
             when(heartPurchaseOptionCommandRepository.findById(id)).thenReturn(Optional.of(heartPurchaseOption));
 
             // When & Then
@@ -121,8 +122,7 @@ class HeartPurchaseOptionServiceTest {
         @DisplayName("존재하는 id로 삭제 요청 시 정상 처리")
         void deleteHeartPurchaseOption() {
             // Given
-            HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
-            when(heartPurchaseOption.isDeleted()).thenReturn(false);
+            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder().build();
             when(heartPurchaseOptionCommandRepository.findById(id)).thenReturn(Optional.of(heartPurchaseOption));
 
             // When

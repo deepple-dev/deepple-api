@@ -1,11 +1,13 @@
 package deepple.deepple.notification.query;
 
 import deepple.deepple.common.support.RepositoryTestSupport;
-import deepple.deepple.notification.command.domain.Notification;
+import deepple.deepple.notification.fixture.NotificationFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+
+import java.time.LocalDateTime;
 
 import static deepple.deepple.notification.command.domain.NotificationType.LIKE;
 import static deepple.deepple.notification.command.domain.SenderType.SYSTEM;
@@ -23,9 +25,23 @@ class NotificationQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findNotifications(): 첫 페이지 조회 (lastId = null)")
     void findNotificationsFirstPage() {
         // given
-        var unread = Notification.create(SYSTEM, 1L, 2L, LIKE, "unread", "b1");
-        var read = Notification.create(SYSTEM, 2L, 2L, LIKE, "read", "b2");
-        read.markAsRead();
+        var unread = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(2L)
+            .type(LIKE)
+            .title("unread")
+            .body("b1")
+            .build();
+        var read = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(2L)
+            .receiverId(2L)
+            .type(LIKE)
+            .title("read")
+            .body("b2")
+            .readAt(LocalDateTime.now())
+            .build();
 
         em.persist(unread);
         em.persist(read);
@@ -47,9 +63,30 @@ class NotificationQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findNotifications(): 다음 페이지 조회 (lastId != null)")
     void findNotificationsNextPage() {
         // given
-        var n1 = Notification.create(SYSTEM, 1L, 3L, LIKE, "n1", "b1");
-        var n2 = Notification.create(SYSTEM, 1L, 3L, LIKE, "n2", "b2");
-        var n3 = Notification.create(SYSTEM, 1L, 3L, LIKE, "n3", "b3");
+        var n1 = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(3L)
+            .type(LIKE)
+            .title("n1")
+            .body("b1")
+            .build();
+        var n2 = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(3L)
+            .type(LIKE)
+            .title("n2")
+            .body("b2")
+            .build();
+        var n3 = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(3L)
+            .type(LIKE)
+            .title("n3")
+            .body("b3")
+            .build();
 
         em.persist(n1);
         em.persist(n2);
@@ -71,8 +108,22 @@ class NotificationQueryRepositoryTest extends RepositoryTestSupport {
     @DisplayName("findNotifications(): 삭제된 알림은 조회되지 않음")
     void findNotificationsExcludeDeleted() {
         // given
-        var active = Notification.create(SYSTEM, 1L, 4L, LIKE, "active", "body");
-        var deleted = Notification.create(SYSTEM, 1L, 4L, LIKE, "deleted", "body");
+        var active = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(4L)
+            .type(LIKE)
+            .title("active")
+            .body("body")
+            .build();
+        var deleted = NotificationFixture.builder()
+            .senderType(SYSTEM)
+            .senderId(1L)
+            .receiverId(4L)
+            .type(LIKE)
+            .title("deleted")
+            .body("body")
+            .build();
         deleted.delete();
 
         em.persist(active);

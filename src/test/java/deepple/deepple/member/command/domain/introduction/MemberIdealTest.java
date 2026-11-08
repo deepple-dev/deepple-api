@@ -2,6 +2,7 @@ package deepple.deepple.member.command.domain.introduction;
 
 import deepple.deepple.member.command.domain.introduction.vo.AgeRange;
 import deepple.deepple.member.command.domain.member.*;
+import deepple.deepple.member.fixture.MemberIdealFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -76,7 +77,7 @@ class MemberIdealTest {
         @DisplayName("ageRange가 null이면 예외를 던진다.")
         void throwsExceptionWhenAgeRangeIsNull() {
             // given
-            MemberIdeal memberIdeal = MemberIdeal.init(1L);
+            MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
             ageRange = null;
 
             // when, then
@@ -89,7 +90,7 @@ class MemberIdealTest {
         @DisplayName("hobbies가 null이면 예외를 던진다.")
         void throwsExceptionWhenHobbiesAreNull() {
             // given
-            MemberIdeal memberIdeal = MemberIdeal.init(1L);
+            MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
             hobbies = null;
 
             // when, then
@@ -102,7 +103,7 @@ class MemberIdealTest {
         @DisplayName("cities가 null이면 예외를 던진다.")
         void throwsExceptionWhenCitiesIsNull() {
             // given
-            MemberIdeal memberIdeal = MemberIdeal.init(1L);
+            MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
             cities = null;
 
             // when, then
@@ -116,7 +117,7 @@ class MemberIdealTest {
         @DisplayName("ageRange, hobbies, cities 외의 다른 파라미터가 null이면 update한다.")
         void updatesMemberIdeal(String nullParameter) {
             // given
-            MemberIdeal memberIdeal = MemberIdeal.init(1L);
+            MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
             if (nullParameter.equals("religion")) {
                 religion = null;
             } else if (nullParameter.equals("smokingStatus")) {

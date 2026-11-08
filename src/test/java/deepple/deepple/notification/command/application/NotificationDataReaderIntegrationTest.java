@@ -3,6 +3,7 @@ package deepple.deepple.notification.command.application;
 import deepple.deepple.common.support.IntegrationTestSupport;
 import deepple.deepple.notification.command.domain.NotificationTemplate;
 import deepple.deepple.notification.command.domain.NotificationTemplateCommandRepository;
+import deepple.deepple.notification.fixture.NotificationTemplateFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,9 +48,11 @@ class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
     void tearDown() {
         notificationTemplateRepository.findByType(HEART_GRANTED)
             .ifPresent(notificationTemplateRepository::delete);
-        notificationTemplateRepository.save(
-            NotificationTemplate.of(HEART_GRANTED, original.getTitleTemplate(), original.getBodyTemplate())
-        );
+        notificationTemplateRepository.save(NotificationTemplateFixture.builder()
+            .type(HEART_GRANTED)
+            .titleTemplate(original.getTitleTemplate())
+            .bodyTemplate(original.getBodyTemplate())
+            .build());
         cacheManager.getCache(CACHE_NAME).evict(HEART_GRANTED);
     }
 
@@ -58,7 +61,11 @@ class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
     void doesNotCacheMissingTemplate() {
         // given
         assertThat(notificationDataReader.findTemplate(HEART_GRANTED)).isEmpty();
-        notificationTemplateRepository.save(NotificationTemplate.of(HEART_GRANTED, "제목", "본문"));
+        notificationTemplateRepository.save(NotificationTemplateFixture.builder()
+            .type(HEART_GRANTED)
+            .titleTemplate("제목")
+            .bodyTemplate("본문")
+            .build());
 
         // when
         var result = notificationDataReader.findTemplate(HEART_GRANTED);
@@ -72,7 +79,11 @@ class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
     @DisplayName("findTemplate(): 템플릿 캐시는 1시간 뒤 만료")
     void cachesTemplateForOneHour() {
         // given
-        notificationTemplateRepository.save(NotificationTemplate.of(HEART_GRANTED, "제목", "본문"));
+        notificationTemplateRepository.save(NotificationTemplateFixture.builder()
+            .type(HEART_GRANTED)
+            .titleTemplate("제목")
+            .bodyTemplate("본문")
+            .build());
 
         // when
         notificationDataReader.findTemplate(HEART_GRANTED);

@@ -2,6 +2,7 @@ package deepple.deepple.payment.command.domain.order;
 
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.payment.command.domain.PaymentErrorCode;
+import deepple.deepple.payment.fixture.OrderFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,7 +53,7 @@ class OrderTest {
         @BeforeEach
         void setUp() {
             // given
-            order = Order.of(1L, "transactionId", PaymentMethod.GOOGLE_PLAY);
+            order = OrderFixture.builder().build();
         }
 
         @Test
@@ -73,8 +74,9 @@ class OrderTest {
         @BeforeEach
         void setUp() {
             // given
-            order = Order.of(1L, "transactionId", PaymentMethod.GOOGLE_PLAY);
-            order.refund();
+            order = OrderFixture.builder()
+                .status(OrderStatus.REFUNDED)
+                .build();
         }
 
         @Test
