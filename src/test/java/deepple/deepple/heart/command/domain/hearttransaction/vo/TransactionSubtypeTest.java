@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TransactionSubtypeTest {
 
     @Nested
-    @DisplayName("isFreeEligible 메서드는")
+    @DisplayName("isFreeFor 메서드는")
     class IsFreeEligible {
         @Test
         @DisplayName("INTRODUCTION 타입에 대해 TODAY_CARD 또는 SOULMATE인 경우 true를 반환한다")
@@ -20,8 +20,8 @@ class TransactionSubtypeTest {
             TransactionSubtype subtypeSoulmate = TransactionSubtype.SOULMATE;
 
             // when
-            boolean resultTodayCard = subtypeTodayCard.isFreeEligible(transactionType);
-            boolean resultSoulmate = subtypeSoulmate.isFreeEligible(transactionType);
+            boolean resultTodayCard = subtypeTodayCard.isFreeFor(transactionType);
+            boolean resultSoulmate = subtypeSoulmate.isFreeFor(transactionType);
 
             // then
             assertThat(resultTodayCard).isTrue();
@@ -36,7 +36,7 @@ class TransactionSubtypeTest {
             TransactionSubtype subtypeSoulmate = TransactionSubtype.SOULMATE;
 
             // when
-            boolean resultSoulmate = subtypeSoulmate.isFreeEligible(transactionType);
+            boolean resultSoulmate = subtypeSoulmate.isFreeFor(transactionType);
 
             // then
             assertThat(resultSoulmate).isTrue();
@@ -54,9 +54,9 @@ class TransactionSubtypeTest {
             TransactionSubtype subtypeNonFree3 = TransactionSubtype.MATCH;
 
             // when
-            boolean result1 = subtypeNonFree1.isFreeEligible(transactionTypeIntroduction);
-            boolean result2 = subtypeNonFree2.isFreeEligible(transactionTypeMessage);
-            boolean result3 = subtypeNonFree3.isFreeEligible(transactionTypeMessage);
+            boolean result1 = subtypeNonFree1.isFreeFor(transactionTypeIntroduction);
+            boolean result2 = subtypeNonFree2.isFreeFor(transactionTypeMessage);
+            boolean result3 = subtypeNonFree3.isFreeFor(transactionTypeMessage);
 
             // then
             assertThat(result1).isFalse();

@@ -51,21 +51,8 @@ public class HeartUsagePolicy extends BaseEntity {
         this.transactionType = transactionType;
     }
 
-    public Long getAmount(boolean isVip, TransactionSubtype subtype) {
-        if (isFreeEligible(isVip, subtype)) {
-            return 0L;
-        }
-        return this.heartPriceAmount.getAmount();
-    }
-
-    private boolean isFreeEligible(boolean isVip, TransactionSubtype subtype) {
-        if (isVip) {
-            return true;
-        }
-        if (subtype.isFreeEligible(transactionType)) {
-            return true;
-        }
-        return false;
+    public boolean isFree(boolean isVip, TransactionSubtype subtype) {
+        return isVip || subtype.isFreeFor(transactionType);
     }
 
     public Long getPrice() {

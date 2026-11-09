@@ -30,6 +30,11 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
     }
 
     @Override
+    public Optional<Member> findByIdForUpdate(Long id) {
+        return memberCommandJpaRepository.findByIdForUpdate(id);
+    }
+
+    @Override
     public Optional<Member> findByPhoneNumber(String phoneNumber) {
         return memberCommandJpaRepository.findByPhoneNumber(PhoneNumber.from(phoneNumber));
     }

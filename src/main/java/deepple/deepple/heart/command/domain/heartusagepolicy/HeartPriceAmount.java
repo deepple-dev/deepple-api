@@ -21,10 +21,6 @@ public class HeartPriceAmount {
         return new HeartPriceAmount(price);
     }
 
-    public Long getAmount() {
-        return -price;
-    }
-
     public Long getPrice() {
         return price;
     }

@@ -1,7 +1,6 @@
 package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -35,7 +34,7 @@ class MemberHeartBalanceServiceTest {
         void shouldThrowExceptionWhenMemberNotFound() {
             // given
             Long memberId = 1L;
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> memberHeartBalanceService.grantPurchasedHearts(memberId, 100L))
@@ -49,15 +48,14 @@ class MemberHeartBalanceServiceTest {
             // given
             Long memberId = 1L;
             Member member = mock(Member.class);
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
             Long amount = 100L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
 
             // when
             memberHeartBalanceService.grantPurchasedHearts(memberId, amount);
 
             // then
-            verify(member).gainPurchaseHeart(heartAmount);
+            verify(member).gainPurchaseHeart(amount);
         }
     }
 
@@ -69,7 +67,7 @@ class MemberHeartBalanceServiceTest {
         void shouldThrowExceptionWhenMemberNotFound() {
             // given
             Long memberId = 1L;
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> memberHeartBalanceService.grantMissionHearts(memberId, 50L, "Daily Login"))
@@ -83,16 +81,15 @@ class MemberHeartBalanceServiceTest {
             // given
             Long memberId = 1L;
             Member member = mock(Member.class);
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
             Long amount = 50L;
             String actionType = "Daily Login";
-            HeartAmount heartAmount = HeartAmount.from(amount);
 
             // when
             memberHeartBalanceService.grantMissionHearts(memberId, amount, actionType);
 
             // then
-            verify(member).gainMissionHeart(heartAmount, actionType);
+            verify(member).gainMissionHeart(amount, actionType);
         }
     }
 
@@ -104,7 +101,7 @@ class MemberHeartBalanceServiceTest {
         void shouldThrowExceptionWhenMemberNotFound() {
             // given
             Long memberId = 1L;
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> memberHeartBalanceService.refundPurchasedHearts(memberId, 100L))
@@ -118,15 +115,14 @@ class MemberHeartBalanceServiceTest {
             // given
             Long memberId = 1L;
             Member member = mock(Member.class);
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
             Long amount = 100L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
 
             // when
             memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
 
             // then
-            verify(member).refundPurchaseHeart(heartAmount);
+            verify(member).refundPurchaseHeart(amount);
         }
 
         @Test
@@ -135,16 +131,15 @@ class MemberHeartBalanceServiceTest {
             // given
             Long memberId = 1L;
             Member member = mock(Member.class);
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
             Long amount = 50L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
 
             // when
             memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
 
             // then
-            verify(memberCommandRepository).findById(memberId);
-            verify(member).refundPurchaseHeart(heartAmount);
+            verify(memberCommandRepository).findByIdForUpdate(memberId);
+            verify(member).refundPurchaseHeart(amount);
         }
 
         @Test
@@ -153,15 +148,14 @@ class MemberHeartBalanceServiceTest {
             // given
             Long memberId = 1L;
             Member member = mock(Member.class);
-            when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
             Long amount = 1000L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
 
             // when
             memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
 
             // then
-            verify(member).refundPurchaseHeart(heartAmount);
+            verify(member).refundPurchaseHeart(amount);
         }
     }
 }

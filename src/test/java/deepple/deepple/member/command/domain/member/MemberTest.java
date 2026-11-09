@@ -178,7 +178,7 @@ class MemberTest {
             // Given
             Long memberId = 1L;
             Member member = MemberFixture.builder().id(memberId).build();
-            HeartAmount purchaseHeartAmount = HeartAmount.from(100L);
+            long purchaseHeartAmount = 100L;
             HeartBalance expectedHeartBalance = HeartBalance.init().gainPurchaseHeart(purchaseHeartAmount);
 
             // When
@@ -197,12 +197,10 @@ class MemberTest {
         void shouldDeductHeartBalanceWhenMemberUsesHeart() {
             // Given
             Member member = MemberFixture.builder().purchaseHeartBalance(100L).build();
-            HeartAmount usingheartAmount = HeartAmount.from(-10L);
-            HeartAmount expectedHeartAmount = HeartAmount.from(90L);
-            HeartBalance expectedHeartBalance = HeartBalance.init().gainPurchaseHeart(expectedHeartAmount);
+            HeartBalance expectedHeartBalance = HeartBalance.of(0L, 90L);
 
             // When
-            member.useHeart(usingheartAmount);
+            member.useHeart(10L);
 
             // Then
             Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
@@ -217,7 +215,7 @@ class MemberTest {
         void shouldIncreaseMissionHeartBalanceWhenMemberCompletesMission() {
             // Given
             Member member = MemberFixture.builder().build();
-            HeartAmount missionHeartAmount = HeartAmount.from(100L);
+            long missionHeartAmount = 100L;
             HeartBalance expectedHeartBalance = HeartBalance.init().gainMissionHeart(missionHeartAmount);
 
             // When
@@ -238,7 +236,7 @@ class MemberTest {
                 // Given
                 Long memberId = 1L;
                 Member member = MemberFixture.builder().id(memberId).build();
-                HeartAmount grantAmount = HeartAmount.from(50L);
+                long grantAmount = 50L;
                 Long adminId = 99L;
                 String reason = "CS 보상";
                 HeartBalance expectedHeartBalance = HeartBalance.init().gainMissionHeart(grantAmount);

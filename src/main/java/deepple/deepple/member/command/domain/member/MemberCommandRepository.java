@@ -11,6 +11,8 @@ public interface MemberCommandRepository {
 
     Optional<Member> findById(Long id);
 
+    Optional<Member> findByIdForUpdate(Long id);
+
     Optional<Member> findByPhoneNumber(String phoneNumber);
 
     boolean existsByPhoneNumberAndIdNot(String phoneNumber, Long id);

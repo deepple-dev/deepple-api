@@ -34,46 +34,45 @@ public final class HeartBalance {
         return new HeartBalance(purchaseHeartBalance, missionHeartBalance);
     }
 
-    public HeartBalance useHeart(HeartAmount heartChangeAmount) {
-        validateUsingAmount(heartChangeAmount);
-        validateBalanceIsUsable(heartChangeAmount);
-        Long purchaseHeartBalanceAfterUsing = usePurchaseHeart(heartChangeAmount);
-        HeartAmount remainingHeartChangeAmount = calculateRemainingHeartChangeAmount(heartChangeAmount,
-            purchaseHeartBalanceAfterUsing);
-        Long missionHeartBalanceAfterUsing = useMissionHeart(remainingHeartChangeAmount);
-        return new HeartBalance(purchaseHeartBalanceAfterUsing, missionHeartBalanceAfterUsing);
+    public long getTotalHeartBalance() {
+        return purchaseHeartBalance + missionHeartBalance;
     }
 
-    public HeartBalance gainPurchaseHeart(HeartAmount heartChangeAmount) {
-        validateGainingAmount(heartChangeAmount);
-        Long purchaseHeartBalanceAfterGaining = this.purchaseHeartBalance + heartChangeAmount.getAmount();
-        return new HeartBalance(purchaseHeartBalanceAfterGaining, this.missionHeartBalance);
+    public HeartBalance useHeart(long amount) {
+        validatePositiveAmount(amount);
+        validateBalanceIsUsable(amount);
+        long usedMissionHeart = Math.min(missionHeartBalance, amount);
+        long usedPurchaseHeart = amount - usedMissionHeart;
+        return new HeartBalance(purchaseHeartBalance - usedPurchaseHeart, missionHeartBalance - usedMissionHeart);
     }
 
-    public HeartBalance gainMissionHeart(HeartAmount heartChangeAmount) {
-        validateGainingAmount(heartChangeAmount);
-        Long missionHeartBalanceAfterGaining = this.missionHeartBalance + heartChangeAmount.getAmount();
-        return new HeartBalance(this.purchaseHeartBalance, missionHeartBalanceAfterGaining);
+    public HeartBalance gainPurchaseHeart(long amount) {
+        validatePositiveAmount(amount);
+        return new HeartBalance(purchaseHeartBalance + amount, missionHeartBalance);
     }
 
-    public HeartBalance refundPurchaseHeart(HeartAmount heartChangeAmount) {
-        validateRefundAmount(heartChangeAmount);
-        Long purchaseHeartBalanceAfterRefund = Math.max(this.purchaseHeartBalance + heartChangeAmount.getAmount(), 0L);
-        return new HeartBalance(purchaseHeartBalanceAfterRefund, this.missionHeartBalance);
+    public HeartBalance gainMissionHeart(long amount) {
+        validatePositiveAmount(amount);
+        return new HeartBalance(purchaseHeartBalance, missionHeartBalance + amount);
     }
 
-    private void validateRefundAmount(HeartAmount heartChangeAmount) {
-        if (heartChangeAmount.isZero() || !heartChangeAmount.isUsingAmount()) {
-            throw new IllegalArgumentException("잘못된 환불 금액입니다. amount: " + heartChangeAmount.getAmount());
+    public HeartBalance refundPurchaseHeart(long amount) {
+        validatePositiveAmount(amount);
+        return new HeartBalance(Math.max(purchaseHeartBalance - amount, MIN_HEART_BALANCE), missionHeartBalance);
+    }
+
+    private void validatePositiveAmount(long amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("하트 수량은 양수여야 합니다. amount: " + amount);
         }
     }
 
-    private void validateBalanceIsUsable(HeartAmount heartChangeAmount) {
-        Long totalHeartBalance = this.purchaseHeartBalance + this.missionHeartBalance;
-        if (totalHeartBalance + heartChangeAmount.getAmount() < MIN_HEART_BALANCE) {
+    private void validateBalanceIsUsable(long amount) {
+        long totalHeartBalance = getTotalHeartBalance();
+        if (totalHeartBalance < amount) {
             throw new DeeppleException(
                 HeartErrorCode.INSUFFICIENT_HEART_BALANCE,
-                "balance=" + totalHeartBalance + ", amount=" + heartChangeAmount.getAmount()
+                "balance=" + totalHeartBalance + ", amount=" + amount
             );
         }
     }
@@ -84,33 +83,6 @@ public final class HeartBalance {
         }
         if (missionHeartBalance < MIN_HEART_BALANCE) {
             throw new IllegalArgumentException("하트 잔액이 최소값 미만입니다. missionHeartBalance: " + missionHeartBalance);
-        }
-    }
-
-    private Long usePurchaseHeart(HeartAmount heartChangeAmount) {
-        return Math.max(this.purchaseHeartBalance + heartChangeAmount.getAmount(), 0L);
-    }
-
-    private HeartAmount calculateRemainingHeartChangeAmount(HeartAmount heartChangeAmount,
-        Long purchaseHeartBalanceAfterUsing) {
-        Long usedPurchaseHeart = this.purchaseHeartBalance - purchaseHeartBalanceAfterUsing;
-        Long remainingHeartChangeAmount = heartChangeAmount.getAmount() + usedPurchaseHeart;
-        return HeartAmount.from(remainingHeartChangeAmount);
-    }
-
-    private Long useMissionHeart(HeartAmount heartChangeAmount) {
-        return Math.max(this.missionHeartBalance + heartChangeAmount.getAmount(), 0L);
-    }
-
-    private void validateUsingAmount(HeartAmount heartChangeAmount) {
-        if (!heartChangeAmount.isUsingAmount()) {
-            throw new IllegalArgumentException("잘못된 하트 사용량 입니다. amount: " + heartChangeAmount.getAmount());
-        }
-    }
-
-    private void validateGainingAmount(HeartAmount heartChangeAmount) {
-        if (!heartChangeAmount.isGainingAmount()) {
-            throw new IllegalArgumentException("잘못된 하트 획득량 입니다. amount: " + heartChangeAmount.getAmount());
         }
     }
 }

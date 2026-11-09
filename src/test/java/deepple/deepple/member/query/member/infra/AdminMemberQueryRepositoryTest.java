@@ -284,8 +284,7 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
             assertThat(heartBalanceView.purchaseHeartBalance()).isEqualTo(
                 member.getHeartBalance().getPurchaseHeartBalance());
             assertThat(heartBalanceView.totalHeartBalance())
-                .isEqualTo(member.getHeartBalance().getMissionHeartBalance() + member.getHeartBalance()
-                    .getPurchaseHeartBalance());
+                .isEqualTo(member.getHeartBalance().getTotalHeartBalance());
         }
 
         private void assertProfileImageUrls(List<String> profileImageUrls, List<ProfileImage> profileImages) {

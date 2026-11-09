@@ -38,7 +38,7 @@ class AdminHeartGrantServiceTest {
         String reason = "CS 보상";
 
         Member member = MemberFixture.builder().id(memberId).build();
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
 
         AdminHeartGrantRequest request = new AdminHeartGrantRequest(memberId, amount, reason);
 
@@ -58,7 +58,7 @@ class AdminHeartGrantServiceTest {
         long adminId = 99L;
         long memberId = 404L;
         AdminHeartGrantRequest request = new AdminHeartGrantRequest(memberId, 10L, "사유");
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+        when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
 
         // when / then
         Assertions.assertThatThrownBy(() -> adminHeartGrantService.grant(adminId, request))

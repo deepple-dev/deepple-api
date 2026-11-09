@@ -24,7 +24,7 @@ public enum TransactionSubtype {
         this.description = description;
     }
 
-    public boolean isFreeEligible(TransactionType transactionType) {
+    public boolean isFreeFor(TransactionType transactionType) {
         switch (transactionType) {
             case INTRODUCTION:
                 return this == TODAY_CARD || this == SOULMATE;
