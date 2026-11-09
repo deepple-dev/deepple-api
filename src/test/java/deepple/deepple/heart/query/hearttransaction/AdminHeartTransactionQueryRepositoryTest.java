@@ -57,9 +57,8 @@ class AdminHeartTransactionQueryRepositoryTest extends RepositoryTestSupport {
             heartTransaction1.getTransactionType().name());
         assertThat(adminHeartTransactionView.content()).isEqualTo(heartTransaction1.getContent());
         assertThat(adminHeartTransactionView.heartAmount()).isEqualTo(heartTransaction1.getHeartAmount().getAmount());
-        Long heartBalance = heartTransaction1.getHeartBalance().getMissionHeartBalance() +
-            heartTransaction1.getHeartBalance().getPurchaseHeartBalance();
-        assertThat(adminHeartTransactionView.heartBalance()).isEqualTo(heartBalance);
+        assertThat(adminHeartTransactionView.heartBalance()).isEqualTo(
+            heartTransaction1.getHeartBalance().getTotalHeartBalance());
         assertThat(adminHeartTransactionView.createdAt()).isCloseTo(heartTransaction1.getCreatedAt(),
             within(1, ChronoUnit.MICROS));
     }

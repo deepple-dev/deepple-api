@@ -2,11 +2,12 @@ package deepple.deepple.heart.command.domain.heartransaction.vo;
 
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.heart.command.domain.HeartErrorCode;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,39 +33,25 @@ class HeartBalanceTest {
     @DisplayName("gainPurchaseHeart 메서드 테스트")
     class GainPurchaseHeartTest {
         @Test
-        @DisplayName("amount 값 양수로 purchaseHeartBalance 증가 성공")
-        void gainPurchaseHeartTestWithPositiveValue() {
+        @DisplayName("구매 하트가 수량만큼 늘어난다")
+        void increasePurchaseHeartBalance() {
             // given
             HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(10L);
             // when
-            HeartBalance updatedBalance = heartBalance.gainPurchaseHeart(heartAmount);
+            HeartBalance updatedBalance = heartBalance.gainPurchaseHeart(10L);
             // then
             assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(10L);
             assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
-        @Test
-        @DisplayName("amount 값 음수로 purchaseHeartBalance 증가 실패")
-        void gainPurchaseHeartTestWithNegativeValue() {
+        @ParameterizedTest
+        @ValueSource(longs = {0L, -10L})
+        @DisplayName("수량이 양수가 아니면 실패한다")
+        void failWhenAmountIsNotPositive(long amount) {
             // given
             HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(-10L);
-            // when
-            // then
-            assertThatThrownBy(() -> heartBalance.gainPurchaseHeart(heartAmount))
-                .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @Test
-        @DisplayName("amount 값 0으로 purchaseHeartBalance 증가 실패")
-        void gainPurchaseHeartTestWithZeroValue() {
-            // given
-            HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(0L);
-            // when
-            // then
-            assertThatThrownBy(() -> heartBalance.gainPurchaseHeart(heartAmount))
+            // when & then
+            assertThatThrownBy(() -> heartBalance.gainPurchaseHeart(amount))
                 .isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -73,39 +60,25 @@ class HeartBalanceTest {
     @DisplayName("gainMissionHeart 메서드 테스트")
     class GainMissionHeartTest {
         @Test
-        @DisplayName("amount 값 양수로 missionHeartBalance 증가 성공")
-        void gainMissionHeartTestWithPositiveValue() {
+        @DisplayName("미션 하트가 수량만큼 늘어난다")
+        void increaseMissionHeartBalance() {
             // given
             HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(10L);
             // when
-            HeartBalance updatedBalance = heartBalance.gainMissionHeart(heartAmount);
+            HeartBalance updatedBalance = heartBalance.gainMissionHeart(10L);
             // then
             assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
             assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(10L);
         }
 
-        @Test
-        @DisplayName("amount 값 음수로 missionHeartBalance 증가 실패")
-        void gainMissionHeartTestWithNegativeValue() {
+        @ParameterizedTest
+        @ValueSource(longs = {0L, -10L})
+        @DisplayName("수량이 양수가 아니면 실패한다")
+        void failWhenAmountIsNotPositive(long amount) {
             // given
             HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(-10L);
-            // when
-            // then
-            assertThatThrownBy(() -> heartBalance.gainMissionHeart(heartAmount))
-                .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @Test
-        @DisplayName("amount 값 0으로 missionHeartBalance 증가 실패")
-        void gainMissionHeartTestWithZeroValue() {
-            // given
-            HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(0L);
-            // when
-            // then
-            assertThatThrownBy(() -> heartBalance.gainMissionHeart(heartAmount))
+            // when & then
+            assertThatThrownBy(() -> heartBalance.gainMissionHeart(amount))
                 .isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -114,83 +87,50 @@ class HeartBalanceTest {
     @DisplayName("refundPurchaseHeart 메서드 테스트")
     class RefundPurchaseHeartTest {
         @Test
-        @DisplayName("amount 값 음수로 purchaseHeartBalance 환불 성공")
-        void refundPurchaseHeartTestWithNegativeValue() {
+        @DisplayName("구매 하트가 수량만큼 회수된다")
+        void reclaimPurchaseHeartBalance() {
             // given
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(100L));
-            HeartAmount refundAmount = HeartAmount.from(-50L);
+            HeartBalance heartBalance = HeartBalance.of(0L, 100L);
             // when
-            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(50L);
             // then
             assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(50L);
             assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
         @Test
-        @DisplayName("amount 값 음수이고 purchaseHeartBalance보다 큰 경우 0으로 제한")
-        void refundPurchaseHeartTestWithNegativeValueGreaterThanBalance() {
+        @DisplayName("회수할 수량이 구매 하트보다 많으면 구매 하트는 0이 된다")
+        void clampToZeroWhenAmountExceedsBalance() {
             // given
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(30L));
-            HeartAmount refundAmount = HeartAmount.from(-50L);
+            HeartBalance heartBalance = HeartBalance.of(0L, 30L);
             // when
-            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(50L);
             // then
             assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
             assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
         @Test
-        @DisplayName("purchaseHeartBalance가 0일 때 음수 환불 시도하면 0 유지")
-        void refundPurchaseHeartTestWithZeroBalance() {
+        @DisplayName("미션 하트는 회수되지 않는다")
+        void notAffectMissionHeartBalance() {
             // given
-            HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount refundAmount = HeartAmount.from(-10L);
+            HeartBalance heartBalance = HeartBalance.of(50L, 100L);
             // when
-            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
-            // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
-            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
-        }
-
-        @Test
-        @DisplayName("amount 값 양수로 purchaseHeartBalance 환불 실패")
-        void refundPurchaseHeartTestWithPositiveValue() {
-            // given
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(100L));
-            HeartAmount refundAmount = HeartAmount.from(10L);
-            // when & then
-            assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(refundAmount))
-                .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @Test
-        @DisplayName("amount 값 0으로 purchaseHeartBalance 환불 실패")
-        void refundPurchaseHeartTestWithZeroValue() {
-            // given
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(100L));
-            HeartAmount refundAmount = HeartAmount.from(0L);
-            // when & then
-            assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(refundAmount))
-                .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @Test
-        @DisplayName("missionHeartBalance는 환불에 영향을 받지 않음")
-        void refundPurchaseHeartTestDoesNotAffectMissionHeartBalance() {
-            // given
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(100L))
-                .gainMissionHeart(HeartAmount.from(50L));
-            HeartAmount refundAmount = HeartAmount.from(-30L);
-            // when
-            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(refundAmount);
+            HeartBalance updatedBalance = heartBalance.refundPurchaseHeart(30L);
             // then
             assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(70L);
             assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(50L);
+        }
+
+        @ParameterizedTest
+        @ValueSource(longs = {0L, -10L})
+        @DisplayName("수량이 양수가 아니면 실패한다")
+        void failWhenAmountIsNotPositive(long amount) {
+            // given
+            HeartBalance heartBalance = HeartBalance.of(0L, 100L);
+            // when & then
+            assertThatThrownBy(() -> heartBalance.refundPurchaseHeart(amount))
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
@@ -198,145 +138,72 @@ class HeartBalanceTest {
     @DisplayName("useHeart 메서드 테스트")
     class UseHeartTest {
         @Test
-        @DisplayName("가격이 purchaseHaertBalance 보다 작은 경우 purchaseHeartBalance 만 사용 성공")
-        void shouldSucceedWhenAmountIsLessThanPurchaseHeartBalance() {
+        @DisplayName("수량이 미션 하트보다 적으면 미션 하트만 쓴다")
+        void useMissionHeartOnlyWhenAmountIsLessThanMissionHeartBalance() {
             // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(-1L);
-            Long expectedPurchaseHeartBalance = purchaseHeartBalance + heartAmount.getAmount();
-            Long expectedMissionHeartBalance = missionHeartBalance;
+            HeartBalance heartBalance = HeartBalance.of(10L, 10L);
             // when
-            HeartBalance updatedBalance = heartBalance.useHeart(heartAmount);
+            HeartBalance updatedBalance = heartBalance.useHeart(1L);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(expectedPurchaseHeartBalance);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(expectedMissionHeartBalance);
+            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(9L);
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(10L);
         }
 
         @Test
-        @DisplayName("가격이 purchaseHaertBalance 와 같은 경우 purchaseHeartBalance 만 사용 성공")
-        void shouldSucceedWhenAmountIsEqualToPurchaseHeartBalance() {
+        @DisplayName("수량이 미션 하트와 같으면 미션 하트만 모두 쓴다")
+        void useMissionHeartOnlyWhenAmountIsEqualToMissionHeartBalance() {
             // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(-10L);
-            Long expectedPurchaseHeartBalance = purchaseHeartBalance + heartAmount.getAmount();
-            Long expectedMissionHeartBalance = missionHeartBalance;
+            HeartBalance heartBalance = HeartBalance.of(10L, 10L);
             // when
-            HeartBalance updatedBalance = heartBalance.useHeart(heartAmount);
+            HeartBalance updatedBalance = heartBalance.useHeart(10L);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(expectedPurchaseHeartBalance);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(expectedMissionHeartBalance);
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(10L);
         }
 
         @Test
-        @DisplayName("가격이 purchaseHaertBalance 보다 큰 경우 purchaseHeartBalance를 모두 사용하고 missionHeartBalance 도 사용 성공")
-        void shouldSucceedWhenAmountIsGreaterThanPurchaseHeartBalance() {
+        @DisplayName("수량이 미션 하트보다 많으면 미션 하트를 모두 쓰고 나머지를 구매 하트에서 쓴다")
+        void usePurchaseHeartForRemainderWhenAmountIsGreaterThanMissionHeartBalance() {
             // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(-15L);
-            Long expectedPurchaseHeartBalance = 0L;
-            Long expectedMissionHeartBalance = missionHeartBalance + (purchaseHeartBalance + heartAmount.getAmount());
+            HeartBalance heartBalance = HeartBalance.of(10L, 10L);
             // when
-            HeartBalance updatedBalance = heartBalance.useHeart(heartAmount);
+            HeartBalance updatedBalance = heartBalance.useHeart(15L);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(expectedPurchaseHeartBalance);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(expectedMissionHeartBalance);
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(5L);
         }
 
         @Test
-        @DisplayName("가격이 haertBalance 총합과 같은 경우 purchaseHeartBalance와 missionHeartBalance를 모두 사용 성공")
-        void shouldSucceedWhenAmountIsEqualToTotalHeartBalance() {
+        @DisplayName("수량이 잔액 총합과 같으면 모두 쓴다")
+        void useAllWhenAmountIsEqualToTotalHeartBalance() {
             // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(-20L);
-            Long expectedPurchaseHeartBalance = 0L;
-            Long expectedMissionHeartBalance = 0L;
+            HeartBalance heartBalance = HeartBalance.of(10L, 10L);
             // when
-            HeartBalance updatedBalance = heartBalance.useHeart(heartAmount);
+            HeartBalance updatedBalance = heartBalance.useHeart(20L);
             // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(expectedPurchaseHeartBalance);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(expectedMissionHeartBalance);
+            assertThat(updatedBalance.getPurchaseHeartBalance()).isZero();
+            assertThat(updatedBalance.getMissionHeartBalance()).isZero();
         }
 
         @Test
-        @DisplayName("가격이 haertBalance 총합보다 큰 경우 사용 실패")
-        void shouldFailWhenAmountIsGreaterThanTotalHeartBalance() {
+        @DisplayName("수량이 잔액 총합보다 많으면 잔액 부족으로 실패한다")
+        void failWhenAmountIsGreaterThanTotalHeartBalance() {
             // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(-21L);
-            // when
-            // then
-            assertThatThrownBy(() -> heartBalance.useHeart(heartAmount))
+            HeartBalance heartBalance = HeartBalance.of(10L, 10L);
+            // when & then
+            assertThatThrownBy(() -> heartBalance.useHeart(21L))
                 .isInstanceOf(DeeppleException.class)
                 .hasFieldOrPropertyWithValue("errorCode", HeartErrorCode.INSUFFICIENT_HEART_BALANCE);
         }
 
-        @Test
-        @DisplayName("가격이 0인 경우 사용 성공")
-        void shouldFailWhenAmountIsZero() {
+        @ParameterizedTest
+        @ValueSource(longs = {0L, -1L})
+        @DisplayName("수량이 양수가 아니면 실패한다")
+        void failWhenAmountIsNotPositive(long amount) {
             // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(0L);
-            Long expectedPurchaseHeartBalance = purchaseHeartBalance;
-            Long expectedMissionHeartBalance = missionHeartBalance;
-            // when
-            HeartBalance updatedBalance = heartBalance.useHeart(heartAmount);
-            // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(expectedPurchaseHeartBalance);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(expectedMissionHeartBalance);
-        }
-
-        @Test
-        @DisplayName("가격이 0이고 HeartBalance 총합이 0인 경우 사용 성공")
-        void shouldFailWhenAmountIsZeroAndHeartBalanceIsZero() {
-            // given
-            HeartBalance heartBalance = HeartBalance.init();
-            HeartAmount heartAmount = HeartAmount.from(0L);
-            Long expectedPurchaseHeartBalance = 0L;
-            Long expectedMissionHeartBalance = 0L;
-            // when
-            HeartBalance updatedBalance = heartBalance.useHeart(heartAmount);
-            // then
-            assertThat(updatedBalance.getPurchaseHeartBalance()).isEqualTo(expectedPurchaseHeartBalance);
-            assertThat(updatedBalance.getMissionHeartBalance()).isEqualTo(expectedMissionHeartBalance);
-        }
-
-        @Test
-        @DisplayName("가격이 양수인 경우 사용 실패")
-        void shouldFailWhenAmountIsPositive() {
-            // given
-            Long purchaseHeartBalance = 10L;
-            Long missionHeartBalance = 10L;
-            HeartBalance heartBalance = HeartBalance.init()
-                .gainPurchaseHeart(HeartAmount.from(purchaseHeartBalance))
-                .gainMissionHeart(HeartAmount.from(missionHeartBalance));
-            HeartAmount heartAmount = HeartAmount.from(1L);
-            // when
-            // then
-            assertThatThrownBy(() -> heartBalance.useHeart(heartAmount))
+            HeartBalance heartBalance = HeartBalance.of(10L, 10L);
+            // when & then
+            assertThatThrownBy(() -> heartBalance.useHeart(amount))
                 .isInstanceOf(IllegalArgumentException.class);
         }
     }

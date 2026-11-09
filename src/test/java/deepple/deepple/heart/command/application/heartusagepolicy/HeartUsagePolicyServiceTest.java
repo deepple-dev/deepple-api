@@ -43,7 +43,7 @@ class HeartUsagePolicyServiceTest {
     void shouldThrowExceptionWhenMemberNotFound() {
         // given
         Long memberId = 1L;
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+        when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
         TransactionType transactionType = TransactionType.MESSAGE;
         String content = transactionType.getDescription();
         TransactionSubtype subtype = TransactionSubtype.MATCH;
@@ -64,7 +64,7 @@ class HeartUsagePolicyServiceTest {
             .id(memberId)
             .gender(gender)
             .build();
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
         TransactionType transactionType = TransactionType.MESSAGE;
         String content = transactionType.getDescription();
         when(heartUsagePolicyCommandRepository.findByGenderAndTransactionType(gender, transactionType))
@@ -95,7 +95,7 @@ class HeartUsagePolicyServiceTest {
             .purchaseHeartBalance(100L)
             .missionHeartBalance(100L)
             .build();
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
 
         TransactionType transactionType = TransactionType.MESSAGE;
         HeartUsagePolicy heartUsagePolicy = HeartUsagePolicyFixture.builder()
@@ -129,7 +129,7 @@ class HeartUsagePolicyServiceTest {
             .purchaseHeartBalance(100L)
             .missionHeartBalance(100L)
             .build();
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
 
         TransactionType transactionType = TransactionType.MESSAGE;
         HeartUsagePolicy heartUsagePolicy = HeartUsagePolicyFixture.builder()

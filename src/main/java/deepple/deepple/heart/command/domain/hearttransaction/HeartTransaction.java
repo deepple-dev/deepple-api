@@ -39,19 +39,18 @@ public class HeartTransaction extends BaseEntity {
     @Getter
     private HeartBalance heartBalance;
 
-    private HeartTransaction(Long memberId, TransactionType transactionType, String content, HeartAmount heartAmount,
+    private HeartTransaction(Long memberId, TransactionType transactionType, String content, long amount,
         HeartBalance heartBalance) {
         setMemberId(memberId);
         setTransactionType(transactionType);
         setContent(content);
-        setHeartAmount(heartAmount);
+        setHeartAmount(amount);
         setHeartBalance(heartBalance);
-        validateHeartTransaction(transactionType, heartAmount);
     }
 
-    public static HeartTransaction of(Long memberId, TransactionType transactionType, String content,
-        HeartAmount heartAmount, HeartBalance heartBalance) {
-        return new HeartTransaction(memberId, transactionType, content, heartAmount, heartBalance);
+    public static HeartTransaction of(Long memberId, TransactionType transactionType, String content, long amount,
+        HeartBalance heartBalance) {
+        return new HeartTransaction(memberId, transactionType, content, amount, heartBalance);
     }
 
     private void setMemberId(@NonNull Long memberId) {
@@ -69,22 +68,11 @@ public class HeartTransaction extends BaseEntity {
         this.content = content;
     }
 
-    private void setHeartAmount(@NonNull HeartAmount heartAmount) {
-        this.heartAmount = heartAmount;
+    private void setHeartAmount(long amount) {
+        this.heartAmount = HeartAmount.of(transactionType, amount);
     }
 
     private void setHeartBalance(@NonNull HeartBalance heartBalance) {
         this.heartBalance = heartBalance;
-    }
-
-    private void validateHeartTransaction(TransactionType transactionType, HeartAmount heartAmount) {
-        if (transactionType.isUsingType() && !heartAmount.isUsingAmount()) {
-            throw new IllegalArgumentException(
-                "잘못된 하트 사용량 입니다. transactionType: " + transactionType + ", heartAmount: " + heartAmount);
-        }
-        if (transactionType.isGainingType() && !heartAmount.isGainingAmount()) {
-            throw new IllegalArgumentException(
-                "잘못된 하트 획득량 입니다. transactionType: " + transactionType + ", heartAmount: " + heartAmount);
-        }
     }
 }

@@ -2,7 +2,6 @@ package deepple.deepple.heart.command.application.hearttransaction;
 
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +22,8 @@ public class HeartTransactionService {
     private void createHeartTransaction(Long memberId, Long amount, Long missionHeartBalance, Long purchaseHeartBalance,
         TransactionType transactionType) {
         HeartBalance heartBalance = HeartBalance.of(missionHeartBalance, purchaseHeartBalance);
-        HeartAmount heartAmount = HeartAmount.from(amount);
         HeartTransaction heartTransaction = HeartTransaction.of(memberId, transactionType,
-            transactionType.getDescription(), heartAmount, heartBalance);
+            transactionType.getDescription(), amount, heartBalance);
         heartTransactionCommandRepository.save(heartTransaction);
     }
 
@@ -33,9 +31,8 @@ public class HeartTransactionService {
     public void createHeartMissionTransaction(Long memberId, Long amount, Long missionHeartBalance,
         Long purchaseHeartBalance, String actionType) {
         HeartBalance heartBalance = HeartBalance.of(missionHeartBalance, purchaseHeartBalance);
-        HeartAmount heartAmount = HeartAmount.from(amount);
         HeartTransaction heartTransaction = HeartTransaction.of(memberId, TransactionType.MISSION,
-            actionType, heartAmount, heartBalance);
+            actionType, amount, heartBalance);
         heartTransactionCommandRepository.save(heartTransaction);
     }
 
@@ -43,9 +40,8 @@ public class HeartTransactionService {
     public void createAdminGrantTransaction(Long memberId, Long amount, Long missionHeartBalance,
         Long purchaseHeartBalance, String reason) {
         HeartBalance heartBalance = HeartBalance.of(missionHeartBalance, purchaseHeartBalance);
-        HeartAmount heartAmount = HeartAmount.from(amount);
         HeartTransaction heartTransaction = HeartTransaction.of(memberId, TransactionType.ADMIN_GRANT,
-            reason, heartAmount, heartBalance);
+            reason, amount, heartBalance);
         heartTransactionCommandRepository.save(heartTransaction);
     }
 }

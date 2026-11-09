@@ -3,7 +3,6 @@ package deepple.deepple.member.command.domain.member;
 import deepple.deepple.common.entity.SoftDeleteBaseEntity;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.member.command.domain.member.event.*;
 import deepple.deepple.member.command.domain.MemberErrorCode;
@@ -173,30 +172,30 @@ public class Member extends SoftDeleteBaseEntity {
         return profile.getGender();
     }
 
-    public void useHeart(HeartAmount heartAmount) {
-        heartBalance = heartBalance.useHeart(heartAmount);
+    public void useHeart(long amount) {
+        heartBalance = heartBalance.useHeart(amount);
     }
 
-    public void gainPurchaseHeart(HeartAmount heartAmount) {
-        heartBalance = heartBalance.gainPurchaseHeart(heartAmount);
-        Events.raise(PurchaseHeartGainedEvent.of(id, heartAmount.getAmount(), heartBalance.getMissionHeartBalance(),
+    public void gainPurchaseHeart(long amount) {
+        heartBalance = heartBalance.gainPurchaseHeart(amount);
+        Events.raise(PurchaseHeartGainedEvent.of(id, amount, heartBalance.getMissionHeartBalance(),
             heartBalance.getPurchaseHeartBalance()));
     }
 
-    public void gainMissionHeart(HeartAmount heartAmount, String actionType) {
-        heartBalance = heartBalance.gainMissionHeart(heartAmount);
-        Events.raise(MissionHeartGainedEvent.of(id, heartAmount.getAmount(), heartBalance.getMissionHeartBalance(),
+    public void gainMissionHeart(long amount, String actionType) {
+        heartBalance = heartBalance.gainMissionHeart(amount);
+        Events.raise(MissionHeartGainedEvent.of(id, amount, heartBalance.getMissionHeartBalance(),
             heartBalance.getPurchaseHeartBalance(), actionType));
     }
 
-    public void gainAdminGrantedHeart(HeartAmount heartAmount, Long adminId, String reason) {
-        heartBalance = heartBalance.gainMissionHeart(heartAmount);
-        Events.raise(AdminHeartGrantedEvent.of(id, adminId, heartAmount.getAmount(),
+    public void gainAdminGrantedHeart(long amount, Long adminId, String reason) {
+        heartBalance = heartBalance.gainMissionHeart(amount);
+        Events.raise(AdminHeartGrantedEvent.of(id, adminId, amount,
             heartBalance.getMissionHeartBalance(), heartBalance.getPurchaseHeartBalance(), reason));
     }
 
-    public void refundPurchaseHeart(HeartAmount heartAmount) {
-        heartBalance = heartBalance.refundPurchaseHeart(heartAmount);
+    public void refundPurchaseHeart(long amount) {
+        heartBalance = heartBalance.refundPurchaseHeart(amount);
     }
 
     public void updateGrade(@NonNull Grade grade) {

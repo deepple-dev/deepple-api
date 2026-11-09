@@ -1,7 +1,6 @@
 package deepple.deepple.heart.fixture;
 
 import deepple.deepple.heart.command.domain.hearttransaction.HeartTransaction;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import lombok.AccessLevel;
@@ -20,7 +19,7 @@ public class HeartTransactionFixture {
     private long memberId = 1L;
     private TransactionType transactionType = TransactionType.MESSAGE;
     private String content = TransactionType.MESSAGE.getDescription();
-    private long amount = -20L;
+    private long amount = 20L;
     private long missionHeartBalance;
     private long purchaseHeartBalance;
 
@@ -30,7 +29,7 @@ public class HeartTransactionFixture {
 
     public HeartTransaction build() {
         HeartTransaction transaction = HeartTransaction.of(memberId, transactionType, content,
-            HeartAmount.from(amount), HeartBalance.of(missionHeartBalance, purchaseHeartBalance));
+            amount, HeartBalance.of(missionHeartBalance, purchaseHeartBalance));
         setField(transaction, "id", id);
         return transaction;
     }

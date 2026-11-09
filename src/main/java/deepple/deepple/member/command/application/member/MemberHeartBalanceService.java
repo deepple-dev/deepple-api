@@ -1,7 +1,6 @@
 package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
 import deepple.deepple.member.command.domain.MemberErrorCode;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
@@ -17,26 +16,23 @@ public class MemberHeartBalanceService {
     @Transactional
     public void grantPurchasedHearts(Long memberId, Long amount) {
         Member member = getMemberById(memberId);
-        HeartAmount heartAmount = HeartAmount.from(amount);
-        member.gainPurchaseHeart(heartAmount);
+        member.gainPurchaseHeart(amount);
     }
 
     @Transactional
     public void grantMissionHearts(Long memberId, Long amount, String actionType) {
         Member member = getMemberById(memberId);
-        HeartAmount heartAmount = HeartAmount.from(amount);
-        member.gainMissionHeart(heartAmount, actionType);
+        member.gainMissionHeart(amount, actionType);
     }
 
     @Transactional
     public void refundPurchasedHearts(Long memberId, Long amount) {
         Member member = getMemberById(memberId);
-        HeartAmount heartAmount = HeartAmount.from(amount);
-        member.refundPurchaseHeart(heartAmount);
+        member.refundPurchaseHeart(amount);
     }
 
     private Member getMemberById(Long memberId) {
-        return memberCommandRepository.findById(memberId)
+        return memberCommandRepository.findByIdForUpdate(memberId)
             .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 }

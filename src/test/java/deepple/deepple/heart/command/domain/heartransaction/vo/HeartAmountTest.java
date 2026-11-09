@@ -1,9 +1,12 @@
 package deepple.deepple.heart.command.domain.heartransaction.vo;
 
 import deepple.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
+import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,132 +14,41 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class HeartAmountTest {
 
     @Nested
-    @DisplayName("from 메서드 테스트")
-    class FromTest {
+    @DisplayName("of 메서드 테스트")
+    class OfTest {
         @Test
-        @DisplayName("amount값 0으로 from 메서드 성공")
-        void fromTestWithZeroValue() {
-            // given
-            Long amount = 0L;
+        @DisplayName("사용 거래면 음수로 만든다")
+        void negateWhenUsingType() {
             // when
-            HeartAmount heartAmount = HeartAmount.from(amount);
+            HeartAmount heartAmount = HeartAmount.of(TransactionType.MESSAGE, 20L);
             // then
-            assertThat(heartAmount.getAmount()).isEqualTo(amount);
+            assertThat(heartAmount.getAmount()).isEqualTo(-20L);
         }
 
         @Test
-        @DisplayName("amount값 음수로 from 메서드 성공")
-        void fromTestWithNegativeValue() {
-            // given
-            Long amount = -1L;
+        @DisplayName("획득 거래면 양수 그대로 만든다")
+        void keepPositiveWhenGainingType() {
             // when
-            HeartAmount heartAmount = HeartAmount.from(amount);
+            HeartAmount heartAmount = HeartAmount.of(TransactionType.PURCHASE, 45L);
             // then
-            assertThat(heartAmount.getAmount()).isEqualTo(amount);
+            assertThat(heartAmount.getAmount()).isEqualTo(45L);
         }
 
-        @Test
-        @DisplayName("amount값 양수로 from 메서드 성공")
-        void fromTestWithPositiveValue() {
-            // given
-            Long amount = 1L;
-            // when
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // then
-            assertThat(heartAmount.getAmount()).isEqualTo(amount);
-        }
-
-        @Test
-        @DisplayName("amount가 null이면 NullPointerException 발생")
-        void throwsNullPointExceptionWhenAmountIsNull() {
-            // given
-            Long amount = null;
+        @ParameterizedTest
+        @ValueSource(longs = {0L, -10L})
+        @DisplayName("수량이 양수가 아니면 실패한다")
+        void failWhenAmountIsNotPositive(long amount) {
             // when & then
-            assertThatThrownBy(() -> HeartAmount.from(amount))
+            assertThatThrownBy(() -> HeartAmount.of(TransactionType.MESSAGE, amount))
+                .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("거래 종류가 null이면 실패한다")
+        void failWhenTransactionTypeIsNull() {
+            // when & then
+            assertThatThrownBy(() -> HeartAmount.of(null, 10L))
                 .isInstanceOf(NullPointerException.class);
         }
-    }
-
-    @Nested
-    @DisplayName("isUsingAmount 메서드 테스트")
-    class isUsingAmountTest {
-
-        @Test
-        @DisplayName("amount값 양수로 isUsingAmount 메서드 False 리턴")
-        void isUsingAmountTestWithPositiveValue() {
-            // given
-            Long amount = 1L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // when
-            boolean result = heartAmount.isUsingAmount();
-            // then
-            assertThat(result).isFalse();
-        }
-
-        @Test
-        @DisplayName("amount값 0으로 isUsingAmount 메서드 True 리턴")
-        void isUsingAmountTestWithZeroValue() {
-            // given
-            Long amount = 0L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // when
-            boolean result = heartAmount.isUsingAmount();
-            // then
-            assertThat(result).isTrue();
-        }
-
-        @Test
-        @DisplayName("amount값 음수로 isUsingAmount 메서드 True 리턴")
-        void isUsingAmountTestWithNegativeValue() {
-            // given
-            Long amount = -1L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // when
-            boolean result = heartAmount.isUsingAmount();
-            // then
-            assertThat(result).isTrue();
-        }
-    }
-
-    @Nested
-    @DisplayName("isGainingAmount 메서드 테스트")
-    class isGainingAmountTest {
-
-        @Test
-        @DisplayName("amount값 양수로 isGainingAmount 메서드 True 리턴")
-        void isGainingAmountTestWithPositiveValue() {
-            // given
-            Long amount = 1L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // when
-            boolean result = heartAmount.isGainingAmount();
-            // then
-            assertThat(result).isTrue();
-        }
-
-        @Test
-        @DisplayName("amount값 0으로 isGainingAmount 메서드 False 리턴")
-        void isGainingAmountTestWithZeroValue() {
-            // given
-            Long amount = 0L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // when
-            boolean result = heartAmount.isGainingAmount();
-            // then
-            assertThat(result).isFalse();
-        }
-
-        @Test
-        @DisplayName("amount값 음수로 isGainingAmount 메서드 False 리턴")
-        void isGainingAmountTestWithNegativeValue() {
-            // given
-            Long amount = -1L;
-            HeartAmount heartAmount = HeartAmount.from(amount);
-            // when
-            boolean result = heartAmount.isGainingAmount();
-            // then
-            assertThat(result).isFalse();
-        }
-
     }
 }
