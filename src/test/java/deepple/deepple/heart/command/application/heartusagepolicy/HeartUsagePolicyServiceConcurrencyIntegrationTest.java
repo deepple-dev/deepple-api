@@ -5,6 +5,7 @@ import deepple.deepple.heart.command.domain.hearttransaction.HeartTransactionCom
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionSubtype;
 import deepple.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
 import deepple.deepple.member.command.application.member.MemberHeartBalanceService;
+import deepple.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import deepple.deepple.member.fixture.MemberFixture;
@@ -43,8 +44,12 @@ class HeartUsagePolicyServiceConcurrencyIntegrationTest extends IntegrationTestS
     @Autowired
     private HeartTransactionCommandRepository heartTransactionCommandRepository;
 
+    @Autowired
+    private ProcessedHeartOrderCommandRepository processedHeartOrderCommandRepository;
+
     @AfterEach
     void tearDown() {
+        processedHeartOrderCommandRepository.deleteAll();
         heartTransactionCommandRepository.deleteAll();
         memberCommandJpaRepository.deleteAll();
     }
@@ -111,6 +116,7 @@ class HeartUsagePolicyServiceConcurrencyIntegrationTest extends IntegrationTestS
         try (ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT)) {
             for (int i = 0; i < THREAD_COUNT; i++) {
                 boolean isUse = i % 2 == 0;
+                long orderId = i;
                 executor.submit(() -> {
                     try {
                         startSignal.await();
@@ -119,7 +125,7 @@ class HeartUsagePolicyServiceConcurrencyIntegrationTest extends IntegrationTestS
                                 TransactionSubtype.MATCH.name());
                             useSuccessCount.incrementAndGet();
                         } else {
-                            memberHeartBalanceService.grantPurchasedHearts(memberId, GRANT_AMOUNT);
+                            memberHeartBalanceService.grantPurchasedHearts(memberId, orderId, GRANT_AMOUNT);
                             grantSuccessCount.incrementAndGet();
                         }
                     } catch (Exception e) {

@@ -4,8 +4,11 @@ import com.google.api.services.androidpublisher.model.ProductPurchase;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.payment.command.domain.PaymentErrorCode;
+import deepple.deepple.payment.command.domain.order.OrderCommandRepository;
+import deepple.deepple.payment.command.domain.order.PaymentMethod;
 import deepple.deepple.payment.command.domain.order.event.GooglePlayReceiptVerifiedEvent;
 import deepple.deepple.payment.command.infra.order.GooglePlayClient;
+import deepple.deepple.payment.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +34,9 @@ class GooglePlayPaymentServiceTest {
 
     @Mock
     private GooglePlayClient googlePlayClient;
+
+    @Mock
+    private OrderCommandRepository orderCommandRepository;
 
     @InjectMocks
     private GooglePlayPaymentService googlePlayPaymentService;
@@ -94,5 +102,40 @@ class GooglePlayPaymentServiceTest {
                 event -> event instanceof GooglePlayReceiptVerifiedEvent
             )));
         }
+    }
+
+    @Test
+    @DisplayName("이미 consume된 구매가 같은 회원의 주문이면 이벤트와 consume 없이 정상 종료한다")
+    void succeedWhenConsumedPurchaseOrderedBySameMember() {
+        // given
+        ProductPurchase purchase = new ProductPurchase().setOrderId(ORDER_ID).setConsumptionState(1);
+        when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).thenReturn(purchase);
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(ORDER_ID, PaymentMethod.GOOGLE_PLAY))
+            .thenReturn(Optional.of(OrderFixture.builder().memberId(MEMBER_ID).build()));
+
+        // when & then
+        try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+            assertThatCode(() -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
+                .doesNotThrowAnyException();
+
+            eventsMockedStatic.verifyNoInteractions();
+            verify(googlePlayClient, never()).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
+        }
+    }
+
+    @Test
+    @DisplayName("이미 consume된 구매에 같은 회원의 주문이 없으면 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
+    void throwsWhenConsumedPurchaseHasNoOrderOfMember() {
+        // given
+        ProductPurchase purchase = new ProductPurchase().setOrderId(ORDER_ID).setConsumptionState(1);
+        when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).thenReturn(purchase);
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(ORDER_ID, PaymentMethod.GOOGLE_PLAY))
+            .thenReturn(Optional.of(OrderFixture.builder().memberId(MEMBER_ID + 1).build()));
+
+        // when & then
+        assertThatThrownBy(() -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
+            .isInstanceOf(DeeppleException.class)
+            .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
+        verify(googlePlayClient, never()).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
     }
 }

@@ -18,7 +18,6 @@ import java.io.IOException;
 public class DefaultGooglePlayClient implements GooglePlayClient {
 
     private static final int PURCHASE_STATE_PURCHASED = 0;
-    private static final int CONSUMPTION_STATE_CONSUMED = 1;
 
     private final AndroidPublisher androidPublisher;
 
@@ -29,7 +28,6 @@ public class DefaultGooglePlayClient implements GooglePlayClient {
     public ProductPurchase verifyPurchase(@NonNull String productId, @NonNull String purchaseToken) {
         ProductPurchase purchase = getProductPurchase(productId, purchaseToken);
         verifyPurchaseState(purchase);
-        verifyConsumptionState(purchase);
         return purchase;
     }
 
@@ -61,13 +59,6 @@ public class DefaultGooglePlayClient implements GooglePlayClient {
                 PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT,
                 "유효하지 않은 Google Play 구매 상태입니다. purchaseState=" + purchaseState
             );
-        }
-    }
-
-    private void verifyConsumptionState(ProductPurchase purchase) {
-        Integer consumptionState = purchase.getConsumptionState();
-        if (consumptionState != null && consumptionState == CONSUMPTION_STATE_CONSUMED) {
-            throw new DeeppleException(PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT, "이미 소비된 Google Play 구매입니다.");
         }
     }
 }

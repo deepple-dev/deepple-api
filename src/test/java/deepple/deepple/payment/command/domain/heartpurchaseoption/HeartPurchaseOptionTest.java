@@ -73,19 +73,21 @@ class HeartPurchaseOptionTest {
         HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
             .amount(amount)
             .build();
-        Long memberId = 1L;
-        Integer quantity = 5;
-        Long expectedAmount = amount * quantity;
+        long memberId = 1L;
+        long orderId = 10L;
+        int quantity = 5;
+        long expectedAmount = amount * quantity;
 
         try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
             // When
-            heartPurchaseOption.purchase(memberId, quantity);
+            heartPurchaseOption.purchase(memberId, orderId, quantity);
 
             // Then
             eventsMockedStatic.verify(() ->
                 Events.raise(argThat((HeartPurchasedEvent event) ->
-                    event.getMemberId().equals(memberId) &&
-                        event.getAmount().equals(expectedAmount)
+                    event.getMemberId() == memberId &&
+                        event.getOrderId() == orderId &&
+                        event.getAmount() == expectedAmount
                 )), times(1));
         }
     }

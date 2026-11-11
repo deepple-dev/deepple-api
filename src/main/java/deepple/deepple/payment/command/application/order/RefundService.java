@@ -15,7 +15,6 @@ import deepple.deepple.payment.command.domain.refund.RefundCommandRepository;
 import deepple.deepple.payment.command.domain.refund.RefundDetail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,35 +36,26 @@ public class RefundService {
         PaymentMethod paymentMethod,
         NotificationType notificationType
     ) {
-        if (isDuplicateRefund(transactionId)) {
+        Order order = findOrderForUpdate(transactionId, paymentMethod);
+        if (order.isRefunded()) {
             log.atInfo().addKeyValue("transactionId", transactionId).log("이미 환불된 거래");
             return;
         }
 
-        try {
-            Order order = findOrder(transactionId, paymentMethod);
-            order.refund();
+        order.refund();
+        Long refundAmount = calculateRefundAmount(productId, quantity);
+        saveRefund(order, productId, quantity, refundAmount, notificationType);
+        raiseRefundEvent(order, refundAmount);
 
-            Long refundAmount = calculateRefundAmount(productId, quantity);
-            saveRefund(order, productId, quantity, refundAmount, notificationType);
-            raiseRefundEvent(order.getMemberId(), refundAmount, transactionId);
-
-            log.atInfo()
-                .addKeyValue("transactionId", transactionId)
-                .addKeyValue("memberId", order.getMemberId())
-                .addKeyValue("amount", refundAmount)
-                .log("환불 완료");
-        } catch (DataIntegrityViolationException e) {
-            log.atInfo().addKeyValue("transactionId", transactionId).log("이미 환불된 거래(동시 요청)");
-        }
+        log.atInfo()
+            .addKeyValue("transactionId", transactionId)
+            .addKeyValue("memberId", order.getMemberId())
+            .addKeyValue("amount", refundAmount)
+            .log("환불 완료");
     }
 
-    private boolean isDuplicateRefund(String transactionId) {
-        return refundCommandRepository.existsByTransactionId(transactionId);
-    }
-
-    private Order findOrder(String transactionId, PaymentMethod paymentMethod) {
-        return orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod)
+    private Order findOrderForUpdate(String transactionId, PaymentMethod paymentMethod) {
+        return orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod)
             .orElseThrow(() -> new DeeppleException(
                 PaymentErrorCode.ORDER_NOT_FOUND,
                 "주문을 찾을 수 없습니다. transactionId: " + transactionId
@@ -105,7 +95,7 @@ public class RefundService {
         refundCommandRepository.save(refund);
     }
 
-    private void raiseRefundEvent(Long memberId, Long refundAmount, String transactionId) {
-        Events.raise(HeartRefundedEvent.of(memberId, refundAmount, transactionId));
+    private void raiseRefundEvent(Order order, long refundAmount) {
+        Events.raise(HeartRefundedEvent.of(order.getMemberId(), order.getId(), refundAmount, order.getTransactionId()));
     }
 }

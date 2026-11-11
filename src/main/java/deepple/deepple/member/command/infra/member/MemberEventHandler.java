@@ -38,6 +38,6 @@ public class MemberEventHandler {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(HeartRefundedEvent event) {
-        memberHeartBalanceService.refundPurchasedHearts(event.getMemberId(), event.getAmount());
+        memberHeartBalanceService.refundPurchasedHearts(event.getMemberId(), event.getOrderId(), event.getAmount());
     }
 }
