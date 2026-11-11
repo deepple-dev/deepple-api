@@ -9,6 +9,8 @@ import deepple.deepple.admin.fixture.ScreeningFixture;
 import deepple.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import deepple.deepple.admin.presentation.screening.ScreeningRejectRequest;
 import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.common.lock.DistributedLockTemplate;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,8 +37,19 @@ class ScreeningServiceTest {
     @Mock
     private ScreeningCommandRepository screeningCommandRepository;
 
+    @Mock
+    private DistributedLockTemplate distributedLockTemplate;
+
     @InjectMocks
     private ScreeningService screeningService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().doAnswer(invocation -> {
+            invocation.<Runnable>getArgument(1).run();
+            return null;
+        }).when(distributedLockTemplate).executeInTransaction(anyString(), any(Runnable.class));
+    }
 
     @Nested
     @DisplayName("createIfAbsent() 테스트")
@@ -50,6 +66,7 @@ class ScreeningServiceTest {
             screeningService.createIfAbsent(memberId);
 
             // then
+            verify(distributedLockTemplate).executeInTransaction(eq("screening:" + memberId), any(Runnable.class));
             verify(screeningCommandRepository).save(any(Screening.class));
         }
 
@@ -73,16 +90,34 @@ class ScreeningServiceTest {
     class Rescreen {
 
         @Test
-        @DisplayName("재심사 요청 시 새로운 Screening을 생성합니다.")
+        @DisplayName("대기 중인 심사가 없으면 회원별 락 안에서 새 Screening을 생성합니다.")
         void rescreenCreatesNewScreening() {
             // given
             long memberId = 100L;
+            when(screeningCommandRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING))
+                .thenReturn(false);
 
             // when
             screeningService.rescreen(memberId);
 
             // then
+            verify(distributedLockTemplate).executeInTransaction(eq("screening:" + memberId), any(Runnable.class));
             verify(screeningCommandRepository).save(any(Screening.class));
+        }
+
+        @Test
+        @DisplayName("대기 중인 심사가 있으면 새로 만들지 않습니다.")
+        void skipWhenPendingScreeningExists() {
+            // given
+            long memberId = 100L;
+            when(screeningCommandRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING))
+                .thenReturn(true);
+
+            // when
+            screeningService.rescreen(memberId);
+
+            // then
+            verify(screeningCommandRepository, never()).save(any(Screening.class));
         }
     }
 
