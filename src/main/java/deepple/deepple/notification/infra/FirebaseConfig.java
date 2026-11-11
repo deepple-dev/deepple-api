@@ -11,6 +11,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
 import javax.annotation.PostConstruct;
+import java.time.Duration;
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,6 +30,15 @@ public class FirebaseConfig {
     @Value("${firebase.service-account}")
     private String serviceAccount;
 
+    @Value("${firebase.connect-timeout}")
+    private Duration connectTimeout;
+
+    @Value("${firebase.read-timeout}")
+    private Duration readTimeout;
+
+    @Value("${firebase.write-timeout}")
+    private Duration writeTimeout;
+
     @PostConstruct
     private void init() {
         FirebaseOptions options = FirebaseOptions.builder()
@@ -39,9 +49,9 @@ public class FirebaseConfig {
                 awsRegionProvider.getRegion()
             ))
             .setProjectId(projectId)
-            .setConnectTimeout(5000)
-            .setReadTimeout(2000)
-            .setWriteTimeout(5000)
+            .setConnectTimeout(Math.toIntExact(connectTimeout.toMillis()))
+            .setReadTimeout(Math.toIntExact(readTimeout.toMillis()))
+            .setWriteTimeout(Math.toIntExact(writeTimeout.toMillis()))
             .build();
 
         FirebaseApp.initializeApp(options);

@@ -27,7 +27,7 @@ class BizgoMessengerTest {
     void setUp() {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
-        bizgoMessenger = new BizgoMessenger(builder.build(), JsonMapper.builder().build());
+        bizgoMessenger = new BizgoMessenger(builder, JsonMapper.builder().build());
         ReflectionTestUtils.setField(bizgoMessenger, "apiUrl", API_URL);
         ReflectionTestUtils.setField(bizgoMessenger, "apiKey", "key");
         ReflectionTestUtils.setField(bizgoMessenger, "fromPhoneNumber", "0200000000");

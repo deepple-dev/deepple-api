@@ -16,8 +16,7 @@ public class AuthMessageRedisRepository {
 
     public void save(String key, String message) {
         String fullKey = getFullKey(key);
-        redisTemplate.opsForValue().set(fullKey, message);
-        redisTemplate.expire(fullKey, EXPIRE_TIME);
+        redisTemplate.opsForValue().set(fullKey, message, EXPIRE_TIME);
     }
 
     public String getByKey(String key) {
