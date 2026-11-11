@@ -1,7 +1,7 @@
 package deepple.deepple.match.command.application.match;
 
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.repository.LockRepository;
+import deepple.deepple.common.lock.DistributedLockTemplate;
 import deepple.deepple.match.command.domain.match.*;
 import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import deepple.deepple.match.command.domain.match.vo.Message;
@@ -28,34 +28,30 @@ public class MatchService {
     private final MemberCommandRepository memberCommandRepository;
     private final MemberIntroductionCommandRepository introductionCommandRepository;
     private final MatchRepository matchRepository;
-    private final LockRepository lockRepository;
+    private final DistributedLockTemplate distributedLockTemplate;
 
-    @Transactional
     public void request(Long requesterId, MatchRequestDto request) {
         long responderId = request.responderId();
-        String requesterName = findNickname(requesterId);
-        MatchType matchType = getMatchType(requesterId, responderId);
+        Message message = Message.from(request.requestMessage());
         MatchContactType contactType = MatchContactType.from(request.contactType());
 
         String key = generateKey(requesterId, responderId);
-        lockRepository.withNamedLock(key, () -> {
-            if (existsMutualMatch(requesterId, responderId)) {
-                throw new DeeppleException(
-                    MatchErrorCode.MATCH_ALREADY_EXISTS,
-                    "requesterId=" + requesterId + ", responderId=" + responderId
-                );
-            }
+        distributedLockTemplate.executeInTransaction(key,
+            () -> createMatch(requesterId, responderId, message, contactType));
+    }
 
-            Match match = Match.request(
-                requesterId,
-                responderId,
-                Message.from(request.requestMessage()),
-                requesterName,
-                matchType,
-                contactType
+    private void createMatch(Long requesterId, long responderId, Message message, MatchContactType contactType) {
+        if (existsMutualMatch(requesterId, responderId)) {
+            throw new DeeppleException(
+                MatchErrorCode.MATCH_ALREADY_EXISTS,
+                "requesterId=" + requesterId + ", responderId=" + responderId
             );
-            matchRepository.save(match);
-        });
+        }
+
+        String requesterName = findNickname(requesterId);
+        MatchType matchType = getMatchType(requesterId, responderId);
+        Match match = Match.request(requesterId, responderId, message, requesterName, matchType, contactType);
+        matchRepository.save(match);
     }
 
     private MatchType getMatchType(Long requesterId, Long responderId) {

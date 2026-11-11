@@ -2,7 +2,7 @@ package deepple.deepple.match.command.application.match;
 
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.repository.LockRepository;
+import deepple.deepple.common.lock.DistributedLockTemplate;
 import deepple.deepple.match.command.domain.match.*;
 import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import deepple.deepple.match.presentation.dto.MatchRequestDto;
@@ -34,7 +34,7 @@ class MatchServiceTest {
     private MatchRepository matchRepository;
 
     @Mock
-    private LockRepository lockRepository;
+    private DistributedLockTemplate distributedLockTemplate;
 
     @Mock
     private MemberCommandRepository memberCommandRepository;
@@ -79,19 +79,14 @@ class MatchServiceTest {
             MatchContactType contactType = MatchContactType.PHONE_NUMBER;
             MatchRequestDto requestDto = new MatchRequestDto(responderId, requestMessage, contactType.name());
 
-            when(introductionCommandRepository.findByMemberIdAndIntroducedMemberId(requesterId, responderId))
-                .thenReturn(Optional.empty());
-
             doAnswer(invocation -> {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             when(matchRepository.existsActiveMatchBetween(requesterId, requestDto.responderId()))
                 .thenReturn(true);
-
-            mockMember(requesterId, "testUser");
 
             // When & Then
             Assertions.assertThatThrownBy(() -> matchService.request(requesterId, requestDto))
@@ -117,7 +112,7 @@ class MatchServiceTest {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             when(matchRepository.existsActiveMatchBetween(requesterId, requestDto.responderId()))
                 .thenReturn(false);

@@ -2,7 +2,7 @@ package deepple.deepple.community.command.application.profileexchange;
 
 import deepple.deepple.block.application.required.BlockRepository;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.repository.LockRepository;
+import deepple.deepple.common.lock.DistributedLockTemplate;
 import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
@@ -16,21 +16,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ProfileExchangeService {
-    private static final String LOCK_PREFIX = "ProfileExchange:";
+    private static final String LOCK_PREFIX = "PROFILE_EXCHANGE:";
     private final ProfileExchangeRepository profileExchangeRepository;
-    private final LockRepository lockRepository;
+    private final DistributedLockTemplate distributedLockTemplate;
     private final MemberCommandRepository memberCommandRepository;
     private final BlockRepository blockRepository;
 
-    @Transactional
     public void request(Long requesterId, Long responderId) {
         String key = generateKey(requesterId, responderId);
-        lockRepository.withNamedLock(key, () -> {
-            validateProfileExchangeRequest(requesterId, responderId);
-            String senderName = getNickNameByMemberId(requesterId);
-            ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId, senderName);
-            profileExchangeRepository.save(profileExchange);
-        });
+        distributedLockTemplate.executeInTransaction(key, () -> createProfileExchange(requesterId, responderId));
+    }
+
+    private void createProfileExchange(Long requesterId, Long responderId) {
+        validateProfileExchangeRequest(requesterId, responderId);
+        String senderName = getNickNameByMemberId(requesterId);
+        ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId, senderName);
+        profileExchangeRepository.save(profileExchange);
     }
 
     @Transactional
