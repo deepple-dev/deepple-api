@@ -3,9 +3,11 @@ package deepple.deepple.admin.command.application.screening;
 import deepple.deepple.admin.command.domain.AdminErrorCode;
 import deepple.deepple.admin.command.domain.screening.Screening;
 import deepple.deepple.admin.command.domain.screening.ScreeningCommandRepository;
+import deepple.deepple.admin.command.domain.screening.ScreeningStatus;
 import deepple.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import deepple.deepple.admin.presentation.screening.ScreeningRejectRequest;
 import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.common.lock.DistributedLockTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -20,13 +22,15 @@ import static deepple.deepple.admin.command.application.screening.ScreeningMappe
 public class ScreeningService {
 
     private final ScreeningCommandRepository screeningCommandRepository;
+    private final DistributedLockTemplate distributedLockTemplate;
 
-    @Transactional
     public void createIfAbsent(long memberId) {
-        if (screeningCommandRepository.existsByMemberId(memberId)) {
-            return;
-        }
-        screeningCommandRepository.save(Screening.from(memberId));
+        distributedLockTemplate.executeInTransaction(lockKey(memberId), () -> {
+            if (screeningCommandRepository.existsByMemberId(memberId)) {
+                return;
+            }
+            screeningCommandRepository.save(Screening.from(memberId));
+        });
     }
 
     @Transactional
@@ -60,9 +64,17 @@ public class ScreeningService {
             .log(message);
     }
 
-    @Transactional
     public void rescreen(long memberId) {
-        screeningCommandRepository.save(Screening.from(memberId));
+        distributedLockTemplate.executeInTransaction(lockKey(memberId), () -> {
+            if (screeningCommandRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING)) {
+                return;
+            }
+            screeningCommandRepository.save(Screening.from(memberId));
+        });
+    }
+
+    private String lockKey(long memberId) {
+        return "screening:" + memberId;
     }
 
     private Screening getScreening(long id) {
