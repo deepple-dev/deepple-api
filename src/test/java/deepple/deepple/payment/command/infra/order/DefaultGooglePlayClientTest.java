@@ -115,17 +115,15 @@ class DefaultGooglePlayClientTest {
                 .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
         }
 
-        @DisplayName("consumptionState가 이미 소비됨(1)이면 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
+        @DisplayName("consumptionState가 이미 소비됨(1)이어도 구매 정보를 돌려준다")
         @Test
-        void whenAlreadyConsumed_throwsInvalidException() throws IOException {
+        void whenAlreadyConsumed_returnsPurchase() throws IOException {
             // given
             ProductPurchase purchase = new ProductPurchase().setPurchaseState(0).setConsumptionState(1);
             givenGetReturns(purchase);
 
             // when & then
-            assertThatThrownBy(() -> googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
+            assertThat(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).isSameAs(purchase);
         }
 
         @DisplayName("Google API 통신 실패 시 GOOGLE_PLAY_UNAVAILABLE 예외를 던진다")

@@ -1,6 +1,7 @@
 package deepple.deepple.payment.command.application.order;
 
 import deepple.deepple.common.support.IntegrationTestSupport;
+import deepple.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import deepple.deepple.member.fixture.MemberFixture;
@@ -37,6 +38,9 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
     private MemberCommandJpaRepository memberCommandJpaRepository;
 
     @Autowired
+    private ProcessedHeartOrderCommandRepository processedHeartOrderCommandRepository;
+
+    @Autowired
     private OrderCommandRepository orderCommandRepository;
 
     @Autowired
@@ -49,6 +53,7 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
 
     @AfterEach
     void tearDown() {
+        processedHeartOrderCommandRepository.deleteAll();
         refundCommandRepository.deleteAll();
         orderCommandRepository.deleteAll();
         heartPurchaseOptionCommandRepository.delete(option);

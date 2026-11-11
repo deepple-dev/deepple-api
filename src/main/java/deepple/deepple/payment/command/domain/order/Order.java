@@ -60,6 +60,14 @@ public class Order extends BaseEntity {
         setStatus(OrderStatus.REFUNDED);
     }
 
+    public boolean isOrderedBy(long memberId) {
+        return this.memberId == memberId;
+    }
+
+    public boolean isRefunded() {
+        return status == OrderStatus.REFUNDED;
+    }
+
     private void setMemberId(@NonNull Long memberId) {
         this.memberId = memberId;
     }

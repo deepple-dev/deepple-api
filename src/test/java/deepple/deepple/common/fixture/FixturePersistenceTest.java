@@ -18,6 +18,7 @@ import deepple.deepple.match.fixture.MatchFixture;
 import deepple.deepple.member.fixture.MemberFixture;
 import deepple.deepple.member.fixture.MemberIdealFixture;
 import deepple.deepple.member.fixture.MemberIntroductionFixture;
+import deepple.deepple.member.fixture.ProcessedHeartOrderFixture;
 import deepple.deepple.member.fixture.ProfileImageFixture;
 import deepple.deepple.mission.fixture.MemberMissionFixture;
 import deepple.deepple.mission.fixture.MissionFixture;
@@ -73,6 +74,7 @@ class FixturePersistenceTest extends RepositoryTestSupport {
             arguments("MemberIdeal", (Supplier<Object>) () -> MemberIdealFixture.builder().build()),
             arguments("MemberIntroduction", (Supplier<Object>) () -> MemberIntroductionFixture.builder().build()),
             arguments("ProfileImage", (Supplier<Object>) () -> ProfileImageFixture.builder().build()),
+            arguments("ProcessedHeartOrder", (Supplier<Object>) () -> ProcessedHeartOrderFixture.builder().build()),
             arguments("Mission", (Supplier<Object>) () -> MissionFixture.builder().build()),
             arguments("MemberMission", (Supplier<Object>) () -> MemberMissionFixture.builder().build()),
             arguments("DeviceRegistration", (Supplier<Object>) () -> DeviceRegistrationFixture.builder().build()),

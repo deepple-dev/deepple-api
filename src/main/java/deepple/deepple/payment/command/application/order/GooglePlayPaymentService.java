@@ -4,6 +4,8 @@ import com.google.api.services.androidpublisher.model.ProductPurchase;
 import deepple.deepple.common.event.Events;
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.payment.command.domain.PaymentErrorCode;
+import deepple.deepple.payment.command.domain.order.OrderCommandRepository;
+import deepple.deepple.payment.command.domain.order.PaymentMethod;
 import deepple.deepple.payment.command.domain.order.event.GooglePlayReceiptVerifiedEvent;
 import deepple.deepple.payment.command.infra.order.GooglePlayClient;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +16,36 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class GooglePlayPaymentService {
+    private static final int CONSUMPTION_STATE_CONSUMED = 1;
+
     private final GooglePlayClient googlePlayClient;
+    private final OrderCommandRepository orderCommandRepository;
 
     public void verifyReceipt(String productId, String purchaseToken, Long memberId) {
         ProductPurchase purchase = googlePlayClient.verifyPurchase(productId, purchaseToken);
+        if (isConsumed(purchase)) {
+            verifyAlreadyProcessed(purchase.getOrderId(), memberId);
+            return;
+        }
         raiseReceiptVerifiedEvent(memberId, productId, purchase);
         consumeSafely(productId, purchaseToken, purchase.getOrderId());
+    }
+
+    private boolean isConsumed(ProductPurchase purchase) {
+        Integer consumptionState = purchase.getConsumptionState();
+        return consumptionState != null && consumptionState == CONSUMPTION_STATE_CONSUMED;
+    }
+
+    private void verifyAlreadyProcessed(String orderId, long memberId) {
+        boolean processed = orderCommandRepository.findByTransactionIdAndPaymentMethod(orderId, PaymentMethod.GOOGLE_PLAY)
+            .filter(order -> order.isOrderedBy(memberId))
+            .isPresent();
+        if (!processed) {
+            throw new DeeppleException(
+                PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT,
+                "이미 소비된 Google Play 구매입니다. orderId=" + orderId
+            );
+        }
     }
 
     private void raiseReceiptVerifiedEvent(Long memberId, String productId, ProductPurchase purchase) {

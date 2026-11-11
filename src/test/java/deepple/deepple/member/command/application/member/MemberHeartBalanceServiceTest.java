@@ -2,6 +2,8 @@ package deepple.deepple.member.command.application.member;
 
 import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.member.command.domain.MemberErrorCode;
+import deepple.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
+import deepple.deepple.member.command.domain.heartorder.ProcessedHeartOperation;
 import deepple.deepple.member.command.domain.member.Member;
 import deepple.deepple.member.command.domain.member.MemberCommandRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +22,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MemberHeartBalanceServiceTest {
 
+    private static final long ORDER_ID = 10L;
+
     @Mock
     private MemberCommandRepository memberCommandRepository;
+
+    @Mock
+    private ProcessedHeartOrderCommandRepository processedHeartOrderCommandRepository;
 
     @InjectMocks
     private MemberHeartBalanceService memberHeartBalanceService;
@@ -37,7 +44,7 @@ class MemberHeartBalanceServiceTest {
             when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> memberHeartBalanceService.grantPurchasedHearts(memberId, 100L))
+            assertThatThrownBy(() -> memberHeartBalanceService.grantPurchasedHearts(memberId, ORDER_ID, 100L))
                 .isInstanceOf(DeeppleException.class)
                 .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
@@ -52,10 +59,31 @@ class MemberHeartBalanceServiceTest {
             Long amount = 100L;
 
             // when
-            memberHeartBalanceService.grantPurchasedHearts(memberId, amount);
+            memberHeartBalanceService.grantPurchasedHearts(memberId, ORDER_ID, amount);
 
             // then
             verify(member).gainPurchaseHeart(amount);
+            verify(processedHeartOrderCommandRepository).save(argThat(
+                processed -> processed.getOperationType() == ProcessedHeartOperation.PURCHASE
+                    && processed.getOrderId() == ORDER_ID));
+        }
+
+        @Test
+        @DisplayName("이미 지급한 주문이면 하트를 다시 지급하지 않습니다.")
+        void shouldSkipWhenOrderAlreadyGranted() {
+            // given
+            Long memberId = 1L;
+            Member member = mock(Member.class);
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
+            when(processedHeartOrderCommandRepository.existsByOperationTypeAndOrderId(ProcessedHeartOperation.PURCHASE,
+                ORDER_ID)).thenReturn(true);
+
+            // when
+            memberHeartBalanceService.grantPurchasedHearts(memberId, ORDER_ID, 100L);
+
+            // then
+            verify(member, never()).gainPurchaseHeart(anyLong());
+            verify(processedHeartOrderCommandRepository, never()).save(any());
         }
     }
 
@@ -104,7 +132,7 @@ class MemberHeartBalanceServiceTest {
             when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> memberHeartBalanceService.refundPurchasedHearts(memberId, 100L))
+            assertThatThrownBy(() -> memberHeartBalanceService.refundPurchasedHearts(memberId, ORDER_ID, 100L))
                 .isInstanceOf(DeeppleException.class)
                 .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
         }
@@ -119,10 +147,31 @@ class MemberHeartBalanceServiceTest {
             Long amount = 100L;
 
             // when
-            memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
+            memberHeartBalanceService.refundPurchasedHearts(memberId, ORDER_ID, amount);
 
             // then
             verify(member).refundPurchaseHeart(amount);
+            verify(processedHeartOrderCommandRepository).save(argThat(
+                processed -> processed.getOperationType() == ProcessedHeartOperation.REFUND
+                    && processed.getOrderId() == ORDER_ID));
+        }
+
+        @Test
+        @DisplayName("이미 회수한 주문이면 하트를 다시 회수하지 않습니다.")
+        void shouldSkipWhenOrderAlreadyRefunded() {
+            // given
+            Long memberId = 1L;
+            Member member = mock(Member.class);
+            when(memberCommandRepository.findByIdForUpdate(memberId)).thenReturn(Optional.of(member));
+            when(processedHeartOrderCommandRepository.existsByOperationTypeAndOrderId(ProcessedHeartOperation.REFUND,
+                ORDER_ID)).thenReturn(true);
+
+            // when
+            memberHeartBalanceService.refundPurchasedHearts(memberId, ORDER_ID, 100L);
+
+            // then
+            verify(member, never()).refundPurchaseHeart(anyLong());
+            verify(processedHeartOrderCommandRepository, never()).save(any());
         }
 
         @Test
@@ -135,7 +184,7 @@ class MemberHeartBalanceServiceTest {
             Long amount = 50L;
 
             // when
-            memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
+            memberHeartBalanceService.refundPurchasedHearts(memberId, ORDER_ID, amount);
 
             // then
             verify(memberCommandRepository).findByIdForUpdate(memberId);
@@ -152,7 +201,7 @@ class MemberHeartBalanceServiceTest {
             Long amount = 1000L;
 
             // when
-            memberHeartBalanceService.refundPurchasedHearts(memberId, amount);
+            memberHeartBalanceService.refundPurchasedHearts(memberId, ORDER_ID, amount);
 
             // then
             verify(member).refundPurchaseHeart(amount);

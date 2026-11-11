@@ -1,12 +1,15 @@
 package deepple.deepple.payment.command.application.order;
 
 import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.common.lock.DistributedLockTemplate;
 import deepple.deepple.payment.command.domain.PaymentErrorCode;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
 import deepple.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOptionCommandRepository;
 import deepple.deepple.payment.command.domain.order.Order;
 import deepple.deepple.payment.command.domain.order.OrderCommandRepository;
 import deepple.deepple.payment.command.domain.order.PaymentMethod;
+import deepple.deepple.payment.fixture.OrderFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
@@ -23,6 +27,7 @@ import static org.mockito.Mockito.*;
 class OrderServiceTest {
 
     final long memberId = 1L;
+    final long orderId = 10L;
     final String transactionId = "transactionId";
     final String productId = "productId";
     final String normalizedProductId = productId.toUpperCase();
@@ -35,20 +40,57 @@ class OrderServiceTest {
     private OrderCommandRepository orderCommandRepository;
     @Mock
     private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+    @Mock
+    private DistributedLockTemplate distributedLockTemplate;
+
+    @BeforeEach
+    void setUp() {
+        doAnswer(invocation -> {
+            invocation.<Runnable>getArgument(1).run();
+            return null;
+        }).when(distributedLockTemplate).executeInTransaction(anyString(), any(Runnable.class));
+    }
 
     @Test
-    @DisplayName("transactionId가 이미 존재하는 경우 예외를 던진다.")
-    void throwExceptionWhenTransactionIdAlreadyExists() {
+    @DisplayName("거래 ID와 결제 수단으로 락 키를 만들어 락 안에서 처리한다.")
+    void processInLockKeyedByTransaction() {
         // given
-        when(orderCommandRepository.existsByTransactionIdAndPaymentMethod(transactionId, paymentMethod)).thenReturn(
-            true);
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
+            .thenReturn(Optional.of(OrderFixture.builder().memberId(memberId).build()));
+
+        // when
+        orderService.processReceipt(memberId, transactionId, productId, quantity, paymentMethod);
+
+        // then
+        verify(distributedLockTemplate).executeInTransaction(eq("order:APP_STORE:transactionId"), any(Runnable.class));
+    }
+
+    @Test
+    @DisplayName("같은 회원의 주문이 이미 있으면 하트를 다시 지급하지 않고 정상 종료한다.")
+    void succeedWithoutPurchaseWhenSameMemberOrderExists() {
+        // given
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
+            .thenReturn(Optional.of(OrderFixture.builder().memberId(memberId).build()));
+
+        // when & then
+        assertThatCode(() -> orderService.processReceipt(memberId, transactionId, productId, quantity, paymentMethod))
+            .doesNotThrowAnyException();
+        verify(heartPurchaseOptionCommandRepository, never()).findByProductIdAndDeletedAtIsNull(any());
+        verify(orderCommandRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("다른 회원의 주문이 이미 있으면 ORDER_ALREADY_EXISTS 예외를 던진다.")
+    void throwExceptionWhenOtherMemberOrderExists() {
+        // given
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
+            .thenReturn(Optional.of(OrderFixture.builder().memberId(memberId + 1).build()));
 
         // when & then
         assertThatThrownBy(
             () -> orderService.processReceipt(memberId, transactionId, productId, quantity, paymentMethod))
             .isInstanceOf(DeeppleException.class)
             .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.ORDER_ALREADY_EXISTS);
-        verify(heartPurchaseOptionCommandRepository, never()).findByProductIdAndDeletedAtIsNull(any());
         verify(orderCommandRepository, never()).save(any());
     }
 
@@ -56,8 +98,9 @@ class OrderServiceTest {
     @DisplayName("하트 구매 옵션이 존재하지 않는 경우 예외를 던진다.")
     void throwExceptionWhenHeartPurchaseOptionNotFound() {
         // given
-        when(orderCommandRepository.existsByTransactionIdAndPaymentMethod(transactionId, paymentMethod)).thenReturn(
-            false);
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
+            .thenReturn(Optional.empty());
+        when(orderCommandRepository.save(any(Order.class))).thenReturn(OrderFixture.builder().id(orderId).build());
         when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(normalizedProductId)).thenReturn(
             Optional.empty());
 
@@ -66,17 +109,16 @@ class OrderServiceTest {
             () -> orderService.processReceipt(memberId, transactionId, productId, quantity, paymentMethod))
             .isInstanceOf(DeeppleException.class)
             .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND);
-        verify(orderCommandRepository).save(any(Order.class));
     }
 
     @Test
-    @DisplayName("하트 구매 옵션이 존재하는 경우 주문을 생성한다.")
-    void createOrderWhenHeartPurchaseOptionExists() {
+    @DisplayName("주문이 없으면 주문을 생성하고 주문 ID로 하트를 지급한다.")
+    void createOrderAndPurchaseWhenOrderNotExists() {
         // given
-        when(orderCommandRepository.existsByTransactionIdAndPaymentMethod(transactionId, paymentMethod)).thenReturn(
-            false);
+        when(orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod))
+            .thenReturn(Optional.empty());
+        when(orderCommandRepository.save(any(Order.class))).thenReturn(OrderFixture.builder().id(orderId).build());
         HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
-
         when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(normalizedProductId)).thenReturn(
             Optional.of(heartPurchaseOption));
 
@@ -89,7 +131,6 @@ class OrderServiceTest {
                 && order.getTransactionId().equals(transactionId)
                 && order.getPaymentMethod() == paymentMethod
         ));
-        verify(orderCommandRepository).save(any(Order.class));
-        verify(heartPurchaseOption).purchase(memberId, quantity);
+        verify(heartPurchaseOption).purchase(memberId, orderId, quantity);
     }
 }
