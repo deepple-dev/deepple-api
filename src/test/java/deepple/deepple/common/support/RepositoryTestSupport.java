@@ -4,7 +4,6 @@ import deepple.deepple.auth.infra.RefreshTokenRepository;
 import deepple.deepple.common.MockEventsExtension;
 import deepple.deepple.common.config.MySqlContainerConfig;
 import deepple.deepple.common.config.QueryDslConfig;
-import deepple.deepple.common.repository.RedissonLockRepository;
 import deepple.deepple.member.command.infra.member.AuthMessageRedisRepository;
 import deepple.deepple.member.query.introduction.intra.IntroductionRedisRepository;
 import deepple.deepple.member.query.introduction.intra.PersonalityIntroductionRedisRepository;
@@ -23,8 +22,7 @@ import org.springframework.stereotype.Repository;
             RefreshTokenRepository.class,
             AuthMessageRedisRepository.class,
             IntroductionRedisRepository.class,
-            PersonalityIntroductionRedisRepository.class,
-            RedissonLockRepository.class
+            PersonalityIntroductionRedisRepository.class
         }
     )
 )

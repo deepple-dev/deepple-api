@@ -63,7 +63,9 @@
 - 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
   - 발행: `Events.raise(event)` (`common/event`), 이벤트는 `Event`를 상속
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`
-- 동시성이 필요한 처리는 `LockRepository`(Redisson 분산락)를 쓴다.
+- 동시성 처리는 막을 대상에 맞게 고른다.
+  - 이미 있는 행의 값 변경: 비관적 락(`@Lock(PESSIMISTIC_WRITE)`, 예: `MemberCommandRepository.findByIdForUpdate`). 락 대기는 3초(`innodb_lock_wait_timeout`)
+  - 아직 없는 행의 중복 생성: unique 제약. 제약으로 표현할 수 없는 규칙이거나 저장 전 작업까지 줄 세워야 하면 `DistributedLockTemplate.executeInTransaction`(Redisson)을 함께 쓴다. 락을 잡는 메서드에는 `@Transactional`을 붙이지 않는다(락 → 트랜잭션 → 커밋 → 해제 순서).
 - 엔티티는 `BaseEntity` 또는 `SoftDeleteBaseEntity`를 상속한다.
 - 스키마 변경은 Flyway 마이그레이션으로만 한다. 엔티티와 마이그레이션이 일치해야 한다.
 - 주석과 예외 메시지는 한국어로 쓴다.

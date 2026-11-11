@@ -1,11 +1,12 @@
 package deepple.deepple.community.command.infra.profileexchange;
 
+import deepple.deepple.common.exception.DeeppleException;
+import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -15,9 +16,16 @@ public class ProfileExchangeRepositoryImpl implements ProfileExchangeRepository 
     private final ProfileExchangeJpaRepository profileExchangeJpaRepository;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ProfileExchange save(final ProfileExchange profileExchange) {
-        return profileExchangeJpaRepository.save(profileExchange);
+        try {
+            return profileExchangeJpaRepository.save(profileExchange);
+        } catch (DataIntegrityViolationException e) {
+            throw new DeeppleException(
+                CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS,
+                "requesterId=" + profileExchange.getRequesterId() + ", responderId=" + profileExchange.getResponderId(),
+                e
+            );
+        }
     }
 
     @Override

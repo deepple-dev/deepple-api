@@ -13,6 +13,8 @@ import static lombok.AccessLevel.PROTECTED;
 @NoArgsConstructor(access = PROTECTED, force = true)
 public class Message {
 
+    private static final int MAX_LENGTH = 200;
+
     @Getter
     private String value;
 
@@ -28,6 +30,10 @@ public class Message {
     private void validate(String value) {
         if (value.trim().isEmpty()) {
             throw new DeeppleException(MatchErrorCode.INVALID_MATCH_MESSAGE);
+        }
+        int length = value.codePointCount(0, value.length());
+        if (length > MAX_LENGTH) {
+            throw new DeeppleException(MatchErrorCode.MATCH_MESSAGE_TOO_LONG, "length=" + length);
         }
     }
 }

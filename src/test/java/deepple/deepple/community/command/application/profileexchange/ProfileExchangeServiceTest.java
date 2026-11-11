@@ -3,7 +3,7 @@ package deepple.deepple.community.command.application.profileexchange;
 import deepple.deepple.block.application.required.BlockRepository;
 import deepple.deepple.common.MockEventsExtension;
 import deepple.deepple.common.exception.DeeppleException;
-import deepple.deepple.common.repository.LockRepository;
+import deepple.deepple.common.lock.DistributedLockTemplate;
 import deepple.deepple.community.command.domain.CommunityErrorCode;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchange;
 import deepple.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
@@ -43,7 +43,7 @@ class ProfileExchangeServiceTest {
     private ProfileExchangeRepository profileExchangeRepository;
 
     @Mock
-    private LockRepository lockRepository;
+    private DistributedLockTemplate distributedLockTemplate;
 
     @Mock
     private BlockRepository blockRepository;
@@ -69,7 +69,7 @@ class ProfileExchangeServiceTest {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             // When & Then
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
@@ -97,7 +97,7 @@ class ProfileExchangeServiceTest {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             // When
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
@@ -126,7 +126,7 @@ class ProfileExchangeServiceTest {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             // When
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
@@ -157,7 +157,7 @@ class ProfileExchangeServiceTest {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             // When
             assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
@@ -190,7 +190,7 @@ class ProfileExchangeServiceTest {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(lockRepository).withNamedLock(any(), any());
+            }).when(distributedLockTemplate).executeInTransaction(any(), any());
 
             // When
             profileExchangeService.request(requesterId, responderId);

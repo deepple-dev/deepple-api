@@ -34,11 +34,13 @@ class MatchHistoryQueryRepositoryTest extends RepositoryTestSupport {
         // given
         Member requester = createMember("요청자", "01011111111");
         Member responder = createMember("응답자", "01022222222");
+        Member anotherMember = createMember("다른회원", "01033333333");
         em.persist(requester);
         em.persist(responder);
+        em.persist(anotherMember);
 
         Match match1 = createMatch(requester, responder, "안녕하세요");
-        Match match2 = createMatch(responder, requester, "반갑습니다");
+        Match match2 = createMatch(responder, anotherMember, "반갑습니다");
         em.persist(match1);
         em.persist(match2);
 
@@ -63,13 +65,15 @@ class MatchHistoryQueryRepositoryTest extends RepositoryTestSupport {
         // given
         Member requester = createMember("요청자", "01011111111");
         Member responder = createMember("응답자", "01022222222");
+        Member anotherMember = createMember("다른회원", "01033333333");
         em.persist(requester);
         em.persist(responder);
+        em.persist(anotherMember);
 
         Match waitingMatch = createMatch(requester, responder, "대기 중");
         Match matchedMatch = MatchFixture.builder()
             .requesterId(responder.getId())
-            .responderId(requester.getId())
+            .responderId(anotherMember.getId())
             .requestMessage("매칭됨")
             .requesterContactType(MatchContactType.KAKAO)
             .status(MatchStatus.MATCHED)

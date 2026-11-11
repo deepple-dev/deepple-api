@@ -1,11 +1,12 @@
 package deepple.deepple.match.command.infra.match;
 
+import deepple.deepple.common.exception.DeeppleException;
 import deepple.deepple.match.command.domain.match.Match;
+import deepple.deepple.match.command.domain.match.MatchErrorCode;
 import deepple.deepple.match.command.domain.match.MatchRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -15,9 +16,16 @@ public class MatchRepositoryImpl implements MatchRepository {
     private final MatchJpaRepository matchJpaRepository;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void save(Match match) {
-        matchJpaRepository.save(match);
+        try {
+            matchJpaRepository.save(match);
+        } catch (DataIntegrityViolationException e) {
+            throw new DeeppleException(
+                MatchErrorCode.MATCH_ALREADY_EXISTS,
+                "requesterId=" + match.getRequesterId() + ", responderId=" + match.getResponderId(),
+                e
+            );
+        }
     }
 
     @Override
