@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.gradle.git.properties)
 }
 
-group = 'deepple'
+group = 'kr.co.deepple'
 version = '0.0.1-SNAPSHOT'
 
 java {
