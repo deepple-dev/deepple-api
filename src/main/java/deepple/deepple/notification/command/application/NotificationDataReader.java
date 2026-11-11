@@ -12,11 +12,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotificationDataReader {
 
+    public static final String TEMPLATE_CACHE = "notificationTemplate";
+
     private final NotificationTemplateCommandRepository notificationTemplateRepository;
     private final NotificationPreferenceCommandRepository notificationPreferenceRepository;
     private final DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
 
-    @Cacheable(value = "notificationTemplate", key = "#type", unless = "#result == null")
+    @Cacheable(value = TEMPLATE_CACHE, key = "#type", unless = "#result == null")
     @Transactional(readOnly = true)
     public Optional<NotificationTemplateInfo> findTemplate(NotificationType type) {
         return notificationTemplateRepository.findByType(type)

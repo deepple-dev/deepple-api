@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class GooglePlayClientTimeoutTest {
 
     private static final Duration SERVER_DELAY = Duration.ofSeconds(30);
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    private static final Duration READ_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration MAX_WAIT = Duration.ofSeconds(7);
 
     private HttpServer slowServer;
@@ -53,7 +55,7 @@ class GooglePlayClientTimeoutTest {
     void failWithinReadTimeoutWhenGooglePlayDoesNotRespond() {
         // given
         AndroidPublisher androidPublisher = GooglePlayClientConfig.androidPublisherBuilder(request -> {
-            }, "deepple-test")
+            }, "deepple-test", CONNECT_TIMEOUT, READ_TIMEOUT)
             .setRootUrl("http://localhost:" + slowServer.getAddress().getPort() + "/")
             .build();
         DefaultGooglePlayClient client = new DefaultGooglePlayClient(androidPublisher);

@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
+import java.time.Duration;
 import java.util.List;
 
 @Slf4j
@@ -23,16 +24,15 @@ import java.util.List;
 @ConditionalOnProperty(name = "payment.google-play.enabled", havingValue = "true", matchIfMissing = true)
 public class GooglePlayClientConfig {
 
-    private static final int CONNECT_TIMEOUT_MILLIS = 3_000;
-    private static final int READ_TIMEOUT_MILLIS = 5_000;
-
     @Bean
     public AndroidPublisher androidPublisher(
         AwsCredentialsProvider awsCredentialsProvider,
         AwsRegionProvider awsRegionProvider,
         @Value("${google.workload-identity.audience}") String audience,
         @Value("${payment.google-play.service-account}") String serviceAccount,
-        @Value("${payment.google-play.application-name}") String applicationName
+        @Value("${payment.google-play.application-name}") String applicationName,
+        @Value("${payment.google-play.connect-timeout}") Duration connectTimeout,
+        @Value("${payment.google-play.read-timeout}") Duration readTimeout
     ) {
         GoogleCredentials credentials = GoogleWorkloadIdentityCredentials.create(
                 audience,
@@ -42,17 +42,23 @@ public class GooglePlayClientConfig {
             )
             .createScoped(List.of(AndroidPublisherScopes.ANDROIDPUBLISHER));
 
-        return androidPublisherBuilder(new HttpCredentialsAdapter(credentials), applicationName).build();
+        return androidPublisherBuilder(new HttpCredentialsAdapter(credentials), applicationName, connectTimeout, readTimeout)
+            .build();
     }
 
-    static AndroidPublisher.Builder androidPublisherBuilder(HttpRequestInitializer credentials, String applicationName) {
+    static AndroidPublisher.Builder androidPublisherBuilder(
+        HttpRequestInitializer credentials,
+        String applicationName,
+        Duration connectTimeout,
+        Duration readTimeout
+    ) {
         return new AndroidPublisher.Builder(
             new NetHttpTransport(),
             GsonFactory.getDefaultInstance(),
             request -> {
                 credentials.initialize(request);
-                request.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-                request.setReadTimeout(READ_TIMEOUT_MILLIS);
+                request.setConnectTimeout(Math.toIntExact(connectTimeout.toMillis()));
+                request.setReadTimeout(Math.toIntExact(readTimeout.toMillis()));
             }
         )
             .setApplicationName(applicationName);

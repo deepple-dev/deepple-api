@@ -15,9 +15,6 @@ import java.util.Set;
 @Configuration
 public class AppStoreClientConfig {
 
-    private static final String OCSP_TIMEOUT_PROPERTY = "com.sun.security.ocsp.timeout";
-    private static final String OCSP_TIMEOUT_SECONDS = "3";
-
     @Bean
     public SignedDataVerifier signedDataVerifier(
         @Value("${payment.app-store.root-ca-paths}") String[] rootCaPaths,
@@ -25,7 +22,6 @@ public class AppStoreClientConfig {
         @Value("${payment.app-store.app-apple-id}") Long appAppleId,
         @Value("${payment.app-store.environment}") String environmentValue
     ) {
-        System.setProperty(OCSP_TIMEOUT_PROPERTY, OCSP_TIMEOUT_SECONDS);
         Environment environment = Environment.fromValue(environmentValue);
         Set<InputStream> rootCAs = new HashSet<>();
         try {

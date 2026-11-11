@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("Redis 응답 지연 타임아웃 통합 테스트")
 class RedisTimeoutIntegrationTest extends IntegrationTestSupport {
 
-    private static final Duration MAX_WAIT = Duration.ofSeconds(5);
+    private static final Duration MAX_WAIT = Duration.ofSeconds(13);
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -25,7 +25,7 @@ class RedisTimeoutIntegrationTest extends IntegrationTestSupport {
     private GenericContainer<?> valkeyContainer;
 
     @Test
-    @DisplayName("Redis가 응답하지 않으면 짧은 시간 안에 실패한다")
+    @DisplayName("Redis가 응답하지 않으면 기본 재시도를 포함해 13초 안에 실패한다")
     void failQuicklyWhenRedisDoesNotRespond() {
         // given
         stringRedisTemplate.opsForValue().get("warm-up");

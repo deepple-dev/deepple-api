@@ -21,10 +21,12 @@ import static deepple.deepple.datingexam.domain.QDatingExamSubject.datingExamSub
 @Repository
 @RequiredArgsConstructor
 public class DatingExamQueryRepositoryImpl implements DatingExamQueryRepository {
+    static final String DATING_EXAM_INFO_CACHE = "datingExamInfo";
+
     private final JPAQueryFactory queryFactory;
 
     @Override
-    @Cacheable(value = "datingExamInfo", key = "#subjectType")
+    @Cacheable(value = DATING_EXAM_INFO_CACHE, key = "#subjectType")
     public DatingExamInfoResponse findDatingExamInfo(SubjectType subjectType) {
         Map<Long, DatingExamSubjectInfo> subjectInfoMap = fetchSubjects(subjectType);
         if (subjectInfoMap.isEmpty()) {

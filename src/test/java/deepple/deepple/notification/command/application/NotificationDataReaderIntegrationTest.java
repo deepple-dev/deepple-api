@@ -92,7 +92,7 @@ class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
         await()
             .atMost(Duration.ofSeconds(5))
             .untilAsserted(() -> assertThat(
-                redisTemplate.getExpire("cache::" + CACHE_NAME + "::" + HEART_GRANTED, TimeUnit.SECONDS)
+                redisTemplate.getExpire("cache:v2::" + CACHE_NAME + "::" + HEART_GRANTED, TimeUnit.SECONDS)
             ).isBetween(3500L, 3600L));
     }
 }

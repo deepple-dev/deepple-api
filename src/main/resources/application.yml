@@ -26,6 +26,17 @@ spring:
       connect-timeout: 2s
       timeout: 1s
 
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1h
+      key-prefix: "cache:v2::"
+
+  http:
+    clients:
+      connect-timeout: 2s
+      read-timeout: 3s
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -106,10 +117,15 @@ payment:
     package-name: com.goodmeet.deepple
     service-account: ${GOOGLE_PLAY_SERVICE_ACCOUNT}
     application-name: deepple-api
+    connect-timeout: 3s
+    read-timeout: 5s
 
 firebase:
   project-id: ${FIREBASE_PROJECT_ID}
   service-account: ${FIREBASE_SERVICE_ACCOUNT}
+  connect-timeout: 5s
+  read-timeout: 2s
+  write-timeout: 5s
 
 google:
   workload-identity:
