@@ -1,8 +1,0 @@
-package deepple.deepple.notification.command.domain;
-
-public enum NotificationStatus {
-    CREATED, SENT,
-    REJECTED_BY_PREFERENCE,
-    FAILED_TEMPLATE_NOT_FOUND, FAILED_PREFERENCE_NOT_FOUND, FAILED_DEVICE_NOT_FOUND,
-    FAILED_UNSUPPORTED_CHANNEL, FAILED_EXCEPTION
-}

@@ -15,13 +15,13 @@
 ```bash
 ./gradlew build                                        # 빌드 + 테스트
 ./gradlew test                                         # 전체 테스트
-./gradlew test --tests "deepple.deepple.member.*"      # 일부 테스트
+./gradlew test --tests "kr.co.deepple.member.*"        # 일부 테스트
 ./gradlew bootRun                                      # 로컬 실행 (MySQL·Valkey·S3Mock 자동 시작)
 ```
 
 ## 구조
 
-`src/main/java/deepple/deepple/<도메인>` 단위로 나뉜다. 공통 코드는 `common`.
+`src/main/java/kr/co/deepple/<도메인>` 단위로 나뉜다. 공통 코드는 `common`.
 
 | 도메인 | 역할 |
 |---|---|

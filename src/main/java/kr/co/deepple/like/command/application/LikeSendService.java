@@ -1,0 +1,80 @@
+package kr.co.deepple.like.command.application;
+
+import kr.co.deepple.block.application.required.BlockRepository;
+import kr.co.deepple.common.event.Events;
+import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.like.command.domain.Like;
+import kr.co.deepple.like.command.domain.LikeCommandRepository;
+import kr.co.deepple.like.command.domain.LikeErrorCode;
+import kr.co.deepple.like.command.domain.LikeSentEvent;
+import kr.co.deepple.like.presentation.LikeSendRequest;
+import kr.co.deepple.member.command.domain.MemberErrorCode;
+import kr.co.deepple.member.command.domain.member.Member;
+import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
+import kr.co.deepple.mission.command.application.memberMission.MemberMissionService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import static kr.co.deepple.like.command.application.LikeMapper.toLikeLevel;
+import static kr.co.deepple.mission.command.domain.mission.ActionType.LIKE;
+
+@Service
+@RequiredArgsConstructor
+public class LikeSendService {
+
+    private final MemberMissionService memberMissionService;
+    private final LikeCommandRepository likeCommandRepository;
+    private final MemberCommandRepository memberCommandRepository;
+    private final BlockRepository blockRepository;
+
+    @Transactional
+    public boolean send(long senderId, LikeSendRequest request) {
+        long receiverId = request.receiverId();
+
+        if (likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
+            throw new DeeppleException(
+                LikeErrorCode.LIKE_ALREADY_EXISTS,
+                "senderId=" + senderId + ", receiverId=" + receiverId
+            );
+        }
+
+        var sender = memberCommandRepository.findById(senderId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + senderId));
+        var receiver = memberCommandRepository.findById(receiverId)
+            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + receiverId));
+        validateMember(sender, receiver);
+
+        var like = Like.of(senderId, receiverId, toLikeLevel(request.likeLevel()));
+        likeCommandRepository.save(like);
+
+        boolean hasProcessedMission = memberMissionService.executeMissionsByAction(senderId, LIKE.name());
+        Events.raise(LikeSentEvent.of(senderId, sender.getProfile().getNickname().getValue(), receiverId));
+
+        return hasProcessedMission;
+    }
+
+    private void validateMember(Member sender, Member receiver) {
+        if (!receiver.isActive()) {
+            throw new DeeppleException(LikeErrorCode.LIKE_RECEIVER_INACTIVE, "receiverId=" + receiver.getId());
+        }
+        if (sender.hasSameGender(receiver)) {
+            throw new DeeppleException(
+                LikeErrorCode.LIKE_SAME_GENDER,
+                "senderId=" + sender.getId() + ", receiverId=" + receiver.getId()
+            );
+        }
+        if (blockRepository.existsByBlockerIdAndBlockedId(sender.getId(), receiver.getId())) {
+            throw new DeeppleException(
+                LikeErrorCode.LIKE_BLOCKED,
+                "senderId=" + sender.getId() + ", receiverId=" + receiver.getId()
+            );
+        }
+        if (blockRepository.existsByBlockerIdAndBlockedId(receiver.getId(), sender.getId())) {
+            throw new DeeppleException(
+                LikeErrorCode.LIKE_BLOCKED,
+                "senderId=" + sender.getId() + ", receiverId=" + receiver.getId()
+            );
+        }
+    }
+}
