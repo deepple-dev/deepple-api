@@ -28,6 +28,7 @@ dependencyManagement {
     imports {
         mavenBom libs.spring.cloud.aws.bom.get().toString()
         mavenBom libs.sentry.bom.get().toString()
+        mavenBom libs.spring.modulith.bom.get().toString()
     }
     // 다른 라이브러리가 끌어오는 취약한 버전을 고친 버전으로 올린다. 상위 라이브러리가 이 버전 이상을 쓰면 지운다
     // guava: CVE-2026-102554 (Google 라이브러리), bcprov: CVE-2026-8763·CVE-2026-13506 (app-store-server-library)
@@ -72,6 +73,9 @@ dependencies {
     implementation libs.google.androidpublisher
     implementation libs.google.auth
 
+    // Modulith
+    implementation libs.spring.modulith.api
+
     // Resilience
     implementation libs.resilience4j.spring.boot
 
@@ -102,6 +106,7 @@ dependencies {
     testImplementation 'org.awaitility:awaitility'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation libs.spring.modulith.starter.test
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

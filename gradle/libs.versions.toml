@@ -2,6 +2,7 @@
 spring-boot = "4.1.2"
 spring-dependency-management = "1.1.7"
 spring-cloud-aws = "4.2.1"
+spring-modulith = "2.1.1"
 querydsl = "7.7"
 redisson = "4.8.0"
 firebase-admin = "9.11.0"
@@ -19,6 +20,10 @@ opentelemetry-logback-appender = "2.28.0-alpha"
 [libraries]
 spring-cloud-aws-bom = { module = "io.awspring.cloud:spring-cloud-aws-dependencies", version.ref = "spring-cloud-aws" }
 spring-cloud-aws-starter-s3 = { module = "io.awspring.cloud:spring-cloud-aws-starter-s3" }
+
+spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
+spring-modulith-api = { module = "org.springframework.modulith:spring-modulith-api" }
+spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
 
 querydsl-jpa = { module = "io.github.openfeign.querydsl:querydsl-jpa", version.ref = "querydsl" }
 querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.ref = "querydsl" }
