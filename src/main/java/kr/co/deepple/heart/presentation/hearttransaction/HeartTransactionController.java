@@ -1,6 +1,6 @@
 package kr.co.deepple.heart.presentation.hearttransaction;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.heart.query.hearttransaction.HeartTransactionQueryService;
 import kr.co.deepple.heart.query.hearttransaction.condition.HeartTransactionSearchCondition;
 import kr.co.deepple.heart.query.hearttransaction.view.HeartTransactionViews;

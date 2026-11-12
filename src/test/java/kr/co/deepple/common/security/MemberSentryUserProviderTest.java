@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.infra;
+package kr.co.deepple.common.security;
 
 import kr.co.deepple.common.enums.Role;
 import io.sentry.Sentry;

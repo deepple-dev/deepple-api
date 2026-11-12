@@ -1,6 +1,6 @@
 package kr.co.deepple.interview.presentation.answer;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.interview.command.application.answer.InterviewAnswerService;
 import kr.co.deepple.interview.presentation.answer.dto.InterviewAnswerCreateResponse;
 import kr.co.deepple.interview.presentation.answer.dto.InterviewAnswerSaveRequest;

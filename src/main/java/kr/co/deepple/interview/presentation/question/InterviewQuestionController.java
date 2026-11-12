@@ -1,7 +1,7 @@
 package kr.co.deepple.interview.presentation.question;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.interview.command.domain.InterviewErrorCode;
 import kr.co.deepple.interview.presentation.question.dto.InterviewQuestionViews;
 import kr.co.deepple.interview.query.condition.InterviewQuestionSearchCondition;

@@ -1,7 +1,7 @@
 package kr.co.deepple.member.presentation.profileimage;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.member.command.application.profileImage.ProfileImageService;
 import kr.co.deepple.member.command.application.profileImage.dto.ProfileImageUploadResponse;
 import kr.co.deepple.member.presentation.profileimage.dto.PresignedUrlPostRequest;

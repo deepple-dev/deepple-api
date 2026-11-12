@@ -1,6 +1,6 @@
 package kr.co.deepple.like.presentation;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.like.command.application.LikeSendService;
 import kr.co.deepple.like.query.LikeQueryService;
 import io.swagger.v3.oas.annotations.Operation;

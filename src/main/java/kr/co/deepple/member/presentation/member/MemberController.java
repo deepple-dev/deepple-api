@@ -1,7 +1,7 @@
 package kr.co.deepple.member.presentation.member;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
 import kr.co.deepple.auth.presentation.RefreshTokenCookies;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.member.command.application.member.MemberAuthService;
 import kr.co.deepple.member.command.application.member.MemberContactService;
 import kr.co.deepple.member.command.application.member.MemberProfileService;

@@ -1,6 +1,6 @@
 package kr.co.deepple.report.presentation;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.report.command.application.ReportService;
 import kr.co.deepple.report.presentation.dto.ReportCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;

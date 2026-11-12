@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ModularityTests {
 
-    private static final int MAX_VIOLATIONS = 1342;
+    private static final int MAX_VIOLATIONS = 1255;
 
     private final ApplicationModules modules = ApplicationModules.of(DeeppleApplication.class);
 

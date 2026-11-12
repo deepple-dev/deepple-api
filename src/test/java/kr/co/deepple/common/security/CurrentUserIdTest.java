@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.presentation;
+package kr.co.deepple.common.security;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

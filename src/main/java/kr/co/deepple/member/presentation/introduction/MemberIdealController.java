@@ -1,7 +1,7 @@
 package kr.co.deepple.member.presentation.introduction;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.member.command.application.introduction.MemberIdealService;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.presentation.introduction.dto.MemberIdealUpdateRequest;

@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.presentation;
+package kr.co.deepple.common.security;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Parameter(hidden = true)
 @AuthenticationPrincipal(expression = "T(java.lang.Long).parseLong(subject)")
-public @interface CurrentMemberId {
+public @interface CurrentAdminId {
 }

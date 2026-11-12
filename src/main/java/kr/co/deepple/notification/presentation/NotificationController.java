@@ -1,6 +1,6 @@
 package kr.co.deepple.notification.presentation;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.notification.command.application.*;
 import kr.co.deepple.notification.query.NotificationQueryService;
 import kr.co.deepple.notification.query.NotificationViews;

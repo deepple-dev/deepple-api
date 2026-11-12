@@ -1,8 +1,10 @@
-package kr.co.deepple.auth.infra;
+package kr.co.deepple.common.security;
 
 import kr.co.deepple.auth.domain.RefreshTokenService;
 import kr.co.deepple.auth.domain.TokenOwner;
 import kr.co.deepple.auth.domain.TokenProvider;
+import kr.co.deepple.auth.infra.JwtProperties;
+import kr.co.deepple.auth.infra.JwtProvider;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
