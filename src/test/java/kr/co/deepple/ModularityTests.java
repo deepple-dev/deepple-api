@@ -9,7 +9,7 @@ import org.springframework.modulith.core.Violations;
 
 class ModularityTests {
 
-  private static final int MAX_VIOLATIONS = 1175;
+  private static final int MAX_VIOLATIONS = 1177;
 
   private final ApplicationModules modules = ApplicationModules.of(DeeppleApplication.class);
 

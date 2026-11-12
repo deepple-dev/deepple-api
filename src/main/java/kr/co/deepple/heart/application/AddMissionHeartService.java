@@ -17,6 +17,10 @@ public class AddMissionHeartService implements AddMissionHeartUseCase {
   @Transactional
   public void addMissionHeart(AddMissionHeartCommand command) {
     heartTransactor.transact(
-        command.memberId(), TransactionType.MISSION, command.actionType(), command.amount(), null);
+        command.memberId(),
+        TransactionType.MISSION,
+        command.actionType(),
+        command.amount(),
+        command.idempotencyKey());
   }
 }

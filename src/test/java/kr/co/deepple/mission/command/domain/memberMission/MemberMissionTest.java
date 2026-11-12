@@ -23,11 +23,12 @@ public class MemberMissionTest {
       boolean isCompleted = false;
 
       // When
-      MemberMission memberMission = MemberMission.of(memberId, missionId);
+      MemberMission memberMission = MemberMission.of(memberId, missionId, "2026-11-12");
 
       // Then
       Assertions.assertThat(memberMission.getMemberId()).isEqualTo(memberId);
       Assertions.assertThat(memberMission.getMissionId()).isEqualTo(missionId);
+      Assertions.assertThat(memberMission.getPeriod()).isEqualTo("2026-11-12");
       Assertions.assertThat(memberMission.getAttemptCount()).isEqualTo(attemptCount);
       Assertions.assertThat(memberMission.getSuccessCount()).isEqualTo(successCount);
       Assertions.assertThat(memberMission.isCompleted()).isEqualTo(isCompleted);
@@ -50,9 +51,10 @@ public class MemberMissionTest {
           MemberMissionFixture.builder().memberId(memberId).missionId(missionId).build();
 
       // When
-      memberMission.countPlus(requiredAttempt, repeatableCount);
+      boolean isSucceeded = memberMission.countPlus(requiredAttempt, repeatableCount);
 
       // Then
+      Assertions.assertThat(isSucceeded).isFalse();
       Assertions.assertThat(memberMission.getSuccessCount()).isEqualTo(0);
       Assertions.assertThat(memberMission.getAttemptCount()).isEqualTo(1);
       Assertions.assertThat(memberMission.isCompleted()).isFalse();
@@ -70,10 +72,48 @@ public class MemberMissionTest {
           MemberMissionFixture.builder().memberId(memberId).missionId(missionId).build();
 
       // When
-      memberMission.countPlus(requiredAttempt, repeatableCount);
+      boolean isSucceeded = memberMission.countPlus(requiredAttempt, repeatableCount);
 
       // Then
+      Assertions.assertThat(isSucceeded).isTrue();
       Assertions.assertThat(memberMission.getSuccessCount()).isEqualTo(1);
+      Assertions.assertThat(memberMission.getAttemptCount()).isEqualTo(0);
+      Assertions.assertThat(memberMission.isCompleted()).isTrue();
+    }
+
+    @DisplayName("필요한 시도 횟수를 채우면 성공하고, 반복 횟수가 남아 있으면 완료되지 않습니다.")
+    @Test
+    void succeedWithoutCompleting() {
+      // Given
+      int requiredAttempt = 2;
+      int repeatableCount = 2;
+      MemberMission memberMission = MemberMissionFixture.builder().attemptCount(1).build();
+
+      // When
+      boolean isSucceeded = memberMission.countPlus(requiredAttempt, repeatableCount);
+
+      // Then
+      Assertions.assertThat(isSucceeded).isTrue();
+      Assertions.assertThat(memberMission.getSuccessCount()).isEqualTo(1);
+      Assertions.assertThat(memberMission.getAttemptCount()).isEqualTo(0);
+      Assertions.assertThat(memberMission.isCompleted()).isFalse();
+    }
+
+    @DisplayName("필요한 시도 횟수와 반복 횟수가 줄어 이미 넘어선 경우에도 성공하고 완료됩니다.")
+    @Test
+    void succeedAndCompleteWhenCountsAlreadyExceeded() {
+      // Given
+      int requiredAttempt = 1;
+      int repeatableCount = 1;
+      MemberMission memberMission =
+          MemberMissionFixture.builder().attemptCount(2).successCount(1).build();
+
+      // When
+      boolean isSucceeded = memberMission.countPlus(requiredAttempt, repeatableCount);
+
+      // Then
+      Assertions.assertThat(isSucceeded).isTrue();
+      Assertions.assertThat(memberMission.getSuccessCount()).isEqualTo(2);
       Assertions.assertThat(memberMission.getAttemptCount()).isEqualTo(0);
       Assertions.assertThat(memberMission.isCompleted()).isTrue();
     }

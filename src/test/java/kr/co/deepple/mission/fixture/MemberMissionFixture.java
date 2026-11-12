@@ -16,6 +16,7 @@ public class MemberMissionFixture {
   private Long id;
   private long memberId = 1L;
   private long missionId = 1L;
+  private String period = "ALL";
   private int attemptCount;
   private int successCount;
   private boolean completed;
@@ -25,7 +26,7 @@ public class MemberMissionFixture {
   }
 
   public MemberMission build() {
-    MemberMission memberMission = MemberMission.of(memberId, missionId);
+    MemberMission memberMission = MemberMission.of(memberId, missionId, period);
     setField(memberMission, "id", id);
     setField(memberMission, "attemptCount", attemptCount);
     setField(memberMission, "successCount", successCount);

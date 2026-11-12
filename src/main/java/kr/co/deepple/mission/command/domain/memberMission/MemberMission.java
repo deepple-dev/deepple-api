@@ -9,6 +9,7 @@ import kr.co.deepple.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Entity
 @Table(name = "member_mission")
@@ -24,6 +25,8 @@ public class MemberMission extends BaseEntity {
 
   private long missionId;
 
+  private String period;
+
   private int attemptCount;
 
   private int successCount;
@@ -31,7 +34,12 @@ public class MemberMission extends BaseEntity {
   private boolean isCompleted;
 
   private MemberMission(
-      long memberId, long missionId, int attemptCount, int successCount, boolean isCompleted) {
+      long memberId,
+      long missionId,
+      @NonNull String period,
+      int attemptCount,
+      int successCount,
+      boolean isCompleted) {
     if (attemptCount < 0) {
       throw new IllegalArgumentException("attemptCount는 음수일 수 없습니다. attemptCount=" + attemptCount);
     }
@@ -40,23 +48,26 @@ public class MemberMission extends BaseEntity {
     }
     this.memberId = memberId;
     this.missionId = missionId;
+    this.period = period;
     this.attemptCount = attemptCount;
     this.successCount = successCount;
     this.isCompleted = isCompleted;
   }
 
-  public static MemberMission of(long memberId, long missionId) {
-    return new MemberMission(memberId, missionId, 0, 0, false);
+  public static MemberMission of(long memberId, long missionId, String period) {
+    return new MemberMission(memberId, missionId, period, 0, 0, false);
   }
 
-  public void countPlus(int requiredAttempt, int repeatableCount) {
+  public boolean countPlus(int requiredAttempt, int repeatableCount) {
     attemptCount++;
-    if (attemptCount == requiredAttempt) {
-      successCount++;
-      attemptCount = 0;
-      if (successCount == repeatableCount) {
-        isCompleted = true;
-      }
+    if (attemptCount < requiredAttempt) {
+      return false;
     }
+    successCount++;
+    attemptCount = 0;
+    if (successCount >= repeatableCount) {
+      isCompleted = true;
+    }
+    return true;
   }
 }

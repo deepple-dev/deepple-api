@@ -20,6 +20,9 @@ public class HeartMissionEventHandler {
   public void handle(MemberMissionCompletedEvent event) {
     addMissionHeartUseCase.addMissionHeart(
         new AddMissionHeartCommand(
-            event.getMemberId(), event.getRewardHeartAmount(), event.getActionType()));
+            event.getMemberId(),
+            event.getRewardHeartAmount(),
+            event.getActionType(),
+            event.getMemberMissionId() + ":" + event.getSuccessCount()));
   }
 }

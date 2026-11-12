@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import kr.co.deepple.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -89,5 +90,9 @@ public class Mission extends BaseEntity {
         repeatableCount,
         rewardedHeart,
         isPublic);
+  }
+
+  public String periodOf(LocalDate date) {
+    return frequencyType.periodOf(date);
   }
 }

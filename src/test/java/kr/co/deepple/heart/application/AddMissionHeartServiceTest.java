@@ -19,12 +19,12 @@ class AddMissionHeartServiceTest {
   @InjectMocks private AddMissionHeartService service;
 
   @Test
-  @DisplayName("미션 종류와 미션 이름으로 멱등 키 없이 거래한다.")
+  @DisplayName("미션 종류와 미션 이름, 멱등 키로 거래한다.")
   void transact() {
     // when
-    service.addMissionHeart(new AddMissionHeartCommand(1L, 10L, "Daily Login"));
+    service.addMissionHeart(new AddMissionHeartCommand(1L, 10L, "Daily Login", "7:1"));
 
     // then
-    verify(heartTransactor).transact(1L, TransactionType.MISSION, "Daily Login", 10L, null);
+    verify(heartTransactor).transact(1L, TransactionType.MISSION, "Daily Login", 10L, "7:1");
   }
 }
