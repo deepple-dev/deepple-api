@@ -9,6 +9,7 @@ import kr.co.deepple.community.command.domain.profileexchange.ProfileExchange;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
@@ -47,6 +48,9 @@ class ProfileExchangeServiceTest {
 
     @Mock
     private BlockRepository blockRepository;
+
+    @Mock
+    private UseHeartUseCase useHeartUseCase;
 
     @InjectMocks
     private ProfileExchangeService profileExchangeService;

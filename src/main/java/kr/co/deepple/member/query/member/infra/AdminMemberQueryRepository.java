@@ -159,11 +159,7 @@ public class AdminMemberQueryRepository {
                     member.profile.height.intValue(),
                     member.phoneNumber.value
                     ,
-                    new QHeartBalanceView(
-                        member.heartBalance.purchaseHeartBalance,
-                        member.heartBalance.missionHeartBalance,
-                        member.heartBalance.purchaseHeartBalance.add(member.heartBalance.missionHeartBalance)
-                    ),
+                    constant(new HeartBalanceView(0L, 0L, 0L)),
                     constant(profileImageUrls),
                     new QProfileInfo(
                         member.profile.job.stringValue(),

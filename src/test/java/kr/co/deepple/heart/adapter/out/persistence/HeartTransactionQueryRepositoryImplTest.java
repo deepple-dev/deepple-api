@@ -47,7 +47,7 @@ class HeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport {
         HeartTransactionView view = result.get(0);
         assertThat(view.id()).isEqualTo(heartTransaction.getId());
         assertThat(view.content()).isEqualTo(heartTransaction.getContent());
-        assertThat(view.heartAmount()).isEqualTo(heartTransaction.getHeartAmount().getAmount());
+        assertThat(view.heartAmount()).isEqualTo(heartTransaction.getAmount());
         assertThat(view.createdAt()).isCloseTo(heartTransaction.getCreatedAt(), within(1, ChronoUnit.MICROS));
     }
 
@@ -141,8 +141,6 @@ class HeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport {
             .transactionType(TransactionType.PURCHASE)
             .content(TransactionType.PURCHASE.getDescription())
             .amount(10L)
-            .missionHeartBalance(100L)
-            .purchaseHeartBalance(100L)
             .build();
         entityManager.persist(heartTransaction);
         return heartTransaction;

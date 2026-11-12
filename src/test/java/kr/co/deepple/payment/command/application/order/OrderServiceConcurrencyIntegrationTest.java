@@ -2,8 +2,9 @@ package kr.co.deepple.payment.command.application.order;
 
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.heart.application.port.out.HeartTransactionCommandRepository;
-import kr.co.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
+import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
+import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
+import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -52,19 +53,18 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     private MemberCommandJpaRepository memberCommandJpaRepository;
 
     @Autowired
-    private ProcessedHeartOrderCommandRepository processedHeartOrderCommandRepository;
+    private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
     @Autowired
-    private HeartTransactionCommandRepository heartTransactionCommandRepository;
+    private HeartTransactionRepository heartTransactionRepository;
 
     private HeartPurchaseOption option;
     private Member member;
 
     @BeforeEach
     void setUp() {
-        member = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
+        member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(member.getId());
         option = heartPurchaseOptionCommandRepository.save(HeartPurchaseOptionFixture.builder()
             .amount(OPTION_AMOUNT)
             .build());
@@ -72,9 +72,9 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
     @AfterEach
     void tearDown() {
-        processedHeartOrderCommandRepository.deleteAll();
+        memberHeartBalanceRepository.deleteAll();
         orderCommandRepository.deleteAll();
-        heartTransactionCommandRepository.deleteAll();
+        heartTransactionRepository.deleteAll();
         heartPurchaseOptionCommandRepository.delete(option);
         memberCommandJpaRepository.deleteAll();
     }
@@ -151,12 +151,19 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
             assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT));
         await().during(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
             assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
-            assertThat(heartTransactionCommandRepository.count()).isEqualTo(1);
+            assertThat(heartTransactionRepository.count()).isEqualTo(1);
         });
     }
 
     private long purchaseHeartBalance() {
-        return memberCommandJpaRepository.findById(member.getId()).orElseThrow()
-            .getHeartBalance().getPurchaseHeartBalance();
+        return memberHeartBalanceRepository.findByMemberId(member.getId()).orElseThrow()
+            .getPurchaseBalance();
+    }
+
+    private void saveHeartBalance(long memberId) {
+        memberHeartBalanceRepository.save(MemberHeartBalanceFixture.builder()
+            .memberId(memberId)
+            .purchaseBalance(INITIAL_BALANCE)
+            .build());
     }
 }

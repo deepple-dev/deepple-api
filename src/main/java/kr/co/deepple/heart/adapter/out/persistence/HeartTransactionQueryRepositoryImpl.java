@@ -30,7 +30,7 @@ public class HeartTransactionQueryRepositoryImpl implements HeartTransactionQuer
                 heartTransaction.id,
                 heartTransaction.createdAt,
                 heartTransaction.content,
-                heartTransaction.heartAmount.amount
+                heartTransaction.amount.amount
             ))
             .from(heartTransaction)
             .where(

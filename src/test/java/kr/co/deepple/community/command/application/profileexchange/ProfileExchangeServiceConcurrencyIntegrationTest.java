@@ -2,7 +2,11 @@ package kr.co.deepple.community.command.application.profileexchange;
 
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.community.command.infra.profileexchange.ProfileExchangeJpaRepository;
-import kr.co.deepple.heart.application.port.out.HeartTransactionCommandRepository;
+import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
+import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
+import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
+import kr.co.deepple.heart.fixture.HeartMemberFixture;
+import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -35,12 +39,20 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
     private MemberCommandJpaRepository memberCommandJpaRepository;
 
     @Autowired
-    private HeartTransactionCommandRepository heartTransactionCommandRepository;
+    private HeartTransactionRepository heartTransactionRepository;
+
+    @Autowired
+    private MemberHeartBalanceRepository memberHeartBalanceRepository;
+
+    @Autowired
+    private HeartMemberRepository heartMemberRepository;
 
     @AfterEach
     void tearDown() {
         profileExchangeJpaRepository.deleteAll();
-        heartTransactionCommandRepository.deleteAll();
+        heartTransactionRepository.deleteAll();
+        memberHeartBalanceRepository.deleteAll();
+        heartMemberRepository.deleteAll();
         memberCommandJpaRepository.deleteAll();
     }
 
@@ -48,12 +60,10 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
     @DisplayName("두 회원이 서로에게 동시에 프로필 교환을 요청해도 프로필 교환은 하나만 생성된다")
     void createOnlyOneProfileExchangeWhenRequestedConcurrently() throws InterruptedException {
         // given
-        Member memberA = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
-        Member memberB = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
+        Member memberA = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(memberA.getId());
+        Member memberB = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(memberB.getId());
         long memberAId = memberA.getId();
         long memberBId = memberB.getId();
 
@@ -87,6 +97,14 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
         assertThat(successCount.get() + failureCount.get()).isEqualTo(THREAD_COUNT);
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(profileExchangeJpaRepository.count()).isEqualTo(1L);
-        assertThat(heartTransactionCommandRepository.count()).isEqualTo(1L);
+        assertThat(heartTransactionRepository.count()).isEqualTo(1L);
+    }
+
+    private void saveHeartBalance(long memberId) {
+        heartMemberRepository.save(HeartMemberFixture.builder().memberId(memberId).build());
+        memberHeartBalanceRepository.save(MemberHeartBalanceFixture.builder()
+            .memberId(memberId)
+            .purchaseBalance(INITIAL_BALANCE)
+            .build());
     }
 }

@@ -96,23 +96,6 @@ class MemberQueryServiceTest {
         }
     }
 
-    @DisplayName("getHeartBalance 메서드 테스트")
-    @Nested
-    class getHeartBalanceTest {
-        @DisplayName("해당 결과가 존재하지 않을 경우, 예외 발생.")
-        @Test
-        void throwsExceptionWhenResultIsEmpty() {
-            // Given
-            Long memberId = 1L;
-            when(memberQueryRepository.findHeartBalanceByMemberId(memberId)).thenReturn(Optional.empty());
-
-            // When & Then
-            assertThatThrownBy(() -> memberQueryService.getHeartBalance(memberId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
-        }
-    }
-
     @DisplayName("getMemberProfile 메서드 테스트")
     @Nested
     class getMemberProfileTest {

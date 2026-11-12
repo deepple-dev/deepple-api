@@ -3,11 +3,11 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.heart.domain.HeartAmount;
-import kr.co.deepple.heart.domain.HeartBalance;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
 import kr.co.deepple.member.command.domain.member.vo.MemberProfile;
@@ -41,7 +41,6 @@ class MemberTest {
         Assertions.assertThat(member.isProfileSettingNeeded()).isTrue();
         Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
         Assertions.assertThat(member.getPrimaryContactType()).isEqualTo(PrimaryContactType.NONE);
-        Assertions.assertThat(member.getHeartBalance()).isEqualTo(HeartBalance.init());
         Assertions.assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.INITIAL);
         Assertions.assertThat(member.isVip()).isFalse();
         Assertions.assertThat(member.isProfilePublic()).isFalse();
@@ -170,96 +169,6 @@ class MemberTest {
     }
 
     @Nested
-    @DisplayName("gainPurchaseHeart 메서드 테스트")
-    class GainPurchaseHeartMethodTest {
-        @Test
-        @DisplayName("멤버가 하트를 구매하면 구매 하트 잔액이 증가합니다.")
-        void shouldIncreasePurchaseHeartBalanceWhenMemberPurchasesHeart() {
-            // Given
-            Long memberId = 1L;
-            Member member = MemberFixture.builder().id(memberId).build();
-            long purchaseHeartAmount = 100L;
-            HeartBalance expectedHeartBalance = HeartBalance.init().gainPurchaseHeart(purchaseHeartAmount);
-
-            // When
-            member.gainPurchaseHeart(purchaseHeartAmount);
-
-            // Then
-            Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
-        }
-    }
-
-    @Nested
-    @DisplayName("useHeart 메서드 테스트")
-    class UseHeartMethodTest {
-        @Test
-        @DisplayName("멤버가 하트를 사용하면 하트 잔액이 차감됩니다.")
-        void shouldDeductHeartBalanceWhenMemberUsesHeart() {
-            // Given
-            Member member = MemberFixture.builder().purchaseHeartBalance(100L).build();
-            HeartBalance expectedHeartBalance = HeartBalance.of(0L, 90L);
-
-            // When
-            member.useHeart(10L);
-
-            // Then
-            Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
-        }
-    }
-
-    @Nested
-    @DisplayName("gainMissionHeart 메서드 테스트")
-    class GainMissionHeartMethodTest {
-        @Test
-        @DisplayName("멤버가 미션을 수행하면 미션 하트 잔액이 증가합니다.")
-        void shouldIncreaseMissionHeartBalanceWhenMemberCompletesMission() {
-            // Given
-            Member member = MemberFixture.builder().build();
-            long missionHeartAmount = 100L;
-            HeartBalance expectedHeartBalance = HeartBalance.init().gainMissionHeart(missionHeartAmount);
-
-            // When
-            member.gainMissionHeart(missionHeartAmount, "Daily Login");
-
-            // Then
-            Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
-        }
-    }
-
-    @Nested
-    @DisplayName("gainAdminGrantedHeart 메서드 테스트")
-    class GainAdminGrantedHeartMethodTest {
-        @Test
-        @DisplayName("관리자가 하트를 지급하면 미션 하트 잔액이 증가하고 AdminHeartGrantedEvent 가 발행됩니다.")
-        void shouldIncreaseMissionHeartBalanceAndRaiseEventWhenAdminGrants() {
-            try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
-                // Given
-                Long memberId = 1L;
-                Member member = MemberFixture.builder().id(memberId).build();
-                long grantAmount = 50L;
-                Long adminId = 99L;
-                String reason = "CS 보상";
-                HeartBalance expectedHeartBalance = HeartBalance.init().gainMissionHeart(grantAmount);
-
-                // When
-                member.gainAdminGrantedHeart(grantAmount, adminId, reason);
-
-                // Then
-                Assertions.assertThat(member.getHeartBalance()).isEqualTo(expectedHeartBalance);
-                eventsMock.verify(() -> Events.raise(argThat(event ->
-                    event instanceof kr.co.deepple.member.command.domain.member.event.AdminHeartGrantedEvent e
-                        && e.getMemberId().equals(memberId)
-                        && e.getAdminId().equals(adminId)
-                        && e.getAmount().equals(50L)
-                        && e.getReason().equals(reason)
-                        && e.getMissionHeartBalance().equals(expectedHeartBalance.getMissionHeartBalance())
-                        && e.getPurchaseHeartBalance().equals(expectedHeartBalance.getPurchaseHeartBalance())
-                )));
-            }
-        }
-    }
-
-    @Nested
     @DisplayName("updateSetting 메서드 테스트")
     class UpdateSettingMethodTest {
 
@@ -353,7 +262,13 @@ class MemberTest {
                 member.updateProfile(profile);
 
                 // Then
-                eventsMockedStatic.verifyNoInteractions();
+                eventsMockedStatic.verify(() -> Events.raise(memberProfileInitializedEvent), never());
+                eventsMockedStatic.verify(
+                    () -> Events.raise(argThat(event -> event instanceof MemberSummaryChangedEvent summaryChanged
+                        && summaryChanged.getMemberId() == memberId
+                        && profile.getGender().name().equals(summaryChanged.getGender()))),
+                    times(1)
+                );
             }
             Assertions.assertThat(member.getProfile()).isEqualTo(profile);
         }

@@ -20,16 +20,16 @@ public class HeartTransactionFixture {
     private TransactionType transactionType = TransactionType.MESSAGE;
     private String content = TransactionType.MESSAGE.getDescription();
     private long amount = 20L;
-    private long missionHeartBalance;
-    private long purchaseHeartBalance;
+    private long missionBalance;
+    private long purchaseBalance;
 
     public static HeartTransactionFixture builder() {
         return new HeartTransactionFixture();
     }
 
     public HeartTransaction build() {
-        HeartTransaction transaction = HeartTransaction.of(memberId, transactionType, content,
-            amount, HeartBalance.of(missionHeartBalance, purchaseHeartBalance));
+        HeartTransaction transaction = HeartTransaction.of(memberId, transactionType, content, amount,
+            HeartBalance.of(missionBalance, purchaseBalance), null);
         setField(transaction, "id", id);
         return transaction;
     }

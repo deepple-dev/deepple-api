@@ -1,7 +1,7 @@
 package kr.co.deepple.heart.domain;
 
+import kr.co.deepple.heart.domain.Gender;
 import kr.co.deepple.heart.domain.TransactionType;
-import kr.co.deepple.member.command.domain.member.Gender;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

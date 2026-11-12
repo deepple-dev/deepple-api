@@ -15,7 +15,6 @@ public enum TransactionSubtype {
     IDEAL("이상형"),
     PERSONALITY("유형별 이상형"),
     MATCH("매칭"),
-    MATCH_ACCEPTED("매칭 수락"),
     PROFILE_EXCHANGE("프로필 교환");
 
     private final String description;

@@ -1,7 +1,7 @@
 package kr.co.deepple.heart.adapter.in.web;
 
+import kr.co.deepple.heart.application.port.in.FindHeartTransactionsUseCase;
 import kr.co.deepple.common.security.CurrentMemberId;
-import kr.co.deepple.heart.application.HeartTransactionQueryService;
 import kr.co.deepple.heart.application.dto.HeartTransactionSearchCondition;
 import kr.co.deepple.heart.application.dto.HeartTransactionViews;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/heart-transactions")
 public class HeartTransactionController {
-    private final HeartTransactionQueryService heartTransactionQueryService;
+    private final FindHeartTransactionsUseCase findHeartTransactionsUseCase;
 
     @Operation(summary = "하트 내역 조회")
     @GetMapping
@@ -26,8 +26,7 @@ public class HeartTransactionController {
         @ModelAttribute HeartTransactionSearchCondition condition,
         @CurrentMemberId long memberId
     ) {
-        final HeartTransactionViews views = heartTransactionQueryService.findHeartTransactions(
-            memberId, condition);
+        HeartTransactionViews views = findHeartTransactionsUseCase.findHeartTransactions(memberId, condition);
         return ResponseEntity.ok(views);
     }
 }

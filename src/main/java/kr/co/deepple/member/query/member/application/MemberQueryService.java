@@ -41,11 +41,6 @@ public class MemberQueryService {
             .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
     }
 
-    public HeartBalanceView getHeartBalance(Long memberId) {
-        return memberQueryRepository.findHeartBalanceByMemberId(memberId)
-            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
-    }
-
     public MemberProfileResponse getMemberProfile(Long memberId, Long otherMemberId) {
         ProfileAccessView profileAccessView = memberQueryRepository.findProfileAccessViewByMemberId(memberId,
             otherMemberId)

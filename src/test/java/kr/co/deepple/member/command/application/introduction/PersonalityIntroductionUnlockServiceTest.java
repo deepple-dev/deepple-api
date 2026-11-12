@@ -3,6 +3,8 @@ package kr.co.deepple.member.command.application.introduction;
 import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
+import kr.co.deepple.heart.application.port.in.UseHeartCommand;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;
@@ -32,6 +34,9 @@ import static org.mockito.Mockito.*;
 class PersonalityIntroductionUnlockServiceTest {
 
     private static final AnswerPersonalityType TYPE = AnswerPersonalityType.STIMULATING_ADVENTURER;
+
+    @Mock
+    private UseHeartUseCase useHeartUseCase;
 
     @InjectMocks
     private PersonalityIntroductionUnlockService personalityIntroductionUnlockService;
@@ -116,7 +121,7 @@ class PersonalityIntroductionUnlockServiceTest {
     }
 
     @Test
-    @DisplayName("해당 유형의 첫 언락은 하트 차감 없이(ofWithoutCharge) 소개를 생성한다.")
+    @DisplayName("해당 유형의 첫 언락은 하트를 차감하지 않고 소개를 생성한다.")
     void firstUnlockIsFree() {
         long memberId = 1L;
         long targetMemberId = 2L;
@@ -127,21 +132,19 @@ class PersonalityIntroductionUnlockServiceTest {
 
         try (MockedStatic<MemberIntroduction> mocked = mockStatic(MemberIntroduction.class)) {
             MemberIntroduction introduction = mock(MemberIntroduction.class);
-            mocked.when(() -> MemberIntroduction.ofWithoutCharge(memberId, targetMemberId, IntroductionType.PERSONALITY))
+            mocked.when(() -> MemberIntroduction.of(memberId, targetMemberId, IntroductionType.PERSONALITY))
                 .thenReturn(introduction);
 
             personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
 
-            mocked.verify(() -> MemberIntroduction.ofWithoutCharge(memberId, targetMemberId,
-                IntroductionType.PERSONALITY));
-            mocked.verify(() -> MemberIntroduction.of(anyLong(), anyLong(), any()), never());
             verify(memberIntroductionCommandRepository).save(introduction);
+            verify(useHeartUseCase, never()).useHeart(any());
             verify(personalityIntroductionRedisRepository).addUnlockedMemberId(memberId, targetMemberId);
         }
     }
 
     @Test
-    @DisplayName("첫 언락 이후에는 하트를 차감하며(of) 소개를 생성한다.")
+    @DisplayName("첫 언락 이후에는 하트를 차감하고 소개를 생성한다.")
     void subsequentUnlockCharges() {
         long memberId = 1L;
         long targetMemberId = 3L;
@@ -152,14 +155,15 @@ class PersonalityIntroductionUnlockServiceTest {
 
         try (MockedStatic<MemberIntroduction> mocked = mockStatic(MemberIntroduction.class)) {
             MemberIntroduction introduction = mock(MemberIntroduction.class);
+            when(introduction.getId()).thenReturn(10L);
             mocked.when(() -> MemberIntroduction.of(memberId, targetMemberId, IntroductionType.PERSONALITY))
                 .thenReturn(introduction);
 
             personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
 
-            mocked.verify(() -> MemberIntroduction.of(memberId, targetMemberId, IntroductionType.PERSONALITY));
-            mocked.verify(() -> MemberIntroduction.ofWithoutCharge(anyLong(), anyLong(), any()), never());
             verify(memberIntroductionCommandRepository).save(introduction);
+            verify(useHeartUseCase).useHeart(new UseHeartCommand(memberId, "INTRODUCTION", "PERSONALITY",
+                IntroductionType.PERSONALITY.getDescription(), "10"));
             verify(personalityIntroductionRedisRepository).addUnlockedMemberId(memberId, targetMemberId);
         }
     }

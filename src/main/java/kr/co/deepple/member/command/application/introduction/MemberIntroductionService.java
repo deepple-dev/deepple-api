@@ -3,6 +3,8 @@ package kr.co.deepple.member.command.application.introduction;
 import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
+import kr.co.deepple.heart.application.port.in.UseHeartCommand;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;
@@ -18,10 +20,14 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class MemberIntroductionService {
+
+    private static final String HEART_USAGE_TYPE = "INTRODUCTION";
+
     private final MemberCommandRepository memberCommandRepository;
     private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
     private final SoulmateQueryRepository soulmateQueryRepository;
     private final BlockRepository blockRepository;
+    private final UseHeartUseCase useHeartUseCase;
 
     @Transactional
     public void createGradeIntroduction(long memberId, long introducedMemberId) {
@@ -92,6 +98,8 @@ public class MemberIntroductionService {
         validateIntroduction(memberId, introducedMemberId);
         MemberIntroduction memberIntroduction = MemberIntroduction.of(memberId, introducedMemberId, introductionType);
         memberIntroductionCommandRepository.save(memberIntroduction);
+        useHeartUseCase.useHeart(new UseHeartCommand(memberId, HEART_USAGE_TYPE, introductionType.name(),
+            introductionType.getDescription(), String.valueOf(memberIntroduction.getId())));
     }
 
     private void validateIntroduction(long memberId, long introducedMemberId) {

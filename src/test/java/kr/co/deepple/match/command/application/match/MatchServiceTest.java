@@ -3,10 +3,11 @@ package kr.co.deepple.match.command.application.match;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.match.command.domain.match.*;
 import kr.co.deepple.match.command.domain.match.MatchErrorCode;
-import kr.co.deepple.match.presentation.dto.MatchRequestDto;
 import kr.co.deepple.match.fixture.MatchFixture;
+import kr.co.deepple.match.presentation.dto.MatchRequestDto;
 import kr.co.deepple.match.presentation.dto.MatchResponseDto;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
 import kr.co.deepple.member.command.domain.member.Member;
@@ -41,6 +42,9 @@ class MatchServiceTest {
 
     @Mock
     private MemberIntroductionCommandRepository introductionCommandRepository;
+
+    @Mock
+    private UseHeartUseCase useHeartUseCase;
 
     @InjectMocks
     private MatchService matchService;
@@ -181,7 +185,7 @@ class MatchServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
         }
 
-        @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 수락.")
+        @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 하트를 쓰지 않고 수락.")
         @Test
         void approveMatch() {
             // Given
@@ -214,6 +218,7 @@ class MatchServiceTest {
             // Then
             Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
             Assertions.assertThat(match.getResponseMessage().getValue()).isEqualTo(responseMessage);
+            verifyNoInteractions(useHeartUseCase);
         }
     }
 

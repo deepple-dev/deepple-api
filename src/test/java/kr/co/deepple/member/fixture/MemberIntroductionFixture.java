@@ -24,7 +24,7 @@ public class MemberIntroductionFixture {
     }
 
     public MemberIntroduction build() {
-        MemberIntroduction introduction = MemberIntroduction.ofWithoutCharge(memberId, introducedMemberId, type);
+        MemberIntroduction introduction = MemberIntroduction.of(memberId, introducedMemberId, type);
         setField(introduction, "id", id);
         return introduction;
     }

@@ -1,10 +1,15 @@
 package kr.co.deepple.heart.domain;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.heart.domain.HeartAmount;
-import kr.co.deepple.heart.domain.HeartBalance;
-import kr.co.deepple.heart.domain.TransactionType;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,67 +17,49 @@ import lombok.NonNull;
 
 @Entity
 @Table(name = "heart_transactions")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class HeartTransaction extends BaseEntity {
-
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Getter
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Getter
-    private Long memberId;
+    private long memberId;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(50)")
-    @Getter
     private TransactionType transactionType;
 
-    @Getter
     private String content;
 
     @Embedded
-    @Getter
-    private HeartAmount heartAmount;
+    @Getter(AccessLevel.NONE)
+    private HeartAmount amount;
 
     @Embedded
-    @Getter
-    private HeartBalance heartBalance;
+    private HeartBalance balance;
 
-    private HeartTransaction(Long memberId, TransactionType transactionType, String content, long amount,
-        HeartBalance heartBalance) {
-        setMemberId(memberId);
-        setTransactionType(transactionType);
-        setContent(content);
-        setHeartAmount(amount);
-        setHeartBalance(heartBalance);
-    }
+    private String idempotencyKey;
 
-    public static HeartTransaction of(Long memberId, TransactionType transactionType, String content, long amount,
-        HeartBalance heartBalance) {
-        return new HeartTransaction(memberId, transactionType, content, amount, heartBalance);
-    }
-
-    private void setMemberId(@NonNull Long memberId) {
-        this.memberId = memberId;
-    }
-
-    private void setTransactionType(@NonNull TransactionType transactionType) {
-        this.transactionType = transactionType;
-    }
-
-    private void setContent(@NonNull String content) {
+    private HeartTransaction(long memberId, @NonNull TransactionType transactionType, @NonNull String content,
+        long amount, @NonNull HeartBalance balance, String idempotencyKey) {
         if (content.isBlank()) {
             throw new IllegalArgumentException("content는 비어있을 수 없습니다.");
         }
+        this.memberId = memberId;
+        this.transactionType = transactionType;
         this.content = content;
+        this.amount = HeartAmount.of(transactionType, amount);
+        this.balance = balance;
+        this.idempotencyKey = idempotencyKey;
     }
 
-    private void setHeartAmount(long amount) {
-        this.heartAmount = HeartAmount.of(transactionType, amount);
+    public static HeartTransaction of(long memberId, TransactionType transactionType, String content, long amount,
+        HeartBalance balance, String idempotencyKey) {
+        return new HeartTransaction(memberId, transactionType, content, amount, balance, idempotencyKey);
     }
 
-    private void setHeartBalance(@NonNull HeartBalance heartBalance) {
-        this.heartBalance = heartBalance;
+    public long getAmount() {
+        return amount.getAmount();
     }
 }

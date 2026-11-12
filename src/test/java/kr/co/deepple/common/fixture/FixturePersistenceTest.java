@@ -9,8 +9,10 @@ import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
 import kr.co.deepple.community.fixture.SelfIntroductionFixture;
 import kr.co.deepple.datingexam.fixture.*;
+import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.HeartTransactionFixture;
 import kr.co.deepple.heart.fixture.HeartUsagePolicyFixture;
+import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
 import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
 import kr.co.deepple.like.fixture.LikeFixture;
@@ -18,7 +20,6 @@ import kr.co.deepple.match.fixture.MatchFixture;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberIdealFixture;
 import kr.co.deepple.member.fixture.MemberIntroductionFixture;
-import kr.co.deepple.member.fixture.ProcessedHeartOrderFixture;
 import kr.co.deepple.member.fixture.ProfileImageFixture;
 import kr.co.deepple.mission.fixture.MemberMissionFixture;
 import kr.co.deepple.mission.fixture.MissionFixture;
@@ -66,6 +67,8 @@ class FixturePersistenceTest extends RepositoryTestSupport {
                 (Supplier<Object>) () -> DatingExamSubmitResultFixture.builder().build()),
             arguments("HeartTransaction", (Supplier<Object>) () -> HeartTransactionFixture.builder().build()),
             arguments("HeartUsagePolicy", (Supplier<Object>) () -> HeartUsagePolicyFixture.builder().build()),
+            arguments("MemberHeartBalance", (Supplier<Object>) () -> MemberHeartBalanceFixture.builder().build()),
+            arguments("HeartMember", (Supplier<Object>) () -> HeartMemberFixture.builder().build()),
             arguments("InterviewAnswer", (Supplier<Object>) () -> InterviewAnswerFixture.builder().build()),
             arguments("InterviewQuestion", (Supplier<Object>) () -> InterviewQuestionFixture.builder().build()),
             arguments("Like", (Supplier<Object>) () -> LikeFixture.builder().build()),
@@ -74,7 +77,6 @@ class FixturePersistenceTest extends RepositoryTestSupport {
             arguments("MemberIdeal", (Supplier<Object>) () -> MemberIdealFixture.builder().build()),
             arguments("MemberIntroduction", (Supplier<Object>) () -> MemberIntroductionFixture.builder().build()),
             arguments("ProfileImage", (Supplier<Object>) () -> ProfileImageFixture.builder().build()),
-            arguments("ProcessedHeartOrder", (Supplier<Object>) () -> ProcessedHeartOrderFixture.builder().build()),
             arguments("Mission", (Supplier<Object>) () -> MissionFixture.builder().build()),
             arguments("MemberMission", (Supplier<Object>) () -> MemberMissionFixture.builder().build()),
             arguments("DeviceRegistration", (Supplier<Object>) () -> DeviceRegistrationFixture.builder().build()),

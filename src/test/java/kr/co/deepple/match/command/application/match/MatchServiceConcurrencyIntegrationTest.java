@@ -1,7 +1,11 @@
 package kr.co.deepple.match.command.application.match;
 
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.heart.application.port.out.HeartTransactionCommandRepository;
+import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
+import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
+import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
+import kr.co.deepple.heart.fixture.HeartMemberFixture;
+import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.match.command.domain.match.MatchContactType;
 import kr.co.deepple.match.command.infra.match.MatchJpaRepository;
 import kr.co.deepple.match.presentation.dto.MatchRequestDto;
@@ -37,12 +41,20 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     private MemberCommandJpaRepository memberCommandJpaRepository;
 
     @Autowired
-    private HeartTransactionCommandRepository heartTransactionCommandRepository;
+    private HeartTransactionRepository heartTransactionRepository;
+
+    @Autowired
+    private MemberHeartBalanceRepository memberHeartBalanceRepository;
+
+    @Autowired
+    private HeartMemberRepository heartMemberRepository;
 
     @AfterEach
     void tearDown() {
         matchJpaRepository.deleteAll();
-        heartTransactionCommandRepository.deleteAll();
+        heartTransactionRepository.deleteAll();
+        memberHeartBalanceRepository.deleteAll();
+        heartMemberRepository.deleteAll();
         memberCommandJpaRepository.deleteAll();
     }
 
@@ -50,12 +62,10 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     @DisplayName("두 회원이 서로에게 동시에 매칭을 요청해도 매칭은 하나만 생성된다")
     void createOnlyOneMatchWhenRequestedConcurrently() throws InterruptedException {
         // given
-        Member memberA = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
-        Member memberB = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
+        Member memberA = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(memberA.getId());
+        Member memberB = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(memberB.getId());
         long memberAId = memberA.getId();
         long memberBId = memberB.getId();
 
@@ -90,6 +100,14 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
         assertThat(successCount.get() + failureCount.get()).isEqualTo(THREAD_COUNT);
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(matchJpaRepository.count()).isEqualTo(1);
-        assertThat(heartTransactionCommandRepository.count()).isEqualTo(1L);
+        assertThat(heartTransactionRepository.count()).isEqualTo(1L);
+    }
+
+    private void saveHeartBalance(long memberId) {
+        heartMemberRepository.save(HeartMemberFixture.builder().memberId(memberId).build());
+        memberHeartBalanceRepository.save(MemberHeartBalanceFixture.builder()
+            .memberId(memberId)
+            .purchaseBalance(INITIAL_BALANCE)
+            .build());
     }
 }
