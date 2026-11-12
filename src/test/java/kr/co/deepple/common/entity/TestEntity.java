@@ -13,14 +13,14 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TestEntity extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Setter
-    private String name;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    public TestEntity(String name) {
-        this.name = name;
-    }
+  @Setter private String name;
+
+  public TestEntity(String name) {
+    this.name = name;
+  }
 }

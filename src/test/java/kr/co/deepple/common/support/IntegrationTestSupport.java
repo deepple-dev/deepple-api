@@ -10,5 +10,4 @@ import org.springframework.context.annotation.Import;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import({MySqlContainerConfig.class, ValkeyContainerConfig.class, S3ContainerConfig.class})
-public abstract class IntegrationTestSupport {
-}
+public abstract class IntegrationTestSupport {}

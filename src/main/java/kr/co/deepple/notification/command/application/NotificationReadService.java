@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationReadService {
 
-    private final NotificationCommandRepository notificationCommandRepository;
+  private final NotificationCommandRepository notificationCommandRepository;
 
-    @Transactional
-    public void markAsRead(NotificationReadRequest request, long receiverId) {
-        notificationCommandRepository.markAllAsReadByIdIn(request.notificationIds(), receiverId);
-    }
+  @Transactional
+  public void markAsRead(NotificationReadRequest request, long receiverId) {
+    notificationCommandRepository.markAllAsReadByIdIn(request.notificationIds(), receiverId);
+  }
 }

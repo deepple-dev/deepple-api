@@ -1,7 +1,6 @@
 package kr.co.deepple.payment.query.heartpurchaseoption.view;
 
 import com.querydsl.core.annotations.QueryProjection;
-
 import java.time.LocalDateTime;
 
 public record HeartPurchaseOptionView(
@@ -11,10 +10,7 @@ public record HeartPurchaseOptionView(
     Long heartAmount,
     Long price,
     LocalDateTime createdAt,
-    LocalDateTime deletedAt
-
-) {
-    @QueryProjection
-    public HeartPurchaseOptionView {
-    }
+    LocalDateTime deletedAt) {
+  @QueryProjection
+  public HeartPurchaseOptionView {}
 }

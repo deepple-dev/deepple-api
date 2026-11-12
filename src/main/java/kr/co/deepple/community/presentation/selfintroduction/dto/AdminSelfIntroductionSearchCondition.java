@@ -7,6 +7,4 @@ public record AdminSelfIntroductionSearchCondition(
     String nickname,
     String phoneNumber,
     LocalDate startDate,
-    LocalDate endDate
-) {
-}
+    LocalDate endDate) {}

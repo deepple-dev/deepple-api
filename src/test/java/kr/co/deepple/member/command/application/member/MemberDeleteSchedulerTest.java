@@ -11,20 +11,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class MemberDeleteSchedulerTest {
-    @Mock
-    private MemberCommandRepository memberCommandRepository;
 
-    @InjectMocks
-    private MemberDeleteScheduler memberDeleteScheduler;
+  @Mock private MemberCommandRepository memberCommandRepository;
 
-    @Test
-    @DisplayName("함수가 호출될 경우, deleteBefore 메서드를 호출한다.")
-    void callDeleteBeforeWhenDeleteMethodCalled() {
-        // When
-        memberDeleteScheduler.delete();
+  @InjectMocks private MemberDeleteScheduler memberDeleteScheduler;
 
-        // Then
-        Mockito.verify(memberCommandRepository, Mockito.times(1))
-            .deleteBefore(Mockito.any());
-    }
+  @Test
+  @DisplayName("함수가 호출될 경우, deleteBefore 메서드를 호출한다.")
+  void callDeleteBeforeWhenDeleteMethodCalled() {
+    // When
+    memberDeleteScheduler.delete();
+
+    // Then
+    Mockito.verify(memberCommandRepository, Mockito.times(1)).deleteBefore(Mockito.any());
+  }
 }

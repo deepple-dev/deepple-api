@@ -15,20 +15,21 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class HeartPaymentEventHandler {
-    private final AddPurchaseHeartUseCase addPurchaseHeartUseCase;
-    private final RefundHeartUseCase refundHeartUseCase;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(HeartPurchasedEvent event) {
-        addPurchaseHeartUseCase.addPurchaseHeart(
-            new AddPurchaseHeartCommand(event.getMemberId(), event.getOrderId(), event.getAmount()));
-    }
+  private final AddPurchaseHeartUseCase addPurchaseHeartUseCase;
+  private final RefundHeartUseCase refundHeartUseCase;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(HeartRefundedEvent event) {
-        refundHeartUseCase.refundHeart(
-            new RefundHeartCommand(event.getMemberId(), event.getOrderId(), event.getAmount()));
-    }
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(HeartPurchasedEvent event) {
+    addPurchaseHeartUseCase.addPurchaseHeart(
+        new AddPurchaseHeartCommand(event.getMemberId(), event.getOrderId(), event.getAmount()));
+  }
+
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(HeartRefundedEvent event) {
+    refundHeartUseCase.refundHeart(
+        new RefundHeartCommand(event.getMemberId(), event.getOrderId(), event.getAmount()));
+  }
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.gradle.git.properties)
+    alias(libs.plugins.spotless)
 }
 
 group = 'kr.co.deepple'
@@ -108,6 +109,13 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-mysql'
     testImplementation libs.spring.modulith.starter.test
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+    java {
+        forbidWildcardImports()
+        googleJavaFormat()
+    }
 }
 
 gitProperties {

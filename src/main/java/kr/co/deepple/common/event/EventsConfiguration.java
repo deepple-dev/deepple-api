@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class EventsConfiguration {
 
-    private final ApplicationContext applicationContext;
+  private final ApplicationContext applicationContext;
 
-    @Bean
-    public InitializingBean eventsInitializer() {
-        return () -> Events.setPublisher(applicationContext);
-    }
+  @Bean
+  public InitializingBean eventsInitializer() {
+    return () -> Events.setPublisher(applicationContext);
+  }
 }

@@ -1,23 +1,21 @@
 package kr.co.deepple.common.entity;
 
-
 import jakarta.persistence.MappedSuperclass;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
+import lombok.Getter;
 
 @MappedSuperclass
 public abstract class SoftDeleteBaseEntity extends BaseEntity {
-    @Getter
-    private LocalDateTime deletedAt;
 
-    public void delete() {
-        if (deletedAt == null) {
-            deletedAt = LocalDateTime.now();
-        }
-    }
+  @Getter private LocalDateTime deletedAt;
 
-    public boolean isDeleted() {
-        return this.deletedAt != null;
+  public void delete() {
+    if (deletedAt == null) {
+      deletedAt = LocalDateTime.now();
     }
+  }
+
+  public boolean isDeleted() {
+    return this.deletedAt != null;
+  }
 }

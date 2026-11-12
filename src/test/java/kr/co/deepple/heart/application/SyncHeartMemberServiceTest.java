@@ -1,5 +1,15 @@
 package kr.co.deepple.heart.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.time.Instant;
+import java.util.Optional;
 import kr.co.deepple.heart.application.port.in.SyncHeartMemberCommand;
 import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
@@ -13,68 +23,60 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class SyncHeartMemberServiceTest {
-    private static final long MEMBER_ID = 1L;
-    private static final Instant NOW = Instant.parse("2026-01-02T00:00:00Z");
 
-    @Mock
-    private HeartMemberRepository heartMemberRepository;
+  private static final long MEMBER_ID = 1L;
+  private static final Instant NOW = Instant.parse("2026-01-02T00:00:00Z");
 
-    @Mock
-    private MemberHeartBalanceRepository memberHeartBalanceRepository;
+  @Mock private HeartMemberRepository heartMemberRepository;
 
-    @InjectMocks
-    private SyncHeartMemberService syncHeartMemberService;
+  @Mock private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
-    @Test
-    @DisplayName("사본과 0짜리 잔액을 없을 때만 넣고, 잠근 사본에 값을 반영한다.")
-    void insertIfAbsentAndUpdate() {
-        // given
-        HeartMember heartMember = HeartMemberFixture.builder().memberId(MEMBER_ID).build();
-        when(heartMemberRepository.findByMemberIdForUpdate(MEMBER_ID)).thenReturn(Optional.of(heartMember));
+  @InjectMocks private SyncHeartMemberService syncHeartMemberService;
 
-        // when
-        syncHeartMemberService.syncHeartMember(new SyncHeartMemberCommand(MEMBER_ID, "FEMALE", true, NOW));
+  @Test
+  @DisplayName("사본과 0짜리 잔액을 없을 때만 넣고, 잠근 사본에 값을 반영한다.")
+  void insertIfAbsentAndUpdate() {
+    // given
+    HeartMember heartMember = HeartMemberFixture.builder().memberId(MEMBER_ID).build();
+    when(heartMemberRepository.findByMemberIdForUpdate(MEMBER_ID))
+        .thenReturn(Optional.of(heartMember));
 
-        // then
-        verify(heartMemberRepository).insertIfAbsent(eq(MEMBER_ID), eq("FEMALE"), eq(true), eq(NOW), any());
-        verify(memberHeartBalanceRepository).insertIfAbsent(eq(MEMBER_ID), any());
-        assertThat(heartMember.getGender()).isEqualTo(Gender.FEMALE);
-        assertThat(heartMember.isVip()).isTrue();
-    }
+    // when
+    syncHeartMemberService.syncHeartMember(
+        new SyncHeartMemberCommand(MEMBER_ID, "FEMALE", true, NOW));
 
-    @Test
-    @DisplayName("성별이 아직 없으면 비워 둔다.")
-    void keepGenderEmptyWhenAbsent() {
-        // given
-        HeartMember heartMember = HeartMemberFixture.builder().memberId(MEMBER_ID).build();
-        when(heartMemberRepository.findByMemberIdForUpdate(MEMBER_ID)).thenReturn(Optional.of(heartMember));
+    // then
+    verify(heartMemberRepository)
+        .insertIfAbsent(eq(MEMBER_ID), eq("FEMALE"), eq(true), eq(NOW), any());
+    verify(memberHeartBalanceRepository).insertIfAbsent(eq(MEMBER_ID), any());
+    assertThat(heartMember.getGender()).isEqualTo(Gender.FEMALE);
+    assertThat(heartMember.isVip()).isTrue();
+  }
 
-        // when
-        syncHeartMemberService.syncHeartMember(new SyncHeartMemberCommand(MEMBER_ID, null, false, NOW));
+  @Test
+  @DisplayName("성별이 아직 없으면 비워 둔다.")
+  void keepGenderEmptyWhenAbsent() {
+    // given
+    HeartMember heartMember = HeartMemberFixture.builder().memberId(MEMBER_ID).build();
+    when(heartMemberRepository.findByMemberIdForUpdate(MEMBER_ID))
+        .thenReturn(Optional.of(heartMember));
 
-        // then
-        assertThat(heartMember.getGender()).isNull();
-    }
+    // when
+    syncHeartMemberService.syncHeartMember(new SyncHeartMemberCommand(MEMBER_ID, null, false, NOW));
 
-    @Test
-    @DisplayName("모르는 성별 값이면 예외가 발생하고 아무것도 넣지 않는다.")
-    void throwWhenGenderIsUnknown() {
-        assertThatThrownBy(() -> syncHeartMemberService.syncHeartMember(
-            new SyncHeartMemberCommand(MEMBER_ID, "UNKNOWN", false, NOW)))
-            .isInstanceOf(IllegalArgumentException.class);
-        verifyNoInteractions(heartMemberRepository, memberHeartBalanceRepository);
-    }
+    // then
+    assertThat(heartMember.getGender()).isNull();
+  }
+
+  @Test
+  @DisplayName("모르는 성별 값이면 예외가 발생하고 아무것도 넣지 않는다.")
+  void throwWhenGenderIsUnknown() {
+    assertThatThrownBy(() ->
+            syncHeartMemberService.syncHeartMember(
+                new SyncHeartMemberCommand(MEMBER_ID, "UNKNOWN", false, NOW)))
+        .isInstanceOf(IllegalArgumentException.class);
+    verifyNoInteractions(heartMemberRepository, memberHeartBalanceRepository);
+  }
 }

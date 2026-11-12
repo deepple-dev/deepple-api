@@ -9,9 +9,9 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberLoggedOutEvent extends Event {
 
-    private final long memberId;
+  private final long memberId;
 
-    public static MemberLoggedOutEvent from(long memberId) {
-        return new MemberLoggedOutEvent(memberId);
-    }
+  public static MemberLoggedOutEvent from(long memberId) {
+    return new MemberLoggedOutEvent(memberId);
+  }
 }

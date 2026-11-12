@@ -1,11 +1,16 @@
 package kr.co.deepple.payment.command.domain.heartpurchaseoption;
 
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,63 +22,62 @@ import org.hibernate.annotations.SQLDelete;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE heart_purchase_options SET deleted_at = now() WHERE id = ?")
 public class HeartPurchaseOption extends SoftDeleteBaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
-    private Long id;
 
-    @Embedded
-    private HeartPurchaseAmount amount;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Getter
+  private Long id;
 
-    @Embedded
-    @Getter
-    private Price price;
+  @Embedded private HeartPurchaseAmount amount;
 
-    @Getter
-    private String name;
+  @Embedded @Getter private Price price;
 
-    @Getter
-    private String productId;
+  @Getter private String name;
 
-    private HeartPurchaseOption(HeartPurchaseAmount amount, Price price, String productId, String name) {
-        setAmount(amount);
-        setPrice(price);
-        setProductId(productId);
-        setName(name);
+  @Getter private String productId;
+
+  private HeartPurchaseOption(
+      HeartPurchaseAmount amount, Price price, String productId, String name) {
+    setAmount(amount);
+    setPrice(price);
+    setProductId(productId);
+    setName(name);
+  }
+
+  public static HeartPurchaseOption of(
+      HeartPurchaseAmount amount, Price price, String productId, String name) {
+    return new HeartPurchaseOption(amount, price, productId, name);
+  }
+
+  public Long getHeartAmount() {
+    return amount.getAmount();
+  }
+
+  public void purchase(long memberId, long orderId, int quantity) {
+    long heartAmount = getHeartAmount() * quantity;
+    Events.raise(HeartPurchasedEvent.of(memberId, orderId, heartAmount));
+  }
+
+  private void setAmount(@NonNull HeartPurchaseAmount amount) {
+    this.amount = amount;
+  }
+
+  private void setPrice(@NonNull Price price) {
+    this.price = price;
+  }
+
+  private void setProductId(@NonNull String productId) {
+    if (productId.isBlank()) {
+      throw new DeeppleException(
+          PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION, "productId 값이 비어있습니다.");
     }
+    this.productId = productId;
+  }
 
-    public static HeartPurchaseOption of(HeartPurchaseAmount amount, Price price, String productId, String name) {
-        return new HeartPurchaseOption(amount, price, productId, name);
+  private void setName(@NonNull String name) {
+    if (name.isBlank()) {
+      throw new DeeppleException(PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION, "name 값이 비어있습니다.");
     }
-
-    public Long getHeartAmount() {
-        return amount.getAmount();
-    }
-
-    public void purchase(long memberId, long orderId, int quantity) {
-        long heartAmount = getHeartAmount() * quantity;
-        Events.raise(HeartPurchasedEvent.of(memberId, orderId, heartAmount));
-    }
-
-    private void setAmount(@NonNull HeartPurchaseAmount amount) {
-        this.amount = amount;
-    }
-
-    private void setPrice(@NonNull Price price) {
-        this.price = price;
-    }
-
-    private void setProductId(@NonNull String productId) {
-        if (productId.isBlank()) {
-            throw new DeeppleException(PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION, "productId 값이 비어있습니다.");
-        }
-        this.productId = productId;
-    }
-
-    private void setName(@NonNull String name) {
-        if (name.isBlank()) {
-            throw new DeeppleException(PaymentErrorCode.INVALID_HEART_PURCHASE_OPTION, "name 값이 비어있습니다.");
-        }
-        this.name = name;
-    }
+    this.name = name;
+  }
 }

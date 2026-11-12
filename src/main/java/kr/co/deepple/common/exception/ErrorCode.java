@@ -1,14 +1,13 @@
 package kr.co.deepple.common.exception;
 
 public interface ErrorCode {
+  ErrorType getType();
 
-    ErrorType getType();
+  String getMessage();
 
-    String getMessage();
+  String name();
 
-    String name();
-
-    default String getCode() {
-        return name();
-    }
+  default String getCode() {
+    return name();
+  }
 }

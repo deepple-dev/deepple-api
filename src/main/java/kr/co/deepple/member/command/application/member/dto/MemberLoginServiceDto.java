@@ -4,6 +4,4 @@ public record MemberLoginServiceDto(
     String accessToken,
     String refreshToken,
     boolean isProfileSettingNeeded,
-    String activityStatus
-) {
-}
+    String activityStatus) {}

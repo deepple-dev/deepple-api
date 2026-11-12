@@ -12,11 +12,14 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class WarningIssuedEventHandler {
 
-    private final SuspensionService suspensionService;
+  private final SuspensionService suspensionService;
 
-    @Async
-    @TransactionalEventListener(value = WarningIssuedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(WarningIssuedEvent event) {
-        suspensionService.suspendByWarningCount(event.getAdminId(), event.getMemberId(), event.getWarningCount());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = WarningIssuedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(WarningIssuedEvent event) {
+    suspensionService.suspendByWarningCount(
+        event.getAdminId(), event.getMemberId(), event.getWarningCount());
+  }
 }

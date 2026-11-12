@@ -1,6 +1,5 @@
 package kr.co.deepple.member.command.infra.member;
 
-
 import kr.co.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.member.command.application.member.MemberProfileService;
 import lombok.AccessLevel;
@@ -13,11 +12,12 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberEventHandler {
-    private final MemberProfileService memberProfileService;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(AllRequiredSubjectSubmittedEvent event) {
-        memberProfileService.markDatingExamSubmitted(event.getMemberId());
-    }
+  private final MemberProfileService memberProfileService;
+
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(AllRequiredSubjectSubmittedEvent event) {
+    memberProfileService.markDatingExamSubmitted(event.getMemberId());
+  }
 }

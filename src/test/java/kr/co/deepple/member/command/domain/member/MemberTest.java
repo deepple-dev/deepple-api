@@ -1,14 +1,21 @@
 package kr.co.deepple.member.command.domain.member;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.heart.domain.HeartAmount;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
 import kr.co.deepple.member.command.domain.member.vo.MemberProfile;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -21,275 +28,272 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
-
 class MemberTest {
 
-    @Test
-    @DisplayName("유효한 전화번호를 사용하여 멤버를 생성합니다.")
-    void createMemberWithValidValueType() {
-        // Given
-        String phoneNumber = "01012345678";
+  @Test
+  @DisplayName("유효한 전화번호를 사용하여 멤버를 생성합니다.")
+  void createMemberWithValidValueType() {
+    // Given
+    String phoneNumber = "01012345678";
 
+    // When
+    Member member = Member.fromPhoneNumber(phoneNumber);
+
+    // Then
+    Assertions.assertThat(member).isNotNull();
+    Assertions.assertThat(member.isProfileSettingNeeded()).isTrue();
+    Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
+    Assertions.assertThat(member.getPrimaryContactType()).isEqualTo(PrimaryContactType.NONE);
+    Assertions.assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.INITIAL);
+    Assertions.assertThat(member.isVip()).isFalse();
+    Assertions.assertThat(member.isProfilePublic()).isFalse();
+  }
+
+  @Nested
+  @DisplayName("Member 의 상태 변화 메서드 테스트")
+  class MemberStatusChangeTest {
+
+    @Test
+    @DisplayName("관리자는 회원 상태와 관계없이 휴면으로 바꿀 수 있다.")
+    void changeActivityStatusToDormant() {
+      // Given
+      Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.INITIAL).build();
+
+      // When
+      member.changeActivityStatus(ActivityStatus.DORMANT);
+
+      // Then
+      Assertions.assertThat(member.isDormant()).isTrue();
+    }
+
+    @Test
+    @DisplayName("심사가 승인되면 활동 중이 된다.")
+    void approveScreening() {
+      // Given
+      Member member =
+          MemberFixture.builder().id(1L).activityStatus(ActivityStatus.WAITING_SCREENING).build();
+
+      try (MockedStatic<Events> events = mockStatic(Events.class)) {
         // When
-        Member member = Member.fromPhoneNumber(phoneNumber);
+        member.approveScreening();
 
         // Then
-        Assertions.assertThat(member).isNotNull();
-        Assertions.assertThat(member.isProfileSettingNeeded()).isTrue();
-        Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
-        Assertions.assertThat(member.getPrimaryContactType()).isEqualTo(PrimaryContactType.NONE);
-        Assertions.assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.INITIAL);
-        Assertions.assertThat(member.isVip()).isFalse();
-        Assertions.assertThat(member.isProfilePublic()).isFalse();
+        Assertions.assertThat(member.isActive()).isTrue();
+        events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
+      }
     }
 
-    @Nested
-    @DisplayName("Member 의 상태 변화 메서드 테스트")
-    class MemberStatusChangeTest {
+    @Test
+    @DisplayName("활동 중인 회원은 휴면으로 전환할 수 있다.")
+    void deactivateWhenActive() {
+      // Given
+      Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.ACTIVE).build();
 
-        @Test
-        @DisplayName("관리자는 회원 상태와 관계없이 휴면으로 바꿀 수 있다.")
-        void changeActivityStatusToDormant() {
-            // Given
-            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.INITIAL).build();
+      try (MockedStatic<Events> events = mockStatic(Events.class)) {
+        // When
+        member.deactivate();
 
-            // When
-            member.changeActivityStatus(ActivityStatus.DORMANT);
-
-            // Then
-            Assertions.assertThat(member.isDormant()).isTrue();
-        }
-
-        @Test
-        @DisplayName("심사가 승인되면 활동 중이 된다.")
-        void approveScreening() {
-            // Given
-            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.WAITING_SCREENING).build();
-
-            try (MockedStatic<Events> events = mockStatic(Events.class)) {
-                // When
-                member.approveScreening();
-
-                // Then
-                Assertions.assertThat(member.isActive()).isTrue();
-                events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
-            }
-        }
-
-        @Test
-        @DisplayName("활동 중인 회원은 휴면으로 전환할 수 있다.")
-        void deactivateWhenActive() {
-            // Given
-            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.ACTIVE).build();
-
-            try (MockedStatic<Events> events = mockStatic(Events.class)) {
-                // When
-                member.deactivate();
-
-                // Then
-                Assertions.assertThat(member.isDormant()).isTrue();
-                events.verify(() -> Events.raise(any(MemberBecameDormantEvent.class)));
-            }
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = ActivityStatus.class, names = "ACTIVE", mode = EnumSource.Mode.EXCLUDE)
-        @DisplayName("활동 중이 아닌 회원은 휴면으로 전환할 수 없다.")
-        void rejectDeactivateWhenNotActive(ActivityStatus status) {
-            // Given
-            Member member = MemberFixture.builder().activityStatus(status).build();
-
-            // When & Then
-            Assertions.assertThatThrownBy(member::deactivate)
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE);
-            Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
-        }
-
-        @Test
-        @DisplayName("휴면 회원은 휴면을 해제해 활동 중이 된다.")
-        void reactivateWhenDormant() {
-            // Given
-            Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.DORMANT).build();
-
-            try (MockedStatic<Events> events = mockStatic(Events.class)) {
-                // When
-                member.reactivate();
-
-                // Then
-                Assertions.assertThat(member.isActive()).isTrue();
-                events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
-            }
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = ActivityStatus.class, names = "DORMANT", mode = EnumSource.Mode.EXCLUDE)
-        @DisplayName("휴면이 아닌 회원은 휴면을 해제할 수 없다.")
-        void rejectReactivateWhenNotDormant(ActivityStatus status) {
-            // Given
-            Member member = MemberFixture.builder().activityStatus(status).build();
-
-            // When & Then
-            Assertions.assertThatThrownBy(member::reactivate)
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE);
-            Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
-        }
-
-        @Test
-        @DisplayName("멤버의 카카오 아이디를 변경합니다.")
-        void changeMemberKakaoId() {
-            // Given
-            Member member = MemberFixture.builder().build();
-            String kakaoId = "kongtae";
-
-            // When
-            member.changePrimaryContactTypeToKakao(KakaoId.from(kakaoId));
-
-            // Then
-            Assertions.assertThat(member.getKakaoId()).isEqualTo(kakaoId);
-        }
-
-        @Test
-        @DisplayName("멤버의 휴대폰 번호를 변경합니다.")
-        void changeMemberPhoneNumber() {
-            // Given
-            Member member = MemberFixture.builder().build();
-            String phoneNumber = "01087564321";
-
-            // When
-            member.changePrimaryContactTypeToPhoneNumber(phoneNumber);
-
-            // Then
-            Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
-        }
+        // Then
+        Assertions.assertThat(member.isDormant()).isTrue();
+        events.verify(() -> Events.raise(any(MemberBecameDormantEvent.class)));
+      }
     }
 
-    @Nested
-    @DisplayName("updateSetting 메서드 테스트")
-    class UpdateSettingMethodTest {
+    @ParameterizedTest
+    @EnumSource(value = ActivityStatus.class, names = "ACTIVE", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("활동 중이 아닌 회원은 휴면으로 전환할 수 없다.")
+    void rejectDeactivateWhenNotActive(ActivityStatus status) {
+      // Given
+      Member member = MemberFixture.builder().activityStatus(status).build();
 
-        @Test
-        @DisplayName("멤버의 설정을 업데이트합니다.")
-        void shouldUpdateMemberSettings() {
-            try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
-                // Given
-                Long memberId = 1L;
-                Member member = MemberFixture.builder().id(memberId).build();
-                Grade grade = Grade.GOLD;
-                final boolean isVip = true;
-                final boolean isPushNotificationEnabled = false;
-
-                // When
-                member.updateSetting(grade, isVip, isPushNotificationEnabled);
-
-                // Then
-                Assertions.assertThat(member.getGrade()).isEqualTo(grade);
-                Assertions.assertThat(member.isVip()).isEqualTo(isVip);
-                eventsMock.verify(() -> Events.raise(argThat(event ->
-                    event instanceof MemberSettingUpdatedEvent &&
-                        ((MemberSettingUpdatedEvent) event).getMemberId() == memberId &&
-                        !((MemberSettingUpdatedEvent) event).isPushNotificationEnabled()
-                )));
-            }
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(member::deactivate)
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE);
+      Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
     }
 
-    @Nested
-    @DisplayName("publishProfile 메서드 테스트")
-    class PublishProfileMethodTest {
+    @Test
+    @DisplayName("휴면 회원은 휴면을 해제해 활동 중이 된다.")
+    void reactivateWhenDormant() {
+      // Given
+      Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.DORMANT).build();
 
-        @Test
-        @DisplayName("멤버의 프로필을 공개합니다.")
-        void shouldPublishMemberProfile() {
-            // Given
-            Member member = MemberFixture.builder().build();
+      try (MockedStatic<Events> events = mockStatic(Events.class)) {
+        // When
+        member.reactivate();
 
-            // When
-            member.publishProfile();
-
-            // Then
-            Assertions.assertThat(member.isProfilePublic()).isTrue();
-        }
+        // Then
+        Assertions.assertThat(member.isActive()).isTrue();
+        events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
+      }
     }
 
-    @Nested
-    @DisplayName("updateProfile 메서드 테스트")
-    class UpdateProfileMethodTest {
+    @ParameterizedTest
+    @EnumSource(value = ActivityStatus.class, names = "DORMANT", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("휴면이 아닌 회원은 휴면을 해제할 수 없다.")
+    void rejectReactivateWhenNotDormant(ActivityStatus status) {
+      // Given
+      Member member = MemberFixture.builder().activityStatus(status).build();
 
-        @Test
-        @DisplayName("최초로 멤버 프로필을 초기화 시 멤버 프로필을 업데이트 하고 이벤트를 발행합니다.")
-        void shouldUpdateMemberProfileAndRaiseEventWhenInitializingProfileForTheFirstTime() {
-            // Given
-            Long memberId = 1L;
-            Member member = MemberFixture.builder()
-                .id(memberId)
-                .activityStatus(ActivityStatus.INITIAL)
-                .noProfile()
-                .build();
-
-            MemberProfile profile = MemberProfileFixture.builder().build();
-
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class);
-                MockedStatic<MemberProfileInitializedEvent> memberProfileInitializedEventMockedStatic = mockStatic(
-                    MemberProfileInitializedEvent.class)
-            ) {
-                MemberProfileInitializedEvent memberProfileInitializedEvent = mock(MemberProfileInitializedEvent.class);
-                memberProfileInitializedEventMockedStatic.when(() -> MemberProfileInitializedEvent.from(memberId))
-                    .thenReturn(memberProfileInitializedEvent);
-
-                // When
-                member.updateProfile(profile);
-
-                // Then
-                memberProfileInitializedEventMockedStatic.verify(
-                    () -> MemberProfileInitializedEvent.from(memberId),
-                    times(1)
-                );
-                eventsMockedStatic.verify(
-                    () -> Events.raise(memberProfileInitializedEvent),
-                    times(1)
-                );
-                Assertions.assertThat(member.getProfile()).isEqualTo(profile);
-
-                eventsMockedStatic.clearInvocations();
-
-                // When
-                setField(member, "activityStatus", ActivityStatus.ACTIVE);
-                member.updateProfile(profile);
-
-                // Then
-                eventsMockedStatic.verify(() -> Events.raise(memberProfileInitializedEvent), never());
-                eventsMockedStatic.verify(
-                    () -> Events.raise(argThat(event -> event instanceof MemberSummaryChangedEvent summaryChanged
-                        && summaryChanged.getMemberId() == memberId
-                        && profile.getGender().name().equals(summaryChanged.getGender()))),
-                    times(1)
-                );
-            }
-            Assertions.assertThat(member.getProfile()).isEqualTo(profile);
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(member::reactivate)
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_ACTIVITY_STATUS_CHANGE);
+      Assertions.assertThat(member.getActivityStatus()).isEqualTo(status);
     }
 
-    @Nested
-    @DisplayName("delete 메서드 테스트")
-    class DeleteMethodTest {
+    @Test
+    @DisplayName("멤버의 카카오 아이디를 변경합니다.")
+    void changeMemberKakaoId() {
+      // Given
+      Member member = MemberFixture.builder().build();
+      String kakaoId = "kongtae";
 
-        @Test
-        @DisplayName("멤버를 삭제 상태로 변경하고, deletedAt 필드를 설정합니다.")
-        void shouldMarkMemberAsDeleted() {
-            // Given
-            Member member = MemberFixture.builder().build();
+      // When
+      member.changePrimaryContactTypeToKakao(KakaoId.from(kakaoId));
 
-            // When
-            member.delete();
-
-            // Then
-            Assertions.assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.DELETED);
-            Assertions.assertThat(member.getDeletedAt()).isNotNull();
-        }
+      // Then
+      Assertions.assertThat(member.getKakaoId()).isEqualTo(kakaoId);
     }
+
+    @Test
+    @DisplayName("멤버의 휴대폰 번호를 변경합니다.")
+    void changeMemberPhoneNumber() {
+      // Given
+      Member member = MemberFixture.builder().build();
+      String phoneNumber = "01087564321";
+
+      // When
+      member.changePrimaryContactTypeToPhoneNumber(phoneNumber);
+
+      // Then
+      Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
+    }
+  }
+
+  @Nested
+  @DisplayName("updateSetting 메서드 테스트")
+  class UpdateSettingMethodTest {
+
+    @Test
+    @DisplayName("멤버의 설정을 업데이트합니다.")
+    void shouldUpdateMemberSettings() {
+      try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
+        // Given
+        Long memberId = 1L;
+        Member member = MemberFixture.builder().id(memberId).build();
+        Grade grade = Grade.GOLD;
+        final boolean isVip = true;
+        final boolean isPushNotificationEnabled = false;
+
+        // When
+        member.updateSetting(grade, isVip, isPushNotificationEnabled);
+
+        // Then
+        Assertions.assertThat(member.getGrade()).isEqualTo(grade);
+        Assertions.assertThat(member.isVip()).isEqualTo(isVip);
+        eventsMock.verify(() ->
+            Events.raise(
+                argThat(event ->
+                    event instanceof MemberSettingUpdatedEvent
+                        && ((MemberSettingUpdatedEvent) event).getMemberId() == memberId
+                        && !((MemberSettingUpdatedEvent) event).isPushNotificationEnabled())));
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("publishProfile 메서드 테스트")
+  class PublishProfileMethodTest {
+
+    @Test
+    @DisplayName("멤버의 프로필을 공개합니다.")
+    void shouldPublishMemberProfile() {
+      // Given
+      Member member = MemberFixture.builder().build();
+
+      // When
+      member.publishProfile();
+
+      // Then
+      Assertions.assertThat(member.isProfilePublic()).isTrue();
+    }
+  }
+
+  @Nested
+  @DisplayName("updateProfile 메서드 테스트")
+  class UpdateProfileMethodTest {
+
+    @Test
+    @DisplayName("최초로 멤버 프로필을 초기화 시 멤버 프로필을 업데이트 하고 이벤트를 발행합니다.")
+    void shouldUpdateMemberProfileAndRaiseEventWhenInitializingProfileForTheFirstTime() {
+      // Given
+      Long memberId = 1L;
+      Member member =
+          MemberFixture.builder()
+              .id(memberId)
+              .activityStatus(ActivityStatus.INITIAL)
+              .noProfile()
+              .build();
+
+      MemberProfile profile = MemberProfileFixture.builder().build();
+
+      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class);
+          MockedStatic<MemberProfileInitializedEvent> memberProfileInitializedEventMockedStatic =
+              mockStatic(MemberProfileInitializedEvent.class)) {
+        MemberProfileInitializedEvent memberProfileInitializedEvent =
+            mock(MemberProfileInitializedEvent.class);
+        memberProfileInitializedEventMockedStatic
+            .when(() -> MemberProfileInitializedEvent.from(memberId))
+            .thenReturn(memberProfileInitializedEvent);
+
+        // When
+        member.updateProfile(profile);
+
+        // Then
+        memberProfileInitializedEventMockedStatic.verify(
+            () -> MemberProfileInitializedEvent.from(memberId), times(1));
+        eventsMockedStatic.verify(() -> Events.raise(memberProfileInitializedEvent), times(1));
+        Assertions.assertThat(member.getProfile()).isEqualTo(profile);
+
+        eventsMockedStatic.clearInvocations();
+
+        // When
+        setField(member, "activityStatus", ActivityStatus.ACTIVE);
+        member.updateProfile(profile);
+
+        // Then
+        eventsMockedStatic.verify(() -> Events.raise(memberProfileInitializedEvent), never());
+        eventsMockedStatic.verify(
+            () ->
+                Events.raise(
+                    argThat(event ->
+                        event instanceof MemberSummaryChangedEvent summaryChanged
+                            && summaryChanged.getMemberId() == memberId
+                            && profile.getGender().name().equals(summaryChanged.getGender()))),
+            times(1));
+      }
+      Assertions.assertThat(member.getProfile()).isEqualTo(profile);
+    }
+  }
+
+  @Nested
+  @DisplayName("delete 메서드 테스트")
+  class DeleteMethodTest {
+
+    @Test
+    @DisplayName("멤버를 삭제 상태로 변경하고, deletedAt 필드를 설정합니다.")
+    void shouldMarkMemberAsDeleted() {
+      // Given
+      Member member = MemberFixture.builder().build();
+
+      // When
+      member.delete();
+
+      // Then
+      Assertions.assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.DELETED);
+      Assertions.assertThat(member.getDeletedAt()).isNotNull();
+    }
+  }
 }

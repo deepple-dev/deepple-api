@@ -14,23 +14,27 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AppStoreClient {
 
-    private final SignedDataVerifier signedDataVerifier;
+  private final SignedDataVerifier signedDataVerifier;
 
-    public JWSTransactionDecodedPayload verifyAndDecodeTransaction(@NonNull String signedTransaction) {
-        try {
-            return signedDataVerifier.verifyAndDecodeTransaction(signedTransaction);
-        } catch (VerificationException exception) {
-            throw new DeeppleException(PaymentErrorCode.INVALID_APP_STORE_RECEIPT, exception.getMessage(), exception);
-        }
+  public JWSTransactionDecodedPayload verifyAndDecodeTransaction(
+      @NonNull String signedTransaction) {
+    try {
+      return signedDataVerifier.verifyAndDecodeTransaction(signedTransaction);
+    } catch (VerificationException exception) {
+      throw new DeeppleException(
+          PaymentErrorCode.INVALID_APP_STORE_RECEIPT, exception.getMessage(), exception);
     }
+  }
 
-    public ResponseBodyV2DecodedPayload verifyAndDecodeNotification(@NonNull String signedPayload) {
-        try {
-            return signedDataVerifier.verifyAndDecodeNotification(signedPayload);
-        } catch (VerificationException exception) {
-            throw new DeeppleException(PaymentErrorCode.INVALID_APP_STORE_RECEIPT, exception.getMessage(), exception);
-        } catch (Exception exception) {
-            throw new DeeppleException(PaymentErrorCode.APP_STORE_UNAVAILABLE, exception.getMessage(), exception);
-        }
+  public ResponseBodyV2DecodedPayload verifyAndDecodeNotification(@NonNull String signedPayload) {
+    try {
+      return signedDataVerifier.verifyAndDecodeNotification(signedPayload);
+    } catch (VerificationException exception) {
+      throw new DeeppleException(
+          PaymentErrorCode.INVALID_APP_STORE_RECEIPT, exception.getMessage(), exception);
+    } catch (Exception exception) {
+      throw new DeeppleException(
+          PaymentErrorCode.APP_STORE_UNAVAILABLE, exception.getMessage(), exception);
     }
+  }
 }

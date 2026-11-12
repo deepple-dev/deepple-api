@@ -7,6 +7,4 @@ public record ScreeningDetailView(
     long version,
     ScreeningDetailProfileView profile,
     List<ScreeningDetailProfileImageView> profileImages,
-    List<ScreeningDetailInterviewView> interviews
-) {
-}
+    List<ScreeningDetailInterviewView> interviews) {}

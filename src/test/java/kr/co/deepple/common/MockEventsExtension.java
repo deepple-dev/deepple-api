@@ -1,5 +1,10 @@
 package kr.co.deepple.common;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import kr.co.deepple.common.event.Events;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -8,37 +13,34 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.mockito.MockedStatic;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+public class MockEventsExtension
+    implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
+  private MockedStatic<Events> mockedEvents;
 
-public class MockEventsExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
+  @Override
+  public void beforeEach(ExtensionContext context) {
+    mockedEvents = mockStatic(Events.class);
+    mockedEvents.when(() -> Events.raise(any())).then(invocation -> null);
+  }
 
-    private MockedStatic<Events> mockedEvents;
+  @Override
+  public void afterEach(ExtensionContext context) {
+    mockedEvents.close();
+  }
 
-    @Override
-    public void beforeEach(ExtensionContext context) {
-        mockedEvents = mockStatic(Events.class);
-        mockedEvents.when(() -> Events.raise(any())).then(invocation -> null);
-    }
+  @Override
+  public boolean supportsParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
+    Type type = parameterContext.getParameter().getParameterizedType();
+    return type instanceof ParameterizedType parameterized
+        && parameterized.getRawType() == MockedStatic.class
+        && parameterized.getActualTypeArguments()[0] == Events.class;
+  }
 
-    @Override
-    public void afterEach(ExtensionContext context) {
-        mockedEvents.close();
-    }
-
-    @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        Type type = parameterContext.getParameter().getParameterizedType();
-        return type instanceof ParameterizedType parameterized
-            && parameterized.getRawType() == MockedStatic.class
-            && parameterized.getActualTypeArguments()[0] == Events.class;
-    }
-
-    @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return mockedEvents;
-    }
+  @Override
+  public Object resolveParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
+    return mockedEvents;
+  }
 }

@@ -1,11 +1,25 @@
 package kr.co.deepple.match.command.application.match;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.match.command.domain.match.*;
+import kr.co.deepple.match.command.domain.match.Match;
+import kr.co.deepple.match.command.domain.match.MatchContactType;
 import kr.co.deepple.match.command.domain.match.MatchErrorCode;
+import kr.co.deepple.match.command.domain.match.MatchRepository;
+import kr.co.deepple.match.command.domain.match.MatchStatus;
 import kr.co.deepple.match.fixture.MatchFixture;
 import kr.co.deepple.match.presentation.dto.MatchRequestDto;
 import kr.co.deepple.match.presentation.dto.MatchResponseDto;
@@ -14,458 +28,445 @@ import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-
 @ExtendWith(MockitoExtension.class)
 class MatchServiceTest {
 
-    private static MockedStatic<Events> mockedEvents;
-    @Mock
-    private MatchRepository matchRepository;
+  private static MockedStatic<Events> mockedEvents;
 
-    @Mock
-    private DistributedLockTemplate distributedLockTemplate;
+  @Mock private MatchRepository matchRepository;
 
-    @Mock
-    private MemberCommandRepository memberCommandRepository;
+  @Mock private DistributedLockTemplate distributedLockTemplate;
 
-    @Mock
-    private MemberIntroductionCommandRepository introductionCommandRepository;
+  @Mock private MemberCommandRepository memberCommandRepository;
 
-    @Mock
-    private UseHeartUseCase useHeartUseCase;
+  @Mock private MemberIntroductionCommandRepository introductionCommandRepository;
 
-    @InjectMocks
-    private MatchService matchService;
+  @Mock private UseHeartUseCase useHeartUseCase;
 
-    @BeforeEach
-    void setUp() {
-        mockedEvents = mockStatic(Events.class);
-        mockedEvents.when(() -> Events.raise(any()))
-            .thenAnswer(invocation -> null);
-    }
+  @InjectMocks private MatchService matchService;
 
-    @AfterEach
-    void tearDown() {
-        mockedEvents.close();
-    }
+  @BeforeEach
+  void setUp() {
+    mockedEvents = mockStatic(Events.class);
+    mockedEvents.when(() -> Events.raise(any())).thenAnswer(invocation -> null);
+  }
 
-    private void mockMember(Long memberId, String nickname) {
-        Member member = MemberFixture.builder()
-            .id(memberId)
-            .nickname(nickname)
-            .build();
+  @AfterEach
+  void tearDown() {
+    mockedEvents.close();
+  }
 
-        when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
-    }
+  private void mockMember(Long memberId, String nickname) {
+    Member member = MemberFixture.builder().id(memberId).nickname(nickname).build();
 
-    @Nested
-    @DisplayName("매치 요청 테스트")
-    class Request {
-        @Test
-        @DisplayName("이미 두 유저간의 진행중인 매치가 존재하는 경우, 예외 발생")
-        void throwsExceptionWhenExistsMatch() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            String requestMessage = "매칭을 요청합니다!";
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            MatchRequestDto requestDto = new MatchRequestDto(responderId, requestMessage, contactType.name());
+    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+  }
 
-            doAnswer(invocation -> {
+  @Nested
+  @DisplayName("매치 요청 테스트")
+  class Request {
+
+    @Test
+    @DisplayName("이미 두 유저간의 진행중인 매치가 존재하는 경우, 예외 발생")
+    void throwsExceptionWhenExistsMatch() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      String requestMessage = "매칭을 요청합니다!";
+      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+      MatchRequestDto requestDto =
+          new MatchRequestDto(responderId, requestMessage, contactType.name());
+
+      doAnswer(
+              invocation -> {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(distributedLockTemplate).executeInTransaction(any(), any());
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
 
-            when(matchRepository.existsActiveMatchBetween(requesterId, requestDto.responderId()))
-                .thenReturn(true);
+      when(matchRepository.existsActiveMatchBetween(requesterId, requestDto.responderId()))
+          .thenReturn(true);
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.request(requesterId, requestDto))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ALREADY_EXISTS);
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.request(requesterId, requestDto))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ALREADY_EXISTS);
+    }
 
+    @Test
+    @DisplayName("두 유저 사이의 매치가 존재하지 않는 경우 매치 생성.")
+    void createMatch() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      String requestMessage = "매칭을 요청합니다!";
+      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+      MatchRequestDto requestDto =
+          new MatchRequestDto(responderId, requestMessage, contactType.name());
 
-        @Test
-        @DisplayName("두 유저 사이의 매치가 존재하지 않는 경우 매치 생성.")
-        void createMatch() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            String requestMessage = "매칭을 요청합니다!";
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            MatchRequestDto requestDto = new MatchRequestDto(responderId, requestMessage, contactType.name());
+      when(introductionCommandRepository.findByMemberIdAndIntroducedMemberId(
+              requesterId, responderId))
+          .thenReturn(Optional.empty());
 
-            when(introductionCommandRepository.findByMemberIdAndIntroducedMemberId(requesterId, responderId))
-                .thenReturn(Optional.empty());
-
-            doAnswer(invocation -> {
+      doAnswer(
+              invocation -> {
                 Runnable runnable = invocation.getArgument(1);
                 runnable.run();
                 return null;
-            }).when(distributedLockTemplate).executeInTransaction(any(), any());
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
 
-            when(matchRepository.existsActiveMatchBetween(requesterId, requestDto.responderId()))
-                .thenReturn(false);
+      when(matchRepository.existsActiveMatchBetween(requesterId, requestDto.responderId()))
+          .thenReturn(false);
 
-            mockMember(requesterId, "testUser");
+      mockMember(requesterId, "testUser");
 
-            // When
-            matchService.request(requesterId, requestDto);
+      // When
+      matchService.request(requesterId, requestDto);
 
+      // Then
+      verify(matchRepository)
+          .save(
+              argThat(match ->
+                  match.getRequesterId().equals(requesterId)
+                      && match.getResponderId().equals(responderId)
+                      && match.getRequestMessage().getValue().equals(requestMessage)));
+    }
+  }
 
-            // Then
-            verify(matchRepository).save(
-                argThat(match -> match.getRequesterId().equals(requesterId) &&
-                    match.getResponderId().equals(responderId) &&
-                    match.getRequestMessage().getValue().equals(requestMessage))
-            );
-        }
+  @Nested
+  @DisplayName("매치 수락 테스트")
+  class Approve {
+
+    @DisplayName("응답자의 아이디가 일치하지 않은 경우, 예외 발생")
+    @Test
+    void throwsExceptionWhenResponderIdIsNotEqual() {
+      // Given
+      Long responderId = 1L;
+      Long matchId = 1L;
+      String responseMessage = "매치 수락할게요";
+      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+      MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
+
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.empty());
+
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
     }
 
-    @Nested
-    @DisplayName("매치 수락 테스트")
-    class Approve {
+    @DisplayName("매치의 상태가 대기중이 아닐 경우, 예외 발생")
+    @Test
+    void throwsExceptionWhenStatusIsNotWaiting() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+      String responseMessage = "매치 수락할게요";
+      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+      MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
 
-        @DisplayName("응답자의 아이디가 일치하지 않은 경우, 예외 발생")
-        @Test
-        void throwsExceptionWhenResponderIdIsNotEqual() {
-            // Given
-            Long responderId = 1L;
-            Long matchId = 1L;
-            String responseMessage = "매치 수락할게요";
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
+      Match match =
+          MatchFixture.builder()
+              .requesterId(requesterId)
+              .responderId(responderId)
+              .status(MatchStatus.REJECTED)
+              .build();
 
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.empty());
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.of(match));
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
-        }
-
-        @DisplayName("매치의 상태가 대기중이 아닐 경우, 예외 발생")
-        @Test
-        void throwsExceptionWhenStatusIsNotWaiting() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
-            String responseMessage = "매치 수락할게요";
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
-
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .status(MatchStatus.REJECTED)
-                .build();
-
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.of(match));
-
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
-        }
-
-        @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 하트를 쓰지 않고 수락.")
-        @Test
-        void approveMatch() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
-            String responseMessage = "매치 수락할게요";
-            MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .build();
-
-            MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
-
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.of(match));
-
-            Member requester = MemberFixture.builder()
-                .id(requesterId)
-                .build();
-            when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
-
-            mockMember(responderId, "responder");
-
-            // When
-            matchService.approve(matchId, responderId, responseDto);
-
-
-            // Then
-            Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
-            Assertions.assertThat(match.getResponseMessage().getValue()).isEqualTo(responseMessage);
-            verifyNoInteractions(useHeartUseCase);
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
     }
 
-    @Nested
-    @DisplayName("매치 거절 테스트")
-    class Reject {
+    @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 하트를 쓰지 않고 수락.")
+    @Test
+    void approveMatch() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+      String responseMessage = "매치 수락할게요";
+      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+      Match match =
+          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
 
-        @DisplayName("응답자의 아이디가 일치하지 않은 경우, 예외 발생")
-        @Test
-        void throwsExceptionWhenResponderIdIsNotEqual() {
-            // Given
-            Long responderId = 1L;
-            Long matchId = 1L;
+      MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
 
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.empty());
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.of(match));
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.reject(matchId, responderId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
-        }
+      Member requester = MemberFixture.builder().id(requesterId).build();
+      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
 
-        @DisplayName("매치의 상태가 대기중이 아닐 경우, 예외 발생")
-        @Test
-        void throwsExceptionWhenStatusIsNotWaiting() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
-            String responseMessage = "매치 수락할게요";
+      mockMember(responderId, "responder");
 
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .status(MatchStatus.MATCHED)
-                .responseMessage(responseMessage)
-                .responderContactType(MatchContactType.PHONE_NUMBER)
-                .build();
+      // When
+      matchService.approve(matchId, responderId, responseDto);
 
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.of(match));
+      // Then
+      Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
+      Assertions.assertThat(match.getResponseMessage().getValue()).isEqualTo(responseMessage);
+      verifyNoInteractions(useHeartUseCase);
+    }
+  }
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.reject(matchId, responderId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
-        }
+  @Nested
+  @DisplayName("매치 거절 테스트")
+  class Reject {
 
-        @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 거절.")
-        @Test
-        void rejectMatch() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
+    @DisplayName("응답자의 아이디가 일치하지 않은 경우, 예외 발생")
+    @Test
+    void throwsExceptionWhenResponderIdIsNotEqual() {
+      // Given
+      Long responderId = 1L;
+      Long matchId = 1L;
 
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .build();
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.empty());
 
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.of(match));
-
-            Member requester = MemberFixture.builder()
-                .id(requesterId)
-                .build();
-            when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
-
-            mockMember(responderId, "responder");
-
-            // When
-            matchService.reject(matchId, responderId);
-
-
-            // Then
-            Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECTED);
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.reject(matchId, responderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
     }
 
-    @Nested
-    @DisplayName("매치 거절 확인 테스트")
-    class RejectCheck {
+    @DisplayName("매치의 상태가 대기중이 아닐 경우, 예외 발생")
+    @Test
+    void throwsExceptionWhenStatusIsNotWaiting() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+      String responseMessage = "매치 수락할게요";
 
-        @DisplayName("매치 상태가 거절이 아닌 경우, 예외 발생")
-        @Test
-        void throwsExceptionWhenMatchStatusIsNotRejected() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
+      Match match =
+          MatchFixture.builder()
+              .requesterId(requesterId)
+              .responderId(responderId)
+              .status(MatchStatus.MATCHED)
+              .responseMessage(responseMessage)
+              .responderContactType(MatchContactType.PHONE_NUMBER)
+              .build();
 
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .build();
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.of(match));
 
-            when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
-                .thenReturn(Optional.of(match));
-
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.rejectCheck(requesterId, matchId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
-        }
-
-        @DisplayName("매치가 존재하지 않는 경우, 예외 발생")
-        @Test
-        void throwsExceptionWhenRequesterIdIsNotEqualMemberId() {
-            // Given
-            Long requesterId = 2L;
-            Long matchId = 3L;
-
-            when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
-                .thenReturn(Optional.empty());
-
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.rejectCheck(requesterId, matchId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
-        }
-
-        @DisplayName("매치가 존재하며, 해당 상태가 거절일 경우 상태 변경")
-        @Test
-        void checkMatch() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
-
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .status(MatchStatus.REJECTED)
-                .build();
-
-            when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
-                .thenReturn(Optional.of(match));
-
-            Member requester = MemberFixture.builder()
-                .id(requesterId)
-                .build();
-            when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
-
-            // When
-            matchService.rejectCheck(requesterId, matchId);
-
-            // Then
-            Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECT_CHECKED);
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.reject(matchId, responderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
     }
 
-    @Nested
-    @DisplayName("받은 매치 읽음 처리 테스트")
-    class ReadReceivedMatch {
+    @DisplayName("매치의 상태가 대기중이며, 응답자 아이디가 일치할 경우 거절.")
+    @Test
+    void rejectMatch() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
 
-        @Test
-        @DisplayName("응답자가 아니어서 매치를 찾지 못하면 예외 발생")
-        void throwsExceptionWhenNotResponder() {
-            // Given
-            Long matchId = 1L;
-            Long readerId = 99L;
-            when(matchRepository.findByIdAndResponderId(matchId, readerId))
-                .thenReturn(Optional.empty());
+      Match match =
+          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.readReceivedMatch(matchId, readerId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
-        }
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.of(match));
 
-        @Test
-        @DisplayName("응답자가 호출하면 읽음 시각이 기록된다")
-        void readReceivedMatch() {
-            // Given
-            Long requesterId = 1L;
-            Long responderId = 2L;
-            Long matchId = 3L;
-            Match match = MatchFixture.builder()
-                .requesterId(requesterId)
-                .responderId(responderId)
-                .build();
+      Member requester = MemberFixture.builder().id(requesterId).build();
+      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
 
-            when(matchRepository.findByIdAndResponderId(matchId, responderId))
-                .thenReturn(Optional.of(match));
+      mockMember(responderId, "responder");
 
-            // When
-            matchService.readReceivedMatch(matchId, responderId);
+      // When
+      matchService.reject(matchId, responderId);
 
-            // Then
-            Assertions.assertThat(match.getReadByResponderAt()).isNotNull();
-        }
+      // Then
+      Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECTED);
+    }
+  }
+
+  @Nested
+  @DisplayName("매치 거절 확인 테스트")
+  class RejectCheck {
+
+    @DisplayName("매치 상태가 거절이 아닌 경우, 예외 발생")
+    @Test
+    void throwsExceptionWhenMatchStatusIsNotRejected() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+
+      Match match =
+          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
+
+      when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
+          .thenReturn(Optional.of(match));
+
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.rejectCheck(requesterId, matchId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
     }
 
-    @Nested
-    @DisplayName("매치 읽음 처리 테스트")
-    class Read {
-        @Test
-        @DisplayName("읽는 사람의 아이디가 매치 참여자 아이디와 일치하지 않는 경우, 예외 발생")
-        void throwsExceptionWhenReaderIdIsNotEqual() {
-            // Given
-            Long readerId = 1L;
-            Long matchRequesterId = 2L;
-            Long matchResponderId = 3L;
+    @DisplayName("매치가 존재하지 않는 경우, 예외 발생")
+    @Test
+    void throwsExceptionWhenRequesterIdIsNotEqualMemberId() {
+      // Given
+      Long requesterId = 2L;
+      Long matchId = 3L;
 
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.read(readerId, matchRequesterId, matchResponderId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ACCESS_DENIED);
-        }
+      when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
+          .thenReturn(Optional.empty());
 
-        @Test
-        @DisplayName("매치가 존재하지 않는 경우, 예외 발생")
-        void throwsExceptionWhenMatchNotFound() {
-            // Given
-            Long readerId = 2L;
-            Long matchRequesterId = 2L;
-            Long matchResponderId = 3L;
-
-            when(matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId))
-                .thenReturn(Optional.empty());
-
-            // When & Then
-            Assertions.assertThatThrownBy(() -> matchService.read(readerId, matchRequesterId, matchResponderId))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("매치 읽음 처리 성공")
-        void readMatch() {
-            // Given
-            Long readerId = 2L;
-            Long matchRequesterId = 2L;
-            Long matchResponderId = 3L;
-
-            Match match = mock(Match.class);
-
-            when(matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId))
-                .thenReturn(Optional.of(match));
-
-            // When
-            matchService.read(readerId, matchRequesterId, matchResponderId);
-
-            // Then
-            verify(match, times(1)).read(readerId);
-        }
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.rejectCheck(requesterId, matchId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
     }
+
+    @DisplayName("매치가 존재하며, 해당 상태가 거절일 경우 상태 변경")
+    @Test
+    void checkMatch() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+
+      Match match =
+          MatchFixture.builder()
+              .requesterId(requesterId)
+              .responderId(responderId)
+              .status(MatchStatus.REJECTED)
+              .build();
+
+      when(matchRepository.findByIdAndRequesterId(matchId, requesterId))
+          .thenReturn(Optional.of(match));
+
+      Member requester = MemberFixture.builder().id(requesterId).build();
+      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+
+      // When
+      matchService.rejectCheck(requesterId, matchId);
+
+      // Then
+      Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECT_CHECKED);
+    }
+  }
+
+  @Nested
+  @DisplayName("받은 매치 읽음 처리 테스트")
+  class ReadReceivedMatch {
+
+    @Test
+    @DisplayName("응답자가 아니어서 매치를 찾지 못하면 예외 발생")
+    void throwsExceptionWhenNotResponder() {
+      // Given
+      Long matchId = 1L;
+      Long readerId = 99L;
+      when(matchRepository.findByIdAndResponderId(matchId, readerId)).thenReturn(Optional.empty());
+
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.readReceivedMatch(matchId, readerId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("응답자가 호출하면 읽음 시각이 기록된다")
+    void readReceivedMatch() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+      Match match =
+          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
+
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.of(match));
+
+      // When
+      matchService.readReceivedMatch(matchId, responderId);
+
+      // Then
+      Assertions.assertThat(match.getReadByResponderAt()).isNotNull();
+    }
+  }
+
+  @Nested
+  @DisplayName("매치 읽음 처리 테스트")
+  class Read {
+
+    @Test
+    @DisplayName("읽는 사람의 아이디가 매치 참여자 아이디와 일치하지 않는 경우, 예외 발생")
+    void throwsExceptionWhenReaderIdIsNotEqual() {
+      // Given
+      Long readerId = 1L;
+      Long matchRequesterId = 2L;
+      Long matchResponderId = 3L;
+
+      // When & Then
+      Assertions.assertThatThrownBy(
+              () -> matchService.read(readerId, matchRequesterId, matchResponderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ACCESS_DENIED);
+    }
+
+    @Test
+    @DisplayName("매치가 존재하지 않는 경우, 예외 발생")
+    void throwsExceptionWhenMatchNotFound() {
+      // Given
+      Long readerId = 2L;
+      Long matchRequesterId = 2L;
+      Long matchResponderId = 3L;
+
+      when(matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId))
+          .thenReturn(Optional.empty());
+
+      // When & Then
+      Assertions.assertThatThrownBy(
+              () -> matchService.read(readerId, matchRequesterId, matchResponderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("매치 읽음 처리 성공")
+    void readMatch() {
+      // Given
+      Long readerId = 2L;
+      Long matchRequesterId = 2L;
+      Long matchResponderId = 3L;
+
+      Match match = mock(Match.class);
+
+      when(matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId))
+          .thenReturn(Optional.of(match));
+
+      // When
+      matchService.read(readerId, matchRequesterId, matchResponderId);
+
+      // Then
+      verify(match, times(1)).read(readerId);
+    }
+  }
 }

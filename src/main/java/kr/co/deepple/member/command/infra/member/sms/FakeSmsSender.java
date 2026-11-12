@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bizgo.enabled", havingValue = "false")
 public class FakeSmsSender implements SmsSender {
 
-    @Override
-    public void sendMessage(String message, String phoneNumber) {
-        log.info("[문자 발송] to={}, message={}", phoneNumber, message);
-    }
+  @Override
+  public void sendMessage(String message, String phoneNumber) {
+    log.info("[문자 발송] to={}, message={}", phoneNumber, message);
+  }
 }

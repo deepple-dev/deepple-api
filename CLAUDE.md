@@ -90,7 +90,7 @@
 
 | 파일 | 내용 | 적용 대상 |
 |---|---|---|
-| `java.md` | 타입·이름·작성 규칙, Lombok | 모든 Java 파일 |
+| `java.md` | 타입·작성 규칙, Lombok | 모든 Java 파일 |
 | `swagger.md` | API 문서화 | `presentation`, `adapter/in/web`, `query` |
 | `exception.md` | 예외 던지기, ErrorCode, 오류 응답 | `src/main` Java 파일 |
 | `logging.md` | 로그 레벨·형식, 자동 문맥(MDC), 남기지 않는 값 | `src/main` Java 파일 |

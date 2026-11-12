@@ -7,6 +7,4 @@ public record UseHeartCommand(
     @NonNull String usageType,
     @NonNull String usageSubtype,
     String content,
-    @NonNull String idempotencyKey
-) {
-}
+    @NonNull String idempotencyKey) {}

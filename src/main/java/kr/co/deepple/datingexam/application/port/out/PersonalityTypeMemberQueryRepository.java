@@ -1,9 +1,8 @@
 package kr.co.deepple.datingexam.application.port.out;
 
+import java.util.List;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 
-import java.util.List;
-
 public interface PersonalityTypeMemberQueryRepository {
-    List<Long> findMemberIdsByDominantType(Long memberId, AnswerPersonalityType type);
+  List<Long> findMemberIdsByDominantType(Long memberId, AnswerPersonalityType type);
 }

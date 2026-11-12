@@ -3,11 +3,11 @@ package kr.co.deepple.community.command.domain.selfintroduction;
 import java.util.Optional;
 
 public interface SelfIntroductionCommandRepository {
-    void save(SelfIntroduction selfIntroduction);
+  void save(SelfIntroduction selfIntroduction);
 
-    Optional<SelfIntroduction> findById(Long id);
+  Optional<SelfIntroduction> findById(Long id);
 
-    void deleteById(Long id);
+  void deleteById(Long id);
 
-    boolean existsByMemberId(Long memberId);
+  boolean existsByMemberId(Long memberId);
 }

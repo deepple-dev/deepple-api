@@ -1,6 +1,19 @@
 package kr.co.deepple.payment.command.application.order;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.api.services.androidpublisher.model.ProductPurchase;
+import java.time.Duration;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
@@ -21,144 +34,139 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @DisplayName("Google Play 결제 재시도 통합 테스트")
 class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
 
-    private static final long INITIAL_BALANCE = 100L;
-    private static final long OPTION_AMOUNT = 45L;
-    private static final String ORDER_ID = "GPA.retry-order";
-    private static final String PURCHASE_TOKEN = "retry-purchase-token";
-    private static final int CONSUMPTION_STATE_YET_TO_BE_CONSUMED = 0;
-    private static final int CONSUMPTION_STATE_CONSUMED = 1;
+  private static final long INITIAL_BALANCE = 100L;
+  private static final long OPTION_AMOUNT = 45L;
+  private static final String ORDER_ID = "GPA.retry-order";
+  private static final String PURCHASE_TOKEN = "retry-purchase-token";
+  private static final int CONSUMPTION_STATE_YET_TO_BE_CONSUMED = 0;
+  private static final int CONSUMPTION_STATE_CONSUMED = 1;
 
-    private final GooglePlayClient googlePlayClient = mock(GooglePlayClient.class);
+  private final GooglePlayClient googlePlayClient = mock(GooglePlayClient.class);
+  private GooglePlayPaymentService googlePlayPaymentService;
 
-    private GooglePlayPaymentService googlePlayPaymentService;
+  @Autowired private OrderCommandRepository orderCommandRepository;
 
-    @Autowired
-    private OrderCommandRepository orderCommandRepository;
+  @Autowired private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
 
-    @Autowired
-    private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
 
-    @Autowired
-    private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
-    @Autowired
-    private MemberHeartBalanceRepository memberHeartBalanceRepository;
+  @Autowired private HeartTransactionRepository heartTransactionRepository;
 
-    @Autowired
-    private HeartTransactionRepository heartTransactionRepository;
+  private HeartPurchaseOption option;
+  private Member member;
 
-    private HeartPurchaseOption option;
-    private Member member;
+  @BeforeEach
+  void setUp() {
+    member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    saveHeartBalance(member.getId());
+    option =
+        heartPurchaseOptionCommandRepository.save(
+            HeartPurchaseOptionFixture.builder().amount(OPTION_AMOUNT).build());
+    when(googlePlayClient.resolveQuantity(any())).thenReturn(1);
+    googlePlayPaymentService =
+        new GooglePlayPaymentService(googlePlayClient, orderCommandRepository);
+  }
 
-    @BeforeEach
-    void setUp() {
-        member = memberCommandJpaRepository.save(MemberFixture.builder().build());
-        saveHeartBalance(member.getId());
-        option = heartPurchaseOptionCommandRepository.save(HeartPurchaseOptionFixture.builder()
-            .amount(OPTION_AMOUNT)
-            .build());
-        when(googlePlayClient.resolveQuantity(any())).thenReturn(1);
-        googlePlayPaymentService = new GooglePlayPaymentService(googlePlayClient, orderCommandRepository);
-    }
+  @AfterEach
+  void tearDown() {
+    memberHeartBalanceRepository.deleteAll();
+    orderCommandRepository.deleteAll();
+    heartTransactionRepository.deleteAll();
+    heartPurchaseOptionCommandRepository.delete(option);
+    memberCommandJpaRepository.deleteAll();
+  }
 
-    @AfterEach
-    void tearDown() {
-        memberHeartBalanceRepository.deleteAll();
-        orderCommandRepository.deleteAll();
-        heartTransactionRepository.deleteAll();
-        heartPurchaseOptionCommandRepository.delete(option);
-        memberCommandJpaRepository.deleteAll();
-    }
+  @Test
+  @DisplayName("consume에 실패한 구매를 다시 보내면 하트는 다시 지급하지 않고 consume을 다시 시도한다")
+  void retryConsumeWithoutRegrantWhenConsumeFailedBefore() {
+    // given
+    when(googlePlayClient.verifyPurchase(option.getProductId(), PURCHASE_TOKEN))
+        .thenReturn(purchase(CONSUMPTION_STATE_YET_TO_BE_CONSUMED));
+    doThrow(new DeeppleException(PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE, "unavailable"))
+        .doNothing()
+        .when(googlePlayClient)
+        .consumePurchase(option.getProductId(), PURCHASE_TOKEN);
+    verifyReceipt();
 
-    @Test
-    @DisplayName("consume에 실패한 구매를 다시 보내면 하트는 다시 지급하지 않고 consume을 다시 시도한다")
-    void retryConsumeWithoutRegrantWhenConsumeFailedBefore() {
-        // given
-        when(googlePlayClient.verifyPurchase(option.getProductId(), PURCHASE_TOKEN))
-            .thenReturn(purchase(CONSUMPTION_STATE_YET_TO_BE_CONSUMED));
-        doThrow(new DeeppleException(PaymentErrorCode.GOOGLE_PLAY_UNAVAILABLE, "unavailable"))
-            .doNothing()
-            .when(googlePlayClient).consumePurchase(option.getProductId(), PURCHASE_TOKEN);
-        verifyReceipt();
+    // when & then
+    assertThatCode(this::verifyReceipt).doesNotThrowAnyException();
+    verify(googlePlayClient, times(2)).consumePurchase(option.getProductId(), PURCHASE_TOKEN);
+    assertGrantedOnce();
+  }
 
-        // when & then
-        assertThatCode(this::verifyReceipt).doesNotThrowAnyException();
-        verify(googlePlayClient, times(2)).consumePurchase(option.getProductId(), PURCHASE_TOKEN);
-        assertGrantedOnce();
-    }
+  @Test
+  @DisplayName("이미 처리하고 consume까지 끝난 구매를 같은 회원이 다시 보내면 성공한다")
+  void succeedWhenAlreadyConsumedPurchaseIsResent() {
+    // given
+    when(googlePlayClient.verifyPurchase(option.getProductId(), PURCHASE_TOKEN))
+        .thenReturn(purchase(CONSUMPTION_STATE_YET_TO_BE_CONSUMED))
+        .thenReturn(purchase(CONSUMPTION_STATE_CONSUMED));
+    verifyReceipt();
 
-    @Test
-    @DisplayName("이미 처리하고 consume까지 끝난 구매를 같은 회원이 다시 보내면 성공한다")
-    void succeedWhenAlreadyConsumedPurchaseIsResent() {
-        // given
-        when(googlePlayClient.verifyPurchase(option.getProductId(), PURCHASE_TOKEN))
-            .thenReturn(purchase(CONSUMPTION_STATE_YET_TO_BE_CONSUMED))
-            .thenReturn(purchase(CONSUMPTION_STATE_CONSUMED));
-        verifyReceipt();
+    // when & then
+    assertThatCode(this::verifyReceipt).doesNotThrowAnyException();
+    verify(googlePlayClient, times(1)).consumePurchase(option.getProductId(), PURCHASE_TOKEN);
+    assertGrantedOnce();
+  }
 
-        // when & then
-        assertThatCode(this::verifyReceipt).doesNotThrowAnyException();
-        verify(googlePlayClient, times(1)).consumePurchase(option.getProductId(), PURCHASE_TOKEN);
-        assertGrantedOnce();
-    }
+  @Test
+  @DisplayName("주문 기록 없이 이미 consume된 구매는 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
+  void throwWhenConsumedPurchaseHasNoOrder() {
+    // given
+    when(googlePlayClient.verifyPurchase(option.getProductId(), PURCHASE_TOKEN))
+        .thenReturn(purchase(CONSUMPTION_STATE_CONSUMED));
 
-    @Test
-    @DisplayName("주문 기록 없이 이미 consume된 구매는 INVALID_GOOGLE_PLAY_RECEIPT 예외를 던진다")
-    void throwWhenConsumedPurchaseHasNoOrder() {
-        // given
-        when(googlePlayClient.verifyPurchase(option.getProductId(), PURCHASE_TOKEN))
-            .thenReturn(purchase(CONSUMPTION_STATE_CONSUMED));
+    // when & then
+    assertThatThrownBy(this::verifyReceipt)
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
+    assertThat(orderCommandRepository.count()).isZero();
+    verify(googlePlayClient, never()).consumePurchase(any(), any());
+  }
 
-        // when & then
-        assertThatThrownBy(this::verifyReceipt)
-            .isInstanceOf(DeeppleException.class)
-            .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
-        assertThat(orderCommandRepository.count()).isZero();
-        verify(googlePlayClient, never()).consumePurchase(any(), any());
-    }
+  private void verifyReceipt() {
+    googlePlayPaymentService.verifyReceipt(option.getProductId(), PURCHASE_TOKEN, member.getId());
+  }
 
-    private void verifyReceipt() {
-        googlePlayPaymentService.verifyReceipt(option.getProductId(), PURCHASE_TOKEN, member.getId());
-    }
+  private ProductPurchase purchase(int consumptionState) {
+    return new ProductPurchase()
+        .setOrderId(ORDER_ID)
+        .setPurchaseState(0)
+        .setConsumptionState(consumptionState)
+        .setQuantity(1);
+  }
 
-    private ProductPurchase purchase(int consumptionState) {
-        return new ProductPurchase()
-            .setOrderId(ORDER_ID)
-            .setPurchaseState(0)
-            .setConsumptionState(consumptionState)
-            .setQuantity(1);
-    }
-
-    private void assertGrantedOnce() {
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
-            assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT));
-        await().during(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
-            assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
-            assertThat(heartTransactionRepository.count()).isEqualTo(1);
+  private void assertGrantedOnce() {
+    await()
+        .atMost(Duration.ofSeconds(5))
+        .untilAsserted(
+            () -> assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT));
+    await()
+        .during(Duration.ofSeconds(1))
+        .atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> {
+          assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
+          assertThat(heartTransactionRepository.count()).isEqualTo(1);
         });
-    }
+  }
 
-    private long purchaseHeartBalance() {
-        return memberHeartBalanceRepository.findByMemberId(member.getId()).orElseThrow()
-            .getPurchaseBalance();
-    }
+  private long purchaseHeartBalance() {
+    return memberHeartBalanceRepository
+        .findByMemberId(member.getId())
+        .orElseThrow()
+        .getPurchaseBalance();
+  }
 
-    private void saveHeartBalance(long memberId) {
-        memberHeartBalanceRepository.save(MemberHeartBalanceFixture.builder()
+  private void saveHeartBalance(long memberId) {
+    memberHeartBalanceRepository.save(
+        MemberHeartBalanceFixture.builder()
             .memberId(memberId)
             .purchaseBalance(INITIAL_BALANCE)
             .build());
-    }
+  }
 }

@@ -11,9 +11,7 @@ public record ProfileAccessView(
     String profileExchangeStatus,
     boolean likeReceived,
     boolean isBlocked,
-    String activityStatus
-) {
-    @QueryProjection
-    public ProfileAccessView {
-    }
+    String activityStatus) {
+  @QueryProjection
+  public ProfileAccessView {}
 }

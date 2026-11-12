@@ -1,4 +1,3 @@
 package kr.co.deepple.member.presentation.member.dto;
 
-public record TokenRefreshResponse(String accessToken) {
-}
+public record TokenRefreshResponse(String accessToken) {}

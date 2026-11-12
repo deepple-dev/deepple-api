@@ -1,8 +1,8 @@
 package kr.co.deepple.datingexam.application.port.in;
 
-import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import jakarta.validation.Valid;
+import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 
 public interface DatingExamSubmitter {
-    void submitSubject(@Valid DatingExamSubmitRequest submitRequest, long memberId);
+  void submitSubject(@Valid DatingExamSubmitRequest submitRequest, long memberId);
 }

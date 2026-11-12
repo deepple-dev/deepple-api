@@ -1,7 +1,6 @@
 package kr.co.deepple.admin.query.admin;
 
 import com.querydsl.core.annotations.QueryProjection;
-
 import java.time.LocalDateTime;
 
 public record PendingAdminView(
@@ -10,9 +9,7 @@ public record PendingAdminView(
     String name,
     String phoneNumber,
     String comment,
-    LocalDateTime createdAt
-) {
-    @QueryProjection
-    public PendingAdminView {
-    }
+    LocalDateTime createdAt) {
+  @QueryProjection
+  public PendingAdminView {}
 }

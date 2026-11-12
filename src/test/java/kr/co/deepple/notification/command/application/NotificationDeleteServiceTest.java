@@ -1,5 +1,8 @@
 package kr.co.deepple.notification.command.application;
 
+import static org.mockito.Mockito.verify;
+
+import java.util.List;
 import kr.co.deepple.notification.command.domain.NotificationCommandRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,46 +11,40 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 class NotificationDeleteServiceTest {
 
-    @Mock
-    NotificationCommandRepository repository;
+  @Mock NotificationCommandRepository repository;
 
-    @InjectMocks
-    NotificationDeleteService service;
+  @InjectMocks NotificationDeleteService service;
 
-    @Test
-    @DisplayName("delete(): 단일 알림 삭제 시 Repository 메서드 호출")
-    void deleteSingleNotification() {
-        // given
-        long receiverId = 100L;
-        long notificationId = 1L;
-        var request = new NotificationDeleteRequest(List.of(notificationId));
+  @Test
+  @DisplayName("delete(): 단일 알림 삭제 시 Repository 메서드 호출")
+  void deleteSingleNotification() {
+    // given
+    long receiverId = 100L;
+    long notificationId = 1L;
+    var request = new NotificationDeleteRequest(List.of(notificationId));
 
-        // when
-        service.delete(request, receiverId);
+    // when
+    service.delete(request, receiverId);
 
-        // then
-        verify(repository).deleteAllByIdIn(List.of(notificationId), receiverId);
-    }
+    // then
+    verify(repository).deleteAllByIdIn(List.of(notificationId), receiverId);
+  }
 
-    @Test
-    @DisplayName("delete(): 여러 알림 일괄 삭제 시 Repository 메서드 호출")
-    void deleteMultipleNotifications() {
-        // given
-        long receiverId = 100L;
-        var ids = List.of(1L, 2L, 3L);
-        var request = new NotificationDeleteRequest(ids);
+  @Test
+  @DisplayName("delete(): 여러 알림 일괄 삭제 시 Repository 메서드 호출")
+  void deleteMultipleNotifications() {
+    // given
+    long receiverId = 100L;
+    var ids = List.of(1L, 2L, 3L);
+    var request = new NotificationDeleteRequest(ids);
 
-        // when
-        service.delete(request, receiverId);
+    // when
+    service.delete(request, receiverId);
 
-        // then
-        verify(repository).deleteAllByIdIn(ids, receiverId);
-    }
+    // then
+    verify(repository).deleteAllByIdIn(ids, receiverId);
+  }
 }

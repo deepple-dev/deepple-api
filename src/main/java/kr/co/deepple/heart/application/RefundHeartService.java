@@ -10,12 +10,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class RefundHeartService implements RefundHeartUseCase {
-    private final HeartTransactor heartTransactor;
 
-    @Override
-    @Transactional
-    public void refundHeart(RefundHeartCommand command) {
-        heartTransactor.transact(command.memberId(), TransactionType.REFUND,
-            TransactionType.REFUND.getDescription(), command.amount(), String.valueOf(command.orderId()));
-    }
+  private final HeartTransactor heartTransactor;
+
+  @Override
+  @Transactional
+  public void refundHeart(RefundHeartCommand command) {
+    heartTransactor.transact(
+        command.memberId(),
+        TransactionType.REFUND,
+        TransactionType.REFUND.getDescription(),
+        command.amount(),
+        String.valueOf(command.orderId()));
+  }
 }

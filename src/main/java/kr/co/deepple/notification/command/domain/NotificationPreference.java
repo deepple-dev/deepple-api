@@ -1,92 +1,102 @@
 package kr.co.deepple.notification.command.domain;
 
+import static jakarta.persistence.EnumType.STRING;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.MapKeyEnumerated;
+import jakarta.persistence.Table;
+import java.util.EnumMap;
+import java.util.Map;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.EnumMap;
-import java.util.Map;
-
-import static jakarta.persistence.EnumType.STRING;
-
 @Entity
 @Table(
     name = "notification_preferences",
-    indexes = {@Index(name = "idx_notification_preferences_member_id", columnList = "memberId")}
-)
+    indexes = {@Index(name = "idx_notification_preferences_member_id", columnList = "memberId")})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class NotificationPreference extends SoftDeleteBaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Getter
+  private Long id;
 
-    @Getter
-    private Long memberId;
+  @Getter private Long memberId;
 
-    @Getter
-    private boolean isEnabledGlobally = true;
+  @Getter private boolean isEnabledGlobally = true;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "member_notification_preferences", joinColumns = @JoinColumn(name = "member_id"))
-    @MapKeyEnumerated(STRING)
-    @MapKeyColumn(name = "notification_type")
-    @Column(name = "is_enabled")
-    private Map<NotificationType, Boolean> preferences = new EnumMap<>(NotificationType.class);
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "member_notification_preferences",
+      joinColumns = @JoinColumn(name = "member_id"))
+  @MapKeyEnumerated(STRING)
+  @MapKeyColumn(name = "notification_type")
+  @Column(name = "is_enabled")
+  private Map<NotificationType, Boolean> preferences = new EnumMap<>(NotificationType.class);
 
-    private NotificationPreference(Long memberId, Map<NotificationType, Boolean> preferences) {
-        this.memberId = memberId;
-        this.preferences = new EnumMap<>(preferences);
+  private NotificationPreference(Long memberId, Map<NotificationType, Boolean> preferences) {
+    this.memberId = memberId;
+    this.preferences = new EnumMap<>(preferences);
+  }
+
+  public static NotificationPreference of(long memberId) {
+    Map<NotificationType, Boolean> defaults = new EnumMap<>(NotificationType.class);
+    for (NotificationType type : NotificationType.values()) {
+      defaults.put(type, true);
     }
+    return new NotificationPreference(memberId, defaults);
+  }
 
-    public static NotificationPreference of(long memberId) {
-        Map<NotificationType, Boolean> defaults = new EnumMap<>(NotificationType.class);
-        for (NotificationType type : NotificationType.values()) {
-            defaults.put(type, true);
-        }
-        return new NotificationPreference(memberId, defaults);
+  public Map<NotificationType, Boolean> getNotificationPreferences() {
+    Map<NotificationType, Boolean> result = new EnumMap<>(NotificationType.class);
+    for (NotificationType type : NotificationType.values()) {
+      result.put(type, isEnabledForType(type));
     }
+    return result;
+  }
 
-    public Map<NotificationType, Boolean> getNotificationPreferences() {
-        Map<NotificationType, Boolean> result = new EnumMap<>(NotificationType.class);
-        for (NotificationType type : NotificationType.values()) {
-            result.put(type, isEnabledForType(type));
-        }
-        return result;
-    }
+  public boolean canReceive(NotificationType type) {
+    return isEnabledGlobally && isEnabledForType(type);
+  }
 
-    public boolean canReceive(NotificationType type) {
-        return isEnabledGlobally && isEnabledForType(type);
-    }
+  public void enableGlobally() {
+    isEnabledGlobally = true;
+  }
 
-    public void enableGlobally() {
-        isEnabledGlobally = true;
-    }
+  public void disableGlobally() {
+    isEnabledGlobally = false;
+  }
 
-    public void disableGlobally() {
-        isEnabledGlobally = false;
-    }
+  public boolean isDisabledForType(NotificationType type) {
+    return !isEnabledForType(type);
+  }
 
-    public boolean isDisabledForType(NotificationType type) {
-        return !isEnabledForType(type);
-    }
+  public void enableForNotificationType(NotificationType type) {
+    preferences.put(type, true);
+  }
 
-    public void enableForNotificationType(NotificationType type) {
-        preferences.put(type, true);
-    }
+  public void disableForNotificationType(NotificationType type) {
+    preferences.put(type, false);
+  }
 
-    public void disableForNotificationType(NotificationType type) {
-        preferences.put(type, false);
-    }
+  public void updateNotificationPreferences(Map<NotificationType, Boolean> preferences) {
+    this.preferences.putAll(preferences);
+  }
 
-    public void updateNotificationPreferences(Map<NotificationType, Boolean> preferences) {
-        this.preferences.putAll(preferences);
-    }
-
-    private boolean isEnabledForType(NotificationType type) {
-        return preferences.getOrDefault(type, true);
-    }
+  private boolean isEnabledForType(NotificationType type) {
+    return preferences.getOrDefault(type, true);
+  }
 }

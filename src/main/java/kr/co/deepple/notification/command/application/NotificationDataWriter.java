@@ -1,6 +1,10 @@
 package kr.co.deepple.notification.command.application;
 
-import kr.co.deepple.notification.command.domain.*;
+import kr.co.deepple.notification.command.domain.Notification;
+import kr.co.deepple.notification.command.domain.NotificationCommandRepository;
+import kr.co.deepple.notification.command.domain.NotificationStatus;
+import kr.co.deepple.notification.command.domain.NotificationType;
+import kr.co.deepple.notification.command.domain.SenderType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,32 +13,24 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationDataWriter {
 
-    private final NotificationCommandRepository notificationCommandRepository;
+  private final NotificationCommandRepository notificationCommandRepository;
 
-    @Transactional
-    public void save(Notification notification) {
-        notificationCommandRepository.save(notification);
-    }
+  @Transactional
+  public void save(Notification notification) {
+    notificationCommandRepository.save(notification);
+  }
 
-    @Transactional
-    public void saveFailedNotification(
-        SenderType senderType,
-        Long senderId,
-        Long receiverId,
-        NotificationType type,
-        String title,
-        String body,
-        NotificationStatus status
-    ) {
-        var failedNotification = Notification.createFailed(
-            senderType,
-            senderId,
-            receiverId,
-            type,
-            title,
-            body,
-            status
-        );
-        notificationCommandRepository.save(failedNotification);
-    }
+  @Transactional
+  public void saveFailedNotification(
+      SenderType senderType,
+      Long senderId,
+      Long receiverId,
+      NotificationType type,
+      String title,
+      String body,
+      NotificationStatus status) {
+    var failedNotification =
+        Notification.createFailed(senderType, senderId, receiverId, type, title, body, status);
+    notificationCommandRepository.save(failedNotification);
+  }
 }

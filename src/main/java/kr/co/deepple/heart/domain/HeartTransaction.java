@@ -20,46 +20,57 @@ import lombok.NonNull;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class HeartTransaction extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    private long memberId;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "varchar(50)")
-    private TransactionType transactionType;
+  private long memberId;
 
-    private String content;
+  @Enumerated(EnumType.STRING)
+  @Column(columnDefinition = "varchar(50)")
+  private TransactionType transactionType;
 
-    @Embedded
-    @Getter(AccessLevel.NONE)
-    private HeartAmount amount;
+  private String content;
 
-    @Embedded
-    private HeartBalance balance;
+  @Embedded
+  @Getter(AccessLevel.NONE)
+  private HeartAmount amount;
 
-    private String idempotencyKey;
+  @Embedded private HeartBalance balance;
 
-    private HeartTransaction(long memberId, @NonNull TransactionType transactionType, @NonNull String content,
-        long amount, @NonNull HeartBalance balance, String idempotencyKey) {
-        if (content.isBlank()) {
-            throw new IllegalArgumentException("content는 비어있을 수 없습니다.");
-        }
-        this.memberId = memberId;
-        this.transactionType = transactionType;
-        this.content = content;
-        this.amount = HeartAmount.of(transactionType, amount);
-        this.balance = balance;
-        this.idempotencyKey = idempotencyKey;
+  private String idempotencyKey;
+
+  private HeartTransaction(
+      long memberId,
+      @NonNull TransactionType transactionType,
+      @NonNull String content,
+      long amount,
+      @NonNull HeartBalance balance,
+      String idempotencyKey) {
+    if (content.isBlank()) {
+      throw new IllegalArgumentException("content는 비어있을 수 없습니다.");
     }
+    this.memberId = memberId;
+    this.transactionType = transactionType;
+    this.content = content;
+    this.amount = HeartAmount.of(transactionType, amount);
+    this.balance = balance;
+    this.idempotencyKey = idempotencyKey;
+  }
 
-    public static HeartTransaction of(long memberId, TransactionType transactionType, String content, long amount,
-        HeartBalance balance, String idempotencyKey) {
-        return new HeartTransaction(memberId, transactionType, content, amount, balance, idempotencyKey);
-    }
+  public static HeartTransaction of(
+      long memberId,
+      TransactionType transactionType,
+      String content,
+      long amount,
+      HeartBalance balance,
+      String idempotencyKey) {
+    return new HeartTransaction(
+        memberId, transactionType, content, amount, balance, idempotencyKey);
+  }
 
-    public long getAmount() {
-        return amount.getAmount();
-    }
+  public long getAmount() {
+    return amount.getAmount();
+  }
 }
