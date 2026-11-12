@@ -221,7 +221,7 @@ class HeartBalanceTest {
     @ParameterizedTest
     @EnumSource(
         value = TransactionType.class,
-        names = {"MESSAGE", "MESSAGE_ACCEPTED", "DATING_EXAM", "PROFILE_EXCHANGE", "INTRODUCTION"})
+        names = {"MESSAGE", "DATING_EXAM", "PROFILE_EXCHANGE", "INTRODUCTION"})
     @DisplayName("사용 종류는 미션 하트부터 줄인다.")
     void useForUsingTypes(TransactionType transactionType) {
       assertThat(heartBalance.apply(transactionType, 20L)).isEqualTo(HeartBalance.of(0L, 85L));

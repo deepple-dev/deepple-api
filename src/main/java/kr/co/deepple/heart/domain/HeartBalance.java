@@ -46,7 +46,7 @@ public final class HeartBalance {
       throw new IllegalArgumentException("하트 수량은 양수여야 합니다. amount: " + amount);
     }
     return switch (transactionType) {
-      case MESSAGE, MESSAGE_ACCEPTED, DATING_EXAM, PROFILE_EXCHANGE, INTRODUCTION -> use(amount);
+      case MESSAGE, DATING_EXAM, PROFILE_EXCHANGE, INTRODUCTION -> use(amount);
       case PURCHASE -> addPurchase(amount);
       case MISSION, ADMIN_GRANT -> addMission(amount);
       case REFUND -> refund(amount);

@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 public enum TransactionType {
   MISSION("미션 완료"),
   MESSAGE("메시지 보내기"),
-  MESSAGE_ACCEPTED("메시지 수락"),
   DATING_EXAM("연애 모의고사 다시보기"),
   PROFILE_EXCHANGE("프로필 교환 신청"),
   INTRODUCTION("소개 받기"),
@@ -22,8 +21,7 @@ public enum TransactionType {
     return this == MESSAGE
         || this == DATING_EXAM
         || this == PROFILE_EXCHANGE
-        || this == INTRODUCTION
-        || this == MESSAGE_ACCEPTED;
+        || this == INTRODUCTION;
   }
 
   public boolean isAddingType() {
