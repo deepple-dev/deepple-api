@@ -16,7 +16,7 @@ public class ProfileExchangeRepositoryImpl implements ProfileExchangeRepository 
   private final ProfileExchangeJpaRepository profileExchangeJpaRepository;
 
   @Override
-  public ProfileExchange save(final ProfileExchange profileExchange) {
+  public ProfileExchange save(ProfileExchange profileExchange) {
     try {
       return profileExchangeJpaRepository.save(profileExchange);
     } catch (DataIntegrityViolationException e) {
@@ -31,12 +31,12 @@ public class ProfileExchangeRepositoryImpl implements ProfileExchangeRepository 
   }
 
   @Override
-  public boolean existsProfileExchangeBetween(final Long memberId, final Long anotherMemberId) {
+  public boolean existsProfileExchangeBetween(long memberId, long anotherMemberId) {
     return profileExchangeJpaRepository.existsProfileExchangeBetween(memberId, anotherMemberId);
   }
 
   @Override
-  public Optional<ProfileExchange> findById(final Long id) {
+  public Optional<ProfileExchange> findById(long id) {
     return profileExchangeJpaRepository.findById(id);
   }
 }

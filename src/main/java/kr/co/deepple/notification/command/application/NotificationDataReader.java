@@ -29,12 +29,12 @@ public class NotificationDataReader {
   }
 
   @Transactional(readOnly = true)
-  public Optional<NotificationPreference> findPreference(Long memberId) {
+  public Optional<NotificationPreference> findPreference(long memberId) {
     return notificationPreferenceRepository.findByMemberId(memberId);
   }
 
   @Transactional(readOnly = true)
-  public Optional<DeviceRegistration> findActiveDevice(Long memberId) {
+  public Optional<DeviceRegistration> findActiveDevice(long memberId) {
     return deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(memberId);
   }
 }

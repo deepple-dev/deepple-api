@@ -1,8 +1,10 @@
 package kr.co.deepple.match.command.domain.match;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum MatchStatus {
   WAITING("응답 대기중"),
   MATCHED("매칭 완료"),
@@ -11,8 +13,4 @@ public enum MatchStatus {
   REJECTED("거절");
 
   private final String description;
-
-  MatchStatus(String description) {
-    this.description = description;
-  }
 }

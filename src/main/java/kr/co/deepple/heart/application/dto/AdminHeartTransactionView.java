@@ -6,12 +6,12 @@ import java.time.LocalDateTime;
 import kr.co.deepple.heart.domain.TransactionType;
 
 public record AdminHeartTransactionView(
-    Long id,
+    long id,
     LocalDateTime createdAt,
     @Schema(implementation = TransactionType.class) String transactionType,
     String content,
-    Long heartAmount,
-    Long heartBalance) {
+    long heartAmount,
+    long heartBalance) {
   @QueryProjection
   public AdminHeartTransactionView {}
 }

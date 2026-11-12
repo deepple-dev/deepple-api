@@ -40,7 +40,7 @@ public class AdminHeartPurchaseOptionController {
 
   @Operation(summary = "하트 구매 옵션 삭제")
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
+  public ResponseEntity<Void> delete(@PathVariable long id) {
     heartPurchaseOptionService.delete(id);
     return ResponseEntity.noContent().build();
   }

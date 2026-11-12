@@ -35,7 +35,7 @@ class FindHeartTransactionsServiceTest {
         .thenReturn(views);
 
     // When
-    final HeartTransactionViews result =
+    HeartTransactionViews result =
         findHeartTransactionsService.findHeartTransactions(memberId, condition);
 
     // Then
@@ -61,7 +61,7 @@ class FindHeartTransactionsServiceTest {
         .thenReturn(views);
 
     // When
-    final HeartTransactionViews result =
+    HeartTransactionViews result =
         findHeartTransactionsService.findHeartTransactions(memberId, condition);
 
     // Then
@@ -77,7 +77,7 @@ class FindHeartTransactionsServiceTest {
   private List<HeartTransactionView> createHeartTransactionViews(int size) {
     List<HeartTransactionView> views = new ArrayList<>();
     for (long i = 0; i < size; i++) {
-      views.add(new HeartTransactionView(i, null, null, null));
+      views.add(new HeartTransactionView(i, null, null, 0L));
     }
     return views;
   }

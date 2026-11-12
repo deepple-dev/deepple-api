@@ -25,7 +25,7 @@ public class DatingExamSubmitResultFixture {
   }
 
   public DatingExamSubmitResult build() {
-    DatingExamSubmitResult result = DatingExamSubmitResult.create(memberId);
+    DatingExamSubmitResult result = DatingExamSubmitResult.from(memberId);
     result.addCounts(counts);
     setField(result, "id", id);
     return result;

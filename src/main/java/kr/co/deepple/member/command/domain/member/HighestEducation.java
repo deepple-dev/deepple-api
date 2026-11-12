@@ -2,7 +2,9 @@ package kr.co.deepple.member.command.domain.member;
 
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public enum HighestEducation {
   HIGH_SCHOOL("고등학교 졸업"),
   ASSOCIATE("전문대 졸업"),
@@ -15,10 +17,6 @@ public enum HighestEducation {
   OTHER("기타");
 
   private final String description;
-
-  HighestEducation(String description) {
-    this.description = description;
-  }
 
   public static HighestEducation from(String value) {
     if (value == null) {

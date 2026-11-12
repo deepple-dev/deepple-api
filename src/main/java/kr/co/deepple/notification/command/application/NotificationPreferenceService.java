@@ -28,7 +28,7 @@ public class NotificationPreferenceService {
     if (notificationPreferenceRepository.existsByMemberId(memberId)) {
       return;
     }
-    notificationPreferenceRepository.save(NotificationPreference.of(memberId));
+    notificationPreferenceRepository.save(NotificationPreference.from(memberId));
   }
 
   @Transactional
@@ -67,8 +67,8 @@ public class NotificationPreferenceService {
   }
 
   @Transactional
-  public void setNotificationPreferences(Long memberId, NotificationPreferenceSetRequest request) {
-    var preference = getNotificationPreference(memberId);
+  public void setNotificationPreferences(long memberId, NotificationPreferenceSetRequest request) {
+    NotificationPreference preference = getNotificationPreference(memberId);
 
     Map<NotificationType, Boolean> preferences =
         request.preferences().entrySet().stream()

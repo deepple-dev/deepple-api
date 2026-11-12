@@ -1,38 +1,31 @@
 package kr.co.deepple.datingexam.domain;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
-import static lombok.AccessLevel.PROTECTED;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.util.Map;
 import kr.co.deepple.common.entity.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Entity
-@NoArgsConstructor(access = PROTECTED)
+@Table(name = "dating_exam_submit_result")
 @Getter
-@Table(
-    uniqueConstraints =
-        @UniqueConstraint(
-            name = "uk_dating_exam_submit_result_member",
-            columnNames = {"memberId"}))
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatingExamSubmitResult extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = IDENTITY)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(nullable = false)
-  private Long memberId;
+  private long memberId;
 
   @Column(nullable = false)
   private int decisiveIndependentCount;
@@ -56,7 +49,7 @@ public class DatingExamSubmitResult extends BaseEntity {
   @Column(columnDefinition = "varchar(50)", nullable = false)
   private AnswerPersonalityType dominantPersonalityType;
 
-  private DatingExamSubmitResult(@NonNull Long memberId) {
+  private DatingExamSubmitResult(long memberId) {
     this.memberId = memberId;
     this.decisiveIndependentCount = 0;
     this.growingRunningMateCount = 0;
@@ -67,7 +60,7 @@ public class DatingExamSubmitResult extends BaseEntity {
     this.dominantPersonalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
   }
 
-  public static DatingExamSubmitResult create(Long memberId) {
+  public static DatingExamSubmitResult from(long memberId) {
     return new DatingExamSubmitResult(memberId);
   }
 

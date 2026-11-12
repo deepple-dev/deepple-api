@@ -28,27 +28,27 @@ public class MatchRepositoryImpl implements MatchRepository {
   }
 
   @Override
-  public boolean existsActiveMatchBetween(Long memberId, Long anotherMemberId) {
+  public boolean existsActiveMatchBetween(long memberId, long anotherMemberId) {
     return matchJpaRepository.existsActiveMatchBetween(memberId, anotherMemberId);
   }
 
   @Override
-  public Optional<Match> findById(Long id) {
+  public Optional<Match> findById(long id) {
     return matchJpaRepository.findById(id);
   }
 
   @Override
-  public Optional<Match> findByIdAndRequesterId(Long id, Long requesterId) {
+  public Optional<Match> findByIdAndRequesterId(long id, long requesterId) {
     return matchJpaRepository.findByIdAndRequesterId(id, requesterId);
   }
 
   @Override
-  public Optional<Match> findByIdAndResponderId(Long id, Long responderId) {
+  public Optional<Match> findByIdAndResponderId(long id, long responderId) {
     return matchJpaRepository.findByIdAndResponderId(id, responderId);
   }
 
   @Override
-  public Optional<Match> findByRequesterIdAndResponderId(Long requesterId, Long responderId) {
+  public Optional<Match> findByRequesterIdAndResponderId(long requesterId, long responderId) {
     return matchJpaRepository.findByRequesterIdAndResponderId(requesterId, responderId);
   }
 }

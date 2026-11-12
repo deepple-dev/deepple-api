@@ -1,18 +1,16 @@
 package kr.co.deepple.mission.command.domain.mission;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum TargetGender {
   MALE("남성"),
   FEMALE("여성"),
   ALL("모두");
 
   private final String description;
-
-  TargetGender(String description) {
-    this.description = description;
-  }
 
   public static TargetGender from(String targetGender) {
     try {

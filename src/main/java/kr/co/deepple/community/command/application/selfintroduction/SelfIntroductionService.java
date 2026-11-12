@@ -24,7 +24,7 @@ public class SelfIntroductionService {
   private final S3Uploader s3Uploader;
 
   @Transactional
-  public boolean write(SelfIntroductionWriteRequest request, Long memberId) {
+  public boolean write(SelfIntroductionWriteRequest request, long memberId) {
     validateMemberId(memberId);
     boolean isFirstSelfIntroduction = isFirstSelfIntroduction(memberId);
     SelfIntroduction selfIntroduction =
@@ -38,12 +38,12 @@ public class SelfIntroductionService {
     return isFirstSelfIntroduction;
   }
 
-  private boolean isFirstSelfIntroduction(Long memberId) {
+  private boolean isFirstSelfIntroduction(long memberId) {
     return !selfIntroductionCommandRepository.existsByMemberId(memberId);
   }
 
   @Transactional
-  public void update(SelfIntroductionWriteRequest request, Long memberId, Long id) {
+  public void update(SelfIntroductionWriteRequest request, long memberId, long id) {
     validateMemberId(memberId);
     SelfIntroduction selfIntroduction = getSelfIntroductionById(id);
     validateSelfIntroductionAuthor(selfIntroduction.getMemberId(), memberId);
@@ -52,19 +52,19 @@ public class SelfIntroductionService {
   }
 
   @Transactional
-  public void delete(Long id, Long memberId) {
+  public void delete(long id, long memberId) {
     validateMemberId(memberId);
     validateSelfIntroductionAuthor(getSelfIntroductionById(id).getMemberId(), memberId);
     selfIntroductionCommandRepository.deleteById(id);
   }
 
-  public PresignedUrlResponse getPresignedUrl(String fileName, Long memberId) {
+  public PresignedUrlResponse getPresignedUrl(String fileName, long memberId) {
     validateMemberId(memberId);
     return s3Uploader.getPresignedUrl(fileName, memberId, IMAGE_PATH_PREFIX);
   }
 
   @Transactional
-  public void changeOpenStatus(Long id, boolean open) {
+  public void changeOpenStatus(long id, boolean open) {
     SelfIntroduction selfIntroduction = getSelfIntroductionById(id);
     if (open) {
       selfIntroduction.open();
@@ -73,15 +73,15 @@ public class SelfIntroductionService {
     }
   }
 
-  private void validateSelfIntroductionAuthor(Long memberIdFromSelfIntroduction, Long memberId) {
-    if (!memberIdFromSelfIntroduction.equals(memberId)) {
+  private void validateSelfIntroductionAuthor(long memberIdFromSelfIntroduction, long memberId) {
+    if (memberIdFromSelfIntroduction != memberId) {
       throw new DeeppleException(
           CommunityErrorCode.SELF_INTRODUCTION_ACCESS_DENIED,
           "authorId=" + memberIdFromSelfIntroduction + ", memberId=" + memberId);
     }
   }
 
-  private SelfIntroduction getSelfIntroductionById(Long id) {
+  private SelfIntroduction getSelfIntroductionById(long id) {
     return selfIntroductionCommandRepository
         .findById(id)
         .orElseThrow(() ->
@@ -89,7 +89,7 @@ public class SelfIntroductionService {
                 CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND, "selfIntroductionId=" + id));
   }
 
-  private void validateMemberId(Long memberId) {
+  private void validateMemberId(long memberId) {
     memberCommandRepository
         .findById(memberId)
         .orElseThrow(

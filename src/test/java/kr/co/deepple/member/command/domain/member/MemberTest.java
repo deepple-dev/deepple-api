@@ -184,8 +184,8 @@ class MemberTest {
         Long memberId = 1L;
         Member member = MemberFixture.builder().id(memberId).build();
         Grade grade = Grade.GOLD;
-        final boolean isVip = true;
-        final boolean isPushNotificationEnabled = false;
+        boolean isVip = true;
+        boolean isPushNotificationEnabled = false;
 
         // When
         member.updateSetting(grade, isVip, isPushNotificationEnabled);

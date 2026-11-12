@@ -24,7 +24,7 @@ public class DatingExamAnswerFixture {
   }
 
   public DatingExamAnswer build() {
-    DatingExamAnswer answer = DatingExamAnswer.create(questionId, content, personalityType);
+    DatingExamAnswer answer = DatingExamAnswer.of(questionId, content, personalityType);
     setField(answer, "id", id);
     return answer;
   }

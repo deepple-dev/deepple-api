@@ -42,12 +42,12 @@ class TodayCardServiceTest {
   @DisplayName("오늘의 카드 멤버 id가 모두 이미 소개된 멤버라면 소개를 생성하지 않는다")
   void doesNotCreateIntroductionWhenAlreadyExists() {
     // given
-    final long memberId = 1L;
+    long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L);
 
-    final MemberIntroduction memberIntroduction1 =
+    MemberIntroduction memberIntroduction1 =
         MemberIntroductionFixture.builder().memberId(memberId).introducedMemberId(2L).build();
-    final MemberIntroduction memberIntroduction2 =
+    MemberIntroduction memberIntroduction2 =
         MemberIntroductionFixture.builder().memberId(memberId).introducedMemberId(3L).build();
 
     when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
@@ -66,7 +66,7 @@ class TodayCardServiceTest {
   @DisplayName("오늘의 카드 멤버 id 중에 소개되지 않은 멤버가 존재하지 않는다면 소개를 생성하지 않는다")
   void doesNotCreateIntroductionWhenNoIntroducedMembers() {
     // given
-    final long memberId = 1L;
+    long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L);
 
     when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
@@ -85,7 +85,7 @@ class TodayCardServiceTest {
   @DisplayName("오늘의 카드 멤버 id 중에 소개되지 않은 멤버 비활성화되어 있다면 소개를 생성하지 않는다")
   void doesNotCreateIntroductionWhenIntroducedMemberIsInactive() {
     // given
-    final long memberId = 1L;
+    long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L, 4L);
 
     when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
@@ -108,7 +108,7 @@ class TodayCardServiceTest {
   @DisplayName("오늘의 카드 멤버 id 중에 소개되지 않은 멤버가 active 상태라면 소개를 생성한다")
   void createsIntroductionWhenIntroducedMemberIsActive() {
     // given
-    final long memberId = 1L;
+    long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L);
 
     when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
@@ -122,7 +122,7 @@ class TodayCardServiceTest {
     // when
     try (MockedStatic<MemberIntroduction> memberIntroductionMockedStatic =
         mockStatic(MemberIntroduction.class)) {
-      final MemberIntroduction memberIntroduction = mock(MemberIntroduction.class);
+      MemberIntroduction memberIntroduction = mock(MemberIntroduction.class);
       memberIntroductionMockedStatic
           .when(() ->
               MemberIntroduction.of(memberId, activeMember.getId(), IntroductionType.TODAY_CARD))

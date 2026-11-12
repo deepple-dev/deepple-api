@@ -1,49 +1,42 @@
 package kr.co.deepple.datingexam.domain;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
-import static lombok.AccessLevel.PROTECTED;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@NoArgsConstructor(access = PROTECTED)
+@Table(name = "dating_exam_question")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatingExamQuestion extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = IDENTITY)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(nullable = false)
-  private Long subjectId;
+  private long subjectId;
 
   @Column(nullable = false)
   private String content;
 
-  private DatingExamQuestion(Long subjectId, String content) {
-    setSubjectId(subjectId);
-    setContent(content);
-  }
-
-  public static DatingExamQuestion create(Long subjectId, String content) {
-    return new DatingExamQuestion(subjectId, content);
-  }
-
-  private void setSubjectId(@NonNull Long subjectId) {
-    this.subjectId = subjectId;
-  }
-
-  private void setContent(@NonNull String content) {
+  private DatingExamQuestion(long subjectId, @NonNull String content) {
     if (content.isBlank()) {
-      throw new IllegalArgumentException("Question content cannot be null or blank");
+      throw new IllegalArgumentException("질문 내용은 비어 있을 수 없습니다.");
     }
+    this.subjectId = subjectId;
     this.content = content;
+  }
+
+  public static DatingExamQuestion of(long subjectId, String content) {
+    return new DatingExamQuestion(subjectId, content);
   }
 }

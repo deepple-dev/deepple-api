@@ -29,7 +29,7 @@ public class DatingExamQueryService implements DatingExamFinder {
   private final DatingExamSubmitResultRepository datingExamSubmitResultRepository;
 
   @Override
-  public DatingExamInfoWithSubjectSubmissionResponse findRequiredExamInfo(Long memberId) {
+  public DatingExamInfoWithSubjectSubmissionResponse findRequiredExamInfo(long memberId) {
     DatingExamInfoResponse datingExamInfo =
         datingExamQueryRepository.findDatingExamInfo(SubjectType.REQUIRED);
     Set<DatingExamSubmit> submittedExams = datingExamSubmitRepository.findAllByMemberId(memberId);
@@ -37,7 +37,7 @@ public class DatingExamQueryService implements DatingExamFinder {
   }
 
   @Override
-  public DominantPersonalityTypeResponse findDominantPersonalityType(Long memberId) {
+  public DominantPersonalityTypeResponse findDominantPersonalityType(long memberId) {
     DatingExamSubmitResult result =
         datingExamSubmitResultRepository
             .findByMemberId(memberId)

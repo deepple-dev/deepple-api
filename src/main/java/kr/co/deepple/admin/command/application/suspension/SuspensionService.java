@@ -41,7 +41,7 @@ public class SuspensionService {
   @Transactional
   public void delete(long memberId) {
     suspensionCommandRepository.deleteByMemberId(memberId);
-    Events.raise(MemberUnsuspendedEvent.of(memberId));
+    Events.raise(MemberUnsuspendedEvent.from(memberId));
     log.atInfo().addKeyValue("memberId", memberId).log("회원 정지 해제");
   }
 
@@ -90,7 +90,7 @@ public class SuspensionService {
           }
 
           suspensionCommandRepository.deleteByMemberId(memberId);
-          Events.raise(MemberUnsuspendedEvent.of(memberId));
+          Events.raise(MemberUnsuspendedEvent.from(memberId));
         },
         expireAt);
   }

@@ -7,7 +7,7 @@ import org.springframework.data.repository.Repository;
 public interface DatingExamSubmitRepository extends Repository<DatingExamSubmit, Long> {
   DatingExamSubmit save(DatingExamSubmit datingExamSubmit);
 
-  boolean existsByMemberIdAndSubjectId(Long memberId, Long subjectId);
+  boolean existsByMemberIdAndSubjectId(long memberId, long subjectId);
 
-  Set<DatingExamSubmit> findAllByMemberId(Long memberId);
+  Set<DatingExamSubmit> findAllByMemberId(long memberId);
 }

@@ -43,7 +43,7 @@ public class MemberQueryRepository {
 
   private final JPAQueryFactory queryFactory;
 
-  public Optional<MemberInfoView> findInfoByMemberId(Long memberId) {
+  public Optional<MemberInfoView> findInfoByMemberId(long memberId) {
     EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
 
     MemberInfoView memberInfoView =
@@ -93,7 +93,7 @@ public class MemberQueryRepository {
     return Optional.ofNullable(memberInfoView);
   }
 
-  public Optional<MemberProfileView> findProfileByMemberId(Long memberId) {
+  public Optional<MemberProfileView> findProfileByMemberId(long memberId) {
     EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
 
     MemberProfileView memberProfileView =
@@ -121,7 +121,7 @@ public class MemberQueryRepository {
     return Optional.ofNullable(memberProfileView);
   }
 
-  public Optional<MemberContactView> findContactsByMemberId(Long memberId) {
+  public Optional<MemberContactView> findContactsByMemberId(long memberId) {
     MemberContactView memberContactView =
         queryFactory
             .select(
@@ -137,7 +137,7 @@ public class MemberQueryRepository {
   }
 
   public Optional<OtherMemberProfileView> findOtherProfileByMemberId(
-      Long memberId, Long otherMemberId) {
+      long memberId, long otherMemberId) {
     EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
 
     OtherMemberProfileView otherMemberProfileView =
@@ -201,7 +201,7 @@ public class MemberQueryRepository {
   }
 
   public Optional<ProfileAccessView> findProfileAccessViewByMemberId(
-      Long memberId, Long otherMemberId) {
+      long memberId, long otherMemberId) {
     ProfileAccessView view =
         queryFactory
             .select(
@@ -236,7 +236,7 @@ public class MemberQueryRepository {
     return Optional.ofNullable(view);
   }
 
-  public List<InterviewResultView> findInterviewsByMemberId(Long memberId) {
+  public List<InterviewResultView> findInterviewsByMemberId(long memberId) {
     return queryFactory
         .from(interviewQuestion)
         .innerJoin(interviewAnswer)

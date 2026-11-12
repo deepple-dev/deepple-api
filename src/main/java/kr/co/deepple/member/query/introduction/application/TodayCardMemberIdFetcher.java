@@ -64,7 +64,7 @@ public class TodayCardMemberIdFetcher {
           IntroductionSearchCondition.ofTodayCardDefault(
               excludedMemberIds, oppositeGender, member));
     }
-    final IntroductionSearchCondition baseCondition =
+    IntroductionSearchCondition baseCondition =
         IntroductionSearchCondition.ofIdeal(excludedMemberIds, memberIdeal, oppositeGender);
     return IntroductionSearchConditionCombinator.generateCombinations(
         baseCondition, COMBINATION_NONE_SELECTABLE_SIZE);
@@ -84,9 +84,9 @@ public class TodayCardMemberIdFetcher {
   private Set<Long> findAllIntroductionMemberId(
       List<IntroductionSearchCondition> conditions, Member member) {
     Set<Long> introductionMemberIds = new HashSet<>();
-    final long limit = getLimit(member);
+    long limit = getLimit(member);
     for (IntroductionSearchCondition condition : conditions) {
-      final long currentLimit = limit - introductionMemberIds.size();
+      long currentLimit = limit - introductionMemberIds.size();
       introductionMemberIds.addAll(
           introductionQueryRepository.findAllIntroductionMemberId(condition, currentLimit));
       if (introductionMemberIds.size() == limit) {

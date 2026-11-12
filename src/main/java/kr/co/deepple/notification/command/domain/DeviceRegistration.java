@@ -5,35 +5,30 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "device_registrations",
-    uniqueConstraints = @UniqueConstraint(name = "uk_member_id", columnNames = "memberId"))
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "device_registrations")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeviceRegistration {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long memberId;
+  private long memberId;
 
-  /** 기기 고유 식별자 */
   private String deviceId;
 
-  /** FCM(Firebase Cloud Messaging) 등록 토큰 */
   private String registrationToken;
 
   private boolean isActive = true;
 
-  private DeviceRegistration(Long memberId, String deviceId, String registrationToken) {
+  private DeviceRegistration(long memberId, String deviceId, String registrationToken) {
     this.memberId = memberId;
     this.deviceId = deviceId;
     this.registrationToken = registrationToken;

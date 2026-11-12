@@ -15,7 +15,7 @@ public class AppStorePaymentService {
 
   private final AppStoreClient appStoreClient;
 
-  public void verifyReceipt(String signedTransaction, Long memberId) {
+  public void verifyReceipt(String signedTransaction, long memberId) {
     JWSTransactionDecodedPayload decodedPayload =
         appStoreClient.verifyAndDecodeTransaction(signedTransaction);
     verifyPayload(decodedPayload);
@@ -31,7 +31,7 @@ public class AppStorePaymentService {
   }
 
   private void raiseReceiptVerifiedEvent(
-      final Long memberId, final JWSTransactionDecodedPayload decodedPayload) {
+      long memberId, JWSTransactionDecodedPayload decodedPayload) {
     Events.raise(
         AppStoreReceiptVerifiedEvent.of(
             memberId,

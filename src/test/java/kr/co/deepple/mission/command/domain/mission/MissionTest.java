@@ -46,7 +46,7 @@ class MissionTest {
 
       // When & Then
       Assertions.assertThatThrownBy(
-              () -> Mission.create(actionType, frequencyType, targetGender, 3, 1, 4, true))
+              () -> Mission.of(actionType, frequencyType, targetGender, 3, 1, 4, true))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -61,7 +61,7 @@ class MissionTest {
 
       // When & Then
       Assertions.assertThatThrownBy(() ->
-              Mission.create(
+              Mission.of(
                   actionType,
                   frequencyType,
                   TargetGender.MALE,
@@ -86,7 +86,7 @@ class MissionTest {
 
       // When
       Mission mission =
-          Mission.create(
+          Mission.of(
               actionType,
               frequencyType,
               targetGender,

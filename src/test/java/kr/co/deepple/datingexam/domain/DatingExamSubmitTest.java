@@ -17,24 +17,6 @@ class DatingExamSubmitTest {
   class CreateMethodTest {
 
     @Test
-    @DisplayName("memberId가 null이면 예외가 발생한다")
-    void createWithNullMemberId() {
-      // Given
-      Long nullMemberId = null;
-      Long subjectId = 2L;
-      String encodedAnswers = "encodedAnswers";
-
-      DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
-      when(request.subjectId()).thenReturn(subjectId);
-      DatingExamAnswerEncoder encoder = mock(DatingExamAnswerEncoder.class);
-      when(encoder.encode(request)).thenReturn(encodedAnswers);
-      // When & Then
-
-      assertThatThrownBy(() -> DatingExamSubmit.from(request, encoder, nullMemberId))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     @DisplayName("subjectId가 null이면 예외가 발생한다")
     void createWithNullSubjectId() {
       // Given
@@ -48,7 +30,7 @@ class DatingExamSubmitTest {
       when(encoder.encode(request)).thenReturn(encodedAnswers);
 
       // When & Then
-      assertThatThrownBy(() -> DatingExamSubmit.from(request, encoder, memberId))
+      assertThatThrownBy(() -> DatingExamSubmit.of(request, encoder, memberId))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -66,7 +48,7 @@ class DatingExamSubmitTest {
       when(encoder.encode(request)).thenReturn(encodedAnswers);
 
       // When
-      DatingExamSubmit datingExamSubmit = DatingExamSubmit.from(request, encoder, memberId);
+      DatingExamSubmit datingExamSubmit = DatingExamSubmit.of(request, encoder, memberId);
 
       // Then
       assertThat(datingExamSubmit.getMemberId()).isEqualTo(memberId);

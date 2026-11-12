@@ -1,11 +1,9 @@
 package kr.co.deepple.community.command.domain.selfintroduction;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
 import kr.co.deepple.common.event.Events;
@@ -19,53 +17,45 @@ import lombok.NonNull;
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
-@Table(
-    name = "self_introductions",
-    indexes = @Index(name = "idx_member_id", columnList = "memberId"))
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "self_introductions")
 @SQLDelete(sql = "UPDATE self_introductions SET deleted_at = now() WHERE id = ?")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SelfIntroduction extends SoftDeleteBaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
-  @Getter private Long memberId;
+  private long memberId;
 
-  @Getter private String title;
+  private String title;
 
-  @Getter private String content;
+  private String content;
 
-  @Getter
-  @Column(name = "image_url")
   private String imageUrl;
 
-  @Getter private boolean isOpened;
+  private boolean isOpened;
 
   private SelfIntroduction(
-      @NonNull Long memberId,
-      @NonNull String title,
-      @NonNull String content,
-      String imageUrl,
-      boolean isOpened) {
-    this.isOpened = isOpened;
+      long memberId, String title, String content, String imageUrl, boolean isOpened) {
     this.memberId = memberId;
     setTitle(title);
     setContent(content);
     setImageUrl(imageUrl);
+    this.isOpened = isOpened;
   }
 
   public static SelfIntroduction write(
-      Long memberId, String title, String content, String imageUrl) {
+      long memberId, String title, String content, String imageUrl) {
     return new SelfIntroduction(memberId, title, content, imageUrl, false);
   }
 
   public static SelfIntroduction write(
-      Long memberId, String title, String content, String imageUrl, boolean isFirstWrite) {
+      long memberId, String title, String content, String imageUrl, boolean isFirstWrite) {
     SelfIntroduction selfIntroduction = write(memberId, title, content, imageUrl);
     if (isFirstWrite) {
-      Events.raise(SelfIntroductionFirstWrittenEvent.of(memberId));
+      Events.raise(SelfIntroductionFirstWrittenEvent.from(memberId));
     }
     return selfIntroduction;
   }
@@ -85,12 +75,16 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
   }
 
   private void setTitle(@NonNull String title) {
-    validateTitle(title);
+    if (title.isBlank()) {
+      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
+    }
     this.title = title;
   }
 
   private void setContent(@NonNull String content) {
-    validateContent(content);
+    if (content.isBlank() || content.length() < 30) {
+      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
+    }
     this.content = content;
   }
 
@@ -99,17 +93,5 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
       throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
     }
     this.imageUrl = imageUrl;
-  }
-
-  private void validateContent(String content) {
-    if (content.isBlank() || content.length() < 30) {
-      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
-    }
-  }
-
-  private void validateTitle(String title) {
-    if (title.isBlank()) {
-      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
-    }
   }
 }

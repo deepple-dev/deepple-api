@@ -35,7 +35,7 @@ public class SelfIntroductionQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   public List<SelfIntroductionSummaryView> findSelfIntroductions(
-      SelfIntroductionSearchCondition searchCondition, Long lastId, Long memberId) {
+      SelfIntroductionSearchCondition searchCondition, Long lastId, long memberId) {
     Set<Long> blockedIds = getBlockedIds(memberId);
 
     BooleanExpression condition = getSearchCondition(searchCondition, lastId, memberId, blockedIds);
@@ -92,7 +92,7 @@ public class SelfIntroductionQueryRepository {
   }
 
   public Optional<SelfIntroductionView> findSelfIntroductionByIdWithMemberId(
-      Long id, Long memberId) {
+      long id, long memberId) {
     EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
 
     Map<Long, SelfIntroductionView> view =

@@ -1,16 +1,14 @@
 package kr.co.deepple.notification.command.domain;
 
-import static jakarta.persistence.EnumType.STRING;
-
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.MapKeyEnumerated;
@@ -23,36 +21,35 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(
-    name = "notification_preferences",
-    indexes = {@Index(name = "idx_notification_preferences_member_id", columnList = "memberId")})
+@Table(name = "notification_preferences")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class NotificationPreference extends SoftDeleteBaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
-  @Getter private Long memberId;
+  private long memberId;
 
-  @Getter private boolean isEnabledGlobally = true;
+  private boolean isEnabledGlobally = true;
 
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(
       name = "member_notification_preferences",
       joinColumns = @JoinColumn(name = "member_id"))
-  @MapKeyEnumerated(STRING)
+  @MapKeyEnumerated(EnumType.STRING)
   @MapKeyColumn(name = "notification_type")
   @Column(name = "is_enabled")
+  @Getter(AccessLevel.NONE)
   private Map<NotificationType, Boolean> preferences = new EnumMap<>(NotificationType.class);
 
-  private NotificationPreference(Long memberId, Map<NotificationType, Boolean> preferences) {
+  private NotificationPreference(long memberId, Map<NotificationType, Boolean> preferences) {
     this.memberId = memberId;
     this.preferences = new EnumMap<>(preferences);
   }
 
-  public static NotificationPreference of(long memberId) {
+  public static NotificationPreference from(long memberId) {
     Map<NotificationType, Boolean> defaults = new EnumMap<>(NotificationType.class);
     for (NotificationType type : NotificationType.values()) {
       defaults.put(type, true);

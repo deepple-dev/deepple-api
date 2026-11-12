@@ -55,7 +55,7 @@ class IntroductionSearchConditionCombinatorTest {
             Gender.MALE.name(),
             LocalDateTime.now());
 
-    final int n = 6 - nullableCount;
+    int n = 6 - nullableCount;
     int expectedCombinationSize = 0;
     for (int i = 0; i < n; i++) {
       // When
@@ -63,7 +63,7 @@ class IntroductionSearchConditionCombinatorTest {
           IntroductionSearchConditionCombinator.generateCombinations(base, i);
 
       // Then
-      final int r = n - i;
+      int r = n - i;
       expectedCombinationSize += calculateCombinationSize(n, r);
       assertThat(combinations)
           .overridingErrorMessage(

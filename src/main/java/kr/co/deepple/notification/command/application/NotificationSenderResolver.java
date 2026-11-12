@@ -18,7 +18,7 @@ public class NotificationSenderResolver {
       return Optional.empty();
     }
 
-    var matchingSenders =
+    List<NotificationSender> matchingSenders =
         senders.stream().filter(sender -> sender.channel() == channelType).toList();
 
     if (matchingSenders.size() > 1) {

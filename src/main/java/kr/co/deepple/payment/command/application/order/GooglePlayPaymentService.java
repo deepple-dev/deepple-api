@@ -22,7 +22,7 @@ public class GooglePlayPaymentService {
   private final GooglePlayClient googlePlayClient;
   private final OrderCommandRepository orderCommandRepository;
 
-  public void verifyReceipt(String productId, String purchaseToken, Long memberId) {
+  public void verifyReceipt(String productId, String purchaseToken, long memberId) {
     ProductPurchase purchase = googlePlayClient.verifyPurchase(productId, purchaseToken);
     if (isConsumed(purchase)) {
       verifyAlreadyProcessed(purchase.getOrderId(), memberId);
@@ -51,7 +51,7 @@ public class GooglePlayPaymentService {
   }
 
   private void raiseReceiptVerifiedEvent(
-      Long memberId, String productId, ProductPurchase purchase) {
+      long memberId, String productId, ProductPurchase purchase) {
     Events.raise(
         GooglePlayReceiptVerifiedEvent.of(
             memberId,

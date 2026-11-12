@@ -1,14 +1,12 @@
 package kr.co.deepple.notification.command.domain;
 
-import static jakarta.persistence.EnumType.STRING;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
@@ -18,29 +16,24 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "notifications",
-    indexes =
-        @Index(
-            name = "idx_notifications_receiver_deleted_id",
-            columnList = "receiverId, deletedAt, id"))
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "notifications")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends SoftDeleteBaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private SenderType senderType;
 
-  private Long senderId;
+  private long senderId;
 
-  private Long receiverId;
+  private long receiverId;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private NotificationType type;
 
@@ -48,32 +41,16 @@ public class Notification extends SoftDeleteBaseEntity {
 
   private String body;
 
-  private LocalDateTime readAt = null;
+  private LocalDateTime readAt;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private NotificationStatus status;
 
   private Notification(
       SenderType senderType,
-      Long senderId,
-      Long receiverId,
-      NotificationType type,
-      String title,
-      String body) {
-    this.senderType = senderType;
-    this.senderId = senderId;
-    this.receiverId = receiverId;
-    this.type = type;
-    this.title = title;
-    this.body = body;
-    status = NotificationStatus.CREATED;
-  }
-
-  private Notification(
-      SenderType senderType,
-      Long senderId,
-      Long receiverId,
+      long senderId,
+      long receiverId,
       NotificationType type,
       String title,
       String body,
@@ -87,14 +64,15 @@ public class Notification extends SoftDeleteBaseEntity {
     this.status = status;
   }
 
-  public static Notification create(
+  public static Notification of(
       @NonNull SenderType senderType,
       long senderId,
       long receiverId,
       @NonNull NotificationType type,
       String title,
       String body) {
-    return new Notification(senderType, senderId, receiverId, type, title, body);
+    return new Notification(
+        senderType, senderId, receiverId, type, title, body, NotificationStatus.CREATED);
   }
 
   public static Notification createFailed(
@@ -113,7 +91,7 @@ public class Notification extends SoftDeleteBaseEntity {
   }
 
   public void markAsRead() {
-    if (this.readAt != null) {
+    if (readAt != null) {
       return;
     }
     readAt = LocalDateTime.now();

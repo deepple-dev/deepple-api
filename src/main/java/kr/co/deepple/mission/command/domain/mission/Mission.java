@@ -14,8 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-@Table(name = "missions")
 @Entity
+@Table(name = "missions")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Mission extends BaseEntity {
@@ -52,16 +52,28 @@ public class Mission extends BaseEntity {
       int repeatableCount,
       int rewardedHeart,
       boolean isPublic) {
-    setRequiredAttempt(requiredAttempt);
-    setRepeatableCount(repeatableCount);
-    setRewardedHeart(rewardedHeart);
+    if (requiredAttempt <= 0) {
+      throw new IllegalArgumentException(
+          "requiredAttempt는 0보다 커야 합니다. requiredAttempt=" + requiredAttempt);
+    }
+    if (repeatableCount <= 0) {
+      throw new IllegalArgumentException(
+          "repeatableCount는 0보다 커야 합니다. repeatableCount=" + repeatableCount);
+    }
+    if (rewardedHeart <= 0) {
+      throw new IllegalArgumentException(
+          "rewardedHeart는 0보다 커야 합니다. rewardedHeart=" + rewardedHeart);
+    }
     this.actionType = actionType;
     this.frequencyType = frequencyType;
     this.targetGender = targetGender;
+    this.requiredAttempt = requiredAttempt;
+    this.repeatableCount = repeatableCount;
+    this.rewardedHeart = rewardedHeart;
     this.isPublic = isPublic;
   }
 
-  public static Mission create(
+  public static Mission of(
       ActionType actionType,
       FrequencyType frequencyType,
       TargetGender targetGender,
@@ -77,41 +89,5 @@ public class Mission extends BaseEntity {
         repeatableCount,
         rewardedHeart,
         isPublic);
-  }
-
-  private void setRequiredAttempt(int requiredAttempt) {
-    validateRequiredAttempt(requiredAttempt);
-    this.requiredAttempt = requiredAttempt;
-  }
-
-  private void setRepeatableCount(int repeatableCount) {
-    validateRepeatableCount(repeatableCount);
-    this.repeatableCount = repeatableCount;
-  }
-
-  private void setRewardedHeart(int rewardedHeart) {
-    validateRewardedHearts(rewardedHeart);
-    this.rewardedHeart = rewardedHeart;
-  }
-
-  private void validateRequiredAttempt(int requiredAttempt) {
-    if (requiredAttempt <= 0) {
-      throw new IllegalArgumentException(
-          "requiredAttempt는 0보다 커야 합니다. requiredAttempt=" + requiredAttempt);
-    }
-  }
-
-  private void validateRepeatableCount(int repeatableCount) {
-    if (repeatableCount <= 0) {
-      throw new IllegalArgumentException(
-          "repeatableCount는 0보다 커야 합니다. repeatableCount=" + repeatableCount);
-    }
-  }
-
-  private void validateRewardedHearts(int rewardedHeart) {
-    if (rewardedHeart <= 0) {
-      throw new IllegalArgumentException(
-          "rewardedHeart는 0보다 커야 합니다. rewardedHeart=" + rewardedHeart);
-    }
   }
 }

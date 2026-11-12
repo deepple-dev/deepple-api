@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class HeartUsagePolicyTest {
 
@@ -16,64 +14,43 @@ class HeartUsagePolicyTest {
   class OfTest {
 
     @Test
-    @DisplayName("HeartUsagePolicy 객체를 생성하는 테스트")
+    @DisplayName("받은 값으로 HeartUsagePolicy를 만든다")
     void ofTest() {
-      // given
-      TransactionType transactionType = TransactionType.MESSAGE;
-      Gender gender = Gender.MALE;
-      HeartPriceAmount heartPriceAmount = HeartPriceAmount.from(10L);
       // when
       HeartUsagePolicy heartUsagePolicy =
-          HeartUsagePolicy.of(transactionType, gender, heartPriceAmount);
+          HeartUsagePolicy.of(TransactionType.MESSAGE, Gender.MALE, 1L);
       // then
-      assertThat(heartUsagePolicy).isNotNull();
+      assertThat(heartUsagePolicy.getTransactionType()).isEqualTo(TransactionType.MESSAGE);
+      assertThat(heartUsagePolicy.getGender()).isEqualTo(Gender.MALE);
+      assertThat(heartUsagePolicy.getPrice()).isEqualTo(1L);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"usageType is null", "gender is null", "heartPriceAmount is null"})
-    @DisplayName("of 메서드에서 필드 값이 null이면 예외를 던집니다.")
-    void ofMethodWithNullFieldThrowsException(String fieldName) {
-      // given
-      TransactionType transactionType =
-          fieldName.equals("usageType is null") ? null : TransactionType.MESSAGE;
-      Gender gender = fieldName.equals("gender is null") ? null : Gender.MALE;
-      HeartPriceAmount heartPriceAmount =
-          fieldName.equals("heartPriceAmount is null") ? null : HeartPriceAmount.from(10L);
-      // when & then
-      assertThatThrownBy(() -> HeartUsagePolicy.of(transactionType, gender, heartPriceAmount))
+    @Test
+    @DisplayName("transactionType이 null이면 예외를 던진다")
+    void throwsExceptionWhenTransactionTypeIsNull() {
+      assertThatThrownBy(() -> HeartUsagePolicy.of(null, Gender.MALE, 10L))
+          .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("gender가 null이면 예외를 던진다")
+    void throwsExceptionWhenGenderIsNull() {
+      assertThatThrownBy(() -> HeartUsagePolicy.of(TransactionType.MESSAGE, null, 10L))
           .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     @DisplayName("transaction type이 using type이 아닌 경우 예외 발생")
     void ofMethodWithNotUsingTransactionTypeThrowsException() {
-      // given
-      TransactionType transactionType = TransactionType.MISSION;
-      Gender gender = Gender.MALE;
-      HeartPriceAmount heartPriceAmount = HeartPriceAmount.from(10L);
-      // when & then
-      assertThatThrownBy(() -> HeartUsagePolicy.of(transactionType, gender, heartPriceAmount))
+      assertThatThrownBy(() -> HeartUsagePolicy.of(TransactionType.MISSION, Gender.MALE, 10L))
           .isInstanceOf(IllegalArgumentException.class);
     }
-  }
-
-  @Nested
-  @DisplayName("getTransactionType 메서드 테스트")
-  class GetTransactionTypeTest {
 
     @Test
-    @DisplayName("HeartUsagePolicy 객체의 TransactionType을 반환하는 테스트")
-    void getTransactionTypeTest() {
-      // given
-      TransactionType transactionType = TransactionType.MESSAGE;
-      Gender gender = Gender.MALE;
-      HeartPriceAmount heartPriceAmount = HeartPriceAmount.from(10L);
-      HeartUsagePolicy heartUsagePolicy =
-          HeartUsagePolicy.of(transactionType, gender, heartPriceAmount);
-      // when
-      TransactionType returnedTransactionType = heartUsagePolicy.getTransactionType();
-      // then
-      assertThat(transactionType).isEqualTo(returnedTransactionType);
+    @DisplayName("price 값이 0이면 IllegalArgumentException 발생")
+    void throwsExceptionWhenPriceIsZero() {
+      assertThatThrownBy(() -> HeartUsagePolicy.of(TransactionType.MESSAGE, Gender.MALE, 0L))
+          .isInstanceOf(IllegalArgumentException.class);
     }
   }
 }

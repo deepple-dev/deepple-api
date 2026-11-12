@@ -1,9 +1,8 @@
 package kr.co.deepple.admin.command.domain.screening;
 
-import static jakarta.persistence.EnumType.STRING;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,23 +22,23 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "screenings")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Screening extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long memberId;
+  private long memberId;
 
   private Long adminId;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private RejectionReasonType rejectionReason;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private ScreeningStatus status;
 
@@ -63,30 +62,18 @@ public class Screening extends BaseEntity {
   }
 
   public void approve(long adminId) {
-    setAdminId(adminId);
-    changeScreeningStatus(ScreeningStatus.APPROVED);
-    setRejectionReason(null);
+    this.adminId = adminId;
+    this.status = ScreeningStatus.APPROVED;
+    this.rejectionReason = null;
     Events.raise(ScreeningApprovedEvent.of(adminId, memberId));
   }
 
   public void reject(long adminId, RejectionReasonType rejectionReason) {
     validateNotApproved();
-    setAdminId(adminId);
-    changeScreeningStatus(ScreeningStatus.REJECTED);
-    setRejectionReason(rejectionReason);
-    Events.raise(ScreeningRejectedEvent.of(adminId, memberId, rejectionReason.getDescription()));
-  }
-
-  private void setAdminId(long adminId) {
     this.adminId = adminId;
-  }
-
-  private void changeScreeningStatus(ScreeningStatus status) {
-    this.status = status;
-  }
-
-  private void setRejectionReason(RejectionReasonType rejectionReason) {
+    this.status = ScreeningStatus.REJECTED;
     this.rejectionReason = rejectionReason;
+    Events.raise(ScreeningRejectedEvent.of(adminId, memberId, rejectionReason.getDescription()));
   }
 
   private void validateNotApproved() {

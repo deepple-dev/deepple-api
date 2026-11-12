@@ -47,15 +47,14 @@ public class DatingExamModifyService implements DatingExamSubmitter {
   public void submitSubject(DatingExamSubmitRequest submitRequest, long memberId) {
     DatingExamSubject subject = getDatingExamSubject(submitRequest.subjectId());
     validateSubmit(submitRequest, subject, memberId);
-    DatingExamSubmit datingExamSubmit =
-        DatingExamSubmit.from(submitRequest, answerEncoder, memberId);
+    DatingExamSubmit datingExamSubmit = DatingExamSubmit.of(submitRequest, answerEncoder, memberId);
     datingExamSubmitRepository.save(datingExamSubmit);
     updateSubmitResult(submitRequest, memberId);
     checkAndPublishAllRequiredSubjectsSubmitted(subject, memberId);
   }
 
   private void validateSubmit(
-      DatingExamSubmitRequest submitRequest, DatingExamSubject subject, Long memberId) {
+      DatingExamSubmitRequest submitRequest, DatingExamSubject subject, long memberId) {
     if (datingExamSubmitRepository.existsByMemberIdAndSubjectId(
         memberId, submitRequest.subjectId())) {
       throw new DeeppleException(
@@ -67,7 +66,7 @@ public class DatingExamModifyService implements DatingExamSubmitter {
     DatingExamSubmitRequestValidator.validateSubmit(submitRequest, validDatingExamInfo);
   }
 
-  private DatingExamSubject getDatingExamSubject(Long subjectId) {
+  private DatingExamSubject getDatingExamSubject(long subjectId) {
     return datingExamSubjectRepository
         .findById(subjectId)
         .orElseThrow(() ->
@@ -76,13 +75,13 @@ public class DatingExamModifyService implements DatingExamSubmitter {
   }
 
   private void checkAndPublishAllRequiredSubjectsSubmitted(
-      DatingExamSubject subject, Long memberId) {
+      DatingExamSubject subject, long memberId) {
     if (subject.isRequired() == false) {
       return;
     }
 
     if (isAllRequiredSubjectsSubmitted(memberId)) {
-      Events.raise(AllRequiredSubjectSubmittedEvent.of(memberId));
+      Events.raise(AllRequiredSubjectSubmittedEvent.from(memberId));
     }
   }
 
@@ -101,19 +100,18 @@ public class DatingExamModifyService implements DatingExamSubmitter {
     DatingExamSubmitResult result =
         datingExamSubmitResultRepository
             .findByMemberIdForUpdate(memberId)
-            .orElseGet(() -> DatingExamSubmitResult.create(memberId));
+            .orElseGet(() -> DatingExamSubmitResult.from(memberId));
     result.addCounts(counts);
     datingExamSubmitResultRepository.save(result);
   }
 
-  private boolean isAllRequiredSubjectsSubmitted(Long memberId) {
+  private boolean isAllRequiredSubjectsSubmitted(long memberId) {
     Set<DatingExamSubject> requiredSubjects =
         datingExamSubjectRepository.findAllByType(SubjectType.REQUIRED);
     Set<DatingExamSubmit> submits = datingExamSubmitRepository.findAllByMemberId(memberId);
 
     return requiredSubjects.stream()
         .allMatch(requiredSubject ->
-            submits.stream()
-                .anyMatch(submit -> submit.getSubjectId().equals(requiredSubject.getId())));
+            submits.stream().anyMatch(submit -> submit.getSubjectId() == requiredSubject.getId()));
   }
 }

@@ -18,24 +18,11 @@ class DatingExamAnswerTest {
     AnswerPersonalityType personalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamAnswer.create(questionId, nullContent, personalityType))
+    assertThatThrownBy(() -> DatingExamAnswer.of(questionId, nullContent, personalityType))
         .isInstanceOf(NullPointerException.class);
 
-    assertThatThrownBy(() -> DatingExamAnswer.create(questionId, emptyContent, personalityType))
+    assertThatThrownBy(() -> DatingExamAnswer.of(questionId, emptyContent, personalityType))
         .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  @DisplayName("questionId이 null인 경우 예외가 발생한다.")
-  void createWithNullQuestionId() {
-    // Given
-    String content = "Valid Answer Content";
-    Long nullQuestionId = null;
-    AnswerPersonalityType personalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
-
-    // When & Then
-    assertThatThrownBy(() -> DatingExamAnswer.create(nullQuestionId, content, personalityType))
-        .isInstanceOf(NullPointerException.class);
   }
 
   @Test
@@ -47,7 +34,7 @@ class DatingExamAnswerTest {
     AnswerPersonalityType nullPersonalityType = null;
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamAnswer.create(questionId, content, nullPersonalityType))
+    assertThatThrownBy(() -> DatingExamAnswer.of(questionId, content, nullPersonalityType))
         .isInstanceOf(NullPointerException.class);
   }
 
@@ -60,7 +47,7 @@ class DatingExamAnswerTest {
     AnswerPersonalityType personalityType = AnswerPersonalityType.DEVOTED_ROMANTIC;
 
     // When
-    DatingExamAnswer answer = DatingExamAnswer.create(questionId, content, personalityType);
+    DatingExamAnswer answer = DatingExamAnswer.of(questionId, content, personalityType);
 
     // Then
     assertThat(answer.getQuestionId()).isEqualTo(questionId);

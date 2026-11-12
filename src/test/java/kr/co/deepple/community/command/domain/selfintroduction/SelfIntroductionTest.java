@@ -64,7 +64,7 @@ public class SelfIntroductionTest {
       SelfIntroduction.write(memberId, title, content, null, true);
 
       // Then
-      mockedEvents.verify(() -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.of(memberId))));
+      mockedEvents.verify(() -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.from(memberId))));
     }
   }
 

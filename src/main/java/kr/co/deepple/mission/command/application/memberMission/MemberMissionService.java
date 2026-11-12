@@ -29,7 +29,7 @@ public class MemberMissionService {
   private final MemberCommandRepository memberCommandRepository;
 
   @Transactional
-  public boolean executeMissionsByAction(Long memberId, String actionType) {
+  public boolean executeMissionsByAction(long memberId, String actionType) {
     Member member = getMember(memberId);
     validateMember(member);
 
@@ -44,7 +44,7 @@ public class MemberMissionService {
       if (!memberMission.isCompleted()) {
         memberMission.countPlus(mission.getRequiredAttempt(), mission.getRepeatableCount());
         Events.raise(
-            MemberMissionCompletedEvent.from(
+            MemberMissionCompletedEvent.of(
                 member.getId(),
                 member.getProfile().getNickname().getValue(),
                 mission.getRewardedHeart(),
@@ -68,27 +68,27 @@ public class MemberMissionService {
     return Stream.concat(mission.stream(), allGenderMission.stream()).toList();
   }
 
-  private Member getMember(Long memberId) {
+  private Member getMember(long memberId) {
     return memberCommandRepository
         .findById(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
   }
 
-  private MemberMission createOrFindByMemberIdAndMissionId(Long memberId, Long missionId) {
+  private MemberMission createOrFindByMemberIdAndMissionId(long memberId, long missionId) {
     return memberMissionCommandRepository
         .findByMemberIdAndMissionId(memberId, missionId)
         .orElseGet(() -> create(memberId, missionId));
   }
 
-  private MemberMission createOrFindByMemberIdAndMissionIdOnToday(Long memberId, Long missionId) {
+  private MemberMission createOrFindByMemberIdAndMissionIdOnToday(long memberId, long missionId) {
     return memberMissionCommandRepository
         .findByMemberIdAndMissionIdOnToday(memberId, missionId)
         .orElseGet(() -> create(memberId, missionId));
   }
 
-  private MemberMission create(Long memberId, Long missionId) {
-    return memberMissionCommandRepository.save(MemberMission.create(memberId, missionId));
+  private MemberMission create(long memberId, long missionId) {
+    return memberMissionCommandRepository.save(MemberMission.of(memberId, missionId));
   }
 
   private void validateMember(Member member) {

@@ -5,9 +5,10 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 @MappedSuperclass
+@Getter
 public abstract class SoftDeleteBaseEntity extends BaseEntity {
 
-  @Getter private LocalDateTime deletedAt;
+  private LocalDateTime deletedAt;
 
   public void delete() {
     if (deletedAt == null) {
@@ -16,6 +17,6 @@ public abstract class SoftDeleteBaseEntity extends BaseEntity {
   }
 
   public boolean isDeleted() {
-    return this.deletedAt != null;
+    return deletedAt != null;
   }
 }

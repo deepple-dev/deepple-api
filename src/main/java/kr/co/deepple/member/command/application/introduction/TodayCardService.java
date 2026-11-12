@@ -42,7 +42,7 @@ public class TodayCardService {
             .map(MemberIntroduction::getIntroducedMemberId)
             .collect(Collectors.toSet());
 
-    final Set<Long> introductionTargetMemberIds =
+    Set<Long> introductionTargetMemberIds =
         todayCardMemberIds.stream()
             .filter(introducedMemberId -> !memberIntroductions.contains(introducedMemberId))
             .collect(Collectors.toSet());

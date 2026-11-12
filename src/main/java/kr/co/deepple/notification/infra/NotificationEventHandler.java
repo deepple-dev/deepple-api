@@ -54,7 +54,7 @@ public class NotificationEventHandler {
       value = MatchAcceptedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleMatchAcceptedEvent(MatchAcceptedEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
             event.getResponderId(),
@@ -70,7 +70,7 @@ public class NotificationEventHandler {
       value = MatchRejectedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleMatchRejectedEvent(MatchRejectedEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
             event.getResponderId(),
@@ -134,7 +134,7 @@ public class NotificationEventHandler {
       value = WarningIssuedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleWarningIssuedEvent(WarningIssuedEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
             event.getAdminId(),
@@ -148,7 +148,7 @@ public class NotificationEventHandler {
   @Async
   @TransactionalEventListener(value = LikeSentEvent.class, phase = TransactionPhase.AFTER_COMMIT)
   public void handleLikeSentEvent(LikeSentEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
             event.getSenderId(),
@@ -164,7 +164,7 @@ public class NotificationEventHandler {
       value = ScreeningApprovedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleScreeningApprovedEvent(ScreeningApprovedEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
             event.getAdminId(),
@@ -180,7 +180,7 @@ public class NotificationEventHandler {
       value = ScreeningRejectedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleScreeningRejectedEvent(ScreeningRejectedEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
             event.getAdminId(),
@@ -196,7 +196,7 @@ public class NotificationEventHandler {
       value = AdminHeartGrantedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleAdminHeartGrantedEvent(AdminHeartGrantedEvent event) {
-    var request =
+    NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
             event.getAdminId(),

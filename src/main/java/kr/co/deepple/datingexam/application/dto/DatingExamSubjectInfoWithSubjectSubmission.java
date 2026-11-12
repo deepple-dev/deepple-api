@@ -18,7 +18,7 @@ public record DatingExamSubjectInfoWithSubjectSubmission(
         subjectInfo.id(),
         subjectInfo.type(),
         subjectInfo.name(),
-        submits.stream().anyMatch(submit -> submit.getSubjectId().equals(subjectInfo.id())),
+        submits.stream().anyMatch(submit -> submit.getSubjectId() == subjectInfo.id()),
         subjectInfo.questions());
   }
 }

@@ -1,10 +1,9 @@
 package kr.co.deepple.admin.command.domain.admin;
 
-import static jakarta.persistence.EnumType.STRING;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,58 +21,46 @@ import lombok.NonNull;
 
 @Entity
 @Table(name = "admins")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Admin extends SoftDeleteBaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
-  @Embedded @Getter private Email email;
+  @Embedded private Email email;
 
-  @Embedded @Getter private Password password;
+  @Embedded private Password password;
 
-  @Embedded @Getter private Name name;
+  @Embedded private Name name;
 
-  @Embedded @Getter private PhoneNumber phoneNumber;
+  @Embedded private PhoneNumber phoneNumber;
 
   private String comment;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private AdminRole role;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private ApprovalStatus approvalStatus;
 
   @Builder
   private Admin(
-      Email email, Password password, Name name, PhoneNumber phoneNumber, String comment) {
-    setEmail(email);
-    setPassword(password);
-    setName(name);
-    setPhoneNumber(phoneNumber);
+      @NonNull Email email,
+      @NonNull Password password,
+      @NonNull Name name,
+      @NonNull PhoneNumber phoneNumber,
+      String comment) {
+    this.email = email;
+    this.password = password;
+    this.name = name;
+    this.phoneNumber = phoneNumber;
     this.comment = comment;
     this.role = AdminRole.ADMIN;
     this.approvalStatus = ApprovalStatus.PENDING;
-  }
-
-  private void setEmail(@NonNull Email email) {
-    this.email = email;
-  }
-
-  private void setPassword(@NonNull Password password) {
-    this.password = password;
-  }
-
-  private void setName(@NonNull Name name) {
-    this.name = name;
-  }
-
-  private void setPhoneNumber(@NonNull PhoneNumber phoneNumber) {
-    this.phoneNumber = phoneNumber;
   }
 
   public void matchPassword(String rawPassword, PasswordHasher passwordHasher) {

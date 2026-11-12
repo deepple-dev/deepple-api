@@ -28,7 +28,7 @@ public class Region {
     this.district = district;
   }
 
-  public static Region of(District district) {
+  public static Region from(District district) {
     if (district == null) {
       return null;
     }

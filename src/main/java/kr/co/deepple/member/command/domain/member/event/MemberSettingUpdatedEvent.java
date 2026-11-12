@@ -2,10 +2,11 @@ package kr.co.deepple.member.command.domain.member.event;
 
 import java.util.Map;
 import kr.co.deepple.common.event.Event;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class MemberSettingUpdatedEvent extends Event {
 

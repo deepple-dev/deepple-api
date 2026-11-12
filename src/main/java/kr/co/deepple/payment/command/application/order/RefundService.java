@@ -80,7 +80,7 @@ public class RefundService {
       Order order,
       String productId,
       int quantity,
-      Long refundAmount,
+      long refundAmount,
       NotificationType notificationType) {
     RefundDetail refundDetail = RefundDetail.of(productId, quantity, refundAmount);
     Refund refund =

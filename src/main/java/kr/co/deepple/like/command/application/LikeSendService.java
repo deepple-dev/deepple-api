@@ -37,19 +37,19 @@ public class LikeSendService {
           LikeErrorCode.LIKE_ALREADY_EXISTS, "senderId=" + senderId + ", receiverId=" + receiverId);
     }
 
-    var sender =
+    Member sender =
         memberCommandRepository
             .findById(senderId)
             .orElseThrow(() ->
                 new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + senderId));
-    var receiver =
+    Member receiver =
         memberCommandRepository
             .findById(receiverId)
             .orElseThrow(() ->
                 new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + receiverId));
     validateMember(sender, receiver);
 
-    var like = Like.of(senderId, receiverId, toLikeLevel(request.likeLevel()));
+    Like like = Like.of(senderId, receiverId, toLikeLevel(request.likeLevel()));
     likeCommandRepository.save(like);
 
     boolean hasProcessedMission =

@@ -24,7 +24,7 @@ public class DatingExamSubjectFixture {
   }
 
   public DatingExamSubject build() {
-    DatingExamSubject subject = DatingExamSubject.create(name, type);
+    DatingExamSubject subject = DatingExamSubject.of(name, type);
     setField(subject, "id", id);
     setField(subject, "isPublic", publicSubject);
     return subject;

@@ -6,15 +6,15 @@ import java.util.Optional;
 public interface ProfileImageCommandRepository {
   ProfileImage save(ProfileImage profileImage);
 
-  boolean existsByMemberIdAndIsPrimary(Long memberId);
+  boolean existsByMemberIdAndIsPrimary(long memberId);
 
   void saveAll(List<ProfileImage> profileImages);
 
-  Optional<ProfileImage> findById(Long id);
+  Optional<ProfileImage> findById(long id);
 
   void delete(ProfileImage profileImage);
 
-  List<ProfileImage> findByMemberId(Long memberId);
+  List<ProfileImage> findByMemberId(long memberId);
 
-  void deleteByMemberId(Long memberId);
+  void deleteByMemberId(long memberId);
 }

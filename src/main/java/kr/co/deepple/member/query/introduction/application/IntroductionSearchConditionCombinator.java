@@ -16,9 +16,9 @@ public final class IntroductionSearchConditionCombinator {
   private static final Set<String> EMPTY_SET = Collections.emptySet();
 
   public static List<IntroductionSearchCondition> generateCombinations(
-      IntroductionSearchCondition base, final int maxNoneSelectableCount) {
+      IntroductionSearchCondition base, int maxNoneSelectableCount) {
     List<List<Object>> fieldOptions = getFieldOptions(base);
-    final int selectionLimit = calculateSelectionLimit(fieldOptions, maxNoneSelectableCount);
+    int selectionLimit = calculateSelectionLimit(fieldOptions, maxNoneSelectableCount);
     List<List<Object>> combinations = cartesianProduct(fieldOptions, selectionLimit);
     return getConditions(combinations, base);
   }
@@ -35,7 +35,7 @@ public final class IntroductionSearchConditionCombinator {
   }
 
   private static int calculateSelectionLimit(
-      List<List<Object>> fieldOptions, final int maxNoneSelectableCount) {
+      List<List<Object>> fieldOptions, int maxNoneSelectableCount) {
     int maxSelectable = (int) fieldOptions.stream().filter(opts -> opts.size() > 1).count();
     return Math.max(0, maxSelectable - maxNoneSelectableCount);
   }
@@ -79,14 +79,14 @@ public final class IntroductionSearchConditionCombinator {
   @SuppressWarnings("unchecked")
   private static IntroductionSearchCondition toCondition(
       List<Object> values, IntroductionSearchCondition base) {
-    final AgeRange ageRange = (AgeRange) values.get(0);
-    final Integer minAge = ageRange != null ? ageRange.getMinAge() : null;
-    final Integer maxAge = ageRange != null ? ageRange.getMaxAge() : null;
-    final Set<String> cities = (Set<String>) values.get(1);
-    final String religion = (String) values.get(2);
-    final Set<String> hobbies = (Set<String>) values.get(3);
-    final String smokingStatus = (String) values.get(4);
-    final String drinkingStatus = (String) values.get(5);
+    AgeRange ageRange = (AgeRange) values.get(0);
+    Integer minAge = ageRange != null ? ageRange.getMinAge() : null;
+    Integer maxAge = ageRange != null ? ageRange.getMaxAge() : null;
+    Set<String> cities = (Set<String>) values.get(1);
+    String religion = (String) values.get(2);
+    Set<String> hobbies = (Set<String>) values.get(3);
+    String smokingStatus = (String) values.get(4);
+    String drinkingStatus = (String) values.get(5);
 
     return IntroductionSearchCondition.of(
         base.getExcludedMemberIds(),

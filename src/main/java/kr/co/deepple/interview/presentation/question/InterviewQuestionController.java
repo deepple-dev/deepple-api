@@ -40,7 +40,7 @@ public class InterviewQuestionController {
   @Operation(summary = "인터뷰 질문 상세 조회 API")
   @GetMapping("/{id}")
   public ResponseEntity<InterviewQuestionView> getQuestionById(
-      @PathVariable Long id, @CurrentMemberId long memberId) {
+      @PathVariable long id, @CurrentMemberId long memberId) {
     InterviewQuestionView view =
         interviewQuestionQueryRepository
             .findQuestionByIdWithMemberId(id, memberId)

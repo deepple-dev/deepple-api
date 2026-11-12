@@ -29,7 +29,7 @@ class NotificationTest {
     String body = "테스트 본문";
 
     // when
-    var notification = Notification.create(senderType, senderId, receiverId, type, title, body);
+    var notification = Notification.of(senderType, senderId, receiverId, type, title, body);
 
     // then
     assertThat(notification).isNotNull();

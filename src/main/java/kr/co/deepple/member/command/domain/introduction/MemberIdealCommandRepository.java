@@ -4,7 +4,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberIdealCommandRepository extends JpaRepository<MemberIdeal, Long> {
-  Optional<MemberIdeal> findByMemberId(Long memberId);
+  Optional<MemberIdeal> findByMemberId(long memberId);
 
   boolean existsByMemberId(long memberId);
 }

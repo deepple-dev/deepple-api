@@ -39,7 +39,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
     entityManager.flush();
 
     // when
-    final Page<AdminHeartTransactionView> result =
+    Page<AdminHeartTransactionView> result =
         adminHeartTransactionQueryRepository.findPage(condition, pageRequest);
 
     // then
@@ -81,7 +81,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
     entityManager.flush();
 
     // when
-    final Page<AdminHeartTransactionView> result =
+    Page<AdminHeartTransactionView> result =
         adminHeartTransactionQueryRepository.findPage(condition, pageRequest);
 
     // then
@@ -115,7 +115,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
     entityManager.flush();
 
     // when
-    final Page<AdminHeartTransactionView> result =
+    Page<AdminHeartTransactionView> result =
         adminHeartTransactionQueryRepository.findPage(condition, pageRequest);
 
     // then
@@ -151,9 +151,9 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
     entityManager.flush();
 
     // when
-    final Page<AdminHeartTransactionView> result1 =
+    Page<AdminHeartTransactionView> result1 =
         adminHeartTransactionQueryRepository.findPage(condition1, pageRequest);
-    final Page<AdminHeartTransactionView> result2 =
+    Page<AdminHeartTransactionView> result2 =
         adminHeartTransactionQueryRepository.findPage(condition2, pageRequest);
 
     // then
@@ -184,10 +184,10 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
     PageRequest pageRequest = PageRequest.of(0, 10);
 
     // when
-    final Page<AdminHeartTransactionView> result1 =
+    Page<AdminHeartTransactionView> result1 =
         adminHeartTransactionQueryRepository.findPage(condition1, pageRequest);
 
-    final Page<AdminHeartTransactionView> result2 =
+    Page<AdminHeartTransactionView> result2 =
         adminHeartTransactionQueryRepository.findPage(condition2, pageRequest);
 
     // then
@@ -218,10 +218,10 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
     PageRequest pageRequest = PageRequest.of(0, 10);
 
     // when
-    final Page<AdminHeartTransactionView> result1 =
+    Page<AdminHeartTransactionView> result1 =
         adminHeartTransactionQueryRepository.findPage(condition1, pageRequest);
 
-    final Page<AdminHeartTransactionView> result2 =
+    Page<AdminHeartTransactionView> result2 =
         adminHeartTransactionQueryRepository.findPage(condition2, pageRequest);
 
     // then

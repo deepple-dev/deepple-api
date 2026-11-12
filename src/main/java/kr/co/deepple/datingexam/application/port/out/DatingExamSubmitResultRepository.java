@@ -9,11 +9,11 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 public interface DatingExamSubmitResultRepository extends Repository<DatingExamSubmitResult, Long> {
-  Optional<DatingExamSubmitResult> findByMemberId(Long memberId);
+  Optional<DatingExamSubmitResult> findByMemberId(long memberId);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT r FROM DatingExamSubmitResult r WHERE r.memberId = :memberId")
-  Optional<DatingExamSubmitResult> findByMemberIdForUpdate(@Param("memberId") Long memberId);
+  Optional<DatingExamSubmitResult> findByMemberIdForUpdate(@Param("memberId") long memberId);
 
   DatingExamSubmitResult save(DatingExamSubmitResult result);
 }

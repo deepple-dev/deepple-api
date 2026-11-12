@@ -1,7 +1,10 @@
 package kr.co.deepple.heart.domain;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum TransactionType {
   MISSION("미션 완료"),
   MESSAGE("메시지 보내기"),
@@ -13,11 +16,7 @@ public enum TransactionType {
   ADMIN_GRANT("관리자 지급"),
   REFUND("하트 환불");
 
-  @Getter private final String description;
-
-  TransactionType(String description) {
-    this.description = description;
-  }
+  private final String description;
 
   public boolean isUsingType() {
     return this == MESSAGE

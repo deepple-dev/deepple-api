@@ -121,7 +121,7 @@ public class MemberAuthService {
     authMessageService.sendAndSaveCode(phoneNumber);
   }
 
-  private Member getMemberById(Long memberId) {
+  private Member getMemberById(long memberId) {
     return memberCommandRepository
         .findById(memberId)
         .orElseThrow(
@@ -177,7 +177,7 @@ public class MemberAuthService {
     }
   }
 
-  private LocalDateTime getTemporarySuspensionExpireAt(Long memberId) {
+  private LocalDateTime getTemporarySuspensionExpireAt(long memberId) {
     Optional<Suspension> optionalSuspension =
         suspensionRepository.findByMemberIdAndStatusOrderByExpireAtDesc(
             memberId, SuspensionStatus.TEMPORARY);

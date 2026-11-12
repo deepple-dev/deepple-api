@@ -31,7 +31,7 @@ public class MissionFixture {
 
   public Mission build() {
     Mission mission =
-        Mission.create(
+        Mission.of(
             actionType,
             frequencyType,
             targetGender,

@@ -8,13 +8,13 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class SelfIntroductionFirstWrittenEvent extends Event {
 
-  private final Long memberId;
+  private final long memberId;
 
-  private SelfIntroductionFirstWrittenEvent(Long memberId) {
+  private SelfIntroductionFirstWrittenEvent(long memberId) {
     this.memberId = memberId;
   }
 
-  public static SelfIntroductionFirstWrittenEvent of(Long memberId) {
+  public static SelfIntroductionFirstWrittenEvent from(long memberId) {
     return new SelfIntroductionFirstWrittenEvent(memberId);
   }
 }

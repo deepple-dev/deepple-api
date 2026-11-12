@@ -62,7 +62,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     var senderId = senders.getFirst().getId();
     var expectedLikes =
         likes.stream()
-            .filter(like -> like.getSenderId().equals(senderId))
+            .filter(like -> like.getSenderId() == senderId)
             .sorted(Comparator.comparing(Like::getId).reversed())
             .limit(PAGE_SIZE)
             .toList();
@@ -106,7 +106,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     var receiverId = receivers.getFirst().getId();
     var expectedLikes =
         likes.stream()
-            .filter(like -> like.getReceiverId().equals(receiverId))
+            .filter(like -> like.getReceiverId() == receiverId)
             .sorted(Comparator.comparing(Like::getId).reversed())
             .limit(PAGE_SIZE)
             .toList();
@@ -157,8 +157,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
 
     var expectedLikes =
         likes.stream()
-            .filter(like -> like.getSenderId().equals(senderId))
-            .filter(like -> !like.getReceiverId().equals(blockedMemberId))
+            .filter(like -> like.getSenderId() == senderId)
+            .filter(like -> like.getReceiverId() != blockedMemberId)
             .sorted(Comparator.comparing(Like::getId).reversed())
             .limit(PAGE_SIZE)
             .toList();
@@ -187,8 +187,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
 
     var expectedLikes =
         likes.stream()
-            .filter(like -> like.getReceiverId().equals(receiverId))
-            .filter(like -> !like.getSenderId().equals(blockedMemberId))
+            .filter(like -> like.getReceiverId() == receiverId)
+            .filter(like -> like.getSenderId() != blockedMemberId)
             .sorted(Comparator.comparing(Like::getId).reversed())
             .limit(PAGE_SIZE)
             .toList();
@@ -210,7 +210,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     var senderId = senders.getFirst().getId();
     var allLikes =
         likes.stream()
-            .filter(like -> like.getSenderId().equals(senderId))
+            .filter(like -> like.getSenderId() == senderId)
             .sorted(Comparator.comparing(Like::getId).reversed())
             .toList();
 
@@ -242,7 +242,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     var receiverId = receivers.getFirst().getId();
     var allLikes =
         likes.stream()
-            .filter(like -> like.getReceiverId().equals(receiverId))
+            .filter(like -> like.getReceiverId() == receiverId)
             .sorted(Comparator.comparing(Like::getId).reversed())
             .toList();
 
@@ -311,8 +311,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
 
   private void createSenderToReceiverLikes() {
     likes = new ArrayList<>();
-    for (final Member sender : senders) {
-      for (final Member receiver : receivers) {
+    for (Member sender : senders) {
+      for (Member receiver : receivers) {
         var like =
             LikeFixture.builder()
                 .senderId(sender.getId())
@@ -326,8 +326,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
   }
 
   private void createReceiverToSenderLikes() {
-    for (final Member receiver : receivers) {
-      for (final Member sender : senders) {
+    for (Member receiver : receivers) {
+      for (Member sender : senders) {
         if (sender.getId() % 2 == 0) {
           continue;
         }

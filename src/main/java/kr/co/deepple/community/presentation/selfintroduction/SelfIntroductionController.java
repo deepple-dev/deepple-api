@@ -59,7 +59,7 @@ public class SelfIntroductionController {
   @Operation(summary = "셀프 소개 수정 API")
   @PatchMapping("/{id}")
   public ResponseEntity<Void> update(
-      @PathVariable Long id,
+      @PathVariable long id,
       @RequestBody @Valid SelfIntroductionWriteRequest request,
       @CurrentMemberId long memberId) {
     selfIntroductionService.update(request, memberId, id);
@@ -68,7 +68,7 @@ public class SelfIntroductionController {
 
   @Operation(summary = "셀프 소개 삭제 API")
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id, @CurrentMemberId long memberId) {
+  public ResponseEntity<Void> delete(@PathVariable long id, @CurrentMemberId long memberId) {
     selfIntroductionService.delete(id, memberId);
     return ResponseEntity.noContent().build();
   }
@@ -98,7 +98,7 @@ public class SelfIntroductionController {
   @Operation(summary = "셀프 소개 상세 조회 API")
   @GetMapping("/{id}")
   public ResponseEntity<SelfIntroductionView> getIntroduction(
-      @PathVariable Long id, @CurrentMemberId long memberId) {
+      @PathVariable long id, @CurrentMemberId long memberId) {
     SelfIntroductionView view =
         selfIntroductionQueryRepository
             .findSelfIntroductionByIdWithMemberId(id, memberId)

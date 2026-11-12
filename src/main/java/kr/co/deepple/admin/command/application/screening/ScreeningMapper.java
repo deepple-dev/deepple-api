@@ -1,13 +1,12 @@
 package kr.co.deepple.admin.command.application.screening;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import kr.co.deepple.admin.command.domain.AdminErrorCode;
 import kr.co.deepple.admin.command.domain.screening.RejectionReasonType;
 import kr.co.deepple.common.exception.DeeppleException;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ScreeningMapper {
 
   public static RejectionReasonType toRejectionReasonType(String rejectionReason) {

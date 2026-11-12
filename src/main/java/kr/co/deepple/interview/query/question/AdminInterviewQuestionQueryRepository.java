@@ -43,7 +43,7 @@ public class AdminInterviewQuestionQueryRepository {
     return new PageImpl<>(content, pageable, totalCount);
   }
 
-  public Optional<AdminInterviewQuestionView> findAdminInterviewQuestionById(Long id) {
+  public Optional<AdminInterviewQuestionView> findAdminInterviewQuestionById(long id) {
     return Optional.ofNullable(
         queryFactory
             .select(

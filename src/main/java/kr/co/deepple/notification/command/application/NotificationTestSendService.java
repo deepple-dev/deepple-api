@@ -18,7 +18,7 @@ public class NotificationTestSendService {
   private final NotificationSendService notificationSendService;
 
   public void send(long memberId, NotificationTestSendRequest request) {
-    var sendRequest =
+    NotificationSendRequest sendRequest =
         new NotificationSendRequest(
             requireNonNullElse(request.senderType(), SenderType.MEMBER),
             requireNonNullElse(request.senderId(), memberId),

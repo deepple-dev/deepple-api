@@ -16,7 +16,7 @@ public class MatchRespondedEvent extends Event {
   private final String contactType;
 
   public static MatchRespondedEvent of(
-      Long requesterId, Long responderId, MatchStatus matchStatus, String contactType) {
+      long requesterId, long responderId, MatchStatus matchStatus, String contactType) {
     return new MatchRespondedEvent(requesterId, responderId, matchStatus.toString(), contactType);
   }
 }

@@ -17,23 +17,11 @@ class DatingExamQuestionTest {
     String emptyContent = "";
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamQuestion.create(subjectId, nullContent))
+    assertThatThrownBy(() -> DatingExamQuestion.of(subjectId, nullContent))
         .isInstanceOf(NullPointerException.class);
 
-    assertThatThrownBy(() -> DatingExamQuestion.create(subjectId, emptyContent))
+    assertThatThrownBy(() -> DatingExamQuestion.of(subjectId, emptyContent))
         .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  @DisplayName("subjectId이 null인 경우 예외가 발생한다.")
-  void createWithNullSubjectId() {
-    // Given
-    String content = "Valid Question Content";
-    Long nullSubjectId = null;
-
-    // When & Then
-    assertThatThrownBy(() -> DatingExamQuestion.create(nullSubjectId, content))
-        .isInstanceOf(NullPointerException.class);
   }
 
   @Test
@@ -44,7 +32,7 @@ class DatingExamQuestionTest {
     String content = "Valid Question Content";
 
     // When
-    DatingExamQuestion question = DatingExamQuestion.create(subjectId, content);
+    DatingExamQuestion question = DatingExamQuestion.of(subjectId, content);
 
     // Then
     assertThat(question.getSubjectId()).isEqualTo(subjectId);

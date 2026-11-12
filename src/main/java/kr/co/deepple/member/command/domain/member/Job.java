@@ -3,8 +3,10 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum Job {
   RESEARCH_AND_ENGINEERING("연구개발/엔지니어"),
   SELF_EMPLOYMENT("개인사업/자영업"),
@@ -28,10 +30,6 @@ public enum Job {
   OTHERS("기타");
 
   private final String description;
-
-  Job(String description) {
-    this.description = description;
-  }
 
   public static Job from(String value) {
     if (value == null) {

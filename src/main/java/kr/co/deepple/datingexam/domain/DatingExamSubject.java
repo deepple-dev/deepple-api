@@ -1,26 +1,27 @@
 package kr.co.deepple.datingexam.domain;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
-import static lombok.AccessLevel.PROTECTED;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@NoArgsConstructor(access = PROTECTED)
+@Table(name = "dating_exam_subject")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DatingExamSubject extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = IDENTITY)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(nullable = false)
@@ -32,28 +33,20 @@ public class DatingExamSubject extends BaseEntity {
 
   private boolean isPublic;
 
-  private DatingExamSubject(String name, SubjectType type) {
-    setName(name);
-    setType(type);
+  private DatingExamSubject(@NonNull String name, @NonNull SubjectType type) {
+    if (name.isBlank()) {
+      throw new IllegalArgumentException("과목 이름은 비어 있을 수 없습니다.");
+    }
+    this.name = name;
+    this.type = type;
     this.isPublic = true;
   }
 
-  public static DatingExamSubject create(String name, SubjectType type) {
+  public static DatingExamSubject of(String name, SubjectType type) {
     return new DatingExamSubject(name, type);
   }
 
-  private void setName(@NonNull String name) {
-    if (name.isBlank()) {
-      throw new IllegalArgumentException("Subject name cannot be null or blank");
-    }
-    this.name = name;
-  }
-
-  private void setType(@NonNull SubjectType type) {
-    this.type = type;
-  }
-
   public boolean isRequired() {
-    return this.type == SubjectType.REQUIRED;
+    return type == SubjectType.REQUIRED;
   }
 }

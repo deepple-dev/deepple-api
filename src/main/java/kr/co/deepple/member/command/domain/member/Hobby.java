@@ -3,8 +3,10 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum Hobby {
   TRAVEL("국내여행/해외여행"),
   PERFORMANCE_AND_EXHIBITION("공연/전시회관람"),
@@ -37,10 +39,6 @@ public enum Hobby {
   OTHERS("기타");
 
   private final String description;
-
-  Hobby(String description) {
-    this.description = description;
-  }
 
   public static Hobby from(String value) {
     if (value == null) {

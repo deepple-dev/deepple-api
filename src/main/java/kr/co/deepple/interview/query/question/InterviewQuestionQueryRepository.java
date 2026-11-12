@@ -21,7 +21,7 @@ public class InterviewQuestionQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   public List<InterviewQuestionView> findAllQuestionByCategoryWithMemberId(
-      InterviewQuestionSearchCondition condition, Long memberId) {
+      InterviewQuestionSearchCondition condition, long memberId) {
     return queryFactory
         .select(
             new QInterviewQuestionView(
@@ -43,7 +43,7 @@ public class InterviewQuestionQueryRepository {
   }
 
   public Optional<InterviewQuestionView> findQuestionByIdWithMemberId(
-      Long questionId, Long memberId) {
+      long questionId, long memberId) {
     return Optional.ofNullable(
         queryFactory
             .select(
@@ -72,7 +72,7 @@ public class InterviewQuestionQueryRepository {
     return interviewQuestion.category.eq(InterviewCategory.from(category));
   }
 
-  private BooleanExpression idEq(final long id) {
+  private BooleanExpression idEq(long id) {
     return interviewQuestion.id.eq(id);
   }
 

@@ -8,7 +8,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
@@ -31,9 +30,8 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "members",
-    indexes = {@Index(name = "idx_deleted_at", columnList = "deletedAt")})
+@Table(name = "members")
+@Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -41,37 +39,33 @@ public class Member extends SoftDeleteBaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
   @Embedded private PhoneNumber phoneNumber;
 
   @Embedded private KakaoId kakaoId;
 
-  @Embedded @Getter private MemberProfile profile;
+  @Embedded private MemberProfile profile;
 
-  @Getter private boolean isVip;
+  private boolean isVip;
 
-  @Getter @Builder.Default private boolean isProfilePublic = false;
+  @Builder.Default private boolean isProfilePublic = false;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  @Getter
   private Grade grade;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  @Getter
   private ActivityStatus activityStatus;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  @Getter
   private PrimaryContactType primaryContactType;
 
-  @Getter @Builder.Default private boolean isDatingExamSubmitted = false;
+  @Builder.Default private boolean isDatingExamSubmitted = false;
 
-  @Getter private LocalDateTime lastAccessedAt;
+  private LocalDateTime lastAccessedAt;
 
   public static Member fromPhoneNumber(@NonNull String phoneNumber) {
     return Member.builder()

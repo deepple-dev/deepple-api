@@ -16,8 +16,7 @@ public class MemberMissionCommandRepositoryImpl implements MemberMissionCommandR
   private final MemberMissionJpaRepository memberMissionJpaRepository;
 
   @Override
-  public Optional<MemberMission> findByMemberIdAndMissionId(
-      final Long memberId, final Long missionId) {
+  public Optional<MemberMission> findByMemberIdAndMissionId(long memberId, long missionId) {
     return memberMissionJpaRepository.findByMemberIdAndMissionId(memberId, missionId);
   }
 
@@ -27,8 +26,7 @@ public class MemberMissionCommandRepositoryImpl implements MemberMissionCommandR
   }
 
   @Override
-  public Optional<MemberMission> findByMemberIdAndMissionIdOnToday(
-      final Long memberId, final Long missionId) {
+  public Optional<MemberMission> findByMemberIdAndMissionIdOnToday(long memberId, long missionId) {
     LocalDate now = LocalDateTime.now().toLocalDate();
     return memberMissionJpaRepository.findByMemberIdAndMissionIdAndCreatedAtBetween(
         memberId, missionId, now.atStartOfDay(), now.atTime(LocalTime.MAX));

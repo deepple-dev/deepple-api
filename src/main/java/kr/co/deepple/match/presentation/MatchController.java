@@ -39,7 +39,7 @@ public class MatchController {
   @Operation(summary = "메시지 응답 (매칭 수락)")
   @PatchMapping("/{matchId}/approve")
   public ResponseEntity<Void> approveMatch(
-      @PathVariable Long matchId,
+      @PathVariable long matchId,
       @RequestBody MatchResponseDto matchResponseDto,
       @CurrentMemberId long memberId) {
     matchService.approve(matchId, memberId, matchResponseDto);
@@ -49,14 +49,14 @@ public class MatchController {
   @Operation(summary = "메시지 거절 (매칭 거절)")
   @PatchMapping("/{matchId}/reject")
   public ResponseEntity<Void> rejectMatch(
-      @PathVariable Long matchId, @CurrentMemberId long memberId) {
+      @PathVariable long matchId, @CurrentMemberId long memberId) {
     matchService.reject(matchId, memberId);
     return ResponseEntity.noContent().build();
   }
 
   @Operation(summary = "메시지 읽음 처리 (매칭 읽음 처리)")
   @PatchMapping("/{matchId}/check")
-  public ResponseEntity<Void> check(@PathVariable Long matchId, @CurrentMemberId long memberId) {
+  public ResponseEntity<Void> check(@PathVariable long matchId, @CurrentMemberId long memberId) {
     matchService.rejectCheck(memberId, matchId);
     return ResponseEntity.noContent().build();
   }
@@ -64,7 +64,7 @@ public class MatchController {
   @Operation(summary = "받은 매칭 메시지 읽음 처리")
   @PatchMapping("/{matchId}/read")
   public ResponseEntity<Void> readMatch(
-      @PathVariable Long matchId, @CurrentMemberId long memberId) {
+      @PathVariable long matchId, @CurrentMemberId long memberId) {
     matchService.readReceivedMatch(matchId, memberId);
     return ResponseEntity.noContent().build();
   }

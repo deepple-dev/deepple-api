@@ -1,6 +1,7 @@
 package kr.co.deepple.community.command.application.selfintroduction;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
@@ -83,7 +84,7 @@ public class SelfIntroductionServiceTest {
       verify(selfIntroductionCommandRepository)
           .save(
               argThat(selfIntroduction ->
-                  selfIntroduction.getMemberId().equals(memberId)
+                  selfIntroduction.getMemberId() == memberId
                       && selfIntroduction.getContent().equals(content)
                       && selfIntroduction.getTitle().equals(title)
                       && selfIntroduction.getImageUrl() == null));
@@ -130,7 +131,8 @@ public class SelfIntroductionServiceTest {
 
         // Then
         Assertions.assertThat(hasProcessedMission).isTrue();
-        mockedEvents.verify(() -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.of(memberId))));
+        mockedEvents.verify(
+            () -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.from(memberId))));
       }
     }
 
@@ -461,7 +463,7 @@ public class SelfIntroductionServiceTest {
 
       // Then
       Assertions.assertThat(actual).isEqualTo(expected);
-      verify(s3Uploader).getPresignedUrl(any(), any(), eq("self-introduction"));
+      verify(s3Uploader).getPresignedUrl(any(), anyLong(), eq("self-introduction"));
     }
   }
 }

@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @Getter
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class PhoneNumber {
 
   private static final String PHONE_NUMBER_REGEX = "^010\\d{8}$";

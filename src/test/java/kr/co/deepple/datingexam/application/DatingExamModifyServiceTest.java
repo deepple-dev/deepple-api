@@ -101,7 +101,7 @@ class DatingExamModifyServiceTest {
         DatingExamSubmit submit =
             DatingExamSubmitFixture.builder().memberId(memberId).subjectId(subjectId).build();
         mockedDatingExamSubmit
-            .when(() -> DatingExamSubmit.from(request, answerEncoder, memberId))
+            .when(() -> DatingExamSubmit.of(request, answerEncoder, memberId))
             .thenReturn(submit);
         mockedValidator
             .when(() -> DatingExamSubmitRequestValidator.validateSubmit(request, infoResponse))
@@ -111,8 +111,7 @@ class DatingExamModifyServiceTest {
         datingExamModifyService.submitSubject(request, memberId);
 
         // Then
-        mockedDatingExamSubmit.verify(
-            () -> DatingExamSubmit.from(request, answerEncoder, memberId));
+        mockedDatingExamSubmit.verify(() -> DatingExamSubmit.of(request, answerEncoder, memberId));
         verify(datingExamSubmitRepository).save(submit);
         verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
       }
@@ -197,7 +196,7 @@ class DatingExamModifyServiceTest {
         DatingExamSubmit submit =
             DatingExamSubmitFixture.builder().memberId(memberId).subjectId(subjectId).build();
         mockedDatingExamSubmit
-            .when(() -> DatingExamSubmit.from(request, answerEncoder, memberId))
+            .when(() -> DatingExamSubmit.of(request, answerEncoder, memberId))
             .thenReturn(submit);
         mockedValidator
             .when(() -> DatingExamSubmitRequestValidator.validateSubmit(request, infoResponse))
@@ -211,11 +210,11 @@ class DatingExamModifyServiceTest {
         datingExamModifyService.submitSubject(request, memberId);
 
         // Then
-        mockedDatingExamSubmit.verify(
-            () -> DatingExamSubmit.from(request, answerEncoder, memberId));
+        mockedDatingExamSubmit.verify(() -> DatingExamSubmit.of(request, answerEncoder, memberId));
         verify(datingExamSubmitRepository).save(submit);
         verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
-        mockedEvents.verify(() -> Events.raise(eq(AllRequiredSubjectSubmittedEvent.of(memberId))));
+        mockedEvents.verify(
+            () -> Events.raise(eq(AllRequiredSubjectSubmittedEvent.from(memberId))));
       }
     }
   }

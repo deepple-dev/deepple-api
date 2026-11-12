@@ -1,17 +1,15 @@
 package kr.co.deepple.mission.command.domain.mission;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum FrequencyType {
   DAILY("일일"),
   CHALLENGE("챌린지");
 
   private final String description;
-
-  FrequencyType(String description) {
-    this.description = description;
-  }
 
   public static FrequencyType from(String frequencyType) {
     try {

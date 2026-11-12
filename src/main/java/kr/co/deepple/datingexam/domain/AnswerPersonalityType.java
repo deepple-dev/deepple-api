@@ -1,8 +1,10 @@
 package kr.co.deepple.datingexam.domain;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum AnswerPersonalityType {
   DECISIVE_INDEPENDENT("단호한 독립주의자"),
   GROWING_RUNNING_MATE("성장하는 러닝메이트"),
@@ -17,8 +19,4 @@ public enum AnswerPersonalityType {
           + "STIMULATING_ADVENTURER: 자극모험형, RATIONAL_REALIST: 이성중심형";
 
   private final String description;
-
-  AnswerPersonalityType(String description) {
-    this.description = description;
-  }
 }

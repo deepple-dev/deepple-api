@@ -22,7 +22,7 @@ class NotificationPreferenceTest {
     long memberId = 42L;
 
     // when
-    var preference = NotificationPreference.of(memberId);
+    var preference = NotificationPreference.from(memberId);
 
     // then
     assertThat(preference.getMemberId()).isEqualTo(memberId);

@@ -19,6 +19,5 @@ paths:
 ## 작성
 
 - 조건문·반복문이 한 줄이어도 중괄호를 쓴다.
-- `var`는 오른쪽 식에서 타입이 바로 보일 때만 쓴다.
 - `long` 리터럴에는 대문자 `L`을 붙인다.
 - 생성자·getter·로거처럼 Lombok으로 대신할 수 있는 코드는 직접 쓰지 않고 Lombok을 쓴다. 테스트 코드도 같다. 예를 들어 유틸 클래스의 private 생성자는 `@NoArgsConstructor(access = AccessLevel.PRIVATE)`로 만든다.

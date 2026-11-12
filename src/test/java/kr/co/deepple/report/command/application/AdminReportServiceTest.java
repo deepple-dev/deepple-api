@@ -114,7 +114,7 @@ class AdminReportServiceTest {
       assertThatThrownBy(() -> adminReportService.updateResult(reportId, request, adminId))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_RESULT)
-          .hasMessageContaining("Invalid report result: UNKNOWN");
+          .hasMessageContaining("result=UNKNOWN");
 
       assertThat(report.getResult()).isEqualTo(PENDING);
       assertThat(report.getAdminId()).isNull();

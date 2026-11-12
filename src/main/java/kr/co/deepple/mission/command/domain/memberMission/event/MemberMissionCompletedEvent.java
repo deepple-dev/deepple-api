@@ -13,7 +13,7 @@ public class MemberMissionCompletedEvent extends Event {
   private final String memberNickname;
   private final String actionType;
 
-  public static MemberMissionCompletedEvent from(
+  public static MemberMissionCompletedEvent of(
       long memberId, String memberNickname, long rewardedHeart, String actionType) {
     return new MemberMissionCompletedEvent(memberId, rewardedHeart, memberNickname, actionType);
   }

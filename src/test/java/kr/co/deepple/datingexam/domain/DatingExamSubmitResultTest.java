@@ -18,7 +18,7 @@ class DatingExamSubmitResultTest {
     @DisplayName("초기 생성 시 모든 카운트가 0이고 dominant는 DECISIVE_INDEPENDENT이다.")
     void createWithInitialValues() {
       // When
-      DatingExamSubmitResult result = DatingExamSubmitResult.create(1L);
+      DatingExamSubmitResult result = DatingExamSubmitResult.from(1L);
 
       // Then
       assertThat(result.getMemberId()).isEqualTo(1L);

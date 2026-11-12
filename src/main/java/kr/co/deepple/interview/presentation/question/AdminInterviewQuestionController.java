@@ -42,7 +42,7 @@ public class AdminInterviewQuestionController {
   @Operation(summary = "어드민 인터뷰 질문 수정 API")
   @PatchMapping("/{id}")
   public ResponseEntity<Void> updateQuestion(
-      @PathVariable Long id, @Valid @RequestBody InterviewQuestionSaveRequest request) {
+      @PathVariable long id, @Valid @RequestBody InterviewQuestionSaveRequest request) {
     interviewQuestionService.updateQuestion(id, request);
     return ResponseEntity.noContent().build();
   }
@@ -58,7 +58,7 @@ public class AdminInterviewQuestionController {
 
   @Operation(summary = "어드민 인터뷰 상세 조회 API")
   @GetMapping("/{id}")
-  public ResponseEntity<AdminInterviewQuestionView> getQuestionById(@PathVariable Long id) {
+  public ResponseEntity<AdminInterviewQuestionView> getQuestionById(@PathVariable long id) {
     AdminInterviewQuestionView view =
         adminInterviewQuestionQueryRepository
             .findAdminInterviewQuestionById(id)

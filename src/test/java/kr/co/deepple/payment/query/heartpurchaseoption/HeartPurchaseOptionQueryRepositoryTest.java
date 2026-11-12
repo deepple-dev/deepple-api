@@ -40,7 +40,7 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
         new HeartPurchaseOptionSearchCondition(null, null, null, null);
     PageRequest pageRequest = PageRequest.of(0, 10);
 
-    final HeartPurchaseOption productId1 =
+    HeartPurchaseOption productId1 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
@@ -51,7 +51,7 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     entityManager.flush();
 
     // when
-    final Page<HeartPurchaseOptionView> result =
+    Page<HeartPurchaseOptionView> result =
         heartPurchaseOptionQueryRepository.findPage(condition, pageRequest);
 
     // then
@@ -77,14 +77,14 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
         new HeartPurchaseOptionSearchCondition("Id1", null, null, null);
     PageRequest pageRequest = PageRequest.of(0, 10);
 
-    final HeartPurchaseOption productId1 =
+    HeartPurchaseOption productId1 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
             .productId("productId1")
             .name("하트 구매 옵션 1")
             .build();
-    final HeartPurchaseOption productId2 =
+    HeartPurchaseOption productId2 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
@@ -96,7 +96,7 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     entityManager.flush();
 
     // when
-    final Page<HeartPurchaseOptionView> result =
+    Page<HeartPurchaseOptionView> result =
         heartPurchaseOptionQueryRepository.findPage(condition, pageRequest);
 
     // then
@@ -115,14 +115,14 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
         new HeartPurchaseOptionSearchCondition(null, "옵션 1", null, null);
     PageRequest pageRequest = PageRequest.of(0, 10);
 
-    final HeartPurchaseOption productId1 =
+    HeartPurchaseOption productId1 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
             .productId("productId1")
             .name("하트 구매 옵션 1")
             .build();
-    final HeartPurchaseOption productId2 =
+    HeartPurchaseOption productId2 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
@@ -134,7 +134,7 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     entityManager.flush();
 
     // when
-    final Page<HeartPurchaseOptionView> result =
+    Page<HeartPurchaseOptionView> result =
         heartPurchaseOptionQueryRepository.findPage(condition, pageRequest);
 
     // then
@@ -149,7 +149,7 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
   @DisplayName("하트 구매 옵션 페이지 조회 createdDateGoe condition 테스트")
   void findPageWithCreatedDateGoeCondition() {
     // given
-    final HeartPurchaseOption productId1 =
+    HeartPurchaseOption productId1 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
@@ -170,9 +170,9 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     PageRequest pageRequest = PageRequest.of(0, 10);
 
     // when
-    final Page<HeartPurchaseOptionView> result1 =
+    Page<HeartPurchaseOptionView> result1 =
         heartPurchaseOptionQueryRepository.findPage(condition1, pageRequest);
-    final Page<HeartPurchaseOptionView> result2 =
+    Page<HeartPurchaseOptionView> result2 =
         heartPurchaseOptionQueryRepository.findPage(condition2, pageRequest);
 
     // then
@@ -191,7 +191,7 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
   @DisplayName("하트 구매 옵션 페이지 조회 createdDateLoe condition 테스트")
   void findPageWithCreatedDateLoeCondition() {
     // given
-    final HeartPurchaseOption productId1 =
+    HeartPurchaseOption productId1 =
         HeartPurchaseOptionFixture.builder()
             .amount(100L)
             .price(1000L)
@@ -212,9 +212,9 @@ class HeartPurchaseOptionQueryRepositoryTest extends RepositoryTestSupport {
     PageRequest pageRequest = PageRequest.of(0, 10);
 
     // when
-    final Page<HeartPurchaseOptionView> result1 =
+    Page<HeartPurchaseOptionView> result1 =
         heartPurchaseOptionQueryRepository.findPage(condition1, pageRequest);
-    final Page<HeartPurchaseOptionView> result2 =
+    Page<HeartPurchaseOptionView> result2 =
         heartPurchaseOptionQueryRepository.findPage(condition2, pageRequest);
 
     // then

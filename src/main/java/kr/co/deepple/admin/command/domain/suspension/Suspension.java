@@ -1,15 +1,13 @@
 package kr.co.deepple.admin.command.domain.suspension;
 
-import static jakarta.persistence.EnumType.STRING;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.common.event.Events;
@@ -18,20 +16,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "suspensions", uniqueConstraints = @UniqueConstraint(columnNames = "memberId"))
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "suspensions")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Suspension extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long adminId;
+  private long adminId;
 
-  private Long memberId;
+  private long memberId;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private SuspensionStatus status;
 
@@ -41,7 +39,7 @@ public class Suspension extends BaseEntity {
    */
   private Instant expireAt;
 
-  private Suspension(Long adminId, Long memberId, SuspensionStatus status, Instant expireAt) {
+  private Suspension(long adminId, long memberId, SuspensionStatus status, Instant expireAt) {
     this.adminId = adminId;
     this.memberId = memberId;
     this.status = status;
@@ -63,7 +61,7 @@ public class Suspension extends BaseEntity {
   }
 
   public void changeToPermanent(long adminId) {
-    if (this.status == SuspensionStatus.PERMANENT) {
+    if (status == SuspensionStatus.PERMANENT) {
       return;
     }
     this.adminId = adminId;

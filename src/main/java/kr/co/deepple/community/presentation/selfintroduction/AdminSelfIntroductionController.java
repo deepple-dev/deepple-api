@@ -38,14 +38,14 @@ public class AdminSelfIntroductionController {
 
   @Operation(summary = "셀프 소개 공개 전환 API")
   @PatchMapping("/{id}/open")
-  public ResponseEntity<Void> updateSelfIntroductionToOpen(@PathVariable Long id) {
+  public ResponseEntity<Void> updateSelfIntroductionToOpen(@PathVariable long id) {
     selfIntroductionService.changeOpenStatus(id, true);
     return ResponseEntity.noContent().build();
   }
 
   @Operation(summary = "셀프 소개 비공개 전환 API")
   @PatchMapping("/{id}/close")
-  public ResponseEntity<Void> updateSelfIntroductionToClose(@PathVariable Long id) {
+  public ResponseEntity<Void> updateSelfIntroductionToClose(@PathVariable long id) {
     selfIntroductionService.changeOpenStatus(id, false);
     return ResponseEntity.noContent().build();
   }

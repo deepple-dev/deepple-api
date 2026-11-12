@@ -1,8 +1,10 @@
 package kr.co.deepple.heart.domain;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum TransactionSubtype {
   DIAMOND_GRADE("다이아 등급"),
   SAME_HOBBY("취미가 같아요"),
@@ -19,18 +21,11 @@ public enum TransactionSubtype {
 
   private final String description;
 
-  TransactionSubtype(String description) {
-    this.description = description;
-  }
-
   public boolean isFreeFor(TransactionType transactionType) {
-    switch (transactionType) {
-      case INTRODUCTION:
-        return this == TODAY_CARD || this == SOULMATE;
-      case MESSAGE:
-        return this == SOULMATE;
-      default:
-        return false;
-    }
+    return switch (transactionType) {
+      case INTRODUCTION -> this == TODAY_CARD || this == SOULMATE;
+      case MESSAGE -> this == SOULMATE;
+      default -> false;
+    };
   }
 }

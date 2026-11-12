@@ -18,7 +18,7 @@ public class SoulmateQueryService implements SoulmateFinder {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<Long> findSoulmateIds(Long memberId) {
+  public Set<Long> findSoulmateIds(long memberId) {
     return soulmateQueryRepository.findSameAnswerMemberIds(memberId);
   }
 }

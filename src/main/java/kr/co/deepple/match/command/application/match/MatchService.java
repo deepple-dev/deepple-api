@@ -37,7 +37,7 @@ public class MatchService {
   private final DistributedLockTemplate distributedLockTemplate;
   private final UseHeartUseCase useHeartUseCase;
 
-  public void request(Long requesterId, MatchRequestDto request) {
+  public void request(long requesterId, MatchRequestDto request) {
     long responderId = request.responderId();
     Message message = Message.from(request.requestMessage());
     MatchContactType contactType = MatchContactType.from(request.contactType());
@@ -48,7 +48,7 @@ public class MatchService {
   }
 
   private void createMatch(
-      Long requesterId, long responderId, Message message, MatchContactType contactType) {
+      long requesterId, long responderId, Message message, MatchContactType contactType) {
     if (existsMutualMatch(requesterId, responderId)) {
       throw new DeeppleException(
           MatchErrorCode.MATCH_ALREADY_EXISTS,
@@ -69,7 +69,7 @@ public class MatchService {
             String.valueOf(match.getId())));
   }
 
-  private MatchType getMatchType(Long requesterId, Long responderId) {
+  private MatchType getMatchType(long requesterId, long responderId) {
     Optional<MemberIntroduction> optionalIntroduction =
         introductionCommandRepository.findByMemberIdAndIntroducedMemberId(requesterId, responderId);
     if (optionalIntroduction.isEmpty()) {
@@ -84,7 +84,7 @@ public class MatchService {
   }
 
   @Transactional
-  public void approve(Long matchId, Long responderId, MatchResponseDto respondDto) {
+  public void approve(long matchId, long responderId, MatchResponseDto respondDto) {
     Match match = getWaitingMatchByIdAndResponderId(matchId, responderId);
     validateMatch(match);
     String responderName = findNickname(responderId);
@@ -93,7 +93,7 @@ public class MatchService {
   }
 
   @Transactional
-  public void reject(Long matchId, Long responderId) {
+  public void reject(long matchId, long responderId) {
     Match match = getWaitingMatchByIdAndResponderId(matchId, responderId);
     validateMatch(match);
     String responderName = findNickname(responderId);
@@ -101,14 +101,14 @@ public class MatchService {
   }
 
   @Transactional
-  public void rejectCheck(Long requesterId, Long matchId) {
+  public void rejectCheck(long requesterId, long matchId) {
     Match match = getRejectedMatchByIdAndRequesterId(matchId, requesterId);
     validateMatch(match);
     match.checkRejected();
   }
 
   @Transactional
-  public void readReceivedMatch(Long matchId, Long readerId) {
+  public void readReceivedMatch(long matchId, long readerId) {
     Match match =
         matchRepository
             .findByIdAndResponderId(matchId, readerId)
@@ -118,7 +118,7 @@ public class MatchService {
   }
 
   @Transactional
-  public void read(Long readerId, Long matchRequesterId, Long matchResponderId) {
+  public void read(long readerId, long matchRequesterId, long matchResponderId) {
     validateReader(readerId, matchRequesterId, matchResponderId);
     Match match =
         matchRepository
@@ -130,8 +130,8 @@ public class MatchService {
     match.read(readerId);
   }
 
-  private void validateReader(Long readerId, Long matchRequesterId, Long matchResponderId) {
-    if (!readerId.equals(matchRequesterId) && !readerId.equals(matchResponderId)) {
+  private void validateReader(long readerId, long matchRequesterId, long matchResponderId) {
+    if (readerId != matchRequesterId && readerId != matchResponderId) {
       throw new DeeppleException(
           MatchErrorCode.MATCH_ACCESS_DENIED,
           "readerId="
@@ -153,18 +153,18 @@ public class MatchService {
         .getValue();
   }
 
-  private boolean existsMutualMatch(Long requesterId, Long responderId) {
+  private boolean existsMutualMatch(long requesterId, long responderId) {
     return matchRepository.existsActiveMatchBetween(requesterId, responderId);
   }
 
-  private String generateKey(Long requesterId, Long responderId) {
+  private String generateKey(long requesterId, long responderId) {
     return LOCK_PREFIX
         + Math.max(requesterId, responderId)
         + ":"
         + Math.min(requesterId, responderId);
   }
 
-  private Match getWaitingMatchByIdAndResponderId(Long id, Long responderId) {
+  private Match getWaitingMatchByIdAndResponderId(long id, long responderId) {
     Match match =
         matchRepository
             .findByIdAndResponderId(id, responderId)
@@ -179,7 +179,7 @@ public class MatchService {
     return match;
   }
 
-  private Match getRejectedMatchByIdAndRequesterId(Long id, Long requesterId) {
+  private Match getRejectedMatchByIdAndRequesterId(long id, long requesterId) {
     Match match =
         matchRepository
             .findByIdAndRequesterId(id, requesterId)

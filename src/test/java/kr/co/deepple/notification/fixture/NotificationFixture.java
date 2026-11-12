@@ -33,7 +33,7 @@ public class NotificationFixture {
 
   public Notification build() {
     Notification notification =
-        Notification.create(senderType, senderId, receiverId, type, title, body);
+        Notification.of(senderType, senderId, receiverId, type, title, body);
     setField(notification, "id", id);
     setField(notification, "status", status);
     setField(notification, "readAt", readAt);

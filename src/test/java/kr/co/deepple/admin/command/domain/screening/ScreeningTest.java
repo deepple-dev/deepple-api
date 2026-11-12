@@ -47,7 +47,7 @@ class ScreeningTest {
     @DisplayName("PENDING 상태인 Screening을 approve하면, APPROVED 상태가 되며 거절 사유는 null이 됩니다.")
     void approvePendingScreening() {
       // given
-      final long memberId = 10L;
+      long memberId = 10L;
       Screening screening = ScreeningFixture.builder().memberId(memberId).build();
 
       // when
@@ -70,7 +70,7 @@ class ScreeningTest {
     @DisplayName("REJECTED 상태인 Screening을 approve하면, 다시 APPROVED 상태가 되며 거절 사유는 null이 됩니다.")
     void approveRejectedScreening() {
       // given
-      final long memberId = 10L;
+      long memberId = 10L;
       Screening screening =
           ScreeningFixture.builder()
               .memberId(memberId)
@@ -99,7 +99,7 @@ class ScreeningTest {
     @DisplayName("APPROVED 상태인 Screening을 다시 approve하면, 상태 변화 없이 adminId만 갱신되고 거절 사유는 여전히 null입니다.")
     void approveApprovedScreening() {
       // given
-      final long memberId = 10L;
+      long memberId = 10L;
       Screening screening =
           ScreeningFixture.builder()
               .memberId(memberId)

@@ -12,8 +12,8 @@ import lombok.NonNull;
 
 @Embeddable
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class Nickname {
 
   private static final String NICKNAME_REGEX = "^[a-zA-Z0-9가-힣]{1,10}$";

@@ -1,7 +1,10 @@
 package kr.co.deepple.member.command.domain.introduction;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
 public enum IntroductionType {
   DIAMOND_GRADE("다이아 등급"),
   SAME_HOBBY("취미가 같아요"),
@@ -14,11 +17,7 @@ public enum IntroductionType {
   IDEAL("이상형"),
   PERSONALITY("유형별 이상형");
 
-  @Getter private final String description;
-
-  IntroductionType(String description) {
-    this.description = description;
-  }
+  private final String description;
 
   public boolean isFreeIntroduction() {
     return this == TODAY_CARD || this == SOULMATE;

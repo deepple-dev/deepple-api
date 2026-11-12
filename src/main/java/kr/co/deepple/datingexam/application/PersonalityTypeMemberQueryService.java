@@ -19,7 +19,7 @@ public class PersonalityTypeMemberQueryService implements PersonalityTypeMemberF
 
   @Override
   @Transactional(readOnly = true)
-  public List<Long> findMemberIdsByDominantType(Long memberId, AnswerPersonalityType type) {
+  public List<Long> findMemberIdsByDominantType(long memberId, AnswerPersonalityType type) {
     return personalityTypeMemberQueryRepository.findMemberIdsByDominantType(memberId, type);
   }
 }

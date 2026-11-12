@@ -3,17 +3,15 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum Gender {
   MALE("남성"),
   FEMALE("여성");
 
   private final String description;
-
-  Gender(String description) {
-    this.description = description;
-  }
 
   public static Gender from(String value) {
     if (value == null) {

@@ -1,8 +1,5 @@
 package kr.co.deepple.match.command.domain.match;
 
-import static lombok.AccessLevel.PRIVATE;
-import static lombok.AccessLevel.PROTECTED;
-
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -12,7 +9,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import kr.co.deepple.common.entity.BaseEntity;
@@ -24,6 +20,7 @@ import kr.co.deepple.match.command.domain.match.event.MatchRequestCompletedEvent
 import kr.co.deepple.match.command.domain.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.command.domain.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.command.domain.match.vo.Message;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,25 +28,20 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "matches",
-    indexes = {
-      @Index(name = "idx_responder_id", columnList = "responderId"),
-      @Index(name = "idx_requester_id_responder_id", columnList = "requesterId, responderId")
-    })
-@NoArgsConstructor(access = PROTECTED)
-@AllArgsConstructor(access = PRIVATE)
-@Builder(access = PRIVATE)
+@Table(name = "matches")
 @Getter
+@Builder(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Match extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long requesterId;
+  private long requesterId;
 
-  private Long responderId;
+  private long responderId;
 
   @Embedded
   @AttributeOverride(name = "value", column = @Column(name = "request_message"))
@@ -125,11 +117,11 @@ public class Match extends BaseEntity {
     status = MatchStatus.REJECT_CHECKED;
   }
 
-  public void read(@NonNull Long readerId) {
+  public void read(long readerId) {
     if (readByResponderAt != null) {
       return;
     }
-    if (!readerId.equals(responderId)) {
+    if (readerId != responderId) {
       return;
     }
     readByResponderAt = LocalDateTime.now();

@@ -4,7 +4,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import java.time.LocalDateTime;
 
 public record HeartTransactionView(
-    Long id, LocalDateTime createdAt, String content, Long heartAmount) {
+    long id, LocalDateTime createdAt, String content, long heartAmount) {
   @QueryProjection
   public HeartTransactionView {}
 }

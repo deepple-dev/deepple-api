@@ -25,7 +25,7 @@ public class WarningService {
     if (request.isCritical()) {
       currentWarningCount += 1;
     }
-    var warning =
+    Warning warning =
         Warning.issue(
             adminId,
             memberId,

@@ -49,7 +49,7 @@ public class MemberProfileFixture {
         .gender(gender)
         .height(height)
         .mbti(mbti)
-        .region(district == null ? null : Region.of(district))
+        .region(district == null ? null : Region.from(district))
         .religion(religion)
         .smokingStatus(smokingStatus)
         .drinkingStatus(drinkingStatus)

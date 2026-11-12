@@ -57,8 +57,7 @@ public class IntroductionQueryRepository {
             .fetch());
   }
 
-  public Set<Long> findAllIntroductionMemberId(
-      IntroductionSearchCondition condition, final long limit) {
+  public Set<Long> findAllIntroductionMemberId(IntroductionSearchCondition condition, long limit) {
     JPAQuery<Long> query =
         queryFactory
             .select(member.id)

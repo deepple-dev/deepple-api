@@ -6,5 +6,5 @@ import org.springframework.data.repository.Repository;
 public interface BlockRepository extends Repository<Block, Long> {
   Block save(Block block);
 
-  boolean existsByBlockerIdAndBlockedId(Long blockerId, Long blockedId);
+  boolean existsByBlockerIdAndBlockedId(long blockerId, long blockedId);
 }
