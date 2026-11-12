@@ -2,7 +2,7 @@ package kr.co.deepple.payment.command.application.order;
 
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
+import kr.co.deepple.heart.application.port.out.HeartTransactionCommandRepository;
 import kr.co.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.infra.member.MemberCommandJpaRepository;

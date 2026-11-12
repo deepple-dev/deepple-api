@@ -2,7 +2,7 @@ package kr.co.deepple.community.command.application.profileexchange;
 
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.community.command.infra.profileexchange.ProfileExchangeJpaRepository;
-import kr.co.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
+import kr.co.deepple.heart.application.port.out.HeartTransactionCommandRepository;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
