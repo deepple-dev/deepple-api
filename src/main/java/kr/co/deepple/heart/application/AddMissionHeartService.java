@@ -10,12 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AddMissionHeartService implements AddMissionHeartUseCase {
-    private final HeartTransactor heartTransactor;
 
-    @Override
-    @Transactional
-    public void addMissionHeart(AddMissionHeartCommand command) {
-        heartTransactor.transact(command.memberId(), TransactionType.MISSION, command.actionType(), command.amount(),
-            null);
-    }
+  private final HeartTransactor heartTransactor;
+
+  @Override
+  @Transactional
+  public void addMissionHeart(AddMissionHeartCommand command) {
+    heartTransactor.transact(
+        command.memberId(), TransactionType.MISSION, command.actionType(), command.amount(), null);
+  }
 }

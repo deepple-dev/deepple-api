@@ -8,10 +8,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MatchRequestCompletedEvent extends Event {
-    private final Long requesterId;
-    private final Long responderId;
 
-    public static MatchRequestCompletedEvent of(Long requesterId, Long responderId) {
-        return new MatchRequestCompletedEvent(requesterId, responderId);
-    }
+  private final Long requesterId;
+  private final Long responderId;
+
+  public static MatchRequestCompletedEvent of(Long requesterId, Long responderId) {
+    return new MatchRequestCompletedEvent(requesterId, responderId);
+  }
 }

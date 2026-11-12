@@ -1,5 +1,9 @@
 package kr.co.deepple.heart.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 import kr.co.deepple.heart.application.dto.HeartBalanceView;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
@@ -10,45 +14,44 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class GetHeartBalanceServiceTest {
-    private static final long MEMBER_ID = 1L;
 
-    @Mock
-    private MemberHeartBalanceRepository memberHeartBalanceRepository;
+  private static final long MEMBER_ID = 1L;
 
-    @InjectMocks
-    private GetHeartBalanceService getHeartBalanceService;
+  @Mock private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
-    @Test
-    @DisplayName("보유 하트를 구매·미션·합계로 돌려준다.")
-    void returnBalance() {
-        // given
-        when(memberHeartBalanceRepository.findByMemberId(MEMBER_ID)).thenReturn(Optional.of(
-            MemberHeartBalanceFixture.builder().purchaseBalance(10L).missionBalance(5L).build()));
+  @InjectMocks private GetHeartBalanceService getHeartBalanceService;
 
-        // when
-        HeartBalanceView view = getHeartBalanceService.getHeartBalance(MEMBER_ID);
+  @Test
+  @DisplayName("보유 하트를 구매·미션·합계로 돌려준다.")
+  void returnBalance() {
+    // given
+    when(memberHeartBalanceRepository.findByMemberId(MEMBER_ID))
+        .thenReturn(
+            Optional.of(
+                MemberHeartBalanceFixture.builder()
+                    .purchaseBalance(10L)
+                    .missionBalance(5L)
+                    .build()));
 
-        // then
-        assertThat(view).isEqualTo(new HeartBalanceView(10L, 5L, 15L));
-    }
+    // when
+    HeartBalanceView view = getHeartBalanceService.getHeartBalance(MEMBER_ID);
 
-    @Test
-    @DisplayName("잔액 행이 없으면 0으로 돌려준다.")
-    void returnZeroWhenAbsent() {
-        // given
-        when(memberHeartBalanceRepository.findByMemberId(MEMBER_ID)).thenReturn(Optional.empty());
+    // then
+    assertThat(view).isEqualTo(new HeartBalanceView(10L, 5L, 15L));
+  }
 
-        // when
-        HeartBalanceView view = getHeartBalanceService.getHeartBalance(MEMBER_ID);
+  @Test
+  @DisplayName("잔액 행이 없으면 0으로 돌려준다.")
+  void returnZeroWhenAbsent() {
+    // given
+    when(memberHeartBalanceRepository.findByMemberId(MEMBER_ID)).thenReturn(Optional.empty());
 
-        // then
-        assertThat(view).isEqualTo(new HeartBalanceView(0L, 0L, 0L));
-    }
+    // when
+    HeartBalanceView view = getHeartBalanceService.getHeartBalance(MEMBER_ID);
+
+    // then
+    assertThat(view).isEqualTo(new HeartBalanceView(0L, 0L, 0L));
+  }
 }

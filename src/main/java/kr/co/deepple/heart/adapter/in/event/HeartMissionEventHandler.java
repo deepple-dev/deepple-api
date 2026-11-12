@@ -12,12 +12,14 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class HeartMissionEventHandler {
-    private final AddMissionHeartUseCase addMissionHeartUseCase;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberMissionCompletedEvent event) {
-        addMissionHeartUseCase.addMissionHeart(
-            new AddMissionHeartCommand(event.getMemberId(), event.getRewardHeartAmount(), event.getActionType()));
-    }
+  private final AddMissionHeartUseCase addMissionHeartUseCase;
+
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberMissionCompletedEvent event) {
+    addMissionHeartUseCase.addMissionHeart(
+        new AddMissionHeartCommand(
+            event.getMemberId(), event.getRewardHeartAmount(), event.getActionType()));
+  }
 }

@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum MissionErrorCode implements ErrorCode {
-    GENDER_NOT_SET(ErrorType.FAILED_PRECONDITION, "성별 설정이 필요합니다.");
+  GENDER_NOT_SET(ErrorType.FAILED_PRECONDITION, "성별 설정이 필요합니다.");
 
-    private final ErrorType type;
-    private final String message;
+  private final ErrorType type;
+  private final String message;
 }

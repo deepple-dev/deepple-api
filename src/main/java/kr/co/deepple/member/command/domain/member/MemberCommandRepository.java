@@ -5,27 +5,26 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-
 public interface MemberCommandRepository {
-    Member save(Member member);
+  Member save(Member member);
 
-    Optional<Member> findById(Long id);
+  Optional<Member> findById(Long id);
 
-    Optional<Member> findByIdForUpdate(Long id);
+  Optional<Member> findByIdForUpdate(Long id);
 
-    Optional<Member> findByPhoneNumber(String phoneNumber);
+  Optional<Member> findByPhoneNumber(String phoneNumber);
 
-    boolean existsByPhoneNumberAndIdNot(String phoneNumber, Long id);
+  boolean existsByPhoneNumberAndIdNot(String phoneNumber, Long id);
 
-    boolean existsByKakaoIdAndIdNot(String kakaoId, Long id);
+  boolean existsByKakaoIdAndIdNot(String kakaoId, Long id);
 
-    boolean existsById(Long id);
+  boolean existsById(Long id);
 
-    List<Member> findAllById(Set<Long> memberIds);
+  List<Member> findAllById(Set<Long> memberIds);
 
-    List<Member> saveAll(List<Member> members);
+  List<Member> saveAll(List<Member> members);
 
-    void deleteBefore(LocalDateTime dateTime);
+  void deleteBefore(LocalDateTime dateTime);
 
-    void updateLastAccessedAt(Long memberId, LocalDateTime accessedAt);
+  void updateLastAccessedAt(Long memberId, LocalDateTime accessedAt);
 }

@@ -1,10 +1,9 @@
 package kr.co.deepple.community.query.selfintroduction.view;
 
 import com.querydsl.core.annotations.QueryProjection;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.LocalDateTime;
+import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 
 public record SelfIntroductionSummaryView(
     Long id,
@@ -14,10 +13,10 @@ public record SelfIntroductionSummaryView(
     String content,
     String imageUrl,
     LocalDateTime createdAt,
-    @Schema(implementation = AnswerPersonalityType.class, description = AnswerPersonalityType.SCHEMA_DESCRIPTION)
-    String personalityType
-) {
-    @QueryProjection
-    public SelfIntroductionSummaryView {
-    }
+    @Schema(
+            implementation = AnswerPersonalityType.class,
+            description = AnswerPersonalityType.SCHEMA_DESCRIPTION)
+        String personalityType) {
+  @QueryProjection
+  public SelfIntroductionSummaryView {}
 }

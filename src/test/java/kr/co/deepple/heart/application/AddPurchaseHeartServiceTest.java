@@ -1,5 +1,7 @@
 package kr.co.deepple.heart.application;
 
+import static org.mockito.Mockito.verify;
+
 import kr.co.deepple.heart.application.port.in.AddPurchaseHeartCommand;
 import kr.co.deepple.heart.domain.TransactionType;
 import org.junit.jupiter.api.DisplayName;
@@ -9,24 +11,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 class AddPurchaseHeartServiceTest {
-    @Mock
-    private HeartTransactor heartTransactor;
 
-    @InjectMocks
-    private AddPurchaseHeartService service;
+  @Mock private HeartTransactor heartTransactor;
 
-    @Test
-    @DisplayName("구매 종류와 주문 ID 멱등 키로 거래한다.")
-    void transact() {
-        // when
-        service.addPurchaseHeart(new AddPurchaseHeartCommand(1L, 7L, 45L));
+  @InjectMocks private AddPurchaseHeartService service;
 
-        // then
-        verify(heartTransactor).transact(1L, TransactionType.PURCHASE, TransactionType.PURCHASE.getDescription(), 45L,
-            "7");
-    }
+  @Test
+  @DisplayName("구매 종류와 주문 ID 멱등 키로 거래한다.")
+  void transact() {
+    // when
+    service.addPurchaseHeart(new AddPurchaseHeartCommand(1L, 7L, 45L));
+
+    // then
+    verify(heartTransactor)
+        .transact(
+            1L, TransactionType.PURCHASE, TransactionType.PURCHASE.getDescription(), 45L, "7");
+  }
 }

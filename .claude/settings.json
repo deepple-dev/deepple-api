@@ -3,5 +3,20 @@
     "commit": "",
     "pr": "",
     "sessionUrl": false
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in *.java) cd \"$CLAUDE_PROJECT_DIR\" && ./gradlew -q spotlessApply -PspotlessIdeHook=\"$f\" >/dev/null 2>&1 ;; esac; } || true",
+            "timeout": 60,
+            "statusMessage": "포맷 적용 중"
+          }
+        ]
+      }
+    ]
   }
 }

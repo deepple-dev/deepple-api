@@ -11,11 +11,12 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Service
 @RequiredArgsConstructor
 public class ScreeningEventHandler {
-    private final ScreeningService screeningService;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberProfileInitializedEvent event) {
-        screeningService.createIfAbsent(event.getMemberId());
-    }
+  private final ScreeningService screeningService;
+
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberProfileInitializedEvent event) {
+    screeningService.createIfAbsent(event.getMemberId());
+  }
 }

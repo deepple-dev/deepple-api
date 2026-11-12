@@ -6,6 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface FindAdminHeartTransactionsUseCase {
-    Page<AdminHeartTransactionView> findAdminHeartTransactions(AdminHeartTransactionSearchCondition condition,
-        Pageable pageable);
+  Page<AdminHeartTransactionView> findAdminHeartTransactions(
+      AdminHeartTransactionSearchCondition condition, Pageable pageable);
 }

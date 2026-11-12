@@ -14,17 +14,20 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberMissionEventHandler {
-    private final MemberMissionService memberMissionService;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(AllRequiredSubjectSubmittedEvent event) {
-        memberMissionService.executeMissionsByAction(event.getMemberId(), ActionType.FIRST_DATE_EXAM.name());
-    }
+  private final MemberMissionService memberMissionService;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(SelfIntroductionFirstWrittenEvent event) {
-        memberMissionService.executeMissionsByAction(event.getMemberId(), ActionType.SELF_INTRODUCTION.name());
-    }
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(AllRequiredSubjectSubmittedEvent event) {
+    memberMissionService.executeMissionsByAction(
+        event.getMemberId(), ActionType.FIRST_DATE_EXAM.name());
+  }
+
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(SelfIntroductionFirstWrittenEvent event) {
+    memberMissionService.executeMissionsByAction(
+        event.getMemberId(), ActionType.SELF_INTRODUCTION.name());
+  }
 }

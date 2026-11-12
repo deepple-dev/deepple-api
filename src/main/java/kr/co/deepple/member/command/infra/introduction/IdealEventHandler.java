@@ -11,11 +11,14 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Service
 @RequiredArgsConstructor
 public class IdealEventHandler {
-    private final MemberIdealService memberIdealService;
 
-    @Async
-    @TransactionalEventListener(value = MemberRegisteredEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberRegisteredEvent event) {
-        memberIdealService.initIfAbsent(event.getMemberId());
-    }
+  private final MemberIdealService memberIdealService;
+
+  @Async
+  @TransactionalEventListener(
+      value = MemberRegisteredEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberRegisteredEvent event) {
+    memberIdealService.initIfAbsent(event.getMemberId());
+  }
 }

@@ -1,10 +1,8 @@
 package kr.co.deepple.auth.domain;
 
+import java.time.Instant;
 import kr.co.deepple.common.enums.Role;
 
-import java.time.Instant;
-
 public interface TokenProvider {
-
-    String createAccessToken(long id, Role role, Instant issuedAt);
+  String createAccessToken(long id, Role role, Instant issuedAt);
 }

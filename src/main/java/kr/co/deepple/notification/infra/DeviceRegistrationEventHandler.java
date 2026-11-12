@@ -15,29 +15,37 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class DeviceRegistrationEventHandler {
 
-    private final DeviceRegistrationService deviceRegistrationService;
+  private final DeviceRegistrationService deviceRegistrationService;
 
-    @Async
-    @TransactionalEventListener(value = MemberLoggedInEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handleMemberLoggedInEvent(MemberLoggedInEvent event) {
-        deviceRegistrationService.activateByMemberId(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberLoggedInEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handleMemberLoggedInEvent(MemberLoggedInEvent event) {
+    deviceRegistrationService.activateByMemberId(event.getMemberId());
+  }
 
-    @Async
-    @TransactionalEventListener(value = MemberLoggedOutEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handleMemberLoggedOutEvent(MemberLoggedOutEvent event) {
-        deviceRegistrationService.deactivateByMemberId(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberLoggedOutEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handleMemberLoggedOutEvent(MemberLoggedOutEvent event) {
+    deviceRegistrationService.deactivateByMemberId(event.getMemberId());
+  }
 
-    @Async
-    @TransactionalEventListener(value = MemberBecameDormantEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handleMemberBecameDormantEvent(MemberBecameDormantEvent event) {
-        deviceRegistrationService.deactivateByMemberId(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberBecameDormantEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handleMemberBecameDormantEvent(MemberBecameDormantEvent event) {
+    deviceRegistrationService.deactivateByMemberId(event.getMemberId());
+  }
 
-    @Async
-    @TransactionalEventListener(value = MemberBecameActiveEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handleMemberActivatedEvent(MemberBecameActiveEvent event) {
-        deviceRegistrationService.activateByMemberId(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberBecameActiveEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handleMemberActivatedEvent(MemberBecameActiveEvent event) {
+    deviceRegistrationService.activateByMemberId(event.getMemberId());
+  }
 }

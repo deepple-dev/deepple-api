@@ -10,12 +10,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AddPurchaseHeartService implements AddPurchaseHeartUseCase {
-    private final HeartTransactor heartTransactor;
 
-    @Override
-    @Transactional
-    public void addPurchaseHeart(AddPurchaseHeartCommand command) {
-        heartTransactor.transact(command.memberId(), TransactionType.PURCHASE,
-            TransactionType.PURCHASE.getDescription(), command.amount(), String.valueOf(command.orderId()));
-    }
+  private final HeartTransactor heartTransactor;
+
+  @Override
+  @Transactional
+  public void addPurchaseHeart(AddPurchaseHeartCommand command) {
+    heartTransactor.transact(
+        command.memberId(),
+        TransactionType.PURCHASE,
+        TransactionType.PURCHASE.getDescription(),
+        command.amount(),
+        String.valueOf(command.orderId()));
+  }
 }

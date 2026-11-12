@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationDeleteService {
 
-    private final NotificationCommandRepository notificationCommandRepository;
+  private final NotificationCommandRepository notificationCommandRepository;
 
-    @Transactional
-    public void delete(NotificationDeleteRequest request, long receiverId) {
-        notificationCommandRepository.deleteAllByIdIn(request.notificationIds(), receiverId);
-    }
+  @Transactional
+  public void delete(NotificationDeleteRequest request, long receiverId) {
+    notificationCommandRepository.deleteAllByIdIn(request.notificationIds(), receiverId);
+  }
 }

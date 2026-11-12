@@ -1,11 +1,11 @@
 package kr.co.deepple.report.presentation;
 
-import kr.co.deepple.common.security.CurrentMemberId;
-import kr.co.deepple.report.command.application.ReportService;
-import kr.co.deepple.report.presentation.dto.ReportCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.security.CurrentMemberId;
+import kr.co.deepple.report.command.application.ReportService;
+import kr.co.deepple.report.presentation.dto.ReportCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,13 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/reports")
 @RequiredArgsConstructor
 public class ReportController {
-    private final ReportService reportService;
 
-    @Operation(summary = "신고하기")
-    @PostMapping
-    public ResponseEntity<Void> report(@Valid @RequestBody ReportCreateRequest request,
-        @CurrentMemberId long memberId) {
-        reportService.report(request, memberId);
-        return ResponseEntity.noContent().build();
-    }
+  private final ReportService reportService;
+
+  @Operation(summary = "신고하기")
+  @PostMapping
+  public ResponseEntity<Void> report(
+      @Valid @RequestBody ReportCreateRequest request, @CurrentMemberId long memberId) {
+    reportService.report(request, memberId);
+    return ResponseEntity.noContent().build();
+  }
 }

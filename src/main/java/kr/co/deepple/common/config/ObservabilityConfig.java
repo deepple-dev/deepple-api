@@ -8,9 +8,10 @@ import org.springframework.http.server.observation.ServerRequestObservationConte
 @Configuration
 public class ObservabilityConfig {
 
-    @Bean
-    public ObservationPredicate noActuatorObservations() {
-        return (name, context) -> !(context instanceof ServerRequestObservationContext server
+  @Bean
+  public ObservationPredicate noActuatorObservations() {
+    return (name, context) ->
+        !(context instanceof ServerRequestObservationContext server
             && server.getCarrier().getRequestURI().startsWith("/actuator"));
-    }
+  }
 }

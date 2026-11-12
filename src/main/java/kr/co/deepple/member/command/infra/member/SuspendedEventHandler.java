@@ -13,17 +13,21 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class SuspendedEventHandler {
 
-    private final MemberProfileService memberProfileService;
+  private final MemberProfileService memberProfileService;
 
-    @Async
-    @TransactionalEventListener(value = MemberSuspendedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberSuspendedEvent event) {
-        memberProfileService.changeMemberActivityStatus(event.getMemberId(), event.getStatus());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberSuspendedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberSuspendedEvent event) {
+    memberProfileService.changeMemberActivityStatus(event.getMemberId(), event.getStatus());
+  }
 
-    @Async
-    @TransactionalEventListener(value = MemberUnsuspendedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberUnsuspendedEvent event) {
-        memberProfileService.changeMemberActivityStatus(event.getMemberId(), "ACTIVE");
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberUnsuspendedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberUnsuspendedEvent event) {
+    memberProfileService.changeMemberActivityStatus(event.getMemberId(), "ACTIVE");
+  }
 }

@@ -1,10 +1,6 @@
 package kr.co.deepple.admin.presentation.admin.dto;
 
+import java.util.List;
 import kr.co.deepple.admin.query.admin.PendingAdminView;
 
-import java.util.List;
-
-public record PendingAdminViews(
-    List<PendingAdminView> admins
-) {
-}
+public record PendingAdminViews(List<PendingAdminView> admins) {}

@@ -13,23 +13,30 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Service
 @RequiredArgsConstructor
 public class MemberScreeningEventHandler {
-    private final MemberProfileService memberProfileService;
 
-    @Async
-    @TransactionalEventListener(value = ScreeningApprovedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(ScreeningApprovedEvent event) {
-        memberProfileService.approveScreening(event.getMemberId());
-    }
+  private final MemberProfileService memberProfileService;
 
-    @Async
-    @TransactionalEventListener(value = ScreeningRejectedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(ScreeningRejectedEvent event) {
-        memberProfileService.changeReject(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = ScreeningApprovedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(ScreeningApprovedEvent event) {
+    memberProfileService.approveScreening(event.getMemberId());
+  }
 
-    @Async
-    @TransactionalEventListener(value = ScreeningCreatedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(ScreeningCreatedEvent event) {
-        memberProfileService.changeWaiting(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = ScreeningRejectedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(ScreeningRejectedEvent event) {
+    memberProfileService.changeReject(event.getMemberId());
+  }
+
+  @Async
+  @TransactionalEventListener(
+      value = ScreeningCreatedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(ScreeningCreatedEvent event) {
+    memberProfileService.changeWaiting(event.getMemberId());
+  }
 }

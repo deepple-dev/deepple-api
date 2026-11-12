@@ -16,17 +16,15 @@ import org.springframework.stereotype.Repository;
 
 @DataJpaTest(
     includeFilters = @Filter(Repository.class),
-    excludeFilters = @Filter(
-        type = FilterType.ASSIGNABLE_TYPE,
-        classes = {
-            RefreshTokenRepository.class,
-            AuthMessageRedisRepository.class,
-            IntroductionRedisRepository.class,
-            PersonalityIntroductionRedisRepository.class
-        }
-    )
-)
+    excludeFilters =
+        @Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = {
+              RefreshTokenRepository.class,
+              AuthMessageRedisRepository.class,
+              IntroductionRedisRepository.class,
+              PersonalityIntroductionRedisRepository.class
+            }))
 @Import({QueryDslConfig.class, MySqlContainerConfig.class})
 @ExtendWith(MockEventsExtension.class)
-public abstract class RepositoryTestSupport {
-}
+public abstract class RepositoryTestSupport {}

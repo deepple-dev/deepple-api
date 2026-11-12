@@ -12,11 +12,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class MemberRegisteredEventHandler {
 
-    private final NotificationPreferenceService notificationPreferenceService;
+  private final NotificationPreferenceService notificationPreferenceService;
 
-    @Async
-    @TransactionalEventListener(value = MemberRegisteredEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberRegisteredEvent event) {
-        notificationPreferenceService.createIfAbsent(event.getMemberId());
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberRegisteredEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberRegisteredEvent event) {
+    notificationPreferenceService.createIfAbsent(event.getMemberId());
+  }
 }

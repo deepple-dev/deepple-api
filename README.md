@@ -12,7 +12,7 @@
 Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일은 필요 없다.
 
 ```bash
-./gradlew bootRun    # 또는 IntelliJ에서 DeeppleApplication 실행
+./gradlew bootRun
 ```
 
 - 기본 프로필은 `local`이다. 앱이 `compose.yml`의 MySQL, Valkey, S3Mock을 자동으로 띄우고, 앱을 꺼도 컨테이너는 남는다.
@@ -23,12 +23,6 @@ Docker를 켠 상태에서 앱을 실행한다. 설정 파일이나 키 파일�
   - 문자 인증번호: 실제로 발송하지 않고 로그에 `[문자 발송]`으로 출력
   - 푸시(FCM), Google Play 결제 검증: 요청하지 않고 로그만 남김, Google Play 구매는 항상 유효로 처리
   - 이미지 업로드: S3Mock에 저장
-
-### IntelliJ
-
-- `Settings > Editor > Code Style > Scheme`을 `Project`로 설정 (저장소의 `.idea/codeStyles` 사용)
-- `Settings > Tools > Actions on Save`에서 `Reformat code`, `Optimize imports`, `Rearrange code` 켜기
-- (선택) SonarQube for IDE 플러그인 설치
 
 ## 로그인
 

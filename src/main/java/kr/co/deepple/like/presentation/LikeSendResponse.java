@@ -1,6 +1,3 @@
 package kr.co.deepple.like.presentation;
 
-public record LikeSendResponse(
-    boolean hasProcessedMission
-) {
-}
+public record LikeSendResponse(boolean hasProcessedMission) {}

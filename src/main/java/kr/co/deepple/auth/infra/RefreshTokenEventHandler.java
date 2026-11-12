@@ -14,17 +14,21 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class RefreshTokenEventHandler {
 
-    private final RefreshTokenService refreshTokenService;
+  private final RefreshTokenService refreshTokenService;
 
-    @Async
-    @TransactionalEventListener(value = MemberSuspendedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberSuspendedEvent event) {
-        refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberSuspendedEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberSuspendedEvent event) {
+    refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
+  }
 
-    @Async
-    @TransactionalEventListener(value = MemberBecameDormantEvent.class, phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(MemberBecameDormantEvent event) {
-        refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
-    }
+  @Async
+  @TransactionalEventListener(
+      value = MemberBecameDormantEvent.class,
+      phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(MemberBecameDormantEvent event) {
+    refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
+  }
 }

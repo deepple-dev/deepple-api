@@ -1,6 +1,15 @@
 package kr.co.deepple.datingexam.adapter.out.persistence;
 
+import static kr.co.deepple.block.domain.QBlock.block;
+import static kr.co.deepple.datingexam.domain.QDatingExamSubmitResult.datingExamSubmitResult;
+import static kr.co.deepple.member.command.domain.member.QMember.member;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.out.PersonalityTypeMemberQueryRepository;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
@@ -10,77 +19,74 @@ import kr.co.deepple.member.command.domain.member.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static kr.co.deepple.block.domain.QBlock.block;
-import static kr.co.deepple.datingexam.domain.QDatingExamSubmitResult.datingExamSubmitResult;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
-
 @Repository
 @RequiredArgsConstructor
-public class PersonalityTypeMemberQueryRepositoryImpl implements PersonalityTypeMemberQueryRepository {
-    private final JPAQueryFactory queryFactory;
+public class PersonalityTypeMemberQueryRepositoryImpl
+    implements PersonalityTypeMemberQueryRepository {
 
-    @Override
-    public List<Long> findMemberIdsByDominantType(Long memberId, AnswerPersonalityType type) {
-        Set<Long> typeMemberIds = getMemberIdsByDominantType(type);
-        typeMemberIds.removeAll(getExcludedMemberIds(memberId));
+  private final JPAQueryFactory queryFactory;
 
-        if (typeMemberIds.isEmpty()) {
-            return Collections.emptyList();
-        }
+  @Override
+  public List<Long> findMemberIdsByDominantType(Long memberId, AnswerPersonalityType type) {
+    Set<Long> typeMemberIds = getMemberIdsByDominantType(type);
+    typeMemberIds.removeAll(getExcludedMemberIds(memberId));
 
-        Gender gender = queryFactory
+    if (typeMemberIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Gender gender =
+        queryFactory
             .select(member.profile.gender)
             .from(member)
             .where(member.id.eq(memberId))
             .fetchOne();
 
-        if (gender == null) {
-            throw new DeeppleException(DatingExamErrorCode.GENDER_NOT_SET, "memberId=" + memberId);
-        }
+    if (gender == null) {
+      throw new DeeppleException(DatingExamErrorCode.GENDER_NOT_SET, "memberId=" + memberId);
+    }
 
-        return queryFactory
-            .select(member.id)
-            .from(member)
-            .where(member.id.in(typeMemberIds)
+    return queryFactory
+        .select(member.id)
+        .from(member)
+        .where(
+            member
+                .id
+                .in(typeMemberIds)
                 .and(member.profile.gender.eq(gender.getOpposite()))
                 .and(member.isProfilePublic.isTrue())
                 .and(member.activityStatus.eq(ActivityStatus.ACTIVE))
-                .and(member.id.ne(memberId))
-            )
-            .orderBy(member.id.desc())
-            .fetch();
-    }
+                .and(member.id.ne(memberId)))
+        .orderBy(member.id.desc())
+        .fetch();
+  }
 
-    private Set<Long> getMemberIdsByDominantType(AnswerPersonalityType type) {
-        return new HashSet<>(queryFactory
+  private Set<Long> getMemberIdsByDominantType(AnswerPersonalityType type) {
+    return new HashSet<>(
+        queryFactory
             .select(datingExamSubmitResult.memberId)
             .from(datingExamSubmitResult)
             .where(datingExamSubmitResult.dominantPersonalityType.eq(type))
             .fetch());
-    }
+  }
 
-    private Set<Long> getExcludedMemberIds(Long memberId) {
-        List<Long> blockedIds = queryFactory
+  private Set<Long> getExcludedMemberIds(Long memberId) {
+    List<Long> blockedIds =
+        queryFactory
             .select(block.blockedId)
             .from(block)
             .where(block.blockerId.eq(memberId))
             .fetch();
 
-        List<Long> blockerIds = queryFactory
+    List<Long> blockerIds =
+        queryFactory
             .select(block.blockerId)
             .from(block)
             .where(block.blockedId.eq(memberId))
             .fetch();
 
-        return Stream.concat(
-            Stream.concat(blockedIds.stream(), blockerIds.stream()),
-            Stream.of(memberId)
-        ).collect(java.util.stream.Collectors.toSet());
-    }
+    return Stream.concat(
+            Stream.concat(blockedIds.stream(), blockerIds.stream()), Stream.of(memberId))
+        .collect(java.util.stream.Collectors.toSet());
+  }
 }

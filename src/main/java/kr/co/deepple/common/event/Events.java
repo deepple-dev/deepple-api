@@ -7,15 +7,15 @@ import org.springframework.context.ApplicationEventPublisher;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Events {
 
-    private static ApplicationEventPublisher publisher;
+  private static ApplicationEventPublisher publisher;
 
-    static void setPublisher(ApplicationEventPublisher publisher) {
-        Events.publisher = publisher;
-    }
+  static void setPublisher(ApplicationEventPublisher publisher) {
+    Events.publisher = publisher;
+  }
 
-    public static void raise(Event event) {
-        if (publisher != null) {
-            publisher.publishEvent(event);
-        }
+  public static void raise(Event event) {
+    if (publisher != null) {
+      publisher.publishEvent(event);
     }
+  }
 }

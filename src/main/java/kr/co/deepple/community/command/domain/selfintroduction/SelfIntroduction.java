@@ -1,11 +1,17 @@
 package kr.co.deepple.community.command.domain.selfintroduction;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,96 +19,97 @@ import lombok.NonNull;
 import org.hibernate.annotations.SQLDelete;
 
 @Entity
-@Table(name = "self_introductions",
-    indexes = @Index(name = "idx_member_id", columnList = "memberId")
-)
+@Table(
+    name = "self_introductions",
+    indexes = @Index(name = "idx_member_id", columnList = "memberId"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE self_introductions SET deleted_at = now() WHERE id = ?")
 public class SelfIntroduction extends SoftDeleteBaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Getter
+  private Long id;
 
-    @Getter
-    private Long memberId;
+  @Getter private Long memberId;
 
-    @Getter
-    private String title;
+  @Getter private String title;
 
-    @Getter
-    private String content;
+  @Getter private String content;
 
-    @Getter
-    @Column(name = "image_url")
-    private String imageUrl;
+  @Getter
+  @Column(name = "image_url")
+  private String imageUrl;
 
-    @Getter
-    private boolean isOpened;
+  @Getter private boolean isOpened;
 
-    private SelfIntroduction(@NonNull Long memberId, @NonNull String title, @NonNull String content, String imageUrl,
-        boolean isOpened) {
-        this.isOpened = isOpened;
-        this.memberId = memberId;
-        setTitle(title);
-        setContent(content);
-        setImageUrl(imageUrl);
+  private SelfIntroduction(
+      @NonNull Long memberId,
+      @NonNull String title,
+      @NonNull String content,
+      String imageUrl,
+      boolean isOpened) {
+    this.isOpened = isOpened;
+    this.memberId = memberId;
+    setTitle(title);
+    setContent(content);
+    setImageUrl(imageUrl);
+  }
+
+  public static SelfIntroduction write(
+      Long memberId, String title, String content, String imageUrl) {
+    return new SelfIntroduction(memberId, title, content, imageUrl, false);
+  }
+
+  public static SelfIntroduction write(
+      Long memberId, String title, String content, String imageUrl, boolean isFirstWrite) {
+    SelfIntroduction selfIntroduction = write(memberId, title, content, imageUrl);
+    if (isFirstWrite) {
+      Events.raise(SelfIntroductionFirstWrittenEvent.of(memberId));
     }
+    return selfIntroduction;
+  }
 
-    public static SelfIntroduction write(Long memberId, String title, String content, String imageUrl) {
-        return new SelfIntroduction(memberId, title, content, imageUrl, false);
-    }
+  public void update(String title, String content, String imageUrl) {
+    setTitle(title);
+    setContent(content);
+    setImageUrl(imageUrl);
+  }
 
-    public static SelfIntroduction write(Long memberId, String title, String content, String imageUrl,
-        boolean isFirstWrite) {
-        SelfIntroduction selfIntroduction = write(memberId, title, content, imageUrl);
-        if (isFirstWrite) {
-            Events.raise(SelfIntroductionFirstWrittenEvent.of(memberId));
-        }
-        return selfIntroduction;
-    }
+  public void close() {
+    isOpened = false;
+  }
 
-    public void update(String title, String content, String imageUrl) {
-        setTitle(title);
-        setContent(content);
-        setImageUrl(imageUrl);
-    }
+  public void open() {
+    isOpened = true;
+  }
 
-    public void close() {
-        isOpened = false;
-    }
+  private void setTitle(@NonNull String title) {
+    validateTitle(title);
+    this.title = title;
+  }
 
-    public void open() {
-        isOpened = true;
-    }
+  private void setContent(@NonNull String content) {
+    validateContent(content);
+    this.content = content;
+  }
 
-    private void setTitle(@NonNull String title) {
-        validateTitle(title);
-        this.title = title;
+  private void setImageUrl(String imageUrl) {
+    if (imageUrl != null && imageUrl.isEmpty()) {
+      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
     }
+    this.imageUrl = imageUrl;
+  }
 
-    private void setContent(@NonNull String content) {
-        validateContent(content);
-        this.content = content;
+  private void validateContent(String content) {
+    if (content.isBlank() || content.length() < 30) {
+      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
     }
+  }
 
-    private void setImageUrl(String imageUrl) {
-        if (imageUrl != null && imageUrl.isEmpty()) {
-            throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
-        }
-        this.imageUrl = imageUrl;
+  private void validateTitle(String title) {
+    if (title.isBlank()) {
+      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
     }
-
-    private void validateContent(String content) {
-        if (content.isBlank() || content.length() < 30) {
-            throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
-        }
-    }
-
-    private void validateTitle(String title) {
-        if (title.isBlank()) {
-            throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
-        }
-    }
+  }
 }

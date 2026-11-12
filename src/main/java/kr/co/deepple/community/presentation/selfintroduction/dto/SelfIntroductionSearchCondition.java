@@ -1,13 +1,7 @@
 package kr.co.deepple.community.presentation.selfintroduction.dto;
 
+import java.util.List;
 import kr.co.deepple.member.command.domain.member.Gender;
 
-import java.util.List;
-
 public record SelfIntroductionSearchCondition(
-    List<String> preferredCities,
-    Integer fromYearOfBirth,
-    Integer toYearOfBirth,
-    Gender gender
-) {
-}
+    List<String> preferredCities, Integer fromYearOfBirth, Integer toYearOfBirth, Gender gender) {}

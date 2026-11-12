@@ -12,11 +12,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class FindAdminHeartTransactionsService implements FindAdminHeartTransactionsUseCase {
-    private final AdminHeartTransactionQueryRepository adminHeartTransactionQueryRepository;
 
-    @Override
-    public Page<AdminHeartTransactionView> findAdminHeartTransactions(AdminHeartTransactionSearchCondition condition,
-        Pageable pageable) {
-        return adminHeartTransactionQueryRepository.findPage(condition, pageable);
-    }
+  private final AdminHeartTransactionQueryRepository adminHeartTransactionQueryRepository;
+
+  @Override
+  public Page<AdminHeartTransactionView> findAdminHeartTransactions(
+      AdminHeartTransactionSearchCondition condition, Pageable pageable) {
+    return adminHeartTransactionQueryRepository.findPage(condition, pageable);
+  }
 }

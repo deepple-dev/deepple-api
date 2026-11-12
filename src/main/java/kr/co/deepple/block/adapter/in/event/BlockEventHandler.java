@@ -12,11 +12,12 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class BlockEventHandler {
-    private final BlockCommander blockCommander;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(ReportCreatedEvent event) {
-        blockCommander.createBlockIfAbsent(event.getReporterId(), event.getReporteeId());
-    }
+  private final BlockCommander blockCommander;
+
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(ReportCreatedEvent event) {
+    blockCommander.createBlockIfAbsent(event.getReporterId(), event.getReporteeId());
+  }
 }

@@ -1,7 +1,6 @@
 package kr.co.deepple.member.query.introduction.intra;
 
 import com.querydsl.core.annotations.QueryProjection;
-
 import java.util.Set;
 
 public record MemberIntroductionProfileQueryResult(
@@ -15,9 +14,7 @@ public record MemberIntroductionProfileQueryResult(
     String religion,
     String mbti,
     String likeLevel,
-    boolean isIntroduced
-) {
-    @QueryProjection
-    public MemberIntroductionProfileQueryResult {
-    }
+    boolean isIntroduced) {
+  @QueryProjection
+  public MemberIntroductionProfileQueryResult {}
 }

@@ -8,9 +8,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 @Configuration
 public class JwtConfig {
 
-    @Bean
-    public JwtEncoder jwtEncoder(JwtKeyPair keyPair) {
-        return NimbusJwtEncoder.withKeyPair(keyPair.getPublicKey(), keyPair.getPrivateKey())
-            .build();
-    }
+  @Bean
+  public JwtEncoder jwtEncoder(JwtKeyPair keyPair) {
+    return NimbusJwtEncoder.withKeyPair(keyPair.getPublicKey(), keyPair.getPrivateKey()).build();
+  }
 }

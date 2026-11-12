@@ -17,24 +17,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AddAdminHeartService implements AddAdminHeartUseCase {
-    private final HeartMemberRepository heartMemberRepository;
-    private final HeartTransactor heartTransactor;
 
-    @Override
-    @Transactional
-    public void addAdminHeart(AddAdminHeartCommand command) {
-        if (!heartMemberRepository.existsByMemberId(command.memberId())) {
-            throw new DeeppleException(HeartErrorCode.MEMBER_NOT_FOUND, "memberId=" + command.memberId());
-        }
-        boolean transacted = heartTransactor.transact(command.memberId(), TransactionType.ADMIN_GRANT,
-            command.reason(), command.amount(), command.idempotencyKey());
-        if (!transacted) {
-            return;
-        }
-        log.atInfo()
-            .addKeyValue("memberId", command.memberId())
-            .addKeyValue("amount", command.amount())
-            .log("관리자 하트 지급");
-        Events.raise(AdminHeartGrantedEvent.of(command.memberId(), command.adminId(), command.amount()));
+  private final HeartMemberRepository heartMemberRepository;
+  private final HeartTransactor heartTransactor;
+
+  @Override
+  @Transactional
+  public void addAdminHeart(AddAdminHeartCommand command) {
+    if (!heartMemberRepository.existsByMemberId(command.memberId())) {
+      throw new DeeppleException(HeartErrorCode.MEMBER_NOT_FOUND, "memberId=" + command.memberId());
     }
+    boolean transacted =
+        heartTransactor.transact(
+            command.memberId(),
+            TransactionType.ADMIN_GRANT,
+            command.reason(),
+            command.amount(),
+            command.idempotencyKey());
+    if (!transacted) {
+      return;
+    }
+    log.atInfo()
+        .addKeyValue("memberId", command.memberId())
+        .addKeyValue("amount", command.amount())
+        .log("관리자 하트 지급");
+    Events.raise(
+        AdminHeartGrantedEvent.of(command.memberId(), command.adminId(), command.amount()));
+  }
 }

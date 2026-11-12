@@ -1,5 +1,10 @@
 package kr.co.deepple.admin.command.application.suspension;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+
+import java.util.Optional;
 import kr.co.deepple.admin.command.domain.suspension.Suspension;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionPolicy;
@@ -15,147 +20,131 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.scheduling.TaskScheduler;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 class SuspensionServiceTest {
 
-    @Mock
-    SuspensionCommandRepository suspensionCommandRepository;
+  @Mock SuspensionCommandRepository suspensionCommandRepository;
 
-    @Mock
-    SuspensionPolicy suspensionPolicy;
+  @Mock SuspensionPolicy suspensionPolicy;
 
-    @Mock
-    TaskScheduler taskScheduler;
+  @Mock TaskScheduler taskScheduler;
 
-    @InjectMocks
-    SuspensionService suspensionService;
+  @InjectMocks SuspensionService suspensionService;
 
-    @Test
-    @DisplayName("suspendByAdmin(): 기존 Suspension 없으면 새로 생성된 상태를 저장한다")
-    void suspendByAdminWhenNoExistingSuspension() {
-        // given
-        var adminId = 10L;
-        var memberId = 20L;
-        var request = new SuspendRequest("PERMANENT");
-        given(suspensionCommandRepository.findByMemberId(memberId))
-            .willReturn(Optional.empty());
+  @Test
+  @DisplayName("suspendByAdmin(): 기존 Suspension 없으면 새로 생성된 상태를 저장한다")
+  void suspendByAdminWhenNoExistingSuspension() {
+    // given
+    var adminId = 10L;
+    var memberId = 20L;
+    var request = new SuspendRequest("PERMANENT");
+    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.empty());
 
-        // when
-        suspensionService.suspendByAdmin(adminId, memberId, request);
+    // when
+    suspensionService.suspendByAdmin(adminId, memberId, request);
 
-        // then
-        var captor = ArgumentCaptor.forClass(Suspension.class);
-        verify(suspensionCommandRepository).save(captor.capture());
-        var saved = captor.getValue();
-        assertThat(saved.getAdminId()).isEqualTo(adminId);
-        assertThat(saved.getMemberId()).isEqualTo(memberId);
-        assertThat(saved.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
-    }
+    // then
+    var captor = ArgumentCaptor.forClass(Suspension.class);
+    verify(suspensionCommandRepository).save(captor.capture());
+    var saved = captor.getValue();
+    assertThat(saved.getAdminId()).isEqualTo(adminId);
+    assertThat(saved.getMemberId()).isEqualTo(memberId);
+    assertThat(saved.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
+  }
 
-    @Test
-    @DisplayName("suspendByAdmin(): 기존 Suspension 있으면 해당 엔티티의 상태가 변경된다")
-    void suspendByAdminWhenExistingSuspension() {
-        // given
-        var adminId = 11L;
-        var memberId = 21L;
-        var existing = SuspensionFixture.builder()
+  @Test
+  @DisplayName("suspendByAdmin(): 기존 Suspension 있으면 해당 엔티티의 상태가 변경된다")
+  void suspendByAdminWhenExistingSuspension() {
+    // given
+    var adminId = 11L;
+    var memberId = 21L;
+    var existing =
+        SuspensionFixture.builder()
             .adminId(1L)
             .memberId(memberId)
             .status(SuspensionStatus.TEMPORARY)
             .build();
-        var request = new SuspendRequest("PERMANENT");
-        given(suspensionCommandRepository.findByMemberId(memberId))
-            .willReturn(Optional.of(existing));
+    var request = new SuspendRequest("PERMANENT");
+    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
 
-        // when
-        suspensionService.suspendByAdmin(adminId, memberId, request);
+    // when
+    suspensionService.suspendByAdmin(adminId, memberId, request);
 
-        // then
-        assertThat(existing.getAdminId()).isEqualTo(adminId);
-        assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
-        assertThat(existing.getExpireAt()).isNull();
-    }
+    // then
+    assertThat(existing.getAdminId()).isEqualTo(adminId);
+    assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
+    assertThat(existing.getExpireAt()).isNull();
+  }
 
-    @Test
-    @DisplayName("suspendByWarningCount(): policy가 TEMPORARY 반환 시 새로 생성된 Temporary 상태를 저장한다")
-    void suspendByWarningCountWhenPolicyReturnsTemporary() {
-        // given
-        var adminId = 12L;
-        var memberId = 22L;
-        var warningCount = 2L;
-        given(suspensionPolicy.evaluate(warningCount))
-            .willReturn(SuspensionStatus.TEMPORARY);
-        given(suspensionCommandRepository.findByMemberId(memberId))
-            .willReturn(Optional.empty());
+  @Test
+  @DisplayName("suspendByWarningCount(): policy가 TEMPORARY 반환 시 새로 생성된 Temporary 상태를 저장한다")
+  void suspendByWarningCountWhenPolicyReturnsTemporary() {
+    // given
+    var adminId = 12L;
+    var memberId = 22L;
+    var warningCount = 2L;
+    given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.TEMPORARY);
+    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.empty());
 
-        // when
-        suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
+    // when
+    suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
 
-        // then
-        var captor = ArgumentCaptor.forClass(Suspension.class);
-        verify(suspensionCommandRepository).save(captor.capture());
-        var saved = captor.getValue();
-        assertThat(saved.getAdminId()).isEqualTo(adminId);
-        assertThat(saved.getMemberId()).isEqualTo(memberId);
-        assertThat(saved.getStatus()).isEqualTo(SuspensionStatus.TEMPORARY);
-        assertThat(saved.getExpireAt()).isNotNull();
-    }
+    // then
+    var captor = ArgumentCaptor.forClass(Suspension.class);
+    verify(suspensionCommandRepository).save(captor.capture());
+    var saved = captor.getValue();
+    assertThat(saved.getAdminId()).isEqualTo(adminId);
+    assertThat(saved.getMemberId()).isEqualTo(memberId);
+    assertThat(saved.getStatus()).isEqualTo(SuspensionStatus.TEMPORARY);
+    assertThat(saved.getExpireAt()).isNotNull();
+  }
 
-    @Test
-    @DisplayName("suspendByWarningCount(): policy가 PERMANENT 반환 시 새로 생성된 PERMANENT 상태를 저장한다")
-    void suspendByWarningCountWhenPolicyReturnsNewPermanent() {
-        // given
-        var adminId = 12L;
-        var memberId = 22L;
-        var warningCount = 2L;
-        given(suspensionPolicy.evaluate(warningCount))
-            .willReturn(SuspensionStatus.PERMANENT);
-        given(suspensionCommandRepository.findByMemberId(memberId))
-            .willReturn(Optional.empty());
+  @Test
+  @DisplayName("suspendByWarningCount(): policy가 PERMANENT 반환 시 새로 생성된 PERMANENT 상태를 저장한다")
+  void suspendByWarningCountWhenPolicyReturnsNewPermanent() {
+    // given
+    var adminId = 12L;
+    var memberId = 22L;
+    var warningCount = 2L;
+    given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.PERMANENT);
+    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.empty());
 
-        // when
-        suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
+    // when
+    suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
 
-        // then
-        var captor = ArgumentCaptor.forClass(Suspension.class);
-        verify(suspensionCommandRepository).save(captor.capture());
-        var saved = captor.getValue();
-        assertThat(saved.getAdminId()).isEqualTo(adminId);
-        assertThat(saved.getMemberId()).isEqualTo(memberId);
-        assertThat(saved.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
-        assertThat(saved.getExpireAt()).isNull();
-    }
+    // then
+    var captor = ArgumentCaptor.forClass(Suspension.class);
+    verify(suspensionCommandRepository).save(captor.capture());
+    var saved = captor.getValue();
+    assertThat(saved.getAdminId()).isEqualTo(adminId);
+    assertThat(saved.getMemberId()).isEqualTo(memberId);
+    assertThat(saved.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
+    assertThat(saved.getExpireAt()).isNull();
+  }
 
-    @Test
-    @DisplayName("suspendByWarningCount(): policy가 PERMANENT 반환 시 기존 엔티티가 Permanent 상태로 업데이트된다")
-    void suspendByWarningCountWhenPolicyReturnsPermanent() {
-        // given
-        var adminId = 13L;
-        var memberId = 23L;
-        var warningCount = 5L;
-        // 기존 엔티티를 임시 정지 상태로 생성
-        var existing = SuspensionFixture.builder()
+  @Test
+  @DisplayName("suspendByWarningCount(): policy가 PERMANENT 반환 시 기존 엔티티가 Permanent 상태로 업데이트된다")
+  void suspendByWarningCountWhenPolicyReturnsPermanent() {
+    // given
+    var adminId = 13L;
+    var memberId = 23L;
+    var warningCount = 5L;
+    // 기존 엔티티를 임시 정지 상태로 생성
+    var existing =
+        SuspensionFixture.builder()
             .adminId(1L)
             .memberId(memberId)
             .status(SuspensionStatus.TEMPORARY)
             .build();
-        given(suspensionPolicy.evaluate(warningCount))
-            .willReturn(SuspensionStatus.PERMANENT);
-        given(suspensionCommandRepository.findByMemberId(memberId))
-            .willReturn(Optional.of(existing));
+    given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.PERMANENT);
+    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
 
-        // when
-        suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
+    // when
+    suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
 
-        // then
-        assertThat(existing.getAdminId()).isEqualTo(adminId);
-        assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
-        assertThat(existing.getExpireAt()).isNull();
-    }
+    // then
+    assertThat(existing.getAdminId()).isEqualTo(adminId);
+    assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
+    assertThat(existing.getExpireAt()).isNull();
+  }
 }

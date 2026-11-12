@@ -8,9 +8,9 @@ import org.testcontainers.mysql.MySQLContainer;
 @TestConfiguration(proxyBeanMethods = false)
 public class MySqlContainerConfig {
 
-    @Bean
-    @ServiceConnection
-    public MySQLContainer mySqlContainer() {
-        return new MySQLContainer(ContainerImages.MYSQL).withEnv("TZ", "Asia/Seoul");
-    }
+  @Bean
+  @ServiceConnection
+  public MySQLContainer mySqlContainer() {
+    return new MySQLContainer(ContainerImages.MYSQL).withEnv("TZ", "Asia/Seoul");
+  }
 }

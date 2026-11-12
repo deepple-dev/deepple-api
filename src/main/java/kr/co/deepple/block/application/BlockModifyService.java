@@ -13,26 +13,26 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class BlockModifyService implements BlockCommander {
-    private final BlockRepository blockRepository;
 
-    @Override
-    @Transactional
-    public void createBlock(Long blockerId, Long blockedId) {
-        if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
-            throw new DeeppleException(
-                BlockErrorCode.BLOCK_ALREADY_EXISTS,
-                "blockerId=" + blockerId + ", blockedId=" + blockedId
-            );
-        }
-        blockRepository.save(Block.of(blockerId, blockedId));
-    }
+  private final BlockRepository blockRepository;
 
-    @Override
-    @Transactional
-    public void createBlockIfAbsent(long blockerId, long blockedId) {
-        if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
-            return;
-        }
-        blockRepository.save(Block.of(blockerId, blockedId));
+  @Override
+  @Transactional
+  public void createBlock(Long blockerId, Long blockedId) {
+    if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
+      throw new DeeppleException(
+          BlockErrorCode.BLOCK_ALREADY_EXISTS,
+          "blockerId=" + blockerId + ", blockedId=" + blockedId);
     }
+    blockRepository.save(Block.of(blockerId, blockedId));
+  }
+
+  @Override
+  @Transactional
+  public void createBlockIfAbsent(long blockerId, long blockedId) {
+    if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
+      return;
+    }
+    blockRepository.save(Block.of(blockerId, blockedId));
+  }
 }

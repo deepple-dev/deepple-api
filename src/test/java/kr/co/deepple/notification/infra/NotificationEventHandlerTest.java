@@ -1,5 +1,8 @@
 package kr.co.deepple.notification.infra;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+
 import kr.co.deepple.admin.command.domain.warning.WarningIssuedEvent;
 import kr.co.deepple.admin.command.domain.warning.WarningReasonType;
 import kr.co.deepple.notification.command.application.NotificationSendRequest;
@@ -13,31 +16,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 class NotificationEventHandlerTest {
 
-    @Mock
-    private NotificationSendService notificationSendService;
+  @Mock private NotificationSendService notificationSendService;
 
-    @InjectMocks
-    private NotificationEventHandler notificationEventHandler;
+  @InjectMocks private NotificationEventHandler notificationEventHandler;
 
-    @ParameterizedTest
-    @EnumSource(WarningReasonType.class)
-    @DisplayName("경고 발급 이벤트: 모든 경고 사유가 같은 이름의 알림 타입으로 발송")
-    void handleWarningIssuedEventForAllReasonTypes(WarningReasonType reasonType) {
-        // given
-        var event = WarningIssuedEvent.of(1L, 2L, 1L, reasonType.name(), false);
+  @ParameterizedTest
+  @EnumSource(WarningReasonType.class)
+  @DisplayName("경고 발급 이벤트: 모든 경고 사유가 같은 이름의 알림 타입으로 발송")
+  void handleWarningIssuedEventForAllReasonTypes(WarningReasonType reasonType) {
+    // given
+    var event = WarningIssuedEvent.of(1L, 2L, 1L, reasonType.name(), false);
 
-        // when
-        notificationEventHandler.handleWarningIssuedEvent(event);
+    // when
+    notificationEventHandler.handleWarningIssuedEvent(event);
 
-        // then
-        var captor = ArgumentCaptor.forClass(NotificationSendRequest.class);
-        verify(notificationSendService).send(captor.capture());
-        assertThat(captor.getValue().notificationType().name()).isEqualTo(reasonType.name());
-    }
+    // then
+    var captor = ArgumentCaptor.forClass(NotificationSendRequest.class);
+    verify(notificationSendService).send(captor.capture());
+    assertThat(captor.getValue().notificationType().name()).isEqualTo(reasonType.name());
+  }
 }

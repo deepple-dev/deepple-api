@@ -16,22 +16,20 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminMemberService {
 
-    private final MemberCommandRepository memberCommandRepository;
+  private final MemberCommandRepository memberCommandRepository;
 
-    @Transactional
-    public void updateMemberSetting(long memberId, AdminMemberSettingUpdateRequest request) {
-        Grade grade = Grade.from(request.grade());
-        Member member = getMember(memberId);
-        member.updateSetting(
-            grade,
-            request.isVip(),
-            request.isPushNotificationEnabled()
-        );
-        log.atInfo().addKeyValue("memberId", memberId).log("관리자 회원 설정 변경");
-    }
+  @Transactional
+  public void updateMemberSetting(long memberId, AdminMemberSettingUpdateRequest request) {
+    Grade grade = Grade.from(request.grade());
+    Member member = getMember(memberId);
+    member.updateSetting(grade, request.isVip(), request.isPushNotificationEnabled());
+    log.atInfo().addKeyValue("memberId", memberId).log("관리자 회원 설정 변경");
+  }
 
-    private Member getMember(long memberId) {
-        return memberCommandRepository.findById(memberId)
-            .orElseThrow(() -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
-    }
+  private Member getMember(long memberId) {
+    return memberCommandRepository
+        .findById(memberId)
+        .orElseThrow(
+            () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
+  }
 }

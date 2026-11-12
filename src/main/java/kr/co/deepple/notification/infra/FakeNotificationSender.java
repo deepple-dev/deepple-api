@@ -13,18 +13,18 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(name = "firebase.enabled", havingValue = "false")
 public class FakeNotificationSender implements NotificationSender {
 
-    @Override
-    public ChannelType channel() {
-        return ChannelType.PUSH;
-    }
+  @Override
+  public ChannelType channel() {
+    return ChannelType.PUSH;
+  }
 
-    @Override
-    public void send(Notification notification, DeviceRegistration deviceRegistration) {
-        log.info("[푸시 발송] receiverId={}, type={}, title={}, body={}",
-            notification.getReceiverId(),
-            notification.getType(),
-            notification.getTitle(),
-            notification.getBody()
-        );
-    }
+  @Override
+  public void send(Notification notification, DeviceRegistration deviceRegistration) {
+    log.info(
+        "[푸시 발송] receiverId={}, type={}, title={}, body={}",
+        notification.getReceiverId(),
+        notification.getType(),
+        notification.getTitle(),
+        notification.getBody());
+  }
 }

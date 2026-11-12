@@ -20,6 +20,4 @@ public record BasicMemberInfo(
     String highestEducation,
     String religion,
     String like,
-    LocalDateTime lastAccessedAt
-) {
-}
+    LocalDateTime lastAccessedAt) {}

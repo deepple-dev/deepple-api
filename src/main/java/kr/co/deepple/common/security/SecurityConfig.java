@@ -1,5 +1,7 @@
 package kr.co.deepple.common.security;
 
+import java.time.Duration;
+import java.util.List;
 import kr.co.deepple.common.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
@@ -24,116 +26,119 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.time.Duration;
-import java.util.List;
-
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final RequestMatcher[] PUBLIC_REQUESTS = {
-        post("/member/login"),
-        post("/member/code"),
-        post("/member/refresh"),
-        post("/admin/login"),
-        post("/admin/signup"),
-        post("/admin/refresh"),
-        post("/admin/logout"),
-        post("/payment/app-store/notifications"),
-        get("/v3/api-docs/**"),
-        get("/swagger-ui.html"),
-        get("/swagger-ui/**"),
-        get("/swagger-resources/**"),
-        get("/webjars/**")
-    };
-    private static final String ADMIN_ACCOUNT_API = "/admin/accounts/**";
-    private static final String ADMIN_API = "/admin/**";
+  private static final RequestMatcher[] PUBLIC_REQUESTS = {
+    post("/member/login"),
+    post("/member/code"),
+    post("/member/refresh"),
+    post("/admin/login"),
+    post("/admin/signup"),
+    post("/admin/refresh"),
+    post("/admin/logout"),
+    post("/payment/app-store/notifications"),
+    get("/v3/api-docs/**"),
+    get("/swagger-ui.html"),
+    get("/swagger-ui/**"),
+    get("/swagger-resources/**"),
+    get("/webjars/**")
+  };
+  private static final String ADMIN_ACCOUNT_API = "/admin/accounts/**";
+  private static final String ADMIN_API = "/admin/**";
 
-    private final TokenAuthenticationEntryPoint authenticationEntryPoint;
-    private final TokenAccessDeniedHandler accessDeniedHandler;
+  private final TokenAuthenticationEntryPoint authenticationEntryPoint;
+  private final TokenAccessDeniedHandler accessDeniedHandler;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    @Order(1)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-        return applyCommonSettings(http)
-            .securityMatchers(matchers -> matchers
+  @Bean
+  @Order(1)
+  public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+    return applyCommonSettings(http)
+        .securityMatchers(matchers ->
+            matchers
                 .requestMatchers(PUBLIC_REQUESTS)
                 .requestMatchers(EndpointRequest.toAnyEndpoint()))
-            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
-            .build();
-    }
+        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+        .build();
+  }
 
-    @Bean
-    @Order(2)
-    public SecurityFilterChain apiFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
-        return applyCommonSettings(http)
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(ADMIN_ACCOUNT_API).hasRole(Role.SUPER_ADMIN.name())
-                .requestMatchers(ADMIN_API).hasAnyRole(Role.ADMIN.name(), Role.SUPER_ADMIN.name())
-                .anyRequest().hasRole(Role.MEMBER.name()))
-            .oauth2ResourceServer(resourceServer -> resourceServer
-                .jwt(jwt -> jwt
-                    .decoder(jwtDecoder)
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+  @Bean
+  @Order(2)
+  public SecurityFilterChain apiFilterChain(HttpSecurity http, JwtDecoder jwtDecoder)
+      throws Exception {
+    return applyCommonSettings(http)
+        .authorizeHttpRequests(authorize ->
+            authorize
+                .requestMatchers(ADMIN_ACCOUNT_API)
+                .hasRole(Role.SUPER_ADMIN.name())
+                .requestMatchers(ADMIN_API)
+                .hasAnyRole(Role.ADMIN.name(), Role.SUPER_ADMIN.name())
+                .anyRequest()
+                .hasRole(Role.MEMBER.name()))
+        .oauth2ResourceServer(resourceServer ->
+            resourceServer
+                .jwt(jwt ->
+                    jwt.decoder(jwtDecoder)
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler))
-            .exceptionHandling(exception -> exception
+        .exceptionHandling(exception ->
+            exception
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler))
-            .build();
-    }
+        .build();
+  }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource(CorsProperties corsProperties) {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(corsProperties.allowedOrigins());
-        configuration.setAllowedMethods(List.of(
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource(CorsProperties corsProperties) {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+    configuration.setAllowedMethods(
+        List.of(
             HttpMethod.GET.name(),
             HttpMethod.POST.name(),
             HttpMethod.PUT.name(),
             HttpMethod.PATCH.name(),
-            HttpMethod.DELETE.name()
-        ));
-        configuration.setAllowedHeaders(List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE));
-        configuration.setExposedHeaders(List.of(HttpHeaders.AUTHORIZATION));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(Duration.ofHours(1));
+            HttpMethod.DELETE.name()));
+    configuration.setAllowedHeaders(List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE));
+    configuration.setExposedHeaders(List.of(HttpHeaders.AUTHORIZATION));
+    configuration.setAllowCredentials(true);
+    configuration.setMaxAge(Duration.ofHours(1));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+  }
 
-    private static RequestMatcher post(String path) {
-        return PathPatternRequestMatcher.withDefaults()
-            .matcher(HttpMethod.POST, path);
-    }
+  private static RequestMatcher post(String path) {
+    return PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, path);
+  }
 
-    private static RequestMatcher get(String path) {
-        return PathPatternRequestMatcher.withDefaults()
-            .matcher(HttpMethod.GET, path);
-    }
+  private static RequestMatcher get(String path) {
+    return PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, path);
+  }
 
-    private HttpSecurity applyCommonSettings(HttpSecurity http) throws Exception {
-        return http
-            .cors(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
-            .logout(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-    }
+  private HttpSecurity applyCommonSettings(HttpSecurity http) throws Exception {
+    return http.cors(Customizer.withDefaults())
+        .csrf(AbstractHttpConfigurer::disable)
+        .logout(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+  }
 
-    private JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthoritiesClaimName(JwtSpec.ROLES_CLAIM);
-        authoritiesConverter.setAuthorityPrefix(JwtSpec.AUTHORITY_PREFIX);
+  private JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    authoritiesConverter.setAuthoritiesClaimName(JwtSpec.ROLES_CLAIM);
+    authoritiesConverter.setAuthorityPrefix(JwtSpec.AUTHORITY_PREFIX);
 
-        JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
-        authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
-        return authenticationConverter;
-    }
+    JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
+    authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+    return authenticationConverter;
+  }
 }

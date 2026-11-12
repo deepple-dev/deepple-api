@@ -11,15 +11,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MemberProfileEventHandler {
 
-    private final MemberProfileService memberProfileService;
+  private final MemberProfileService memberProfileService;
 
-    @EventListener(value = MatchRequestedEvent.class)
-    public void handle(MatchRequestedEvent event) {
-        memberProfileService.validateContactTypeSetting(event.getRequesterId(), event.getContactType());
-    }
+  @EventListener(value = MatchRequestedEvent.class)
+  public void handle(MatchRequestedEvent event) {
+    memberProfileService.validateContactTypeSetting(event.getRequesterId(), event.getContactType());
+  }
 
-    @EventListener(value = MatchRespondedEvent.class)
-    public void handle(MatchRespondedEvent event) {
-        memberProfileService.validateContactTypeSetting(event.getResponderId(), event.getContactType());
-    }
+  @EventListener(value = MatchRespondedEvent.class)
+  public void handle(MatchRespondedEvent event) {
+    memberProfileService.validateContactTypeSetting(event.getResponderId(), event.getContactType());
+  }
 }

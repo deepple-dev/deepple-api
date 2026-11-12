@@ -1,11 +1,11 @@
 package kr.co.deepple.admin.presentation.match;
 
-import kr.co.deepple.admin.query.match.MatchHistoryQueryRepository;
-import kr.co.deepple.admin.query.match.MatchHistorySearchCondition;
-import kr.co.deepple.admin.query.match.MatchHistoryView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.admin.query.match.MatchHistoryQueryRepository;
+import kr.co.deepple.admin.query.match.MatchHistorySearchCondition;
+import kr.co.deepple.admin.query.match.MatchHistoryView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,21 +16,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @Tag(name = "관리자 페이지 매치 내역 관리 API")
 @RestController
 @RequestMapping("/admin/matches")
 @RequiredArgsConstructor
 public class MatchHistoryController {
 
-    private final MatchHistoryQueryRepository matchHistoryQueryRepository;
+  private final MatchHistoryQueryRepository matchHistoryQueryRepository;
 
-    @Operation(summary = "매치 내역 조회")
-    @GetMapping
-    public ResponseEntity<Page<MatchHistoryView>> getMatchHistories(
-        @Valid @ModelAttribute MatchHistorySearchCondition condition,
-        @PageableDefault(size = 100) Pageable pageable
-    ) {
-        return ResponseEntity.ok(matchHistoryQueryRepository.findMatchHistories(condition, pageable));
-    }
+  @Operation(summary = "매치 내역 조회")
+  @GetMapping
+  public ResponseEntity<Page<MatchHistoryView>> getMatchHistories(
+      @Valid @ModelAttribute MatchHistorySearchCondition condition,
+      @PageableDefault(size = 100) Pageable pageable) {
+    return ResponseEntity.ok(matchHistoryQueryRepository.findMatchHistories(condition, pageable));
+  }
 }

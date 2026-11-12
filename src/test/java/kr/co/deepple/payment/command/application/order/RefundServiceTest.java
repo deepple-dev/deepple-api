@@ -1,5 +1,17 @@
 package kr.co.deepple.payment.command.application.order;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
@@ -25,318 +37,324 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class RefundServiceTest {
 
-    @Mock
-    private OrderCommandRepository orderCommandRepository;
+  @Mock private OrderCommandRepository orderCommandRepository;
 
-    @Mock
-    private RefundCommandRepository refundCommandRepository;
+  @Mock private RefundCommandRepository refundCommandRepository;
 
-    @Mock
-    private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Mock private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
 
-    @InjectMocks
-    private RefundService refundService;
+  @InjectMocks private RefundService refundService;
 
-    @Nested
-    @DisplayName("환불 처리 시")
-    class ProcessRefundTests {
+  @Nested
+  @DisplayName("환불 처리 시")
+  class ProcessRefundTests {
 
-        @Test
-        @DisplayName("정상적인 환불 처리 시 Refund 저장 및 이벤트 발행")
-        void shouldProcessRefundSuccessfully() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 2;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND;
-            Long memberId = 100L;
-            Long heartAmount = 50L;
-            Long orderId = 1L;
+    @Test
+    @DisplayName("정상적인 환불 처리 시 Refund 저장 및 이벤트 발행")
+    void shouldProcessRefundSuccessfully() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 2;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND;
+      Long memberId = 100L;
+      Long heartAmount = 50L;
+      Long orderId = 1L;
 
-            Order order = OrderFixture.builder()
-                .id(orderId)
-                .memberId(memberId)
-                .transactionId(transactionId)
-                .paymentMethod(paymentMethod)
-                .build();
-            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
-                .productId(productId)
-                .amount(heartAmount)
-                .build();
+      Order order =
+          OrderFixture.builder()
+              .id(orderId)
+              .memberId(memberId)
+              .transactionId(transactionId)
+              .paymentMethod(paymentMethod)
+              .build();
+      HeartPurchaseOption heartPurchaseOption =
+          HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.of(order));
-            when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
-                .thenReturn(Optional.of(heartPurchaseOption));
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.of(order));
+      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+          .thenReturn(Optional.of(heartPurchaseOption));
 
-            // when & then
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
+      // when & then
+      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+        refundService.processRefund(
+            transactionId, productId, quantity, paymentMethod, notificationType);
 
-                verify(orderCommandRepository).findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod);
-                verify(heartPurchaseOptionCommandRepository).findByProductIdAndDeletedAtIsNull(productId);
+        verify(orderCommandRepository)
+            .findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod);
+        verify(heartPurchaseOptionCommandRepository).findByProductIdAndDeletedAtIsNull(productId);
 
-                ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-                verify(refundCommandRepository).save(refundCaptor.capture());
+        ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+        verify(refundCommandRepository).save(refundCaptor.capture());
 
-                Refund savedRefund = refundCaptor.getValue();
-                assertThat(savedRefund.getMemberId()).isEqualTo(memberId);
-                assertThat(savedRefund.getTransactionId()).isEqualTo(transactionId);
-                assertThat(savedRefund.getProductId()).isEqualTo(productId);
-                assertThat(savedRefund.getQuantity()).isEqualTo(quantity);
-                assertThat(savedRefund.getRefundAmount()).isEqualTo(heartAmount * quantity);
-                assertThat(savedRefund.getNotificationType()).isEqualTo(notificationType);
+        Refund savedRefund = refundCaptor.getValue();
+        assertThat(savedRefund.getMemberId()).isEqualTo(memberId);
+        assertThat(savedRefund.getTransactionId()).isEqualTo(transactionId);
+        assertThat(savedRefund.getProductId()).isEqualTo(productId);
+        assertThat(savedRefund.getQuantity()).isEqualTo(quantity);
+        assertThat(savedRefund.getRefundAmount()).isEqualTo(heartAmount * quantity);
+        assertThat(savedRefund.getNotificationType()).isEqualTo(notificationType);
 
-                eventsMockedStatic.verify(() -> Events.raise(argThat(
-                    event -> event instanceof HeartRefundedEvent
+        eventsMockedStatic.verify(() ->
+            Events.raise(
+                argThat(event ->
+                    event instanceof HeartRefundedEvent
                         && ((HeartRefundedEvent) event).getMemberId() == memberId
                         && ((HeartRefundedEvent) event).getOrderId() == orderId
                         && ((HeartRefundedEvent) event).getAmount() == heartAmount * quantity
-                        && ((HeartRefundedEvent) event).getTransactionId().equals(transactionId)
-                )));
-            }
-        }
-
-        @Test
-        @DisplayName("quantity가 여러 개일 때 환불 금액 올바르게 계산")
-        void shouldCalculateRefundAmountCorrectlyWithMultipleQuantity() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 5;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND;
-            Long memberId = 100L;
-            Long heartAmount = 30L;
-            Long orderId = 1L;
-
-            Order order = OrderFixture.builder()
-                .id(orderId)
-                .memberId(memberId)
-                .transactionId(transactionId)
-                .paymentMethod(paymentMethod)
-                .build();
-            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
-                .productId(productId)
-                .amount(heartAmount)
-                .build();
-
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.of(order));
-            when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
-                .thenReturn(Optional.of(heartPurchaseOption));
-
-            // when & then
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
-
-                ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-                verify(refundCommandRepository).save(refundCaptor.capture());
-
-                Refund savedRefund = refundCaptor.getValue();
-                assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
-            }
-        }
+                        && ((HeartRefundedEvent) event).getTransactionId().equals(transactionId))));
+      }
     }
 
-    @Nested
-    @DisplayName("중복 환불 처리 시")
-    class DuplicateRefundTests {
+    @Test
+    @DisplayName("quantity가 여러 개일 때 환불 금액 올바르게 계산")
+    void shouldCalculateRefundAmountCorrectlyWithMultipleQuantity() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 5;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND;
+      Long memberId = 100L;
+      Long heartAmount = 30L;
+      Long orderId = 1L;
 
-        @Test
-        @DisplayName("이미 환불된 주문이면 아무것도 하지 않고 정상 종료")
-        void shouldSkipWhenOrderAlreadyRefunded() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 1;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND;
+      Order order =
+          OrderFixture.builder()
+              .id(orderId)
+              .memberId(memberId)
+              .transactionId(transactionId)
+              .paymentMethod(paymentMethod)
+              .build();
+      HeartPurchaseOption heartPurchaseOption =
+          HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-            Order order = OrderFixture.builder()
-                .transactionId(transactionId)
-                .paymentMethod(paymentMethod)
-                .status(OrderStatus.REFUNDED)
-                .build();
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.of(order));
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.of(order));
+      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+          .thenReturn(Optional.of(heartPurchaseOption));
 
-            // when & then
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                assertThatCode(() -> refundService.processRefund(transactionId, productId, quantity, paymentMethod,
-                    notificationType)).doesNotThrowAnyException();
+      // when & then
+      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+        refundService.processRefund(
+            transactionId, productId, quantity, paymentMethod, notificationType);
 
-                verify(heartPurchaseOptionCommandRepository, never()).findByProductIdAndDeletedAtIsNull(any());
-                verify(refundCommandRepository, never()).save(any(Refund.class));
-                eventsMockedStatic.verifyNoInteractions();
-            }
-        }
+        ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+        verify(refundCommandRepository).save(refundCaptor.capture());
+
+        Refund savedRefund = refundCaptor.getValue();
+        assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
+      }
     }
+  }
 
-    @Nested
-    @DisplayName("주문을 찾을 수 없는 경우")
-    class OrderNotFoundTests {
+  @Nested
+  @DisplayName("중복 환불 처리 시")
+  class DuplicateRefundTests {
 
-        @Test
-        @DisplayName("transactionId와 paymentMethod로 주문을 찾을 수 없으면 ORDER_NOT_FOUND 예외발생")
-        void shouldThrowOrderNotFoundWhenOrderNotFound() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 1;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND;
+    @Test
+    @DisplayName("이미 환불된 주문이면 아무것도 하지 않고 정상 종료")
+    void shouldSkipWhenOrderAlreadyRefunded() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 1;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND;
 
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.empty());
+      Order order =
+          OrderFixture.builder()
+              .transactionId(transactionId)
+              .paymentMethod(paymentMethod)
+              .status(OrderStatus.REFUNDED)
+              .build();
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.of(order));
 
-            // when & then
-            assertThatThrownBy(
-                () -> refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.ORDER_NOT_FOUND)
-                .hasMessageContaining("주문을 찾을 수 없습니다");
+      // when & then
+      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+        assertThatCode(() ->
+                refundService.processRefund(
+                    transactionId, productId, quantity, paymentMethod, notificationType))
+            .doesNotThrowAnyException();
 
-            verify(heartPurchaseOptionCommandRepository, never()).findByProductIdAndDeletedAtIsNull(any());
-            verify(refundCommandRepository, never()).save(any(Refund.class));
-        }
+        verify(heartPurchaseOptionCommandRepository, never())
+            .findByProductIdAndDeletedAtIsNull(any());
+        verify(refundCommandRepository, never()).save(any(Refund.class));
+        eventsMockedStatic.verifyNoInteractions();
+      }
     }
+  }
 
-    @Nested
-    @DisplayName("하트 구매 옵션을 찾을 수 없는 경우")
-    class HeartPurchaseOptionNotFoundTests {
+  @Nested
+  @DisplayName("주문을 찾을 수 없는 경우")
+  class OrderNotFoundTests {
 
-        @Test
-        @DisplayName("productId로 하트 구매 옵션을 찾을 수 없으면 HEART_PURCHASE_OPTION_NOT_FOUND 예외발생")
-        void shouldThrowHeartPurchaseOptionNotFoundWhenOptionNotFound() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 1;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND;
-            Long memberId = 100L;
+    @Test
+    @DisplayName("transactionId와 paymentMethod로 주문을 찾을 수 없으면 ORDER_NOT_FOUND 예외발생")
+    void shouldThrowOrderNotFoundWhenOrderNotFound() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 1;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND;
 
-            Order order = OrderFixture.builder()
-                .memberId(memberId)
-                .transactionId(transactionId)
-                .paymentMethod(paymentMethod)
-                .build();
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.empty());
 
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.of(order));
-            when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
-                .thenReturn(Optional.empty());
+      // when & then
+      assertThatThrownBy(() ->
+              refundService.processRefund(
+                  transactionId, productId, quantity, paymentMethod, notificationType))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.ORDER_NOT_FOUND)
+          .hasMessageContaining("주문을 찾을 수 없습니다");
 
-            // when & then
-            assertThatThrownBy(
-                () -> refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType))
-                .isInstanceOf(DeeppleException.class)
-                .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND)
-                .hasMessageContaining("하트 구매 옵션이 존재하지 않습니다");
-
-            verify(refundCommandRepository, never()).save(any(Refund.class));
-        }
+      verify(heartPurchaseOptionCommandRepository, never())
+          .findByProductIdAndDeletedAtIsNull(any());
+      verify(refundCommandRepository, never()).save(any(Refund.class));
     }
+  }
 
-    @Nested
-    @DisplayName("다양한 NotificationType 처리 테스트")
-    class NotificationTypeHandlingTests {
+  @Nested
+  @DisplayName("하트 구매 옵션을 찾을 수 없는 경우")
+  class HeartPurchaseOptionNotFoundTests {
 
-        @Test
-        @DisplayName("REFUND_DECLINED NotificationType으로 환불 처리")
-        void shouldProcessRefundWithRefundDeclinedNotificationType() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 1;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND_DECLINED;
-            Long memberId = 100L;
-            Long heartAmount = 50L;
-            Long orderId = 1L;
+    @Test
+    @DisplayName("productId로 하트 구매 옵션을 찾을 수 없으면 HEART_PURCHASE_OPTION_NOT_FOUND 예외발생")
+    void shouldThrowHeartPurchaseOptionNotFoundWhenOptionNotFound() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 1;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND;
+      Long memberId = 100L;
 
-            Order order = OrderFixture.builder()
-                .id(orderId)
-                .memberId(memberId)
-                .transactionId(transactionId)
-                .paymentMethod(paymentMethod)
-                .build();
-            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
-                .productId(productId)
-                .amount(heartAmount)
-                .build();
+      Order order =
+          OrderFixture.builder()
+              .memberId(memberId)
+              .transactionId(transactionId)
+              .paymentMethod(paymentMethod)
+              .build();
 
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.of(order));
-            when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
-                .thenReturn(Optional.of(heartPurchaseOption));
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.of(order));
+      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+          .thenReturn(Optional.empty());
 
-            // when & then
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
+      // when & then
+      assertThatThrownBy(() ->
+              refundService.processRefund(
+                  transactionId, productId, quantity, paymentMethod, notificationType))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue(
+              "errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND)
+          .hasMessageContaining("하트 구매 옵션이 존재하지 않습니다");
 
-                ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-                verify(refundCommandRepository).save(refundCaptor.capture());
-
-                Refund savedRefund = refundCaptor.getValue();
-                assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
-            }
-        }
+      verify(refundCommandRepository, never()).save(any(Refund.class));
     }
+  }
 
-    @Nested
-    @DisplayName("Order 상태 변경 테스트")
-    class OrderStatusChangeTests {
+  @Nested
+  @DisplayName("다양한 NotificationType 처리 테스트")
+  class NotificationTypeHandlingTests {
 
-        @Test
-        @DisplayName("환불 처리 시 Order의 refund() 메서드 호출")
-        void shouldCallOrderRefundMethod() {
-            // given
-            String transactionId = "txn123";
-            String productId = "product123";
-            int quantity = 1;
-            PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
-            NotificationType notificationType = NotificationType.REFUND;
-            Long memberId = 100L;
-            Long heartAmount = 50L;
-            Long orderId = 1L;
+    @Test
+    @DisplayName("REFUND_DECLINED NotificationType으로 환불 처리")
+    void shouldProcessRefundWithRefundDeclinedNotificationType() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 1;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND_DECLINED;
+      Long memberId = 100L;
+      Long heartAmount = 50L;
+      Long orderId = 1L;
 
-            Order order = spy(OrderFixture.builder()
-                .id(orderId)
-                .memberId(memberId)
-                .transactionId(transactionId)
-                .paymentMethod(paymentMethod)
-                .build());
-            HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder()
-                .productId(productId)
-                .amount(heartAmount)
-                .build();
+      Order order =
+          OrderFixture.builder()
+              .id(orderId)
+              .memberId(memberId)
+              .transactionId(transactionId)
+              .paymentMethod(paymentMethod)
+              .build();
+      HeartPurchaseOption heartPurchaseOption =
+          HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-            when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod))
-                .thenReturn(Optional.of(order));
-            when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
-                .thenReturn(Optional.of(heartPurchaseOption));
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.of(order));
+      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+          .thenReturn(Optional.of(heartPurchaseOption));
 
-            // when & then
-            try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-                refundService.processRefund(transactionId, productId, quantity, paymentMethod, notificationType);
+      // when & then
+      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+        refundService.processRefund(
+            transactionId, productId, quantity, paymentMethod, notificationType);
 
-                verify(order).refund();
-            }
-        }
+        ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+        verify(refundCommandRepository).save(refundCaptor.capture());
+
+        Refund savedRefund = refundCaptor.getValue();
+        assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
+      }
     }
+  }
+
+  @Nested
+  @DisplayName("Order 상태 변경 테스트")
+  class OrderStatusChangeTests {
+
+    @Test
+    @DisplayName("환불 처리 시 Order의 refund() 메서드 호출")
+    void shouldCallOrderRefundMethod() {
+      // given
+      String transactionId = "txn123";
+      String productId = "product123";
+      int quantity = 1;
+      PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
+      NotificationType notificationType = NotificationType.REFUND;
+      Long memberId = 100L;
+      Long heartAmount = 50L;
+      Long orderId = 1L;
+
+      Order order =
+          spy(
+              OrderFixture.builder()
+                  .id(orderId)
+                  .memberId(memberId)
+                  .transactionId(transactionId)
+                  .paymentMethod(paymentMethod)
+                  .build());
+      HeartPurchaseOption heartPurchaseOption =
+          HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
+
+      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+              transactionId, paymentMethod))
+          .thenReturn(Optional.of(order));
+      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+          .thenReturn(Optional.of(heartPurchaseOption));
+
+      // when & then
+      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
+        refundService.processRefund(
+            transactionId, productId, quantity, paymentMethod, notificationType);
+
+        verify(order).refund();
+      }
+    }
+  }
 }
