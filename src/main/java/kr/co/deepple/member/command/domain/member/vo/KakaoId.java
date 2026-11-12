@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 
 @Embeddable
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class KakaoId {
 
   private static final String KAKAO_ID_REGEX = "^[a-zA-Z0-9._-]{3,15}$";

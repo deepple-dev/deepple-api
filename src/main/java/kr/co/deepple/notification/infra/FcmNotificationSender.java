@@ -36,7 +36,7 @@ public class FcmNotificationSender implements NotificationSender {
   @CircuitBreaker(name = CIRCUIT_BREAKER_POLICY_NAME)
   public void send(Notification notification, DeviceRegistration deviceRegistration)
       throws Exception {
-    var message =
+    Message message =
         Message.builder()
             .setToken(deviceRegistration.getRegistrationToken())
             .setNotification(

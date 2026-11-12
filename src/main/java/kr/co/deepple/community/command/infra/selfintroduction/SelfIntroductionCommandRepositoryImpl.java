@@ -18,17 +18,17 @@ public class SelfIntroductionCommandRepositoryImpl implements SelfIntroductionCo
   }
 
   @Override
-  public Optional<SelfIntroduction> findById(Long id) {
+  public Optional<SelfIntroduction> findById(long id) {
     return selfIntroductionJpaRepository.findById(id);
   }
 
   @Override
-  public void deleteById(Long id) {
+  public void deleteById(long id) {
     selfIntroductionJpaRepository.deleteById(id);
   }
 
   @Override
-  public boolean existsByMemberId(Long memberId) {
+  public boolean existsByMemberId(long memberId) {
     return selfIntroductionJpaRepository.existsByMemberId(memberId);
   }
 }

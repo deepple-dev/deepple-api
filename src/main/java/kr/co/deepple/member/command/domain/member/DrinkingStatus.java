@@ -3,8 +3,10 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum DrinkingStatus {
   NONE("전혀 마시지 않음"),
   QUIT("금주"),
@@ -13,10 +15,6 @@ public enum DrinkingStatus {
   FREQUENT("술자리를 즐김");
 
   private final String description;
-
-  DrinkingStatus(String description) {
-    this.description = description;
-  }
 
   public static DrinkingStatus from(String value) {
     if (value == null || value.isEmpty()) {

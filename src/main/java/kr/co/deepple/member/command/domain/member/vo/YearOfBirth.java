@@ -11,8 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class YearOfBirth {
 
   @Column(name = "year_of_birth")
@@ -20,7 +20,10 @@ public class YearOfBirth {
 
   private YearOfBirth(Integer value) {
     if (value != null) {
-      validateYearOfBirth(value);
+      int age = Calendar.getInstance().get(Calendar.YEAR) - value + 1;
+      if (age < 20 || age > 46) {
+        throw new DeeppleException(MemberErrorCode.INVALID_YEAR_OF_BIRTH, "yearOfBirth=" + value);
+      }
     }
     this.value = value;
   }
@@ -34,13 +37,5 @@ public class YearOfBirth {
       return null;
     }
     return AgeConverter.toAge(value);
-  }
-
-  private void validateYearOfBirth(Integer yearOfBirth) {
-    int age = Calendar.getInstance().get(Calendar.YEAR) - yearOfBirth + 1;
-    if (age < 20 || age > 46) {
-      throw new DeeppleException(
-          MemberErrorCode.INVALID_YEAR_OF_BIRTH, "yearOfBirth=" + yearOfBirth);
-    }
   }
 }

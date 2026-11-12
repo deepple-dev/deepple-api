@@ -24,12 +24,12 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
   }
 
   @Override
-  public Optional<Member> findById(Long id) {
+  public Optional<Member> findById(long id) {
     return memberCommandJpaRepository.findById(id);
   }
 
   @Override
-  public Optional<Member> findByIdForUpdate(Long id) {
+  public Optional<Member> findByIdForUpdate(long id) {
     return memberCommandJpaRepository.findByIdForUpdate(id);
   }
 
@@ -39,18 +39,18 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
   }
 
   @Override
-  public boolean existsByPhoneNumberAndIdNot(String phoneNumber, Long id) {
+  public boolean existsByPhoneNumberAndIdNot(String phoneNumber, long id) {
     return memberCommandJpaRepository.existsByPhoneNumberAndIdNot(
         PhoneNumber.from(phoneNumber), id);
   }
 
   @Override
-  public boolean existsByKakaoIdAndIdNot(String kakaoId, Long id) {
+  public boolean existsByKakaoIdAndIdNot(String kakaoId, long id) {
     return memberCommandJpaRepository.existsByKakaoIdAndIdNot(KakaoId.from(kakaoId), id);
   }
 
   @Override
-  public boolean existsById(Long id) {
+  public boolean existsById(long id) {
     return memberCommandJpaRepository.existsById(id);
   }
 
@@ -65,13 +65,13 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
   }
 
   @Override
-  public void deleteBefore(final LocalDateTime dateTime) {
+  public void deleteBefore(LocalDateTime dateTime) {
     memberCommandJpaRepository.deleteAllBefore(dateTime);
   }
 
   @Override
   @Transactional
-  public void updateLastAccessedAt(Long memberId, LocalDateTime accessedAt) {
+  public void updateLastAccessedAt(long memberId, LocalDateTime accessedAt) {
     memberCommandJpaRepository.updateLastAccessedAt(memberId, accessedAt);
   }
 }

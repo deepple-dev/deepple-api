@@ -24,7 +24,7 @@ public class InterviewQuestionService {
   }
 
   @Transactional
-  public void updateQuestion(Long questionId, InterviewQuestionSaveRequest request) {
+  public void updateQuestion(long questionId, InterviewQuestionSaveRequest request) {
     InterviewQuestion interviewQuestion = getInterviewQuestion(questionId);
     InterviewCategory interviewCategory = InterviewCategory.from(request.category());
     validateQuestionUpdate(interviewQuestion, request.questionContent());
@@ -45,7 +45,7 @@ public class InterviewQuestionService {
     interviewQuestionCommandRepository.save(interviewQuestion);
   }
 
-  private InterviewQuestion getInterviewQuestion(Long questionId) {
+  private InterviewQuestion getInterviewQuestion(long questionId) {
     return interviewQuestionCommandRepository
         .findById(questionId)
         .orElseThrow(() ->

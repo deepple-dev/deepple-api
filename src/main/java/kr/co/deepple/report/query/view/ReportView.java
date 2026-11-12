@@ -16,7 +16,5 @@ public record ReportView(
     @Schema(implementation = ReportResult.class) String result,
     LocalDateTime createdAt) {
   @QueryProjection
-  public ReportView {
-    // QueryDSL에서 사용하기 위한 생성자
-  }
+  public ReportView {}
 }

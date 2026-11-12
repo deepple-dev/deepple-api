@@ -11,9 +11,10 @@ import kr.co.deepple.datingexam.application.dto.DatingExamSubjectInfo;
 import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
 import kr.co.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DatingExamSubmitRequestValidator {
 
   public static void validateSubmit(DatingExamSubmitRequest request, DatingExamInfoResponse info) {

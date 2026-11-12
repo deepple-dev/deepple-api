@@ -16,33 +16,33 @@ public class MemberContactService {
   private final MemberCommandRepository memberCommandRepository;
 
   @Transactional
-  public void updateKakaoId(Long memberId, String kakaoId) {
+  public void updateKakaoId(long memberId, String kakaoId) {
     validateKakaoId(kakaoId, memberId);
     Member member = getMemberById(memberId);
     member.changePrimaryContactTypeToKakao(KakaoId.from(kakaoId));
   }
 
   @Transactional
-  public void updatePhoneNumber(Long memberId, String phoneNumber) {
+  public void updatePhoneNumber(long memberId, String phoneNumber) {
     validatePhoneNumber(phoneNumber, memberId);
     Member member = getMemberById(memberId);
     member.changePrimaryContactTypeToPhoneNumber(phoneNumber);
   }
 
-  private void validatePhoneNumber(String phoneNumber, Long memberId) {
+  private void validatePhoneNumber(String phoneNumber, long memberId) {
     if (memberCommandRepository.existsByPhoneNumberAndIdNot(phoneNumber, memberId)) {
       throw new DeeppleException(
           MemberErrorCode.PHONE_NUMBER_ALREADY_EXISTS, "memberId=" + memberId);
     }
   }
 
-  private void validateKakaoId(String kakaoId, Long memberId) {
+  private void validateKakaoId(String kakaoId, long memberId) {
     if (memberCommandRepository.existsByKakaoIdAndIdNot(kakaoId, memberId)) {
       throw new DeeppleException(MemberErrorCode.KAKAO_ID_ALREADY_EXISTS, "memberId=" + memberId);
     }
   }
 
-  private Member getMemberById(Long memberId) {
+  private Member getMemberById(long memberId) {
     return memberCommandRepository
         .findById(memberId)
         .orElseThrow(

@@ -1,6 +1,7 @@
 package kr.co.deepple.member.presentation.member;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import kr.co.deepple.match.command.domain.match.MatchContactType;
 import kr.co.deepple.match.command.domain.match.MatchStatus;
@@ -41,7 +42,7 @@ public class MemberMapper {
         .nickname(Nickname.from(memberProfileUpdateRequest.nickname()))
         .gender(Gender.from(memberProfileUpdateRequest.gender()))
         .mbti(Mbti.from(memberProfileUpdateRequest.mbti()))
-        .region(Region.of(District.from(memberProfileUpdateRequest.district())))
+        .region(Region.from(District.from(memberProfileUpdateRequest.district())))
         .smokingStatus(SmokingStatus.from(memberProfileUpdateRequest.smokingStatus()))
         .drinkingStatus(DrinkingStatus.from(memberProfileUpdateRequest.drinkingStatus()))
         .religion(Religion.from(memberProfileUpdateRequest.religion()))
@@ -102,7 +103,7 @@ public class MemberMapper {
   }
 
   public static ContactInfo toContactInfo(
-      ContactView contactView, MatchInfo matchInfo, Long targetMemberId) {
+      ContactView contactView, MatchInfo matchInfo, long targetMemberId) {
     if (contactView == null || matchInfo == null) {
       return null;
     }
@@ -111,7 +112,7 @@ public class MemberMapper {
       return null;
     }
     String contactType =
-        targetMemberId.equals(matchInfo.requesterId())
+        Objects.equals(targetMemberId, matchInfo.requesterId())
             ? matchInfo.requesterContactType()
             : matchInfo.responderContactType();
     String contact =

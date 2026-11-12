@@ -18,7 +18,7 @@ public class BlockModifyService implements BlockCommander {
 
   @Override
   @Transactional
-  public void createBlock(Long blockerId, Long blockedId) {
+  public void createBlock(long blockerId, long blockedId) {
     if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
       throw new DeeppleException(
           BlockErrorCode.BLOCK_ALREADY_EXISTS,

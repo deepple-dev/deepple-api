@@ -1,8 +1,10 @@
 package kr.co.deepple.member.query.introduction.application;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum IntroductionCacheKeyPrefix {
   DIAMOND("diamond:"),
   SAME_HOBBY("hobby:"),
@@ -13,8 +15,4 @@ public enum IntroductionCacheKeyPrefix {
   IDEAL("ideal:");
 
   private final String prefix;
-
-  IntroductionCacheKeyPrefix(String prefix) {
-    this.prefix = prefix;
-  }
 }

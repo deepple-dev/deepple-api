@@ -22,7 +22,7 @@ public class NotificationPreferenceFixture {
   }
 
   public NotificationPreference build() {
-    NotificationPreference preference = NotificationPreference.of(memberId);
+    NotificationPreference preference = NotificationPreference.from(memberId);
     setField(preference, "id", id);
     setField(preference, "isEnabledGlobally", enabledGlobally);
     return preference;

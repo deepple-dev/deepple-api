@@ -30,7 +30,8 @@ public class NotificationPreferenceController {
   @GetMapping
   public ResponseEntity<NotificationPreferenceView> getNotificationPreference(
       @CurrentMemberId long memberId) {
-    var preference = notificationPreferenceQueryRepository.findByMemberId(memberId).orElseThrow();
+    NotificationPreferenceView preference =
+        notificationPreferenceQueryRepository.findByMemberId(memberId).orElseThrow();
     return ResponseEntity.ok(preference);
   }
 

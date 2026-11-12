@@ -12,15 +12,15 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Embeddable
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @Getter
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class PhoneNumber {
 
   private static final String PHONE_NUMBER_REGEX = "^010\\d{8}$";
   private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile(PHONE_NUMBER_REGEX);
 
-  @Column(name = "phone_number", unique = true)
+  @Column(name = "phone_number")
   private final String value;
 
   private PhoneNumber(@NonNull String value) {

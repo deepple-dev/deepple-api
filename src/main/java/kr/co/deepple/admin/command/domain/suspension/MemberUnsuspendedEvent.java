@@ -12,7 +12,7 @@ public class MemberUnsuspendedEvent extends Event {
 
   private final long memberId;
 
-  public static MemberUnsuspendedEvent of(long memberId) {
+  public static MemberUnsuspendedEvent from(long memberId) {
     return new MemberUnsuspendedEvent(memberId);
   }
 

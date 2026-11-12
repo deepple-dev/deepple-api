@@ -5,7 +5,7 @@ import java.util.Optional;
 public interface ProfileExchangeRepository {
   ProfileExchange save(ProfileExchange profileExchange);
 
-  boolean existsProfileExchangeBetween(Long memberId, Long anotherMemberId);
+  boolean existsProfileExchangeBetween(long memberId, long anotherMemberId);
 
-  Optional<ProfileExchange> findById(Long id);
+  Optional<ProfileExchange> findById(long id);
 }

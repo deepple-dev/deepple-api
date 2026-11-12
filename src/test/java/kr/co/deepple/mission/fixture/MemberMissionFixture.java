@@ -25,7 +25,7 @@ public class MemberMissionFixture {
   }
 
   public MemberMission build() {
-    MemberMission memberMission = MemberMission.create(memberId, missionId);
+    MemberMission memberMission = MemberMission.of(memberId, missionId);
     setField(memberMission, "id", id);
     setField(memberMission, "attemptCount", attemptCount);
     setField(memberMission, "successCount", successCount);

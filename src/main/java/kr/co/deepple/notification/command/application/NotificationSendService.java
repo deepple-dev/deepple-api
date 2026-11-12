@@ -25,24 +25,20 @@ public class NotificationSendService {
   private final NotificationSenderResolver notificationSenderResolver;
 
   public void send(NotificationSendRequest request) {
-    // 1. 알림 생성
-    var notification = createNotificationWithTemplate(request);
+    Notification notification = createNotificationWithTemplate(request);
     if (notification == null) {
       return;
     }
 
-    // 2. 수신자 설정 확인
     if (!canSendByPreference(notification)) {
       return;
     }
 
-    // 3. 수신자 기기 조회
-    var device = findReceiversActiveDevice(notification);
+    DeviceRegistration device = findReceiversActiveDevice(notification);
     if (device == null) {
       return;
     }
 
-    // 4. 전송
     sendNotification(notification, device, request);
   }
 
@@ -50,7 +46,7 @@ public class NotificationSendService {
     return reader
         .findTemplate(request.notificationType())
         .map(template ->
-            Notification.create(
+            Notification.of(
                 request.senderType(),
                 request.senderId(),
                 request.receiverId(),

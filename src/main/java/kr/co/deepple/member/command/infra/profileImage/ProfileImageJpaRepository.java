@@ -5,11 +5,11 @@ import kr.co.deepple.member.command.domain.profileImage.ProfileImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProfileImageJpaRepository extends JpaRepository<ProfileImage, Long> {
-  boolean existsByMemberIdAndIsPrimary(Long memberId, boolean isPrimary);
+  boolean existsByMemberIdAndIsPrimary(long memberId, boolean isPrimary);
 
   void delete(ProfileImage profileImage);
 
-  List<ProfileImage> findByMemberId(Long memberId);
+  List<ProfileImage> findByMemberId(long memberId);
 
-  void deleteAllByMemberId(Long memberId);
+  void deleteAllByMemberId(long memberId);
 }

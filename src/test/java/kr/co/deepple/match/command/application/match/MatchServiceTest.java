@@ -142,8 +142,8 @@ class MatchServiceTest {
       verify(matchRepository)
           .save(
               argThat(match ->
-                  match.getRequesterId().equals(requesterId)
-                      && match.getResponderId().equals(responderId)
+                  match.getRequesterId() == requesterId
+                      && match.getResponderId() == responderId
                       && match.getRequestMessage().getValue().equals(requestMessage)));
     }
   }

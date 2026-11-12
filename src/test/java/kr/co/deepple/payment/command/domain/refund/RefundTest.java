@@ -49,27 +49,6 @@ class RefundTest {
     }
 
     @Test
-    @DisplayName("orderId가 null이면 NullPointerException 발생")
-    void throwsNullPointerExceptionWhenOrderIdIsNull() {
-      // given
-      RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
-      NotificationType notificationType = NotificationType.REFUND;
-      LocalDateTime refundedAt = LocalDateTime.now();
-
-      // when & then
-      assertThatThrownBy(() ->
-              Refund.of(
-                  null,
-                  1L,
-                  "transaction123",
-                  refundDetail,
-                  PaymentMethod.APP_STORE,
-                  notificationType,
-                  refundedAt))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     @DisplayName("RefundDetail이 null이면 NullPointerException 발생")
     void throwsNullPointerExceptionWhenRefundDetailIsNull() {
       // given

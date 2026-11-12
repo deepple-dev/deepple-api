@@ -74,7 +74,7 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
           members.stream().filter(m -> m.getId().equals(opponentId)).findFirst().orElse(null);
       ProfileImage profileImage =
           memberProfileImages.stream()
-              .filter(p -> p.getMemberId().equals(opponentId))
+              .filter(p -> p.getMemberId() == opponentId)
               .findFirst()
               .orElse(null);
       Assertions.assertThat(member).isNotNull();
@@ -123,7 +123,7 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
           members.stream().filter(m -> m.getId().equals(opponentId)).findFirst().orElse(null);
       ProfileImage profileImage =
           memberProfileImages.stream()
-              .filter(p -> p.getMemberId().equals(opponentId))
+              .filter(p -> p.getMemberId() == opponentId)
               .findFirst()
               .orElse(null);
       Assertions.assertThat(member).isNotNull();

@@ -4,7 +4,7 @@ import kr.co.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmiss
 import kr.co.deepple.datingexam.application.dto.DominantPersonalityTypeResponse;
 
 public interface DatingExamFinder {
-  DatingExamInfoWithSubjectSubmissionResponse findRequiredExamInfo(Long memberId);
+  DatingExamInfoWithSubjectSubmissionResponse findRequiredExamInfo(long memberId);
 
-  DominantPersonalityTypeResponse findDominantPersonalityType(Long memberId);
+  DominantPersonalityTypeResponse findDominantPersonalityType(long memberId);
 }

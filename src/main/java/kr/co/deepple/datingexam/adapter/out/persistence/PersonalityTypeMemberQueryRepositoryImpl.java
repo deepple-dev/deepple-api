@@ -27,7 +27,7 @@ public class PersonalityTypeMemberQueryRepositoryImpl
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<Long> findMemberIdsByDominantType(Long memberId, AnswerPersonalityType type) {
+  public List<Long> findMemberIdsByDominantType(long memberId, AnswerPersonalityType type) {
     Set<Long> typeMemberIds = getMemberIdsByDominantType(type);
     typeMemberIds.removeAll(getExcludedMemberIds(memberId));
 
@@ -70,7 +70,7 @@ public class PersonalityTypeMemberQueryRepositoryImpl
             .fetch());
   }
 
-  private Set<Long> getExcludedMemberIds(Long memberId) {
+  private Set<Long> getExcludedMemberIds(long memberId) {
     List<Long> blockedIds =
         queryFactory
             .select(block.blockedId)

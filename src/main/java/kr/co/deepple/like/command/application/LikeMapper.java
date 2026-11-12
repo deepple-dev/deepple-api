@@ -1,12 +1,11 @@
 package kr.co.deepple.like.command.application;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import kr.co.deepple.like.command.domain.LikeLevel;
 import kr.co.deepple.like.presentation.LikeLevelRequest;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LikeMapper {
 
   public static LikeLevel toLikeLevel(LikeLevelRequest likeLevelRequest) {

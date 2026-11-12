@@ -38,7 +38,7 @@ public class InterviewAnswerController {
   @Operation(summary = "인터뷰 답변 수정 API")
   @PatchMapping("/{id}")
   public ResponseEntity<Void> updateAnswer(
-      @PathVariable Long id,
+      @PathVariable long id,
       @Valid @RequestBody InterviewAnswerUpdateRequest request,
       @CurrentMemberId long memberId) {
     interviewAnswerService.updateAnswer(id, request, memberId);
@@ -47,7 +47,7 @@ public class InterviewAnswerController {
 
   @Operation(summary = "인터뷰 답변 삭제 API")
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteAnswer(@PathVariable Long id, @CurrentMemberId long memberId) {
+  public ResponseEntity<Void> deleteAnswer(@PathVariable long id, @CurrentMemberId long memberId) {
     interviewAnswerService.deleteAnswer(id, memberId);
     return ResponseEntity.noContent().build();
   }

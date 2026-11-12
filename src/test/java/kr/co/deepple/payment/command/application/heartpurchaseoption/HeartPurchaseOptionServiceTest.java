@@ -73,8 +73,8 @@ class HeartPurchaseOptionServiceTest {
       verify(heartPurchaseOptionCommandRepository)
           .save(
               argThat(heartPurchaseOption ->
-                  heartPurchaseOption.getHeartAmount().equals(heartAmount)
-                      && heartPurchaseOption.getPrice().getValue().equals(price)
+                  heartPurchaseOption.getHeartAmount() == heartAmount
+                      && heartPurchaseOption.getPrice().getValue() == price
                       && heartPurchaseOption.getProductId().equals(productId)
                       && heartPurchaseOption.getName().equals(name)));
     }

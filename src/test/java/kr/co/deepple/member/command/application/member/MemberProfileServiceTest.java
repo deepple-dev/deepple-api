@@ -183,7 +183,7 @@ class MemberProfileServiceTest {
     @DisplayName("멤버가 존재하지 않으면 예외를 던집니다.")
     void throwsExceptionWhenMemberNotFound() {
       // Given
-      final long memberId = 1L;
+      long memberId = 1L;
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When
@@ -196,7 +196,7 @@ class MemberProfileServiceTest {
     @DisplayName("멤버가 존재하면 member.publishProfile() 메서드를 호출합니다.")
     void callsPublishProfileMethodWhenMemberExists() {
       // Given
-      final long memberId = 1L;
+      long memberId = 1L;
       Member member = MemberFixture.builder().id(memberId).profilePublic(false).build();
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
@@ -216,7 +216,7 @@ class MemberProfileServiceTest {
     @DisplayName("멤버가 존재하지 않으면 예외를 던집니다.")
     void throwsExceptionWhenMemberNotFound() {
       // Given
-      final long memberId = 1L;
+      long memberId = 1L;
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When
@@ -230,7 +230,7 @@ class MemberProfileServiceTest {
     @DisplayName("회원의 상태를 활동중이 아닌 다른 상태로 변경하는 경우, 프로필 공개 상태 또한 비공개로 변경합니다.")
     void callsChangeActivityStatusAndNonPublishProfileWhenActivityStatusIsNotActive() {
       // Given
-      final long memberId = 1L;
+      long memberId = 1L;
       String activityStatus = "TEMPORARY";
       Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
@@ -252,8 +252,8 @@ class MemberProfileServiceTest {
     @DisplayName("멤버가 존재하지 않으면, 예외를 던집니다.")
     void throwExceptionWhenMemberNotFound() {
       // Given
-      final Long memberId = 1L;
-      final String contactType = "PHONE_NUMBER";
+      Long memberId = 1L;
+      String contactType = "PHONE_NUMBER";
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When & Then
@@ -267,8 +267,8 @@ class MemberProfileServiceTest {
     @DisplayName("ContactType이 Null 일 경우, 유효성을 검증하지 않는다.")
     void shouldNotValidateWhenContactTypeIsNull() {
       // Given
-      final Long memberId = 1L;
-      final String contactType = null;
+      Long memberId = 1L;
+      String contactType = null;
       Member member = MemberFixture.builder().id(memberId).build();
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
@@ -283,8 +283,8 @@ class MemberProfileServiceTest {
     @DisplayName("ContactType 이 PHONE_NUMBER or KAKAO 일 경우, 유효성을 검증한다.")
     void shouldValidateWhenContactTypeIsInKakaoOrPhonNumber() {
       // Given
-      final Long memberId = 1L;
-      final List<String> contactTypes = List.of("PHONE_NUMBER", "KAKAO");
+      Long memberId = 1L;
+      List<String> contactTypes = List.of("PHONE_NUMBER", "KAKAO");
       Member member = Mockito.mock(Member.class);
       when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
       when(member.getPhoneNumber()).thenReturn(null);

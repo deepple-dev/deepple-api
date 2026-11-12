@@ -19,7 +19,7 @@ public class MemberProfileService {
   private final MemberCommandRepository memberCommandRepository;
 
   @Transactional
-  public void updateMember(Long memberId, MemberProfileUpdateRequest request) {
+  public void updateMember(long memberId, MemberProfileUpdateRequest request) {
     Member member = getMemberById(memberId);
     member.updateProfile(MemberMapper.toMemberProfile(request));
   }
@@ -35,7 +35,7 @@ public class MemberProfileService {
   }
 
   @Transactional
-  public void validateContactTypeSetting(Long memberId, String contactType) {
+  public void validateContactTypeSetting(long memberId, String contactType) {
     Member member = getMemberById(memberId);
     if (PrimaryContactType.PHONE_NUMBER.name().equals(contactType)
         && member.getPhoneNumber() == null) {
@@ -50,28 +50,28 @@ public class MemberProfileService {
   }
 
   @Transactional
-  public void approveScreening(Long memberId) {
+  public void approveScreening(long memberId) {
     Member member = getMemberById(memberId);
     member.approveScreening();
     changeProfilePublishStatus(memberId, true);
   }
 
   @Transactional
-  public void changeReject(Long memberId) {
+  public void changeReject(long memberId) {
     Member member = getMemberById(memberId);
     member.changeToRejected();
     changeProfilePublishStatus(memberId, false);
   }
 
   @Transactional
-  public void changeWaiting(Long memberId) {
+  public void changeWaiting(long memberId) {
     Member member = getMemberById(memberId);
     member.changeToWaiting();
     changeProfilePublishStatus(memberId, false);
   }
 
   @Transactional
-  public void changeProfilePublishStatus(Long memberId, boolean publishStatus) {
+  public void changeProfilePublishStatus(long memberId, boolean publishStatus) {
     Member member = getMemberById(memberId);
     if (publishStatus) {
       publish(member);
@@ -81,7 +81,7 @@ public class MemberProfileService {
   }
 
   @Transactional
-  public void changeMemberActivityStatus(Long memberId, String status) {
+  public void changeMemberActivityStatus(long memberId, String status) {
     Member member = getMemberById(memberId);
     ActivityStatus activityStatus = getActivityStatus(status);
     member.changeActivityStatus(activityStatus);
@@ -94,7 +94,7 @@ public class MemberProfileService {
   }
 
   @Transactional
-  public void markDatingExamSubmitted(Long memberId) {
+  public void markDatingExamSubmitted(long memberId) {
     Member member = getMemberById(memberId);
     member.markDatingExamSubmitted();
   }
@@ -107,7 +107,7 @@ public class MemberProfileService {
     member.nonPublishProfile();
   }
 
-  private Member getMemberById(Long memberId) {
+  private Member getMemberById(long memberId) {
     return memberCommandRepository
         .findById(memberId)
         .orElseThrow(

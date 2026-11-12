@@ -8,13 +8,13 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class AllRequiredSubjectSubmittedEvent extends Event {
 
-  private final Long memberId;
+  private final long memberId;
 
-  private AllRequiredSubjectSubmittedEvent(Long memberId) {
+  private AllRequiredSubjectSubmittedEvent(long memberId) {
     this.memberId = memberId;
   }
 
-  public static AllRequiredSubjectSubmittedEvent of(Long memberId) {
+  public static AllRequiredSubjectSubmittedEvent from(long memberId) {
     return new AllRequiredSubjectSubmittedEvent(memberId);
   }
 }

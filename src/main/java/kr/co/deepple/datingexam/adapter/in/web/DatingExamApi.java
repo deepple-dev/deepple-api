@@ -39,7 +39,7 @@ public class DatingExamApi {
   @GetMapping("/required")
   public ResponseEntity<DatingExamInfoWithSubjectSubmissionResponse> getRequiredExamInfo(
       @CurrentMemberId long memberId) {
-    final DatingExamInfoWithSubjectSubmissionResponse requiredExamInfo =
+    DatingExamInfoWithSubjectSubmissionResponse requiredExamInfo =
         datingExamFinder.findRequiredExamInfo(memberId);
     return ResponseEntity.ok(requiredExamInfo);
   }
@@ -48,7 +48,7 @@ public class DatingExamApi {
   @GetMapping("/personality-type")
   public ResponseEntity<DominantPersonalityTypeResponse> getDominantPersonalityType(
       @CurrentMemberId long memberId) {
-    final DominantPersonalityTypeResponse response =
+    DominantPersonalityTypeResponse response =
         datingExamFinder.findDominantPersonalityType(memberId);
     return ResponseEntity.ok(response);
   }

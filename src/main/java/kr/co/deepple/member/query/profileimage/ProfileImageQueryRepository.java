@@ -15,7 +15,7 @@ public class ProfileImageQueryRepository {
 
   private final JPAQueryFactory queryFactory;
 
-  public List<ProfileImageView> findByMemberId(Long memberId) {
+  public List<ProfileImageView> findByMemberId(long memberId) {
     return queryFactory
         .select(
             new QProfileImageView(

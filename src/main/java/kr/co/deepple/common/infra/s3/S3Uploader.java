@@ -28,7 +28,7 @@ public class S3Uploader {
     this.s3Client = s3Client;
   }
 
-  public PresignedUrlResponse getPresignedUrl(String fileName, Long memberId) {
+  public PresignedUrlResponse getPresignedUrl(String fileName, long memberId) {
     String key = generateUniqueKey(fileName, memberId);
     URL presignedUrl =
         s3Template.createSignedPutURL(
@@ -38,7 +38,7 @@ public class S3Uploader {
     return new PresignedUrlResponse(presignedUrl.toString(), objectUrl);
   }
 
-  public PresignedUrlResponse getPresignedUrl(String fileName, Long memberId, String pathPrefix) {
+  public PresignedUrlResponse getPresignedUrl(String fileName, long memberId, String pathPrefix) {
     String key = pathPrefix + "/" + generateUniqueKey(fileName, memberId);
     URL presignedUrl =
         s3Template.createSignedPutURL(
@@ -55,7 +55,7 @@ public class S3Uploader {
     return s3Client.utilities().getUrl(builder -> builder.bucket(bucket).key(key)).toString();
   }
 
-  private String generateUniqueKey(String fileName, Long memberId) {
+  private String generateUniqueKey(String fileName, long memberId) {
     String extension = fileName.substring(fileName.lastIndexOf("."));
     return memberId + "/" + UUID.randomUUID() + extension;
   }

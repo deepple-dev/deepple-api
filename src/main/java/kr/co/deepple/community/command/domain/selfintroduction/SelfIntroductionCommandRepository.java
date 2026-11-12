@@ -5,9 +5,9 @@ import java.util.Optional;
 public interface SelfIntroductionCommandRepository {
   void save(SelfIntroduction selfIntroduction);
 
-  Optional<SelfIntroduction> findById(Long id);
+  Optional<SelfIntroduction> findById(long id);
 
-  void deleteById(Long id);
+  void deleteById(long id);
 
-  boolean existsByMemberId(Long memberId);
+  boolean existsByMemberId(long memberId);
 }

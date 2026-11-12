@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.common.event.Events;
@@ -22,14 +21,9 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
+@Table(name = "profile_exchanges")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-    name = "profile_exchanges",
-    indexes = {
-      @Index(name = "idx_responder_id", columnList = "responderId"),
-      @Index(name = "idx_requester_id_responder_id", columnList = "requesterId, responderId")
-    })
 public class ProfileExchange extends BaseEntity {
 
   @Id
@@ -46,7 +40,10 @@ public class ProfileExchange extends BaseEntity {
 
   private ProfileExchange(
       long requesterId, long responderId, @NonNull ProfileExchangeStatus status) {
-    validateRequesterIdAndResponderId(requesterId, responderId);
+    if (requesterId == responderId) {
+      throw new DeeppleException(
+          CommunityErrorCode.SELF_PROFILE_EXCHANGE, "memberId=" + requesterId);
+    }
     this.requesterId = requesterId;
     this.responderId = responderId;
     this.status = status;
@@ -67,13 +64,6 @@ public class ProfileExchange extends BaseEntity {
     validateWaitingStatus();
     Events.raise(ProfileExchangeRejectedEvent.of(requesterId, responderId, senderName));
     status = ProfileExchangeStatus.REJECTED;
-  }
-
-  private void validateRequesterIdAndResponderId(long requesterId, long responderId) {
-    if (requesterId == responderId) {
-      throw new DeeppleException(
-          CommunityErrorCode.SELF_PROFILE_EXCHANGE, "memberId=" + requesterId);
-    }
   }
 
   private void validateWaitingStatus() {

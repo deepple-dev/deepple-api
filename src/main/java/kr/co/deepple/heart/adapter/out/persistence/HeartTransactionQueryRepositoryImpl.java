@@ -22,7 +22,7 @@ public class HeartTransactionQueryRepositoryImpl implements HeartTransactionQuer
   public List<HeartTransactionView> findHeartTransactions(
       long memberId, HeartTransactionSearchCondition condition, int size) {
     if (size <= 0) {
-      throw new IllegalArgumentException("Size must be greater than 0");
+      throw new IllegalArgumentException("size는 0보다 커야 합니다. size=" + size);
     }
 
     return queryFactory

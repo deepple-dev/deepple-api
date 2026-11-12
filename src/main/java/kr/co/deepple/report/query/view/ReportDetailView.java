@@ -18,7 +18,5 @@ public record ReportDetailView(
     String content,
     LocalDateTime createdAt) {
   @QueryProjection
-  public ReportDetailView {
-    // QueryDSL에서 사용하기 위한 생성자
-  }
+  public ReportDetailView {}
 }

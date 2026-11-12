@@ -1,15 +1,14 @@
 package kr.co.deepple.admin.command.application.warning;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.admin.command.domain.AdminErrorCode;
 import kr.co.deepple.admin.command.domain.warning.WarningReasonType;
 import kr.co.deepple.common.exception.DeeppleException;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class WarningMapper {
 
   public static Set<WarningReasonType> toWarningReasonTypes(Set<String> reasonTypes) {

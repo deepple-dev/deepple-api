@@ -1,7 +1,5 @@
 package kr.co.deepple.admin.command.application.admin;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import kr.co.deepple.admin.command.domain.admin.Admin;
 import kr.co.deepple.admin.command.domain.admin.Email;
 import kr.co.deepple.admin.command.domain.admin.Name;
@@ -10,9 +8,10 @@ import kr.co.deepple.admin.command.domain.admin.PhoneNumber;
 import kr.co.deepple.admin.presentation.admin.dto.AdminLoginResponse;
 import kr.co.deepple.admin.presentation.admin.dto.AdminSignupRequest;
 import kr.co.deepple.admin.presentation.admin.dto.AdminSignupResponse;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AdminAuthMapper {
 
   public static Admin toAdmin(AdminSignupRequest request, Password password) {

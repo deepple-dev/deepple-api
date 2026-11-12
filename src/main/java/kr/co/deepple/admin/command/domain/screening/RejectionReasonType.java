@@ -1,8 +1,10 @@
 package kr.co.deepple.admin.command.domain.screening;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum RejectionReasonType {
   STOLEN_IMAGE("사진 도용"),
   INAPPROPRIATE_IMAGE("부적절한 사진"),
@@ -11,8 +13,4 @@ public enum RejectionReasonType {
   CONTACT_IN_PROFILE("프로필 내 연락처 기재");
 
   private final String description;
-
-  RejectionReasonType(String description) {
-    this.description = description;
-  }
 }

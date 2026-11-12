@@ -26,18 +26,15 @@ public class ProfileImageService {
 
   @Transactional
   public List<ProfileImageUploadResponse> save(
-      Long memberId, List<ProfileImageUploadRequest> requests) {
-    /** Request Validate. */
+      long memberId, List<ProfileImageUploadRequest> requests) {
     if (requests == null) {
       requests = new ArrayList<>();
     }
 
     validateRequestSize(requests);
 
-    /** Delete Existed Entity. */
     profileImageCommandRepository.deleteByMemberId(memberId);
 
-    /** Save ProfileImage Entity */
     List<ProfileImage> profileImages = new ArrayList<>();
     int order = 1;
 
@@ -58,13 +55,12 @@ public class ProfileImageService {
     return ProfileImageMapper.toList(profileImages);
   }
 
-  public PresignedUrlResponse getPresignedUrl(String fileName, Long memberId) {
+  public PresignedUrlResponse getPresignedUrl(String fileName, long memberId) {
     validateFileName(fileName);
     return s3Uploader.getPresignedUrl(fileName, memberId);
   }
 
   private void validateRequestSize(List<ProfileImageUploadRequest> request) {
-    /** 사이즈 검증. */
     if (request.size() > 6) {
       throw new DeeppleException(
           MemberErrorCode.PROFILE_IMAGE_COUNT_EXCEEDED, "count=" + request.size());
@@ -72,10 +68,9 @@ public class ProfileImageService {
   }
 
   private void validateFileName(String fileName) {
-    /** 확장자 검증. */
     if (fileName == null || fileName.isEmpty()) {
       throw new DeeppleException(
-          MemberErrorCode.INVALID_PROFILE_IMAGE_EXTENSION, "Blank FileName.");
+          MemberErrorCode.INVALID_PROFILE_IMAGE_EXTENSION, "파일 이름이 비어 있습니다.");
     }
 
     int lastDotIndex = fileName.lastIndexOf(".");

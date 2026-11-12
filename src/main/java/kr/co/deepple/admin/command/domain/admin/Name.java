@@ -1,21 +1,20 @@
 package kr.co.deepple.admin.command.domain.admin;
 
-import static lombok.AccessLevel.PROTECTED;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.regex.Pattern;
 import kr.co.deepple.admin.command.domain.AdminErrorCode;
 import kr.co.deepple.common.exception.DeeppleException;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Embeddable
-@NoArgsConstructor(access = PROTECTED, force = true)
 @Getter
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class Name {
 
   private static final String NAME_REGEX = "^[a-zA-Z0-9가-\uD7AF]{1,10}$";

@@ -24,7 +24,7 @@ public class ProfileExchangeController {
   @Operation(summary = "프로필 교환 신청 API")
   @PostMapping("/request/{responderId}")
   public ResponseEntity<Void> requestProfileExchange(
-      @CurrentMemberId long memberId, @PathVariable @Min(1) Long responderId) {
+      @CurrentMemberId long memberId, @PathVariable @Min(1) long responderId) {
     profileExchangeService.request(memberId, responderId);
     return ResponseEntity.noContent().build();
   }
@@ -32,7 +32,7 @@ public class ProfileExchangeController {
   @Operation(summary = "프로필 교환 수락 API")
   @PatchMapping("/{profileExchangeId}/approve")
   public ResponseEntity<Void> approveProfileExchange(
-      @CurrentMemberId long memberId, @PathVariable @Min(1) Long profileExchangeId) {
+      @CurrentMemberId long memberId, @PathVariable @Min(1) long profileExchangeId) {
     profileExchangeService.approve(profileExchangeId, memberId);
     return ResponseEntity.noContent().build();
   }
@@ -40,7 +40,7 @@ public class ProfileExchangeController {
   @Operation(summary = "프로필 교환 거절 API")
   @PatchMapping("/{profileExchangeId}/reject")
   public ResponseEntity<Void> rejectProfileExchange(
-      @CurrentMemberId long memberId, @PathVariable @Min(1) Long profileExchangeId) {
+      @CurrentMemberId long memberId, @PathVariable @Min(1) long profileExchangeId) {
     profileExchangeService.reject(profileExchangeId, memberId);
     return ResponseEntity.noContent().build();
   }

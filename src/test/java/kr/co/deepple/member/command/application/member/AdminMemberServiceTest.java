@@ -33,7 +33,7 @@ class AdminMemberServiceTest {
     long memberId = 1L;
     AdminMemberSettingUpdateRequest request =
         new AdminMemberSettingUpdateRequest(Grade.SILVER.name(), true, true);
-    final Member member = mock(Member.class);
+    Member member = mock(Member.class);
     when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
 
     // when

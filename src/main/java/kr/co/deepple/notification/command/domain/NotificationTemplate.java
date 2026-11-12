@@ -1,9 +1,8 @@
 package kr.co.deepple.notification.command.domain;
 
-import static jakarta.persistence.EnumType.STRING;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,8 +18,8 @@ import lombok.NonNull;
 
 @Entity
 @Table(name = "notification_templates")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class NotificationTemplate {
 
   private static final Pattern TEMPLATE_PARAM_PATTERN = Pattern.compile("\\{(\\w+)}");
@@ -29,7 +28,7 @@ public class NotificationTemplate {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Enumerated(STRING)
+  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private NotificationType type;
 

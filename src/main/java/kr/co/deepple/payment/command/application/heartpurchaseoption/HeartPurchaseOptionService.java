@@ -24,7 +24,7 @@ public class HeartPurchaseOptionService {
   }
 
   @Transactional
-  public void delete(Long id) {
+  public void delete(long id) {
     validateDeleteRequest(id);
     heartPurchaseOptionCommandRepository.deleteById(id);
   }
@@ -46,8 +46,8 @@ public class HeartPurchaseOptionService {
     heartPurchaseOptionCommandRepository.save(heartPurchaseOption);
   }
 
-  private void validateDeleteRequest(Long id) {
-    final HeartPurchaseOption heartPurchaseOption =
+  private void validateDeleteRequest(long id) {
+    HeartPurchaseOption heartPurchaseOption =
         heartPurchaseOptionCommandRepository
             .findById(id)
             .orElseThrow(() ->

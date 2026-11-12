@@ -3,7 +3,6 @@ package kr.co.deepple.heart.fixture;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import kr.co.deepple.heart.domain.Gender;
-import kr.co.deepple.heart.domain.HeartPriceAmount;
 import kr.co.deepple.heart.domain.HeartUsagePolicy;
 import kr.co.deepple.heart.domain.TransactionType;
 import lombok.AccessLevel;
@@ -26,8 +25,7 @@ public class HeartUsagePolicyFixture {
   }
 
   public HeartUsagePolicy build() {
-    HeartUsagePolicy policy =
-        HeartUsagePolicy.of(transactionType, gender, HeartPriceAmount.from(price));
+    HeartUsagePolicy policy = HeartUsagePolicy.of(transactionType, gender, price);
     setField(policy, "id", id);
     return policy;
   }

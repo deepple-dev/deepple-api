@@ -1,8 +1,10 @@
 package kr.co.deepple.notification.command.domain;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum NotificationType {
   MATCH_REQUEST("매치 요청"),
   MATCH_ACCEPT("매치 수락"),
@@ -31,8 +33,4 @@ public enum NotificationType {
   INACTIVITY_REMINDER("장기 미로그인 알림");
 
   private final String description;
-
-  NotificationType(String description) {
-    this.description = description;
-  }
 }

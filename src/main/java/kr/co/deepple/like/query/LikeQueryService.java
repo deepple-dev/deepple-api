@@ -1,6 +1,7 @@
 package kr.co.deepple.like.query;
 
 import java.time.LocalDate;
+import java.util.List;
 import kr.co.deepple.like.presentation.LikeViews;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,19 +14,19 @@ public class LikeQueryService {
   private final LikeQueryRepository likeQueryRepository;
 
   public LikeViews findSentLikes(long senderId, Long lastLikeId) {
-    var rawLikes = likeQueryRepository.findSentLikes(senderId, lastLikeId);
+    List<RawLikeView> rawLikes = likeQueryRepository.findSentLikes(senderId, lastLikeId);
     boolean hasMore = rawLikes.size() > CLIENT_PAGE_SIZE;
 
-    var likes = rawLikes.stream().limit(CLIENT_PAGE_SIZE).map(this::toLikeView).toList();
+    List<LikeView> likes = rawLikes.stream().limit(CLIENT_PAGE_SIZE).map(this::toLikeView).toList();
 
     return new LikeViews(likes, hasMore);
   }
 
   public LikeViews findReceivedLikes(long receiverId, Long lastLikeId) {
-    var rawLikes = likeQueryRepository.findReceivedLikes(receiverId, lastLikeId);
+    List<RawLikeView> rawLikes = likeQueryRepository.findReceivedLikes(receiverId, lastLikeId);
     boolean hasMore = rawLikes.size() > CLIENT_PAGE_SIZE;
 
-    var likes = rawLikes.stream().limit(CLIENT_PAGE_SIZE).map(this::toLikeView).toList();
+    List<LikeView> likes = rawLikes.stream().limit(CLIENT_PAGE_SIZE).map(this::toLikeView).toList();
 
     return new LikeViews(likes, hasMore);
   }

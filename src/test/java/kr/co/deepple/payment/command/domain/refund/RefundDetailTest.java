@@ -99,19 +99,6 @@ class RefundDetailTest {
   class QuantityValidationTest {
 
     @Test
-    @DisplayName("quantity가 null이면 IllegalArgumentException 발생")
-    void throwsIllegalArgumentExceptionWhenQuantityIsNull() {
-      // given
-      String productId = "product123";
-      Long refundAmount = 1000L;
-
-      // when & then
-      assertThatThrownBy(() -> RefundDetail.of(productId, null, refundAmount))
-          .isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("quantity는 0보다 커야 합니다.");
-    }
-
-    @Test
     @DisplayName("quantity가 0이면 IllegalArgumentException 발생")
     void throwsIllegalArgumentExceptionWhenQuantityIsZero() {
       // given
@@ -175,19 +162,6 @@ class RefundDetailTest {
   @Nested
   @DisplayName("refundAmount 검증 테스트")
   class RefundAmountValidationTest {
-
-    @Test
-    @DisplayName("refundAmount가 null이면 IllegalArgumentException 발생")
-    void throwsIllegalArgumentExceptionWhenRefundAmountIsNull() {
-      // given
-      String productId = "product123";
-      Integer quantity = 1;
-
-      // when & then
-      assertThatThrownBy(() -> RefundDetail.of(productId, quantity, null))
-          .isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("refundAmount는 0 이상이어야 합니다.");
-    }
 
     @Test
     @DisplayName("refundAmount가 음수이면 IllegalArgumentException 발생")

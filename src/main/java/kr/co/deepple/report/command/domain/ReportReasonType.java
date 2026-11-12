@@ -2,8 +2,10 @@ package kr.co.deepple.report.command.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.deepple.common.exception.DeeppleException;
+import lombok.RequiredArgsConstructor;
 
 @Schema(name = "ReportReasonType", description = "신고 사유", type = "string", example = "STOLEN_IMAGE")
+@RequiredArgsConstructor
 public enum ReportReasonType {
   STOLEN_IMAGE("사진 도용"),
   INAPPROPRIATE_IMAGE("부적절한 사진"),
@@ -13,10 +15,6 @@ public enum ReportReasonType {
   ETC("기타");
 
   private final String description;
-
-  ReportReasonType(String description) {
-    this.description = description;
-  }
 
   public static ReportReasonType from(String value) {
     try {

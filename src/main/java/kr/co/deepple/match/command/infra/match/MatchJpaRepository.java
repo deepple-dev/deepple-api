@@ -16,11 +16,11 @@ public interface MatchJpaRepository extends JpaRepository<Match, Long> {
           OR (m.requesterId = :anotherMemberId AND m.responderId = :memberId))
           AND m.status <> 'EXPIRED' AND m.status <> 'REJECT_CHECKED'
           """)
-  boolean existsActiveMatchBetween(Long memberId, Long anotherMemberId);
+  boolean existsActiveMatchBetween(long memberId, long anotherMemberId);
 
-  Optional<Match> findByIdAndRequesterId(Long id, Long requesterId);
+  Optional<Match> findByIdAndRequesterId(long id, long requesterId);
 
-  Optional<Match> findByIdAndResponderId(Long id, Long responderId);
+  Optional<Match> findByIdAndResponderId(long id, long responderId);
 
-  Optional<Match> findByRequesterIdAndResponderId(Long requesterId, Long responderId);
+  Optional<Match> findByRequesterIdAndResponderId(long requesterId, long responderId);
 }

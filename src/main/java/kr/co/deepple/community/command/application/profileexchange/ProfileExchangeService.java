@@ -28,13 +28,13 @@ public class ProfileExchangeService {
   private final BlockRepository blockRepository;
   private final UseHeartUseCase useHeartUseCase;
 
-  public void request(Long requesterId, Long responderId) {
+  public void request(long requesterId, long responderId) {
     String key = generateKey(requesterId, responderId);
     distributedLockTemplate.executeInTransaction(
         key, () -> createProfileExchange(requesterId, responderId));
   }
 
-  private void createProfileExchange(Long requesterId, Long responderId) {
+  private void createProfileExchange(long requesterId, long responderId) {
     validateProfileExchangeRequest(requesterId, responderId);
     String senderName = getNickNameByMemberId(requesterId);
     ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId, senderName);
@@ -49,7 +49,7 @@ public class ProfileExchangeService {
   }
 
   @Transactional
-  public void approve(Long profileExchangeId, Long responderId) {
+  public void approve(long profileExchangeId, long responderId) {
     String senderName = getNickNameByMemberId(responderId);
     ProfileExchange profileExchange = getProfileExchangeById(profileExchangeId);
     validateProfileExchangeResponse(profileExchange, responderId);
@@ -57,14 +57,14 @@ public class ProfileExchangeService {
   }
 
   @Transactional
-  public void reject(Long profileExchangeId, Long responderId) {
+  public void reject(long profileExchangeId, long responderId) {
     String senderName = getNickNameByMemberId(responderId);
     ProfileExchange profileExchange = getProfileExchangeById(profileExchangeId);
     validateProfileExchangeResponse(profileExchange, responderId);
     profileExchange.reject(senderName);
   }
 
-  private String getNickNameByMemberId(Long memberId) {
+  private String getNickNameByMemberId(long memberId) {
     return memberCommandRepository
         .findById(memberId)
         .orElseThrow(
@@ -74,7 +74,7 @@ public class ProfileExchangeService {
         .getValue();
   }
 
-  private ProfileExchange getProfileExchangeById(Long profileExchangeId) {
+  private ProfileExchange getProfileExchangeById(long profileExchangeId) {
     return profileExchangeRepository
         .findById(profileExchangeId)
         .orElseThrow(() ->
@@ -83,7 +83,7 @@ public class ProfileExchangeService {
                 "profileExchangeId=" + profileExchangeId));
   }
 
-  private void validateProfileExchangeResponse(ProfileExchange profileExchange, Long responderId) {
+  private void validateProfileExchangeResponse(ProfileExchange profileExchange, long responderId) {
     if (profileExchange.getResponderId() != responderId) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_ACCESS_DENIED,
@@ -91,14 +91,14 @@ public class ProfileExchangeService {
     }
   }
 
-  private String generateKey(Long requesterId, Long responderId) {
+  private String generateKey(long requesterId, long responderId) {
     return LOCK_PREFIX
         + Math.max(requesterId, responderId)
         + ":"
         + Math.min(requesterId, responderId);
   }
 
-  private void validateProfileExchangeRequest(Long requesterId, Long responderId) {
+  private void validateProfileExchangeRequest(long requesterId, long responderId) {
     if (profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId)) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS,

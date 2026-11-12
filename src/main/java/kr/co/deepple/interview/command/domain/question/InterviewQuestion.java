@@ -18,26 +18,25 @@ import lombok.NonNull;
 
 @Entity
 @Table(name = "interview_questions")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InterviewQuestion extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
-  @Getter private String content;
+  private String content;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  @Getter
   private InterviewCategory category;
 
-  @Getter private boolean isPublic;
+  private boolean isPublic;
 
-  private InterviewQuestion(String content, InterviewCategory category, boolean isPublic) {
+  private InterviewQuestion(String content, @NonNull InterviewCategory category, boolean isPublic) {
     setContent(content);
-    setCategory(category);
+    this.category = category;
     this.isPublic = isPublic;
   }
 
@@ -52,13 +51,9 @@ public class InterviewQuestion extends BaseEntity {
     this.content = content;
   }
 
-  private void setCategory(@NonNull InterviewCategory category) {
-    this.category = category;
-  }
-
-  public void update(String content, InterviewCategory interviewCategory, boolean isPublic) {
+  public void update(String content, @NonNull InterviewCategory category, boolean isPublic) {
     setContent(content);
-    setCategory(interviewCategory);
+    this.category = category;
     this.isPublic = isPublic;
   }
 }

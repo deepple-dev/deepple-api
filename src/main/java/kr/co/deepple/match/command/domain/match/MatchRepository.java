@@ -5,13 +5,13 @@ import java.util.Optional;
 public interface MatchRepository {
   void save(Match match);
 
-  boolean existsActiveMatchBetween(Long memberId, Long anotherMemberId);
+  boolean existsActiveMatchBetween(long memberId, long anotherMemberId);
 
-  Optional<Match> findById(Long id);
+  Optional<Match> findById(long id);
 
-  Optional<Match> findByIdAndRequesterId(Long id, Long requesterId);
+  Optional<Match> findByIdAndRequesterId(long id, long requesterId);
 
-  Optional<Match> findByIdAndResponderId(Long id, Long responderId);
+  Optional<Match> findByIdAndResponderId(long id, long responderId);
 
-  Optional<Match> findByRequesterIdAndResponderId(Long requesterId, Long responderId);
+  Optional<Match> findByRequesterIdAndResponderId(long requesterId, long responderId);
 }

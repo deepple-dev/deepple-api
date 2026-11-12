@@ -114,7 +114,7 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
       Member member2 =
           createMember(
               "01022222222", "테스트유저2", ActivityStatus.DORMANT, Gender.FEMALE, Grade.DIAMOND);
-      final long adminId = 500L;
+      long adminId = 500L;
       createWarning(adminId, member1.getId());
       createWarning(adminId, member1.getId());
       entityManager.flush();
@@ -242,22 +242,19 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
       // given
       Member member =
           createMember("01011111111", "테스트유저1", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
-      final long adminId = 500L;
+      long adminId = 500L;
       createWarning(adminId, member.getId());
       createWarning(adminId, member.getId());
 
-      final InterviewQuestion question1 = createInterviewQuestion("질문1");
-      final InterviewAnswer answer1 =
-          createInterviewAnswer(question1.getId(), member.getId(), "답변1");
-      final InterviewQuestion question2 = createInterviewQuestion("질문2");
-      final InterviewAnswer answer2 =
-          createInterviewAnswer(question2.getId(), member.getId(), "답변2");
+      InterviewQuestion question1 = createInterviewQuestion("질문1");
+      InterviewAnswer answer1 = createInterviewAnswer(question1.getId(), member.getId(), "답변1");
+      InterviewQuestion question2 = createInterviewQuestion("질문2");
+      InterviewAnswer answer2 = createInterviewAnswer(question2.getId(), member.getId(), "답변2");
 
-      final List<ProfileImage> profileImages =
+      List<ProfileImage> profileImages =
           createProfileImages(member.getId(), "https://example.com/image");
 
-      final NotificationPreference notificationPreference =
-          createNotificationPreference(member.getId());
+      NotificationPreference notificationPreference = createNotificationPreference(member.getId());
 
       entityManager.flush();
 

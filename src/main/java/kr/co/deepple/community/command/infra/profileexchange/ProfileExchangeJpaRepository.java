@@ -14,5 +14,5 @@ public interface ProfileExchangeJpaRepository extends JpaRepository<ProfileExcha
           WHERE (pe.requesterId = :memberId AND pe.responderId = :anotherMemberId)
           OR (pe.requesterId = :anotherMemberId AND pe.responderId = :memberId)
           """)
-  boolean existsProfileExchangeBetween(Long memberId, Long anotherMemberId);
+  boolean existsProfileExchangeBetween(long memberId, long anotherMemberId);
 }

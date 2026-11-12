@@ -18,8 +18,7 @@ public class AdminReportService {
   private final ReportCommandRepository reportCommandRepository;
 
   @Transactional
-  public void updateResult(
-      final long reportId, final ReportResultUpdateRequest request, final long adminId) {
+  public void updateResult(long reportId, ReportResultUpdateRequest request, long adminId) {
     Report report = getReport(reportId);
     validateReport(report, request.version());
     setReportResult(report, request, adminId);
@@ -48,7 +47,7 @@ public class AdminReportService {
               ReportErrorCode.INVALID_REPORT_RESULT, "PENDING 으로 결과를 설정할 수 없습니다.");
       default ->
           throw new DeeppleException(
-              ReportErrorCode.INVALID_REPORT_RESULT, "Invalid report result: " + request.result());
+              ReportErrorCode.INVALID_REPORT_RESULT, "result=" + request.result());
     }
   }
 }

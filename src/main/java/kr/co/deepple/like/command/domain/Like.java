@@ -7,9 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import kr.co.deepple.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,21 +15,18 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "likes",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"senderId", "receiverId"}),
-    indexes = {@Index(name = "idx_receiver_id", columnList = "receiverId")})
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "likes")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Like extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long senderId;
+  private long senderId;
 
-  private Long receiverId;
+  private long receiverId;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")

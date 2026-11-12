@@ -3,10 +3,11 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum District {
-  // 서울특별시
   GANGNAM_GU(City.SEOUL, "강남구"),
   GANGDONG_GU(City.SEOUL, "강동구"),
   GANGBUK_GU(City.SEOUL, "강북구"),
@@ -33,7 +34,6 @@ public enum District {
   JUNG_GU(City.SEOUL, "중구"),
   JUNGRANG_GU(City.SEOUL, "중랑구"),
 
-  // 인천광역시
   GANGHWA_GUN(City.INCHEON, "강화군"),
   GYEYANG_GU(City.INCHEON, "계양구"),
   NAMDONG_GU(City.INCHEON, "남동구"),
@@ -45,7 +45,6 @@ public enum District {
   ONGJIN_GUN(City.INCHEON, "옹진군"),
   JUNG_GU_INCHEON(City.INCHEON, "중구"),
 
-  // 부산광역시
   GANGSEO_GU_BUSAN(City.BUSAN, "강서구"),
   GEUMJEONG_GU(City.BUSAN, "금정구"),
   GIJANG_GUN(City.BUSAN, "기장군"),
@@ -63,14 +62,12 @@ public enum District {
   JUNG_GU_BUSAN(City.BUSAN, "중구"),
   HAEUNDAE_GU(City.BUSAN, "해운대구"),
 
-  // 대전광역시
   DAEDEOK_GU(City.DAEJEON, "대덕구"),
   DONG_GU_DAEJEON(City.DAEJEON, "동구"),
   SEO_GU_DAEJEON(City.DAEJEON, "서구"),
   YUSEONG_GU(City.DAEJEON, "유성구"),
   JUNG_GU_DAEJEON(City.DAEJEON, "중구"),
 
-  // 대구광역시
   NAM_GU_DAEGU(City.DAEGU, "남구"),
   DALSEO_GU(City.DAEGU, "달서구"),
   DALSEONG_GUN(City.DAEGU, "달성군"),
@@ -80,24 +77,20 @@ public enum District {
   SUSEONG_GU(City.DAEGU, "수성구"),
   JUNG_GU_DAEGU(City.DAEGU, "중구"),
 
-  // 광주광역시
   GWANGSAN_GU(City.GWANGJU, "광산구"),
   NAM_GU_GWANGJU(City.GWANGJU, "남구"),
   DONG_GU_GWANGJU(City.GWANGJU, "동구"),
   BUK_GU_GWANGJU(City.GWANGJU, "북구"),
   SEO_GU_GWANGJU(City.GWANGJU, "서구"),
 
-  // 울산광역시
   NAM_GU_ULSAN(City.ULSAN, "남구"),
   DONG_GU_ULSAN(City.ULSAN, "동구"),
   BUK_GU_ULSAN(City.ULSAN, "북구"),
   ULJU_GUN(City.ULSAN, "울주군"),
   JUNG_GU_ULSAN(City.ULSAN, "중구"),
 
-  // 세종특별자치시
   SEJONG(City.SEJONG, "세종특별자치시"),
 
-  // 강원도
   GANGNEUNG_SI(City.GANGWON, "강릉시"),
   GOSEONG_GUN(City.GANGWON, "고성군"),
   DONGHAE_SI(City.GANGWON, "동해시"),
@@ -116,7 +109,6 @@ public enum District {
   HWACHEON_GUN(City.GANGWON, "화천군"),
   HOENGSEONG_GUN(City.GANGWON, "횡성군"),
 
-  // 경기도
   GAPYEONG_GUN(City.GYEONGGI, "가평군"),
   GOYANG_SI(City.GYEONGGI, "고양시"),
   GWACHEON_SI(City.GYEONGGI, "과천시"),
@@ -149,7 +141,6 @@ public enum District {
   HANAM_SI(City.GYEONGGI, "하남시"),
   HWASEONG_SI(City.GYEONGGI, "화성시"),
 
-  // 경상남도
   GEOJE_SI(City.GYEONGSANGNAM, "거제시"),
   GEOCHANG_GUN(City.GYEONGSANGNAM, "거창군"),
   GOSEONG_GUN_GYEONGSANGNAM(City.GYEONGSANGNAM, "고성군"),
@@ -169,7 +160,6 @@ public enum District {
   HAMYANG_GUN(City.GYEONGSANGNAM, "함양군"),
   HAPCHEON_GUN(City.GYEONGSANGNAM, "합천군"),
 
-  // 경상북도
   GORYEONG_GUN(City.GYEONGSANGBUK, "고령군"),
   GYEONGSAN_SI(City.GYEONGSANGBUK, "경산시"),
   GYEONGJU_SI(City.GYEONGSANGBUK, "경주시"),
@@ -194,7 +184,6 @@ public enum District {
   YECHON_GUN(City.GYEONGSANGBUK, "예천군"),
   POHANG_SI(City.GYEONGSANGBUK, "포항시"),
 
-  // 충청남도
   GYERYONG_SI(City.CHUNGCHEONGNAM, "계룡시"),
   GONGJU_SI(City.CHUNGCHEONGNAM, "공주시"),
   GEUMSAN_GUN(City.CHUNGCHEONGNAM, "금산군"),
@@ -210,7 +199,6 @@ public enum District {
   CHEONGYANG_GUN(City.CHUNGCHEONGNAM, "청양군"),
   TAEAN_GUN(City.CHUNGCHEONGNAM, "태안군"),
   HONGSEONG_GUN(City.CHUNGCHEONGNAM, "홍성군"),
-  // 충청북도
   GOESAN_GUN(City.CHUNGCHEONGBUK, "괴산군"),
   DANYANG_GUN(City.CHUNGCHEONGBUK, "단양군"),
   BOEUN_GUN(City.CHUNGCHEONGBUK, "보은군"),
@@ -223,7 +211,6 @@ public enum District {
   CHEONGJU_SI(City.CHUNGCHEONGBUK, "청주시"),
   CHUNGJU_SI(City.CHUNGCHEONGBUK, "충주시"),
 
-  // 전라남도
   GANGJIN_GUN(City.JEOLLANAM, "강진군"),
   GOHEUNG_GUN(City.JEOLLANAM, "고흥군"),
   GOKSEONG_GUN(City.JEOLLANAM, "곡성군"),
@@ -247,7 +234,6 @@ public enum District {
   HAENAM_GUN(City.JEOLLANAM, "해남군"),
   HWASUN_GUN(City.JEOLLANAM, "화순군"),
 
-  // 전라북도
   GOCHANG_GUN(City.JEOLLABUK, "고창군"),
   GUNSAN_SI(City.JEOLLABUK, "군산시"),
   GIMJE_SI(City.JEOLLABUK, "김제시"),
@@ -263,17 +249,11 @@ public enum District {
   JEONGEUP_SI(City.JEOLLABUK, "정읍시"),
   JINAN_GUN(City.JEOLLABUK, "진안군"),
 
-  // 제주도
   JEJU_SI(City.JEJU, "제주시"),
   SEOGWIPO_SI(City.JEJU, "서귀포시");
 
   private final City city;
   private final String description;
-
-  District(City city, String description) {
-    this.city = city;
-    this.description = description;
-  }
 
   public static District from(String value) {
     if (value == null || value.isEmpty()) {

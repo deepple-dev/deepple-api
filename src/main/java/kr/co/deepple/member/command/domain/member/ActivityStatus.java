@@ -1,8 +1,10 @@
 package kr.co.deepple.member.command.domain.member;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum ActivityStatus {
   INITIAL("가입완료"),
   ACTIVE("활동중"),
@@ -14,8 +16,4 @@ public enum ActivityStatus {
   DELETED("탈퇴");
 
   private final String description;
-
-  ActivityStatus(String description) {
-    this.description = description;
-  }
 }

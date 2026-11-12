@@ -90,7 +90,7 @@ public class MemberIntroductionController {
   @PostMapping("/today-card")
   public ResponseEntity<MemberIntroductionProfileViews> createTodayCardIntroductions(
       @CurrentMemberId long memberId) {
-    final Set<Long> todayCardMemberIds = todayCardQueryService.findTodayCardMemberIds(memberId);
+    Set<Long> todayCardMemberIds = todayCardQueryService.findTodayCardMemberIds(memberId);
     todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
     List<MemberIntroductionProfileView> introductionProfileViews =
         todayCardQueryService.findTodayCardIntroductions(memberId, todayCardMemberIds);

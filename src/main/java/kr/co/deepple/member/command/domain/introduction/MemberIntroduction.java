@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.common.exception.DeeppleException;
@@ -18,45 +17,35 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "member_introductions",
-    indexes = {
-      @Index(
-          name = "idx_member_introductions_member_introduced",
-          columnList = "memberId, introducedMemberId"),
-    })
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "member_introductions")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberIntroduction extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long memberId;
+  private long memberId;
 
-  private Long introducedMemberId;
+  private long introducedMemberId;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private IntroductionType type;
 
   private MemberIntroduction(
-      @NonNull Long memberId, @NonNull Long introducedMemberId, @NonNull IntroductionType type) {
-    validateMemberId(memberId, introducedMemberId);
+      long memberId, long introducedMemberId, @NonNull IntroductionType type) {
+    if (memberId == introducedMemberId) {
+      throw new DeeppleException(MemberErrorCode.SELF_MEMBER_INTRODUCTION, "memberId=" + memberId);
+    }
     this.memberId = memberId;
     this.introducedMemberId = introducedMemberId;
     this.type = type;
   }
 
   public static MemberIntroduction of(
-      Long memberId, Long introducedMemberId, @NonNull IntroductionType type) {
+      long memberId, long introducedMemberId, IntroductionType type) {
     return new MemberIntroduction(memberId, introducedMemberId, type);
-  }
-
-  private void validateMemberId(@NonNull Long memberId, @NonNull Long introducedMemberId) {
-    if (memberId.equals(introducedMemberId)) {
-      throw new DeeppleException(MemberErrorCode.SELF_MEMBER_INTRODUCTION, "memberId=" + memberId);
-    }
   }
 }

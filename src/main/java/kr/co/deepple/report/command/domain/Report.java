@@ -21,48 +21,48 @@ import lombok.NonNull;
 
 @Entity
 @Table(name = "reports")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Report extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
-  @Getter private Long reporterId;
+  private long reporterId;
 
-  @Getter private Long reporteeId;
+  private long reporteeId;
 
-  @Getter private Long adminId;
+  private Long adminId;
 
-  @Getter
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private ReportReasonType reason;
 
-  @Getter private String content;
+  private String content;
 
-  @Getter
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private ReportResult result;
 
-  @Version @Getter private Long version;
+  @Version private Long version;
 
   private Report(
       long reporterId,
       long reporteeId,
       Long adminId,
-      ReportReasonType reason,
-      String content,
-      ReportResult status) {
-    validateReport(reporterId, reporteeId);
-    setReporterId(reporterId);
-    setReporteeId(reporteeId);
-    setAdminId(adminId);
-    setReason(reason);
-    setContent(content);
-    setResult(status);
+      @NonNull ReportReasonType reason,
+      @NonNull String content,
+      @NonNull ReportResult result) {
+    if (reporterId == reporteeId) {
+      throw new DeeppleException(ReportErrorCode.SELF_REPORT, "memberId=" + reporterId);
+    }
+    this.reporterId = reporterId;
+    this.reporteeId = reporteeId;
+    this.adminId = adminId;
+    this.reason = reason;
+    this.content = content;
+    this.result = result;
   }
 
   public static Report of(
@@ -74,14 +74,14 @@ public class Report extends BaseEntity {
 
   public void reject(long adminId) {
     validateResult();
-    setAdminId(adminId);
-    setResult(ReportResult.REJECTED);
+    this.adminId = adminId;
+    this.result = ReportResult.REJECTED;
   }
 
   public void warn(long adminId) {
     validateResult();
-    setAdminId(adminId);
-    setResult(ReportResult.WARNED);
+    this.adminId = adminId;
+    this.result = ReportResult.WARNED;
     Events.raise(ReportWarnedEvent.of(adminId, reporteeId, reason.name()));
   }
 
@@ -89,40 +89,10 @@ public class Report extends BaseEntity {
     return this.version != version;
   }
 
-  private void validateReport(long reporterId, long reporteeId) {
-    if (reporterId == reporteeId) {
-      throw new DeeppleException(ReportErrorCode.SELF_REPORT, "memberId=" + reporterId);
-    }
-  }
-
   private void validateResult() {
-    if (this.result != ReportResult.PENDING) {
+    if (result != ReportResult.PENDING) {
       throw new DeeppleException(
           ReportErrorCode.REPORT_ALREADY_PROCESSED, "reportId=" + id + ", result=" + result);
     }
-  }
-
-  private void setReporterId(long reporterId) {
-    this.reporterId = reporterId;
-  }
-
-  private void setReporteeId(long reporteeId) {
-    this.reporteeId = reporteeId;
-  }
-
-  private void setAdminId(Long adminId) {
-    this.adminId = adminId;
-  }
-
-  private void setReason(@NonNull ReportReasonType reason) {
-    this.reason = reason;
-  }
-
-  private void setContent(@NonNull String content) {
-    this.content = content;
-  }
-
-  private void setResult(@NonNull ReportResult result) {
-    this.result = result;
   }
 }

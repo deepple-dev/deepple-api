@@ -23,7 +23,7 @@ public class InterviewAnswerService {
   private final MemberMissionService memberMissionService;
 
   @Transactional
-  public boolean saveAnswer(InterviewAnswerSaveRequest request, Long memberId) {
+  public boolean saveAnswer(InterviewAnswerSaveRequest request, long memberId) {
     validateQuestion(request.interviewQuestionId(), memberId);
     boolean isFirstInterviewAnswer = isFirstInterviewAnswer(memberId);
     createInterviewAnswer(request.interviewQuestionId(), memberId, request.answerContent());
@@ -36,20 +36,20 @@ public class InterviewAnswerService {
   }
 
   @Transactional
-  public void updateAnswer(Long answerId, InterviewAnswerUpdateRequest request, Long memberId) {
+  public void updateAnswer(long answerId, InterviewAnswerUpdateRequest request, long memberId) {
     InterviewAnswer interviewAnswer = getInterviewAnswer(answerId);
     validateAnswer(interviewAnswer, memberId);
     interviewAnswer.updateContent(request.answerContent());
   }
 
   @Transactional
-  public void deleteAnswer(Long answerId, Long memberId) {
+  public void deleteAnswer(long answerId, long memberId) {
     InterviewAnswer interviewAnswer = getInterviewAnswer(answerId);
     validateAnswer(interviewAnswer, memberId);
     interviewAnswerCommandRepository.delete(interviewAnswer);
   }
 
-  private void validateQuestion(Long questionId, Long memberId) {
+  private void validateQuestion(long questionId, long memberId) {
     InterviewQuestion interviewQuestion =
         interviewQuestionCommandRepository
             .findById(questionId)
@@ -67,23 +67,23 @@ public class InterviewAnswerService {
     }
   }
 
-  private InterviewAnswer createInterviewAnswer(Long questionId, Long memberId, String content) {
+  private InterviewAnswer createInterviewAnswer(long questionId, long memberId, String content) {
     InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, content);
     return interviewAnswerCommandRepository.save(interviewAnswer);
   }
 
-  private boolean isFirstInterviewAnswer(Long memberId) {
+  private boolean isFirstInterviewAnswer(long memberId) {
     return !interviewAnswerCommandRepository.existsByMemberId(memberId);
   }
 
-  private InterviewAnswer getInterviewAnswer(Long id) {
+  private InterviewAnswer getInterviewAnswer(long id) {
     return interviewAnswerCommandRepository
         .findById(id)
         .orElseThrow(() ->
             new DeeppleException(InterviewErrorCode.INTERVIEW_ANSWER_NOT_FOUND, "answerId=" + id));
   }
 
-  private void validateAnswer(InterviewAnswer interviewAnswer, Long memberId) {
+  private void validateAnswer(InterviewAnswer interviewAnswer, long memberId) {
     if (!interviewAnswer.isAnsweredBy(memberId)) {
       throw new DeeppleException(
           InterviewErrorCode.INTERVIEW_ANSWER_ACCESS_DENIED,

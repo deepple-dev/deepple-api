@@ -19,7 +19,7 @@ public class ProfileImageCommandRepositoryImpl implements ProfileImageCommandRep
   }
 
   @Override
-  public boolean existsByMemberIdAndIsPrimary(Long memberId) {
+  public boolean existsByMemberIdAndIsPrimary(long memberId) {
     return profileImageJpaRepository.existsByMemberIdAndIsPrimary(memberId, true);
   }
 
@@ -29,7 +29,7 @@ public class ProfileImageCommandRepositoryImpl implements ProfileImageCommandRep
   }
 
   @Override
-  public Optional<ProfileImage> findById(Long id) {
+  public Optional<ProfileImage> findById(long id) {
     return profileImageJpaRepository.findById(id);
   }
 
@@ -39,12 +39,12 @@ public class ProfileImageCommandRepositoryImpl implements ProfileImageCommandRep
   }
 
   @Override
-  public java.util.List<ProfileImage> findByMemberId(Long memberId) {
+  public java.util.List<ProfileImage> findByMemberId(long memberId) {
     return profileImageJpaRepository.findByMemberId(memberId);
   }
 
   @Override
-  public void deleteByMemberId(Long memberId) {
+  public void deleteByMemberId(long memberId) {
     profileImageJpaRepository.deleteAllByMemberId(memberId);
   }
 }

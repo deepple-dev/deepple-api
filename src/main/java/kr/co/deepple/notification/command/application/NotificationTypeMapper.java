@@ -1,13 +1,12 @@
 package kr.co.deepple.notification.command.application;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.notification.command.domain.NotificationErrorCode;
 import kr.co.deepple.notification.command.domain.NotificationType;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class NotificationTypeMapper {
 
   public static NotificationType toNotificationType(String notificationType) {

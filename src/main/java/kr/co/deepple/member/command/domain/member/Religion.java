@@ -3,8 +3,10 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum Religion {
   NONE("무교"),
   CHRISTIAN("기독교"),
@@ -13,10 +15,6 @@ public enum Religion {
   OTHER("기타");
 
   private final String description;
-
-  Religion(String description) {
-    this.description = description;
-  }
 
   public static Religion from(String value) {
     if (value == null || value.isEmpty()) {

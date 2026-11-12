@@ -30,7 +30,7 @@ public class SoulmateQueryRepositoryImpl implements SoulmateQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public Set<Long> findSameAnswerMemberIds(Long memberId) {
+  public Set<Long> findSameAnswerMemberIds(long memberId) {
     Set<Long> equalAnswerMemberIds = getEqualAnswerMemberIds(memberId);
     Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
@@ -68,7 +68,7 @@ public class SoulmateQueryRepositoryImpl implements SoulmateQueryRepository {
         .collect(Collectors.toSet());
   }
 
-  private Set<Long> getExcludedMemberIds(Long memberId) {
+  private Set<Long> getExcludedMemberIds(long memberId) {
     List<Long> blockedIds =
         queryFactory
             .select(block.blockedId)
@@ -88,7 +88,7 @@ public class SoulmateQueryRepositoryImpl implements SoulmateQueryRepository {
         .collect(Collectors.toSet());
   }
 
-  private Set<Long> getEqualAnswerMemberIds(Long memberId) {
+  private Set<Long> getEqualAnswerMemberIds(long memberId) {
     List<DatingExamSubmit> submits =
         queryFactory
             .select(datingExamSubmit)

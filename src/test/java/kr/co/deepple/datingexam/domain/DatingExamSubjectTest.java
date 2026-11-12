@@ -17,10 +17,10 @@ class DatingExamSubjectTest {
     SubjectType subjectType = SubjectType.REQUIRED;
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamSubject.create(nullName, subjectType))
+    assertThatThrownBy(() -> DatingExamSubject.of(nullName, subjectType))
         .isInstanceOf(NullPointerException.class);
 
-    assertThatThrownBy(() -> DatingExamSubject.create(emptyName, subjectType))
+    assertThatThrownBy(() -> DatingExamSubject.of(emptyName, subjectType))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -32,7 +32,7 @@ class DatingExamSubjectTest {
     SubjectType nullType = null;
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamSubject.create(subjectName, nullType))
+    assertThatThrownBy(() -> DatingExamSubject.of(subjectName, nullType))
         .isInstanceOf(NullPointerException.class);
   }
 
@@ -44,7 +44,7 @@ class DatingExamSubjectTest {
     SubjectType subjectType = SubjectType.REQUIRED;
 
     // When
-    DatingExamSubject subject = DatingExamSubject.create(subjectName, subjectType);
+    DatingExamSubject subject = DatingExamSubject.of(subjectName, subjectType);
 
     // Then
     assertThat(subject.getName()).isEqualTo(subjectName);

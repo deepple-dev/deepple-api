@@ -23,7 +23,7 @@ public class MemberMissionTest {
       boolean isCompleted = false;
 
       // When
-      MemberMission memberMission = MemberMission.create(memberId, missionId);
+      MemberMission memberMission = MemberMission.of(memberId, missionId);
 
       // Then
       Assertions.assertThat(memberMission.getMemberId()).isEqualTo(memberId);

@@ -23,13 +23,13 @@ public class NotificationDataWriter {
   @Transactional
   public void saveFailedNotification(
       SenderType senderType,
-      Long senderId,
-      Long receiverId,
+      long senderId,
+      long receiverId,
       NotificationType type,
       String title,
       String body,
       NotificationStatus status) {
-    var failedNotification =
+    Notification failedNotification =
         Notification.createFailed(senderType, senderId, receiverId, type, title, body, status);
     notificationCommandRepository.save(failedNotification);
   }

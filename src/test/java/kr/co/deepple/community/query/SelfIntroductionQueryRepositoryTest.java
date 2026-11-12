@@ -125,7 +125,7 @@ public class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
 
       List<SelfIntroduction> expectedResult =
           selfIntroductions.stream()
-              .filter(s -> s.isOpened() || s.getMemberId().equals(maleMember.getId()))
+              .filter(s -> s.isOpened() || s.getMemberId() == maleMember.getId())
               .toList();
 
       assertThat(selfIntroductionPage1.size() + selfIntroductionPage2.size())

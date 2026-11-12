@@ -33,7 +33,7 @@ class HeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport {
     int size = 10;
     HeartTransactionSearchCondition condition = new HeartTransactionSearchCondition(lastId);
 
-    final HeartTransaction heartTransaction = createHeartTransaction(memberId);
+    HeartTransaction heartTransaction = createHeartTransaction(memberId);
     entityManager.flush();
     entityManager.clear();
 
@@ -139,8 +139,8 @@ class HeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport {
         .isInstanceOf(IllegalArgumentException.class);
   }
 
-  private HeartTransaction createHeartTransaction(final long memberId) {
-    final HeartTransaction heartTransaction =
+  private HeartTransaction createHeartTransaction(long memberId) {
+    HeartTransaction heartTransaction =
         HeartTransactionFixture.builder()
             .memberId(memberId)
             .transactionType(TransactionType.PURCHASE)

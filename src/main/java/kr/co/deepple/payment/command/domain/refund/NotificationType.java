@@ -1,6 +1,7 @@
 package kr.co.deepple.payment.command.domain.refund;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * App Store Server Notifications v2의 알림 타입 중 환불 처리에 필요한 부분만 추가되어있습니다. 정의되지 않은 타입은 UNKNOWN으로 처리됩니다.
@@ -10,6 +11,7 @@ import lombok.Getter;
  *     Docs</a>
  */
 @Getter
+@RequiredArgsConstructor
 public enum NotificationType {
   REFUND("REFUND"),
   REFUND_DECLINED("REFUND_DECLINED"),
@@ -18,10 +20,6 @@ public enum NotificationType {
   UNKNOWN("UNKNOWN");
 
   private final String value;
-
-  NotificationType(String value) {
-    this.value = value;
-  }
 
   public static NotificationType from(String value) {
     for (NotificationType type : values()) {

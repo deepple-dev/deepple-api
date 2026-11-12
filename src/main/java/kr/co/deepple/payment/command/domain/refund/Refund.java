@@ -8,9 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.payment.command.domain.order.PaymentMethod;
@@ -20,14 +18,9 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Entity
-@Table(
-    name = "refunds",
-    indexes = {@Index(name = "idx_refunds_member_id", columnList = "memberId")},
-    uniqueConstraints = {
-      @UniqueConstraint(name = "uk_refunds_transaction_id", columnNames = "transactionId")
-    })
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "refunds")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Refund extends BaseEntity {
 
   @Id
@@ -35,10 +28,10 @@ public class Refund extends BaseEntity {
   private Long id;
 
   @Column(name = "order_id", nullable = false)
-  private Long orderId;
+  private long orderId;
 
   @Column(nullable = false)
-  private Long memberId;
+  private long memberId;
 
   @Column(nullable = false)
   private String transactionId;
@@ -57,8 +50,8 @@ public class Refund extends BaseEntity {
   private LocalDateTime refundedAt;
 
   private Refund(
-      @NonNull Long orderId,
-      @NonNull Long memberId,
+      long orderId,
+      long memberId,
       @NonNull String transactionId,
       @NonNull RefundDetail refundDetail,
       @NonNull PaymentMethod paymentMethod,
@@ -74,8 +67,8 @@ public class Refund extends BaseEntity {
   }
 
   public static Refund of(
-      Long orderId,
-      Long memberId,
+      long orderId,
+      long memberId,
       String transactionId,
       RefundDetail refundDetail,
       PaymentMethod paymentMethod,
@@ -95,11 +88,11 @@ public class Refund extends BaseEntity {
     return refundDetail.getProductId();
   }
 
-  public Integer getQuantity() {
+  public int getQuantity() {
     return refundDetail.getQuantity();
   }
 
-  public Long getRefundAmount() {
+  public long getRefundAmount() {
     return refundDetail.getRefundAmount();
   }
 }

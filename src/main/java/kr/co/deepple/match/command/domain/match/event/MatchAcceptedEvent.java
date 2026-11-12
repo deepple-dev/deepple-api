@@ -13,7 +13,7 @@ public class MatchAcceptedEvent extends Event {
   private final long responderId;
   private final String responderName;
 
-  public static MatchAcceptedEvent of(Long requesterId, Long responderId, String responderName) {
+  public static MatchAcceptedEvent of(long requesterId, long responderId, String responderName) {
     return new MatchAcceptedEvent(requesterId, responderId, responderName);
   }
 }

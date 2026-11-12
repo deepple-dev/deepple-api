@@ -22,7 +22,7 @@ public class DatingExamQuestionFixture {
   }
 
   public DatingExamQuestion build() {
-    DatingExamQuestion question = DatingExamQuestion.create(subjectId, content);
+    DatingExamQuestion question = DatingExamQuestion.of(subjectId, content);
     setField(question, "id", id);
     return question;
   }

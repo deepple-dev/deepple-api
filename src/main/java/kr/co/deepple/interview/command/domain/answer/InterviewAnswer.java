@@ -15,27 +15,27 @@ import lombok.NonNull;
 
 @Entity
 @Table(name = "interview_answers")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InterviewAnswer extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Getter
   private Long id;
 
-  private Long questionId;
+  private long questionId;
 
-  private Long memberId;
+  private long memberId;
 
-  @Getter private String content;
+  private String content;
 
-  private InterviewAnswer(Long questionId, Long memberId, String content) {
-    setQuestionId(questionId);
-    setMemberId(memberId);
+  private InterviewAnswer(long questionId, long memberId, String content) {
+    this.questionId = questionId;
+    this.memberId = memberId;
     setContent(content);
   }
 
-  public static InterviewAnswer of(Long questionId, Long memberId, String content) {
+  public static InterviewAnswer of(long questionId, long memberId, String content) {
     return new InterviewAnswer(questionId, memberId, content);
   }
 
@@ -43,16 +43,8 @@ public class InterviewAnswer extends BaseEntity {
     setContent(content);
   }
 
-  public boolean isAnsweredBy(final long memberId) {
-    return this.memberId.equals(memberId);
-  }
-
-  private void setQuestionId(@NonNull Long questionId) {
-    this.questionId = questionId;
-  }
-
-  private void setMemberId(@NonNull Long memberId) {
-    this.memberId = memberId;
+  public boolean isAnsweredBy(long memberId) {
+    return this.memberId == memberId;
   }
 
   private void setContent(@NonNull String content) {

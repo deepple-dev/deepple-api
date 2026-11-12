@@ -1,19 +1,19 @@
 package kr.co.deepple.heart.domain;
 
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Embeddable
+@Getter
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public final class HeartAmount {
 
-  @Getter private final Long amount;
-
-  protected HeartAmount() {
-    this.amount = 0L;
-  }
+  private final long amount;
 
   private HeartAmount(long amount) {
     this.amount = amount;

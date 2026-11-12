@@ -28,7 +28,7 @@ public class LikeController {
   @PostMapping
   public ResponseEntity<LikeSendResponse> send(
       @Valid @RequestBody LikeSendRequest request, @CurrentMemberId long memberId) {
-    final long senderId = memberId;
+    long senderId = memberId;
     boolean hasProcessedMission = likeSendService.send(senderId, request);
     LikeSendResponse response = new LikeSendResponse(hasProcessedMission);
     return ResponseEntity.ok(response);
@@ -38,7 +38,7 @@ public class LikeController {
   @GetMapping("/sent")
   public ResponseEntity<LikeViews> getSentLikes(
       @ModelAttribute LikeListRequest request, @CurrentMemberId long memberId) {
-    final var sentLikes = likeQueryService.findSentLikes(memberId, request.lastLikeId());
+    LikeViews sentLikes = likeQueryService.findSentLikes(memberId, request.lastLikeId());
     return ResponseEntity.ok(sentLikes);
   }
 
@@ -46,7 +46,7 @@ public class LikeController {
   @GetMapping("/received")
   public ResponseEntity<LikeViews> getReceivedLikes(
       @ModelAttribute LikeListRequest request, @CurrentMemberId long memberId) {
-    final var receivedLikes = likeQueryService.findReceivedLikes(memberId, request.lastLikeId());
+    LikeViews receivedLikes = likeQueryService.findReceivedLikes(memberId, request.lastLikeId());
     return ResponseEntity.ok(receivedLikes);
   }
 }

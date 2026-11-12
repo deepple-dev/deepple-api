@@ -22,13 +22,11 @@ public class FcmResilienceConfig implements ResiliencePolicyConfigurer {
   public static final String RETRY_POLICY_NAME = "fcmRetry";
   public static final String CIRCUIT_BREAKER_POLICY_NAME = "fcmCircuitBreaker";
 
-  // Retry 설정값
   private static final int MAX_ATTEMPTS = 3; // 최초 1회 + 재시도 2회
   private static final int RETRY_INITIAL_WAIT_MILLIS = 500;
   private static final double RETRY_MULTIPLIER = 2.0; // 지수 백오프 배수
   private static final double RETRY_JITTER = 0.3; // ±30% 지터
 
-  // Circuit Breaker 설정값
   private static final int CB_SLIDING_WINDOW_SIZE = 60; // 60초 시간 윈도우
   private static final int CB_MINIMUM_NUMBER_OF_CALLS = 10; // 최소 10회 호출 후 실패율 계산
   private static final float CB_FAILURE_RATE_THRESHOLD = 50f; // 실패율 50% 이상시 차단

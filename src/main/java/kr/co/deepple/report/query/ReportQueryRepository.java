@@ -85,8 +85,8 @@ public class ReportQueryRepository {
         : null;
   }
 
-  public Optional<ReportDetailView> findReportDetailView(final long id) {
-    final ReportDetailView view =
+  public Optional<ReportDetailView> findReportDetailView(long id) {
+    ReportDetailView view =
         queryFactory
             .select(
                 new QReportDetailView(

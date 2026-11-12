@@ -1,6 +1,7 @@
 package kr.co.deepple.member.query.member.application;
 
 import java.util.List;
+import java.util.Objects;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
@@ -30,28 +31,28 @@ public class MemberQueryService {
   private final MemberQueryRepository memberQueryRepository;
   private final ProfileImageQueryRepository profileImageQueryRepository;
 
-  public MemberInfoView getInfoCache(Long memberId) {
+  public MemberInfoView getInfoCache(long memberId) {
     return memberQueryRepository
         .findInfoByMemberId(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
   }
 
-  public MemberProfileView getProfile(Long memberId) {
+  public MemberProfileView getProfile(long memberId) {
     return memberQueryRepository
         .findProfileByMemberId(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
   }
 
-  public MemberContactView getContact(Long memberId) {
+  public MemberContactView getContact(long memberId) {
     return memberQueryRepository
         .findContactsByMemberId(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
   }
 
-  public MemberProfileResponse getMemberProfile(Long memberId, Long otherMemberId) {
+  public MemberProfileResponse getMemberProfile(long memberId, long otherMemberId) {
     ProfileAccessView profileAccessView =
         memberQueryRepository
             .findProfileAccessViewByMemberId(memberId, otherMemberId)
@@ -91,7 +92,7 @@ public class MemberQueryService {
   }
 
   private void validateProfileAccessView(
-      ProfileAccessView profileAccessView, Long memberId, Long otherMemberId) {
+      ProfileAccessView profileAccessView, long memberId, long otherMemberId) {
     if (profileAccessView.isBlocked()) { // 차단 당한 경우.
       throw new DeeppleException(
           MemberErrorCode.PROFILE_ACCESS_DENIED,
@@ -107,7 +108,7 @@ public class MemberQueryService {
     if (profileAccessView.isIntroduced()) { // 소개를 받은 경우.
       return;
     }
-    if (memberId.equals(profileAccessView.matchResponderId())) { // 매치 응답자인 경우.
+    if (Objects.equals(memberId, profileAccessView.matchResponderId())) { // 매치 응답자인 경우.
       return;
     }
     if (profileAccessView.likeReceived()) { // 좋아요를 받은 경우.
@@ -118,7 +119,8 @@ public class MemberQueryService {
         .equals(profileAccessView.profileExchangeStatus())) { // 프로필 교환이 완료된 경우.
       return;
     }
-    if (memberId.equals(profileAccessView.profileExchangeResponderId())) { // 프로필 교환 요청을 받은 경우.
+    if (Objects.equals(
+        memberId, profileAccessView.profileExchangeResponderId())) { // 프로필 교환 요청을 받은 경우.
       return;
     }
     throw new DeeppleException(

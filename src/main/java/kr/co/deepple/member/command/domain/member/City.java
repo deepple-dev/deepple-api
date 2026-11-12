@@ -3,8 +3,10 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum City {
   SEOUL("서울특별시"),
   INCHEON("인천광역시"),
@@ -25,10 +27,6 @@ public enum City {
   JEOLLABUK("전라북도");
 
   private final String description;
-
-  City(String description) {
-    this.description = description;
-  }
 
   public static City from(String value) {
     if (value == null || value.isEmpty()) {
