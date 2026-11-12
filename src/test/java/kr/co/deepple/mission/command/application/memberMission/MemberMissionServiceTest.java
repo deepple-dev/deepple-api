@@ -2,9 +2,11 @@ package kr.co.deepple.mission.command.application.memberMission;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.common.MockEventsExtension;
+import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Gender;
@@ -13,6 +15,7 @@ import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.mission.command.domain.memberMission.MemberMission;
 import kr.co.deepple.mission.command.domain.memberMission.MemberMissionCommandRepository;
+import kr.co.deepple.mission.command.domain.memberMission.event.MemberMissionCompletedEvent;
 import kr.co.deepple.mission.command.domain.mission.ActionType;
 import kr.co.deepple.mission.command.domain.mission.FrequencyType;
 import kr.co.deepple.mission.command.domain.mission.Mission;
@@ -26,8 +29,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -52,6 +57,7 @@ public class MemberMissionServiceTest {
 
     long memberId = 1L;
     long missionId = 2L;
+    long memberMissionId = 3L;
 
     int requiredAttempt = 1; // 1회 하면 미션 성공.
     int repeatableCount = 2; // 2번까지 반복 가능.
@@ -73,7 +79,11 @@ public class MemberMissionServiceTest {
               .build();
       member = MemberFixture.builder().id(memberId).gender(Gender.MALE).nickname("닉네임").build();
       memberMission =
-          MemberMissionFixture.builder().memberId(memberId).missionId(missionId).build();
+          MemberMissionFixture.builder()
+              .id(memberMissionId)
+              .memberId(memberId)
+              .missionId(missionId)
+              .build();
     }
 
     @Test
@@ -91,60 +101,81 @@ public class MemberMissionServiceTest {
     }
 
     @Test
-    @DisplayName("멤버의 미션이 존재하지 않는 경우, 새롭게 생성합니다.")
-    void createMemberMissionWhenNotExists() {
+    @DisplayName("미션에 성공하면 회원 미션 ID와 성공 횟수를 담은 보상 이벤트를 발행합니다.")
+    void raiseEventWhenSucceeded(MockedStatic<Events> events) {
       // Given
-      Mockito.when(
-              missionCommandRepository.findByActionTypeAndTargetGender(
-                  mission.getActionType(), mission.getTargetGender()))
-          .thenReturn(List.of(mission));
-      Mockito.when(
-              missionCommandRepository.findByActionTypeAndTargetGender(
-                  mission.getActionType(), TargetGender.ALL))
-          .thenReturn(List.of());
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
-      Mockito.when(
-              memberMissionCommandRepository.findByMemberIdAndMissionIdOnToday(memberId, missionId))
-          .thenReturn(Optional.empty());
-      Mockito.when(memberMissionCommandRepository.save(Mockito.any())).thenReturn(memberMission);
-
-      // When
-      memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name());
-
-      // Then
-      Mockito.verify(memberMissionCommandRepository).save(Mockito.any(MemberMission.class));
-    }
-
-    @Test
-    @DisplayName("멤버의 미션이 존재하는 경우, 해당 멤버-미션을 수행합니다.")
-    void doMemberMissionWhenExists() {
-      // Given
-      Mockito.when(
-              missionCommandRepository.findByActionTypeAndTargetGender(
-                  mission.getActionType(), mission.getTargetGender()))
-          .thenReturn(List.of(mission));
-      Mockito.when(
-              missionCommandRepository.findByActionTypeAndTargetGender(
-                  mission.getActionType(), TargetGender.ALL))
-          .thenReturn(List.of());
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
-      Mockito.when(
-              memberMissionCommandRepository.findByMemberIdAndMissionIdOnToday(memberId, missionId))
-          .thenReturn(Optional.of(memberMission));
+      givenMissionAndMember(mission);
+      givenMemberMission(mission, memberMission);
 
       // When
       boolean hasProcessedMission =
           memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name());
 
       // Then
-      Mockito.verify(memberMissionCommandRepository, Mockito.never())
-          .save(Mockito.any(MemberMission.class));
       assertThat(hasProcessedMission).isTrue();
+      assertThat(memberMission.getSuccessCount()).isEqualTo(1);
+      events.verify(() ->
+          Events.raise(
+              ArgumentMatchers.<MemberMissionCompletedEvent>argThat(event ->
+                  event.getMemberId() == memberId
+                      && event.getMemberMissionId() == memberMissionId
+                      && event.getSuccessCount() == 1
+                      && event.getRewardHeartAmount() == rewardedHeart)));
+    }
+
+    @Test
+    @DisplayName("필요한 시도 횟수를 채우지 못하면 보상 이벤트를 발행하지 않습니다.")
+    void notRaiseEventWhenNotSucceeded(MockedStatic<Events> events) {
+      // Given
+      Mission twoAttemptMission =
+          MissionFixture.builder()
+              .id(missionId)
+              .actionType(ActionType.LIKE)
+              .frequencyType(FrequencyType.DAILY)
+              .targetGender(TargetGender.MALE)
+              .requiredAttempt(2)
+              .build();
+      givenMissionAndMember(twoAttemptMission);
+      givenMemberMission(twoAttemptMission, memberMission);
+
+      // When
+      boolean hasProcessedMission =
+          memberMissionService.executeMissionsByAction(
+              memberId, twoAttemptMission.getActionType().name());
+
+      // Then
+      assertThat(hasProcessedMission).isTrue();
+      assertThat(memberMission.getAttemptCount()).isEqualTo(1);
+      events.verify(() -> Events.raise(Mockito.any()), Mockito.never());
+    }
+
+    @Test
+    @DisplayName("챌린지 미션은 날짜와 관계없는 기간으로 회원 미션을 찾습니다.")
+    void findChallengeMemberMissionByWholePeriod() {
+      // Given
+      Mission challengeMission =
+          MissionFixture.builder()
+              .id(missionId)
+              .actionType(ActionType.INTERVIEW)
+              .frequencyType(FrequencyType.CHALLENGE)
+              .targetGender(TargetGender.MALE)
+              .build();
+      givenMissionAndMember(challengeMission);
+      Mockito.when(memberMissionCommandRepository.findOrCreateForUpdate(memberId, missionId, "ALL"))
+          .thenReturn(memberMission);
+
+      // When
+      memberMissionService.executeMissionsByAction(
+          memberId, challengeMission.getActionType().name());
+
+      // Then
+      Mockito.verify(memberMissionCommandRepository)
+          .findOrCreateForUpdate(memberId, missionId, "ALL");
     }
 
     @Test
     @DisplayName("멤버가 해당 미션을 완료한 경우, 해당 멤버-미션을 수행하지 않습니다.")
-    void notDoMemberMissionWhenIsCompleted() {
+    void notDoMemberMissionWhenIsCompleted(MockedStatic<Events> events) {
       // Given
       MemberMission completedMemberMission =
           MemberMissionFixture.builder()
@@ -153,6 +184,21 @@ public class MemberMissionServiceTest {
               .successCount(repeatableCount)
               .completed(true)
               .build();
+      givenMissionAndMember(mission);
+      givenMemberMission(mission, completedMemberMission);
+
+      // When
+      boolean hasProcessedMission =
+          memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name());
+
+      // Then
+      assertThat(completedMemberMission.getSuccessCount()).isEqualTo(repeatableCount);
+      assertThat(completedMemberMission.getAttemptCount()).isZero();
+      assertThat(hasProcessedMission).isFalse();
+      events.verify(() -> Events.raise(Mockito.any()), Mockito.never());
+    }
+
+    private void givenMissionAndMember(Mission mission) {
       Mockito.when(
               missionCommandRepository.findByActionTypeAndTargetGender(
                   mission.getActionType(), mission.getTargetGender()))
@@ -162,20 +208,13 @@ public class MemberMissionServiceTest {
                   mission.getActionType(), TargetGender.ALL))
           .thenReturn(List.of());
       Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    }
+
+    private void givenMemberMission(Mission mission, MemberMission memberMission) {
       Mockito.when(
-              memberMissionCommandRepository.findByMemberIdAndMissionIdOnToday(memberId, missionId))
-          .thenReturn(Optional.of(completedMemberMission));
-
-      // When
-      boolean hasProcessedMission =
-          memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name());
-
-      // Then
-      Mockito.verify(memberMissionCommandRepository, Mockito.never())
-          .save(Mockito.any(MemberMission.class));
-      assertThat(completedMemberMission.getSuccessCount()).isEqualTo(repeatableCount);
-      assertThat(completedMemberMission.getAttemptCount()).isZero();
-      assertThat(hasProcessedMission).isFalse();
+              memberMissionCommandRepository.findOrCreateForUpdate(
+                  memberId, missionId, LocalDate.now().toString()))
+          .thenReturn(memberMission);
     }
   }
 }

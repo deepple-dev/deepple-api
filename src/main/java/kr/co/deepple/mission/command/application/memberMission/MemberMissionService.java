@@ -1,5 +1,6 @@
 package kr.co.deepple.mission.command.application.memberMission;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 import kr.co.deepple.common.event.Events;
@@ -12,7 +13,6 @@ import kr.co.deepple.mission.command.domain.memberMission.MemberMission;
 import kr.co.deepple.mission.command.domain.memberMission.MemberMissionCommandRepository;
 import kr.co.deepple.mission.command.domain.memberMission.event.MemberMissionCompletedEvent;
 import kr.co.deepple.mission.command.domain.mission.ActionType;
-import kr.co.deepple.mission.command.domain.mission.FrequencyType;
 import kr.co.deepple.mission.command.domain.mission.Mission;
 import kr.co.deepple.mission.command.domain.mission.MissionCommandRepository;
 import kr.co.deepple.mission.command.domain.mission.TargetGender;
@@ -34,25 +34,29 @@ public class MemberMissionService {
     validateMember(member);
 
     List<Mission> missions = getMission(actionType, member.getProfile().getGender().name());
+    LocalDate today = LocalDate.now();
     boolean hasProcessedMission = false;
-
     for (Mission mission : missions) {
       MemberMission memberMission =
-          mission.getFrequencyType() == FrequencyType.CHALLENGE
-              ? createOrFindByMemberIdAndMissionId(memberId, mission.getId())
-              : createOrFindByMemberIdAndMissionIdOnToday(memberId, mission.getId());
-      if (!memberMission.isCompleted()) {
-        memberMission.countPlus(mission.getRequiredAttempt(), mission.getRepeatableCount());
+          memberMissionCommandRepository.findOrCreateForUpdate(
+              memberId, mission.getId(), mission.periodOf(today));
+      if (memberMission.isCompleted()) {
+        continue;
+      }
+      boolean isSucceeded =
+          memberMission.countPlus(mission.getRequiredAttempt(), mission.getRepeatableCount());
+      if (isSucceeded) {
         Events.raise(
             MemberMissionCompletedEvent.of(
                 member.getId(),
+                memberMission.getId(),
+                memberMission.getSuccessCount(),
                 member.getProfile().getNickname().getValue(),
                 mission.getRewardedHeart(),
                 mission.getActionType().getDescription()));
-        hasProcessedMission = true;
       }
+      hasProcessedMission = true;
     }
-
     return hasProcessedMission;
   }
 
@@ -73,22 +77,6 @@ public class MemberMissionService {
         .findById(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
-  }
-
-  private MemberMission createOrFindByMemberIdAndMissionId(long memberId, long missionId) {
-    return memberMissionCommandRepository
-        .findByMemberIdAndMissionId(memberId, missionId)
-        .orElseGet(() -> create(memberId, missionId));
-  }
-
-  private MemberMission createOrFindByMemberIdAndMissionIdOnToday(long memberId, long missionId) {
-    return memberMissionCommandRepository
-        .findByMemberIdAndMissionIdOnToday(memberId, missionId)
-        .orElseGet(() -> create(memberId, missionId));
-  }
-
-  private MemberMission create(long memberId, long missionId) {
-    return memberMissionCommandRepository.save(MemberMission.of(memberId, missionId));
   }
 
   private void validateMember(Member member) {

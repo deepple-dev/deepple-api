@@ -1,5 +1,6 @@
 package kr.co.deepple.mission.command.domain.mission;
 
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -9,7 +10,16 @@ public enum FrequencyType {
   DAILY("일일"),
   CHALLENGE("챌린지");
 
+  private static final String WHOLE_PERIOD = "ALL";
+
   private final String description;
+
+  public String periodOf(LocalDate date) {
+    return switch (this) {
+      case DAILY -> date.toString();
+      case CHALLENGE -> WHOLE_PERIOD;
+    };
+  }
 
   public static FrequencyType from(String frequencyType) {
     try {

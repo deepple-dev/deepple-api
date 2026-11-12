@@ -1,9 +1,6 @@
 package kr.co.deepple.mission.command.infra.memberMission;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Optional;
 import kr.co.deepple.mission.command.domain.memberMission.MemberMission;
 import kr.co.deepple.mission.command.domain.memberMission.MemberMissionCommandRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +13,17 @@ public class MemberMissionCommandRepositoryImpl implements MemberMissionCommandR
   private final MemberMissionJpaRepository memberMissionJpaRepository;
 
   @Override
-  public Optional<MemberMission> findByMemberIdAndMissionId(long memberId, long missionId) {
-    return memberMissionJpaRepository.findByMemberIdAndMissionId(memberId, missionId);
-  }
-
-  @Override
-  public MemberMission save(MemberMission memberMission) {
-    return memberMissionJpaRepository.save(memberMission);
-  }
-
-  @Override
-  public Optional<MemberMission> findByMemberIdAndMissionIdOnToday(long memberId, long missionId) {
-    LocalDate now = LocalDateTime.now().toLocalDate();
-    return memberMissionJpaRepository.findByMemberIdAndMissionIdAndCreatedAtBetween(
-        memberId, missionId, now.atStartOfDay(), now.atTime(LocalTime.MAX));
+  public MemberMission findOrCreateForUpdate(long memberId, long missionId, String period) {
+    memberMissionJpaRepository.insertIfAbsent(memberId, missionId, period, LocalDateTime.now());
+    return memberMissionJpaRepository
+        .findForUpdate(memberId, missionId, period)
+        .orElseThrow(() ->
+            new IllegalStateException(
+                "회원 미션이 없습니다. memberId="
+                    + memberId
+                    + ", missionId="
+                    + missionId
+                    + ", period="
+                    + period));
   }
 }
