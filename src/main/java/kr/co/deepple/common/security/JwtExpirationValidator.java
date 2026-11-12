@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.infra;
+package kr.co.deepple.common.security;
 
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;

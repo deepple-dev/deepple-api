@@ -2,6 +2,7 @@ package kr.co.deepple.auth.infra;
 
 import kr.co.deepple.auth.domain.TokenProvider;
 import kr.co.deepple.common.enums.Role;
+import kr.co.deepple.common.security.JwtSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;

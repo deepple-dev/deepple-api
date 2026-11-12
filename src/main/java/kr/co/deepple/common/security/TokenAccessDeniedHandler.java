@@ -1,6 +1,5 @@
-package kr.co.deepple.auth.presentation;
+package kr.co.deepple.common.security;
 
-import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.common.exception.DeeppleException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,7 +19,7 @@ public class TokenAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response,
         AccessDeniedException accessDeniedException) {
         DeeppleException exception = new DeeppleException(
-            AuthErrorCode.ACCESS_DENIED,
+            SecurityErrorCode.ACCESS_DENIED,
             accessDeniedException.getMessage(),
             accessDeniedException
         );

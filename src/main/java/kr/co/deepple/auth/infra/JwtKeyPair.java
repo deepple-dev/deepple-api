@@ -1,5 +1,6 @@
 package kr.co.deepple.auth.infra;
 
+import kr.co.deepple.common.security.JwtPublicKeySource;
 import lombok.Getter;
 import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.security.spec.RSAPublicKeySpec;
 
 @Getter
 @Component
-public class JwtKeyPair {
+public class JwtKeyPair implements JwtPublicKeySource {
 
     private static final String RSA = "RSA";
 

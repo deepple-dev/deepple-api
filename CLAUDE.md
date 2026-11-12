@@ -21,11 +21,11 @@
 
 ## 구조
 
-`src/main/java/kr/co/deepple/<도메인>` 단위로 나뉜다. 공통 코드는 `common`.
+`src/main/java/kr/co/deepple/<도메인>` 단위로 나뉜다. 공통 코드는 `common`이고, 토큰 검증·보안 설정·CORS는 `common/security`에 있다.
 
 | 도메인 | 역할 |
 |---|---|
-| `auth` | JWT 발급·검증·재발급, 인증 필터, CORS |
+| `auth` | JWT 발급, refresh token 발급·재발급·폐기 |
 | `member` | SMS 인증, 프로필·이미지, 이상형, 이성 소개, 프로필 블러 해제 |
 | `match` | 매칭 요청 메시지, 수락·거절, 메시지 내역 |
 | `heart` | 하트 보유량, 하트 거래 내역 |

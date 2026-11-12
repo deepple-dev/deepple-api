@@ -1,6 +1,6 @@
 package kr.co.deepple.heart.presentation.hearttransaction;
 
-import kr.co.deepple.auth.presentation.CurrentAdminId;
+import kr.co.deepple.common.security.CurrentAdminId;
 import kr.co.deepple.heart.command.application.admingrant.AdminHeartGrantService;
 import kr.co.deepple.heart.query.hearttransaction.AdminHeartTransactionQueryRepository;
 import kr.co.deepple.heart.query.hearttransaction.condition.AdminHeartTransactionSearchCondition;

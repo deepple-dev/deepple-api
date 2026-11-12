@@ -1,7 +1,7 @@
 package kr.co.deepple.admin.presentation.warning;
 
 import kr.co.deepple.admin.command.application.warning.WarningService;
-import kr.co.deepple.auth.presentation.CurrentAdminId;
+import kr.co.deepple.common.security.CurrentAdminId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

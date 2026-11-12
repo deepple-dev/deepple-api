@@ -1,7 +1,7 @@
 package kr.co.deepple.report.presentation;
 
-import kr.co.deepple.auth.presentation.CurrentAdminId;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.common.security.CurrentAdminId;
 import kr.co.deepple.report.command.application.AdminReportService;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.presentation.dto.ReportResultUpdateRequest;

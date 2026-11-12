@@ -1,8 +1,8 @@
 package kr.co.deepple.community.presentation.selfintroduction;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.community.command.application.selfintroduction.SelfIntroductionService;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchCondition;

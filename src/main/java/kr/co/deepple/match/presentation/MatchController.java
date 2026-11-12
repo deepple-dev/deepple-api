@@ -1,6 +1,6 @@
 package kr.co.deepple.match.presentation;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.match.command.application.match.MatchService;
 import kr.co.deepple.match.presentation.dto.MatchRequestDto;
 import kr.co.deepple.match.presentation.dto.MatchResponseDto;

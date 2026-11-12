@@ -1,7 +1,7 @@
 package kr.co.deepple.member.presentation.screening;
 
 import kr.co.deepple.admin.command.application.screening.ScreeningService;
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

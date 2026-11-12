@@ -1,6 +1,6 @@
 package kr.co.deepple.datingexam.adapter.in.web;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmissionResponse;
 import kr.co.deepple.datingexam.application.dto.DominantPersonalityTypeResponse;
 import kr.co.deepple.datingexam.application.port.in.DatingExamFinder;

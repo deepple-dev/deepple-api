@@ -1,7 +1,5 @@
-package kr.co.deepple.auth.presentation;
+package kr.co.deepple.common.security;
 
-import kr.co.deepple.auth.domain.AuthErrorCode;
-import kr.co.deepple.auth.infra.JwtExpirationValidator;
 import kr.co.deepple.common.exception.DeeppleException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,19 +20,19 @@ public class TokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
         AuthenticationException authException) {
-        AuthErrorCode errorCode = resolveErrorCode(authException);
+        SecurityErrorCode errorCode = resolveErrorCode(authException);
         DeeppleException exception = new DeeppleException(errorCode, authException.getMessage(), authException);
         handlerExceptionResolver.resolveException(request, response, null, exception);
     }
 
-    private AuthErrorCode resolveErrorCode(AuthenticationException exception) {
+    private SecurityErrorCode resolveErrorCode(AuthenticationException exception) {
         if (!(exception instanceof InvalidBearerTokenException)) {
-            return AuthErrorCode.MISSING_ACCESS_TOKEN;
+            return SecurityErrorCode.MISSING_ACCESS_TOKEN;
         }
         if (isExpired(exception)) {
-            return AuthErrorCode.EXPIRED_ACCESS_TOKEN;
+            return SecurityErrorCode.EXPIRED_ACCESS_TOKEN;
         }
-        return AuthErrorCode.INVALID_ACCESS_TOKEN;
+        return SecurityErrorCode.INVALID_ACCESS_TOKEN;
     }
 
     private boolean isExpired(AuthenticationException exception) {

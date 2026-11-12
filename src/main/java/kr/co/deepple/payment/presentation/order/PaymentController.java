@@ -1,6 +1,6 @@
 package kr.co.deepple.payment.presentation.order;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.payment.command.application.order.AppStoreNotificationService;
 import kr.co.deepple.payment.command.application.order.AppStorePaymentService;
 import kr.co.deepple.payment.command.application.order.GooglePlayPaymentService;

@@ -1,8 +1,5 @@
-package kr.co.deepple.auth.infra;
+package kr.co.deepple.common.security;
 
-import kr.co.deepple.auth.presentation.CorsProperties;
-import kr.co.deepple.auth.presentation.TokenAccessDeniedHandler;
-import kr.co.deepple.auth.presentation.TokenAuthenticationEntryPoint;
 import kr.co.deepple.common.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;

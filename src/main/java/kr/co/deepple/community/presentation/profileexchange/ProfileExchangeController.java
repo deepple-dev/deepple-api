@@ -1,6 +1,6 @@
 package kr.co.deepple.community.presentation.profileexchange;
 
-import kr.co.deepple.auth.presentation.CurrentMemberId;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.community.command.application.profileexchange.ProfileExchangeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

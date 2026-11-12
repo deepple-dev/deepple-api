@@ -2,7 +2,7 @@ package kr.co.deepple.admin.presentation.screening;
 
 import kr.co.deepple.admin.command.application.screening.ScreeningService;
 import kr.co.deepple.admin.query.screening.*;
-import kr.co.deepple.auth.presentation.CurrentAdminId;
+import kr.co.deepple.common.security.CurrentAdminId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
