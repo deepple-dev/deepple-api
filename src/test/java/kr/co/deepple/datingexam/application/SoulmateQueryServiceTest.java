@@ -1,6 +1,6 @@
 package kr.co.deepple.datingexam.application;
 
-import kr.co.deepple.datingexam.application.required.SoulmateQueryRepository;
+import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

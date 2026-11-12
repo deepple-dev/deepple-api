@@ -1,6 +1,6 @@
 package kr.co.deepple.member.command.application.introduction;
 
-import kr.co.deepple.block.application.required.BlockRepository;
+import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.member.command.domain.MemberErrorCode;

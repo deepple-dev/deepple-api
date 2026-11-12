@@ -1,7 +1,7 @@
 package kr.co.deepple.member.query.introduction.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.datingexam.application.provided.PersonalityTypeMemberFinder;
+import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.query.introduction.intra.IntroductionQueryRepository;

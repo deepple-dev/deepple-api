@@ -1,8 +1,8 @@
 package kr.co.deepple.member.command.application.introduction;
 
-import kr.co.deepple.block.application.required.BlockRepository;
+import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.datingexam.application.required.SoulmateQueryRepository;
+import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;

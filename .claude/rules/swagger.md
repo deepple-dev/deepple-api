@@ -1,7 +1,7 @@
 ---
 paths:
   - "src/main/java/**/presentation/**/*.java"
-  - "src/main/java/**/adapter/webapi/**/*.java"
+  - "src/main/java/**/adapter/in/web/**/*.java"
   - "src/main/java/**/query/**/*.java"
 ---
 

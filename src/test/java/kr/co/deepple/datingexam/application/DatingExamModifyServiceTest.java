@@ -4,7 +4,7 @@ import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoResponse;
-import kr.co.deepple.datingexam.application.required.*;
+import kr.co.deepple.datingexam.application.port.out.*;
 import kr.co.deepple.datingexam.domain.*;
 import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
 import kr.co.deepple.datingexam.domain.dto.AnswerSubmitRequest;

@@ -1,6 +1,6 @@
 package kr.co.deepple.community.command.application.profileexchange;
 
-import kr.co.deepple.block.application.required.BlockRepository;
+import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;

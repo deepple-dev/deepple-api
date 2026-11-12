@@ -52,8 +52,8 @@
   ```
 - 헥사고날 스타일 (`block`, `datingexam`)
   ```
-  adapter/             webapi, database, listener 등 입출력
-  application/         provided(제공 포트), required(필요 포트), 서비스
+  adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)
+  application/         port/in(들어오는 포트), port/out(나가는 포트), 서비스
   domain/              엔티티, 값 객체, ErrorCode
   ```
 
@@ -91,7 +91,7 @@
 | 파일 | 내용 | 적용 대상 |
 |---|---|---|
 | `java.md` | 타입·이름·작성 규칙, Lombok | 모든 Java 파일 |
-| `swagger.md` | API 문서화 | `presentation`, `adapter/webapi`, `query` |
+| `swagger.md` | API 문서화 | `presentation`, `adapter/in/web`, `query` |
 | `exception.md` | 예외 던지기, ErrorCode, 오류 응답 | `src/main` Java 파일 |
 | `logging.md` | 로그 레벨·형식, 자동 문맥(MDC), 남기지 않는 값 | `src/main` Java 파일 |
 | `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `infra`, `adapter`, `common/config` |

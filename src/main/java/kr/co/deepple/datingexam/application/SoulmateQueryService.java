@@ -1,7 +1,7 @@
 package kr.co.deepple.datingexam.application;
 
-import kr.co.deepple.datingexam.application.provided.SoulmateFinder;
-import kr.co.deepple.datingexam.application.required.SoulmateQueryRepository;
+import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
+import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

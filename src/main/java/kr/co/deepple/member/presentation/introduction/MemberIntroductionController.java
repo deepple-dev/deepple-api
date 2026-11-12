@@ -1,7 +1,7 @@
 package kr.co.deepple.member.presentation.introduction;
 
 import kr.co.deepple.auth.presentation.CurrentMemberId;
-import kr.co.deepple.datingexam.application.provided.SoulmateFinder;
+import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.member.command.application.introduction.MemberIntroductionService;
 import kr.co.deepple.member.command.application.introduction.PersonalityIntroductionUnlockService;

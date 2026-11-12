@@ -1,7 +1,7 @@
 package kr.co.deepple.datingexam.application;
 
-import kr.co.deepple.datingexam.application.provided.PersonalityTypeMemberFinder;
-import kr.co.deepple.datingexam.application.required.PersonalityTypeMemberQueryRepository;
+import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
+import kr.co.deepple.datingexam.application.port.out.PersonalityTypeMemberQueryRepository;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
