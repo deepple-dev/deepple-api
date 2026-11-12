@@ -1,6 +1,6 @@
 package kr.co.deepple.block.application;
 
-import kr.co.deepple.block.application.required.BlockRepository;
+import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.block.domain.Block;
 import kr.co.deepple.block.domain.BlockErrorCode;
 import kr.co.deepple.block.fixture.BlockFixture;

@@ -1,6 +1,6 @@
 package kr.co.deepple.like.command.application;
 
-import kr.co.deepple.block.application.required.BlockRepository;
+import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.command.domain.Like;

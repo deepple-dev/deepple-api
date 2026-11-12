@@ -1,0 +1,99 @@
+package kr.co.deepple.datingexam.adapter.out.persistence;
+
+import kr.co.deepple.block.fixture.BlockFixture;
+import kr.co.deepple.common.support.RepositoryTestSupport;
+import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
+import kr.co.deepple.datingexam.domain.DatingExamSubmitResult;
+import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
+import kr.co.deepple.member.command.domain.member.ActivityStatus;
+import kr.co.deepple.member.command.domain.member.Gender;
+import kr.co.deepple.member.command.domain.member.Member;
+import kr.co.deepple.member.fixture.MemberFixture;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport {
+
+    private static final AnswerPersonalityType TARGET_TYPE = AnswerPersonalityType.STIMULATING_ADVENTURER;
+
+    @Autowired
+    private TestEntityManager em;
+
+    @Autowired
+    private PersonalityTypeMemberQueryRepositoryImpl repository;
+
+    @Test
+    @DisplayName("대표 유형이 일치하는 반대 성별·공개·활성 회원만 최신 가입순으로 조회하고, 다른 유형·동성·비공개·비활성·차단·본인은 제외한다.")
+    void findMemberIdsByDominantType() {
+        // given: 요청자(남성)
+        Member requester = createMember(Gender.MALE, true, ActivityStatus.ACTIVE);
+        createSubmitResult(requester.getId(), TARGET_TYPE);
+
+        // 포함 대상: 반대 성별(여성) · 공개 · 활성 · 대표 유형 일치
+        Member includedA = createMember(Gender.FEMALE, true, ActivityStatus.ACTIVE);
+        createSubmitResult(includedA.getId(), TARGET_TYPE);
+        Member includedB = createMember(Gender.FEMALE, true, ActivityStatus.ACTIVE);
+        createSubmitResult(includedB.getId(), TARGET_TYPE);
+
+        // 제외 대상들
+        Member differentType = createMember(Gender.FEMALE, true, ActivityStatus.ACTIVE);
+        createSubmitResult(differentType.getId(), AnswerPersonalityType.RATIONAL_REALIST);
+
+        Member sameGender = createMember(Gender.MALE, true, ActivityStatus.ACTIVE);
+        createSubmitResult(sameGender.getId(), TARGET_TYPE);
+
+        Member notPublic = createMember(Gender.FEMALE, false, ActivityStatus.ACTIVE);
+        createSubmitResult(notPublic.getId(), TARGET_TYPE);
+
+        Member dormant = createMember(Gender.FEMALE, true, ActivityStatus.DORMANT);
+        createSubmitResult(dormant.getId(), TARGET_TYPE);
+
+        Member blocked = createMember(Gender.FEMALE, true, ActivityStatus.ACTIVE);
+        createSubmitResult(blocked.getId(), TARGET_TYPE);
+        createBlock(requester.getId(), blocked.getId());
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Long> result = repository.findMemberIdsByDominantType(requester.getId(), TARGET_TYPE);
+
+        // then: 최신 가입순(id desc) → 나중에 가입한 includedB가 먼저
+        assertThat(result).containsExactly(includedB.getId(), includedA.getId());
+    }
+
+    private Member createMember(Gender gender, boolean isProfilePublic, ActivityStatus activityStatus) {
+        Member member = MemberFixture.builder()
+            .gender(gender)
+            .profilePublic(isProfilePublic)
+            .activityStatus(activityStatus)
+            .build();
+        em.persist(member);
+        em.flush();
+        return member;
+    }
+
+    private void createSubmitResult(Long memberId, AnswerPersonalityType type) {
+        DatingExamSubmitResult result = DatingExamSubmitResultFixture.builder()
+            .memberId(memberId)
+            .counts(Map.of(type, 1))
+            .build();
+        em.persist(result);
+        em.flush();
+    }
+
+    private void createBlock(Long blockerId, Long blockedId) {
+        em.persist(BlockFixture.builder()
+            .blockerId(blockerId)
+            .blockedId(blockedId)
+            .build());
+        em.flush();
+    }
+}
