@@ -1,10 +1,11 @@
 package kr.co.deepple.member.command.application.introduction;
 
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
-import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
+import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberIntroductionFixture;
@@ -23,6 +24,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TodayCardServiceTest {
+
+    @Mock
+    private UseHeartUseCase useHeartUseCase;
 
     @InjectMocks
     private TodayCardService todayCardService;

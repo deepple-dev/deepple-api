@@ -3,7 +3,6 @@ package kr.co.deepple.member.command.domain.member;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.heart.domain.HeartBalance;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.event.*;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
@@ -60,10 +59,6 @@ public class Member extends SoftDeleteBaseEntity {
     @Getter
     private PrimaryContactType primaryContactType;
 
-    @Embedded
-    @Getter
-    private HeartBalance heartBalance;
-
     @Getter
     @Builder.Default
     private boolean isDatingExamSubmitted = false;
@@ -75,7 +70,6 @@ public class Member extends SoftDeleteBaseEntity {
         return Member.builder()
             .phoneNumber(PhoneNumber.from(phoneNumber))
             .activityStatus(ActivityStatus.INITIAL)
-            .heartBalance(HeartBalance.init())
             .isVip(false)
             .primaryContactType(PrimaryContactType.NONE)
             .grade(Grade.SILVER)
@@ -84,6 +78,7 @@ public class Member extends SoftDeleteBaseEntity {
 
     public void updateProfile(@NonNull MemberProfile profile) {
         this.profile = profile;
+        raiseSummaryChanged();
 
         if (!isProfileSettingNeeded() && activityStatus == ActivityStatus.INITIAL) {
             Events.raise(MemberProfileInitializedEvent.from(id));
@@ -172,30 +167,9 @@ public class Member extends SoftDeleteBaseEntity {
         return profile.getGender();
     }
 
-    public void useHeart(long amount) {
-        heartBalance = heartBalance.useHeart(amount);
-    }
-
-    public void gainPurchaseHeart(long amount) {
-        heartBalance = heartBalance.gainPurchaseHeart(amount);
-        Events.raise(PurchaseHeartGainedEvent.of(id, amount, heartBalance.getMissionHeartBalance(),
-            heartBalance.getPurchaseHeartBalance()));
-    }
-
-    public void gainMissionHeart(long amount, String actionType) {
-        heartBalance = heartBalance.gainMissionHeart(amount);
-        Events.raise(MissionHeartGainedEvent.of(id, amount, heartBalance.getMissionHeartBalance(),
-            heartBalance.getPurchaseHeartBalance(), actionType));
-    }
-
-    public void gainAdminGrantedHeart(long amount, Long adminId, String reason) {
-        heartBalance = heartBalance.gainMissionHeart(amount);
-        Events.raise(AdminHeartGrantedEvent.of(id, adminId, amount,
-            heartBalance.getMissionHeartBalance(), heartBalance.getPurchaseHeartBalance(), reason));
-    }
-
-    public void refundPurchaseHeart(long amount) {
-        heartBalance = heartBalance.refundPurchaseHeart(amount);
+    private void raiseSummaryChanged() {
+        Gender gender = getGender();
+        Events.raise(MemberSummaryChangedEvent.of(id, gender != null ? gender.name() : null, isVip));
     }
 
     public void updateGrade(@NonNull Grade grade) {
@@ -210,6 +184,7 @@ public class Member extends SoftDeleteBaseEntity {
         this.grade = grade;
         this.isVip = isVip;
         Events.raise(MemberSettingUpdatedEvent.of(id, isPushNotificationEnabled));
+        raiseSummaryChanged();
     }
 
     public void publishProfile() {

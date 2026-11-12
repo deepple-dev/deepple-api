@@ -6,6 +6,8 @@ import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchange;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
+import kr.co.deepple.heart.application.port.in.UseHeartCommand;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
@@ -16,11 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ProfileExchangeService {
+
     private static final String LOCK_PREFIX = "PROFILE_EXCHANGE:";
+    private static final String HEART_USAGE_TYPE = "PROFILE_EXCHANGE";
+
     private final ProfileExchangeRepository profileExchangeRepository;
     private final DistributedLockTemplate distributedLockTemplate;
     private final MemberCommandRepository memberCommandRepository;
     private final BlockRepository blockRepository;
+    private final UseHeartUseCase useHeartUseCase;
 
     public void request(Long requesterId, Long responderId) {
         String key = generateKey(requesterId, responderId);
@@ -32,6 +38,8 @@ public class ProfileExchangeService {
         String senderName = getNickNameByMemberId(requesterId);
         ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId, senderName);
         profileExchangeRepository.save(profileExchange);
+        useHeartUseCase.useHeart(new UseHeartCommand(requesterId, HEART_USAGE_TYPE, HEART_USAGE_TYPE, null,
+            String.valueOf(profileExchange.getId())));
     }
 
     @Transactional

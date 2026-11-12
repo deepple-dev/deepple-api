@@ -1,11 +1,12 @@
 package kr.co.deepple.heart.adapter.in.web;
 
+import kr.co.deepple.heart.application.port.in.AddAdminHeartUseCase;
+import kr.co.deepple.heart.application.port.in.AddAdminHeartCommand;
+import kr.co.deepple.heart.application.port.in.FindAdminHeartTransactionsUseCase;
 import kr.co.deepple.common.security.CurrentAdminId;
 import kr.co.deepple.heart.adapter.in.web.dto.AdminHeartGrantRequest;
-import kr.co.deepple.heart.application.AdminHeartGrantService;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionSearchCondition;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionView;
-import kr.co.deepple.heart.application.port.out.AdminHeartTransactionQueryRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,8 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/admin/heart-transactions")
 public class AdminHeartTransactionController {
-    private final AdminHeartTransactionQueryRepository adminHeartTransactionQueryRepository;
-    private final AdminHeartGrantService adminHeartGrantService;
+    private final FindAdminHeartTransactionsUseCase findAdminHeartTransactionsUseCase;
+    private final AddAdminHeartUseCase addAdminHeartUseCase;
 
     @Operation(summary = "하트 트랜잭션 목록 조회 API")
     @GetMapping
@@ -30,7 +31,8 @@ public class AdminHeartTransactionController {
         @ModelAttribute AdminHeartTransactionSearchCondition condition,
         @PageableDefault(size = 100) Pageable pageable
     ) {
-        Page<AdminHeartTransactionView> page = adminHeartTransactionQueryRepository.findPage(condition, pageable);
+        Page<AdminHeartTransactionView> page = findAdminHeartTransactionsUseCase.findAdminHeartTransactions(condition,
+            pageable);
         return ResponseEntity.ok(page);
     }
 
@@ -40,7 +42,8 @@ public class AdminHeartTransactionController {
         @CurrentAdminId long adminId,
         @Valid @RequestBody AdminHeartGrantRequest request
     ) {
-        adminHeartGrantService.grant(adminId, request);
+        addAdminHeartUseCase.addAdminHeart(new AddAdminHeartCommand(adminId, request.memberId(),
+            request.amount(), request.reason(), request.idempotencyKey()));
         return ResponseEntity.noContent().build();
     }
 }

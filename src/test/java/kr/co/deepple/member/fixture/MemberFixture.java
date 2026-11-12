@@ -1,6 +1,5 @@
 package kr.co.deepple.member.fixture;
 
-import kr.co.deepple.heart.domain.HeartBalance;
 import kr.co.deepple.member.command.domain.member.*;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
 import kr.co.deepple.member.command.domain.member.vo.PhoneNumber;
@@ -28,8 +27,6 @@ public class MemberFixture {
     private PrimaryContactType primaryContactType = PrimaryContactType.NONE;
     private boolean vip;
     private boolean profilePublic;
-    private long purchaseHeartBalance;
-    private long missionHeartBalance;
     private boolean datingExamSubmitted;
     private LocalDateTime lastAccessedAt;
 
@@ -123,7 +120,6 @@ public class MemberFixture {
             .primaryContactType(primaryContactType)
             .isVip(vip)
             .isProfilePublic(profilePublic)
-            .heartBalance(HeartBalance.of(missionHeartBalance, purchaseHeartBalance))
             .isDatingExamSubmitted(datingExamSubmitted)
             .lastAccessedAt(lastAccessedAt)
             .build();

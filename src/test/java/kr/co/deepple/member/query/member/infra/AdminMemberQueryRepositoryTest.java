@@ -51,8 +51,6 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
             .phoneNumber(phoneNumber)
             .activityStatus(activityStatus)
             .grade(grade)
-            .purchaseHeartBalance(100L)
-            .missionHeartBalance(50L)
             .nickname(nickname)
             .gender(gender)
             .job(Job.OTHERS)
@@ -231,7 +229,7 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
             // then
             assertBasicInfo(result.basicInfo(), member);
             assertInterviewInfos(result.interviewInfos(), question1, answer1, question2, answer2);
-            assertHeartBalanceView(result.heartBalanceInfo(), member);
+            assertHeartBalanceView(result.heartBalanceInfo());
             assertProfileImageUrls(result.profileImageUrls(), profileImages);
             assertProfileInfo(result.profileInfo(), member);
             assertAdminMemberSettingInfo(result.settingInfo(), member, notificationPreference);
@@ -278,13 +276,10 @@ class AdminMemberQueryRepositoryTest extends RepositoryTestSupport {
             }
         }
 
-        private void assertHeartBalanceView(HeartBalanceView heartBalanceView, Member member) {
-            assertThat(heartBalanceView.missionHeartBalance()).isEqualTo(
-                member.getHeartBalance().getMissionHeartBalance());
-            assertThat(heartBalanceView.purchaseHeartBalance()).isEqualTo(
-                member.getHeartBalance().getPurchaseHeartBalance());
-            assertThat(heartBalanceView.totalHeartBalance())
-                .isEqualTo(member.getHeartBalance().getTotalHeartBalance());
+        private void assertHeartBalanceView(HeartBalanceView heartBalanceView) {
+            assertThat(heartBalanceView.missionHeartBalance()).isZero();
+            assertThat(heartBalanceView.purchaseHeartBalance()).isZero();
+            assertThat(heartBalanceView.totalHeartBalance()).isZero();
         }
 
         private void assertProfileImageUrls(List<String> profileImageUrls, List<ProfileImage> profileImages) {

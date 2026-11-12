@@ -1,7 +1,8 @@
 package kr.co.deepple.payment.command.application.order;
 
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
+import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
+import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -43,7 +44,7 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     private MemberCommandJpaRepository memberCommandJpaRepository;
 
     @Autowired
-    private ProcessedHeartOrderCommandRepository processedHeartOrderCommandRepository;
+    private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
     @Autowired
     private OrderCommandRepository orderCommandRepository;
@@ -58,7 +59,7 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
     @AfterEach
     void tearDown() {
-        processedHeartOrderCommandRepository.deleteAll();
+        memberHeartBalanceRepository.deleteAll();
         refundCommandRepository.deleteAll();
         orderCommandRepository.deleteAll();
         heartPurchaseOptionCommandRepository.delete(option);
@@ -69,9 +70,8 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     @DisplayName("같은 환불 알림이 동시에 와도 모두 정상 종료하고 환불은 하나, 하트는 한 번만 회수된다")
     void refundOnceWithoutExceptionWhenNotifiedConcurrently() throws InterruptedException {
         // given
-        Member member = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
+        Member member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(member.getId());
         option = heartPurchaseOptionCommandRepository.save(HeartPurchaseOptionFixture.builder()
             .amount(OPTION_AMOUNT)
             .build());
@@ -117,7 +117,14 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     }
 
     private long purchaseHeartBalance(Member member) {
-        return memberCommandJpaRepository.findById(member.getId()).orElseThrow()
-            .getHeartBalance().getPurchaseHeartBalance();
+        return memberHeartBalanceRepository.findByMemberId(member.getId()).orElseThrow()
+            .getPurchaseBalance();
+    }
+
+    private void saveHeartBalance(long memberId) {
+        memberHeartBalanceRepository.save(MemberHeartBalanceFixture.builder()
+            .memberId(memberId)
+            .purchaseBalance(INITIAL_BALANCE)
+            .build());
     }
 }

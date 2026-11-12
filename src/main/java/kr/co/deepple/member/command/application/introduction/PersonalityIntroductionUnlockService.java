@@ -3,6 +3,8 @@ package kr.co.deepple.member.command.application.introduction;
 import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
+import kr.co.deepple.heart.application.port.in.UseHeartCommand;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;
@@ -20,14 +22,17 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class PersonalityIntroductionUnlockService {
+    private static final String HEART_USAGE_TYPE = "INTRODUCTION";
+
     private final MemberCommandRepository memberCommandRepository;
     private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
     private final BlockRepository blockRepository;
+    private final UseHeartUseCase useHeartUseCase;
     private final PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
 
     /**
      * 유형별 이상형 프로필 상세를 언락한다.
-     * 오픈된 유형의 첫 언락은 무료(하트 이벤트 미발행), 이후 언락은 하트를 차감한다.
+     * 오픈된 유형의 첫 언락은 무료, 이후 언락은 하트를 차감한다.
      * 이미 언락된 대상은 멱등하게 처리한다.
      */
     @Transactional
@@ -52,10 +57,14 @@ public class PersonalityIntroductionUnlockService {
         validateTarget(memberId, targetMemberId);
 
         boolean isFirstUnlock = unlockedMemberIds.isEmpty();
-        MemberIntroduction memberIntroduction = isFirstUnlock
-            ? MemberIntroduction.ofWithoutCharge(memberId, targetMemberId, IntroductionType.PERSONALITY)
-            : MemberIntroduction.of(memberId, targetMemberId, IntroductionType.PERSONALITY);
+        MemberIntroduction memberIntroduction = MemberIntroduction.of(memberId, targetMemberId,
+            IntroductionType.PERSONALITY);
         memberIntroductionCommandRepository.save(memberIntroduction);
+        if (!isFirstUnlock) {
+            useHeartUseCase.useHeart(new UseHeartCommand(memberId, HEART_USAGE_TYPE,
+                IntroductionType.PERSONALITY.name(), IntroductionType.PERSONALITY.getDescription(),
+                String.valueOf(memberIntroduction.getId())));
+        }
 
         personalityIntroductionRedisRepository.addUnlockedMemberId(memberId, targetMemberId);
     }

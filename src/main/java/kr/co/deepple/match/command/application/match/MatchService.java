@@ -2,6 +2,8 @@ package kr.co.deepple.match.command.application.match;
 
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
+import kr.co.deepple.heart.application.port.in.UseHeartCommand;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.match.command.domain.match.*;
 import kr.co.deepple.match.command.domain.match.MatchErrorCode;
 import kr.co.deepple.match.command.domain.match.vo.Message;
@@ -24,11 +26,13 @@ import java.util.Optional;
 public class MatchService {
 
     private static final String LOCK_PREFIX = "MATCH:";
+    private static final String REQUEST_HEART_USAGE_TYPE = "MESSAGE";
 
     private final MemberCommandRepository memberCommandRepository;
     private final MemberIntroductionCommandRepository introductionCommandRepository;
     private final MatchRepository matchRepository;
     private final DistributedLockTemplate distributedLockTemplate;
+    private final UseHeartUseCase useHeartUseCase;
 
     public void request(Long requesterId, MatchRequestDto request) {
         long responderId = request.responderId();
@@ -52,6 +56,8 @@ public class MatchService {
         MatchType matchType = getMatchType(requesterId, responderId);
         Match match = Match.request(requesterId, responderId, message, requesterName, matchType, contactType);
         matchRepository.save(match);
+        useHeartUseCase.useHeart(new UseHeartCommand(requesterId, REQUEST_HEART_USAGE_TYPE, matchType.name(),
+            null, String.valueOf(match.getId())));
     }
 
     private MatchType getMatchType(Long requesterId, Long responderId) {

@@ -41,7 +41,7 @@ public class AdminHeartTransactionQueryRepositoryImpl implements AdminHeartTrans
                     heartTransaction.createdAt,
                     heartTransaction.transactionType.stringValue(),
                     heartTransaction.content,
-                    heartTransaction.heartAmount.amount,
+                    heartTransaction.amount.amount,
                     getHeartBalance()
                 ))
             .from(heartTransaction)
@@ -95,8 +95,8 @@ public class AdminHeartTransactionQueryRepositoryImpl implements AdminHeartTrans
     }
 
     private NumberExpression<Long> getHeartBalance() {
-        return heartTransaction.heartBalance.missionHeartBalance.add(
-            heartTransaction.heartBalance.purchaseHeartBalance);
+        return heartTransaction.balance.missionBalance.add(
+            heartTransaction.balance.purchaseBalance);
     }
 
     private BooleanExpression memberIdIn(Set<Long> memberIds) {

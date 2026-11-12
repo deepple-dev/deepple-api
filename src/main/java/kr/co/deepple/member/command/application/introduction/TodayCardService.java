@@ -1,5 +1,7 @@
 package kr.co.deepple.member.command.application.introduction;
 
+import kr.co.deepple.heart.application.port.in.UseHeartCommand;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
@@ -16,8 +18,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TodayCardService {
+    private static final String HEART_USAGE_TYPE = "INTRODUCTION";
+
     private final MemberCommandRepository memberCommandRepository;
     private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+    private final UseHeartUseCase useHeartUseCase;
 
     @Transactional
     public void createTodayCardIntroductions(long memberId, Set<Long> todayCardMemberIds) {
@@ -54,5 +59,8 @@ public class TodayCardService {
             .map(introducedMemberId -> MemberIntroduction.of(memberId, introducedMemberId, IntroductionType.TODAY_CARD))
             .toList();
         memberIntroductionCommandRepository.saveAll(memberIntroductions);
+        memberIntroductions.forEach(memberIntroduction -> useHeartUseCase.useHeart(new UseHeartCommand(
+            memberId, HEART_USAGE_TYPE, IntroductionType.TODAY_CARD.name(),
+            IntroductionType.TODAY_CARD.getDescription(), String.valueOf(memberIntroduction.getId()))));
     }
 }

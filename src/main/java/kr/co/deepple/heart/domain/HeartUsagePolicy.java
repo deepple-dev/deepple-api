@@ -4,7 +4,6 @@ package kr.co.deepple.heart.domain;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.heart.domain.TransactionSubtype;
 import kr.co.deepple.heart.domain.TransactionType;
-import kr.co.deepple.member.command.domain.member.Gender;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -46,7 +45,7 @@ public class HeartUsagePolicy extends BaseEntity {
     private void setTransactionType(@NonNull TransactionType transactionType) {
         if (!transactionType.isUsingType()) {
             throw new IllegalArgumentException(
-                "TransactionType이 UsingType이 아닙니다. transactionType: " + transactionType);
+                "하트를 사용하는 거래 종류가 아닙니다. transactionType: " + transactionType);
         }
         this.transactionType = transactionType;
     }

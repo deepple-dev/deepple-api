@@ -1,10 +1,8 @@
 package kr.co.deepple.member.command.domain.introduction;
 
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
-import kr.co.deepple.member.command.domain.introduction.event.MemberIntroducedEvent;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -41,17 +39,6 @@ public class MemberIntroduction extends BaseEntity {
     }
 
     public static MemberIntroduction of(Long memberId, Long introducedMemberId, @NonNull IntroductionType type) {
-        MemberIntroduction memberIntroduction = new MemberIntroduction(memberId, introducedMemberId, type);
-        Events.raise(MemberIntroducedEvent.of(memberId, type.getDescription(), type.name()));
-        return memberIntroduction;
-    }
-
-    /**
-     * 하트 차감 이벤트를 발행하지 않고 소개 레코드만 생성한다.
-     * 유형별 이상형의 첫 언락처럼 무료로 소개해야 하는 경우에 사용한다.
-     */
-    public static MemberIntroduction ofWithoutCharge(Long memberId, Long introducedMemberId,
-        @NonNull IntroductionType type) {
         return new MemberIntroduction(memberId, introducedMemberId, type);
     }
 

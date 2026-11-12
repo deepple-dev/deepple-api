@@ -181,13 +181,4 @@ public class MemberQueryRepository {
     private BooleanExpression getInterviewAnswerJoinCondition(Long memberId) {
         return interviewQuestion.id.eq(interviewAnswer.questionId).and(interviewAnswer.memberId.eq(memberId));
     }
-
-    public Optional<HeartBalanceView> findHeartBalanceByMemberId(long memberId) {
-        return Optional.ofNullable(queryFactory.select(
-                new QHeartBalanceView(member.heartBalance.purchaseHeartBalance, member.heartBalance.missionHeartBalance,
-                    member.heartBalance.purchaseHeartBalance.add(member.heartBalance.missionHeartBalance)))
-            .from(member)
-            .where(member.id.eq(memberId))
-            .fetchOne());
-    }
 }

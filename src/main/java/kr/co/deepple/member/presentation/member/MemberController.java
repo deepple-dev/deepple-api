@@ -9,7 +9,6 @@ import kr.co.deepple.member.presentation.member.dto.MemberMyProfileResponse;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileResponse;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
 import kr.co.deepple.member.query.member.application.MemberQueryService;
-import kr.co.deepple.member.query.member.view.HeartBalanceView;
 import kr.co.deepple.member.query.member.view.MemberContactView;
 import kr.co.deepple.member.query.member.view.MemberInfoView;
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,11 +100,5 @@ public class MemberController {
         @RequestBody String phone) {
         memberContactService.updatePhoneNumber(memberId, phone);
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "보유 하트 조회 API")
-    @GetMapping("/heartbalance")
-    public ResponseEntity<HeartBalanceView> getHeartBalance(@CurrentMemberId long memberId) {
-        return ResponseEntity.ok(memberQueryService.getHeartBalance(memberId));
     }
 }

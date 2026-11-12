@@ -4,12 +4,13 @@ package kr.co.deepple.member.command.application.introduction;
 import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
+import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.introduction.IntroductionType;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroduction;
 import kr.co.deepple.member.command.domain.introduction.MemberIntroductionCommandRepository;
-import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
+import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +29,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MemberIntroductionServiceTest {
+
+    @Mock
+    private UseHeartUseCase useHeartUseCase;
 
     @InjectMocks
     private MemberIntroductionService memberIntroductionService;

@@ -738,47 +738,6 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     @Nested
-    @DisplayName("멤버 하트 잔액 조회")
-    class findHeartBalanceByMemberId {
-        @Test
-        @DisplayName("존재하지 않는 멤버의 경우, 빈 값을 반환한다.")
-        void returnNullWhenMemberIsNotExists() {
-            // given
-            long notExistsMemberId = 100L;
-
-            // when
-            Optional<HeartBalanceView> heartBalanceView = memberQueryRepository.findHeartBalanceByMemberId(
-                notExistsMemberId);
-
-            // then
-            assertThat(heartBalanceView).isEmpty();
-        }
-
-        @Test
-        @DisplayName("존재하는 멤버의 경우, 하트 잔액 view를 반환한다.")
-        void returnHeartBalanceViewWhenMemberIsExists() {
-            // given
-            long purchaseHeartBalance = 10L;
-            long missionHeartBalance = 5L;
-            Member member = MemberFixture.builder()
-                .purchaseHeartBalance(purchaseHeartBalance)
-                .missionHeartBalance(missionHeartBalance)
-                .build();
-            entityManager.persist(member);
-            entityManager.flush();
-
-            // when
-            HeartBalanceView heartBalanceView = memberQueryRepository.findHeartBalanceByMemberId(member.getId())
-                .orElse(null);
-
-            // then
-            assertThat(heartBalanceView.purchaseHeartBalance()).isEqualTo(purchaseHeartBalance);
-            assertThat(heartBalanceView.missionHeartBalance()).isEqualTo(missionHeartBalance);
-            assertThat(heartBalanceView.totalHeartBalance()).isEqualTo(purchaseHeartBalance + missionHeartBalance);
-        }
-    }
-
-    @Nested
     @DisplayName("프로필 접근 권한 조회 테스트")
     class findProfileAccessViewByMemberIdTest {
         Member member;

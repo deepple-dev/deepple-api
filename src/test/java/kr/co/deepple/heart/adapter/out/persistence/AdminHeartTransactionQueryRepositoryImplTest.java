@@ -56,9 +56,9 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
         assertThat(adminHeartTransactionView.transactionType()).isEqualTo(
             heartTransaction1.getTransactionType().name());
         assertThat(adminHeartTransactionView.content()).isEqualTo(heartTransaction1.getContent());
-        assertThat(adminHeartTransactionView.heartAmount()).isEqualTo(heartTransaction1.getHeartAmount().getAmount());
+        assertThat(adminHeartTransactionView.heartAmount()).isEqualTo(heartTransaction1.getAmount());
         assertThat(adminHeartTransactionView.heartBalance()).isEqualTo(
-            heartTransaction1.getHeartBalance().getTotalHeartBalance());
+            heartTransaction1.getBalance().getTotalBalance());
         assertThat(adminHeartTransactionView.createdAt()).isCloseTo(heartTransaction1.getCreatedAt(),
             within(1, ChronoUnit.MICROS));
     }
@@ -283,8 +283,6 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
             .transactionType(TransactionType.PURCHASE)
             .content(TransactionType.PURCHASE.getDescription())
             .amount(100L)
-            .missionHeartBalance(100L)
-            .purchaseHeartBalance(200L)
             .build();
     }
 }

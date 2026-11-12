@@ -1,7 +1,8 @@
 package kr.co.deepple.payment.command.application.order;
 
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.member.command.domain.heartorder.ProcessedHeartOrderCommandRepository;
+import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
+import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.infra.member.MemberCommandJpaRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -38,7 +39,7 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
     private MemberCommandJpaRepository memberCommandJpaRepository;
 
     @Autowired
-    private ProcessedHeartOrderCommandRepository processedHeartOrderCommandRepository;
+    private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
     @Autowired
     private OrderCommandRepository orderCommandRepository;
@@ -53,7 +54,7 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
 
     @AfterEach
     void tearDown() {
-        processedHeartOrderCommandRepository.deleteAll();
+        memberHeartBalanceRepository.deleteAll();
         refundCommandRepository.deleteAll();
         orderCommandRepository.deleteAll();
         heartPurchaseOptionCommandRepository.delete(option);
@@ -64,9 +65,8 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
     @DisplayName("환불하면 환불한 만큼 구매 하트가 회수된다")
     void reclaimPurchaseHeartsWhenRefunded() {
         // given
-        Member member = memberCommandJpaRepository.save(MemberFixture.builder()
-            .purchaseHeartBalance(INITIAL_BALANCE)
-            .build());
+        Member member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+        saveHeartBalance(member.getId());
         option = heartPurchaseOptionCommandRepository.save(HeartPurchaseOptionFixture.builder()
             .amount(OPTION_AMOUNT)
             .build());
@@ -81,8 +81,16 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
         // then
         assertThat(refundCommandRepository.count()).isEqualTo(1);
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            Member result = memberCommandJpaRepository.findById(member.getId()).orElseThrow();
-            assertThat(result.getHeartBalance().getPurchaseHeartBalance()).isEqualTo(INITIAL_BALANCE - OPTION_AMOUNT);
+            long purchaseHeartBalance = memberHeartBalanceRepository.findByMemberId(member.getId()).orElseThrow()
+                .getPurchaseBalance();
+            assertThat(purchaseHeartBalance).isEqualTo(INITIAL_BALANCE - OPTION_AMOUNT);
         });
+    }
+
+    private void saveHeartBalance(long memberId) {
+        memberHeartBalanceRepository.save(MemberHeartBalanceFixture.builder()
+            .memberId(memberId)
+            .purchaseBalance(INITIAL_BALANCE)
+            .build());
     }
 }
