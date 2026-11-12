@@ -50,7 +50,7 @@
   command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
   query/               읽기 전용 조회 (QueryDSL)
   ```
-- 헥사고날 스타일 (`block`, `datingexam`)
+- 헥사고날 스타일 (`block`, `datingexam`, `heart`)
   ```
   adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)
   application/         port/in(들어오는 포트), port/out(나가는 포트), 서비스

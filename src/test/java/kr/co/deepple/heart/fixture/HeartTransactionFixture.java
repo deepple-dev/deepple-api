@@ -1,8 +1,8 @@
 package kr.co.deepple.heart.fixture;
 
-import kr.co.deepple.heart.command.domain.hearttransaction.HeartTransaction;
-import kr.co.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
-import kr.co.deepple.heart.command.domain.hearttransaction.vo.TransactionType;
+import kr.co.deepple.heart.domain.HeartBalance;
+import kr.co.deepple.heart.domain.HeartTransaction;
+import kr.co.deepple.heart.domain.TransactionType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

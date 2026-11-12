@@ -2,8 +2,8 @@ package kr.co.deepple.member.command.domain.member;
 
 import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.heart.command.domain.hearttransaction.vo.HeartAmount;
-import kr.co.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
+import kr.co.deepple.heart.domain.HeartAmount;
+import kr.co.deepple.heart.domain.HeartBalance;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;

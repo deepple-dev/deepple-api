@@ -1,7 +1,7 @@
 package kr.co.deepple.match.command.application.match;
 
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.heart.command.domain.hearttransaction.HeartTransactionCommandRepository;
+import kr.co.deepple.heart.application.port.out.HeartTransactionCommandRepository;
 import kr.co.deepple.match.command.domain.match.MatchContactType;
 import kr.co.deepple.match.command.infra.match.MatchJpaRepository;
 import kr.co.deepple.match.presentation.dto.MatchRequestDto;

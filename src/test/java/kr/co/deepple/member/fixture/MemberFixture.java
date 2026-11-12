@@ -1,6 +1,6 @@
 package kr.co.deepple.member.fixture;
 
-import kr.co.deepple.heart.command.domain.hearttransaction.vo.HeartBalance;
+import kr.co.deepple.heart.domain.HeartBalance;
 import kr.co.deepple.member.command.domain.member.*;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
 import kr.co.deepple.member.command.domain.member.vo.PhoneNumber;
