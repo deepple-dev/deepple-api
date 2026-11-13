@@ -5,6 +5,7 @@ spring-cloud-aws = "4.2.1"
 spring-modulith = "2.1.1"
 querydsl = "7.7"
 redisson = "4.8.0"
+shedlock = "7.11.0"
 firebase-admin = "9.11.0"
 app-store-server = "5.2.0"
 google-androidpublisher = "v3-rev20261026-2.9.2"
@@ -32,6 +33,8 @@ querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.r
 
 
 redisson-spring-boot-starter = { module = "org.redisson:redisson-spring-boot-starter", version.ref = "redisson" }
+shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock" }
+shedlock-provider-redis-spring = { module = "net.javacrumbs.shedlock:shedlock-provider-redis-spring", version.ref = "shedlock" }
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 app-store-server = { module = "com.apple.itunes.storekit:app-store-server-library", version.ref = "app-store-server" }
 google-androidpublisher = { module = "com.google.apis:google-api-services-androidpublisher", version.ref = "google-androidpublisher" }
