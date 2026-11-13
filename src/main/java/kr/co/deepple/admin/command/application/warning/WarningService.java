@@ -5,8 +5,8 @@ import static kr.co.deepple.admin.command.application.warning.WarningMapper.toWa
 import java.util.Set;
 import kr.co.deepple.admin.command.domain.warning.Warning;
 import kr.co.deepple.admin.command.domain.warning.WarningCommandRepository;
-import kr.co.deepple.admin.command.domain.warning.WarningIssuedEvent;
 import kr.co.deepple.admin.command.domain.warning.WarningReasonType;
+import kr.co.deepple.admin.event.WarningIssuedEvent;
 import kr.co.deepple.admin.presentation.warning.WarningCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
 package kr.co.deepple.admin.command.infra.screening;
 
 import kr.co.deepple.admin.command.application.screening.ScreeningService;
-import kr.co.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
+import kr.co.deepple.member.event.MemberProfileInitializedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

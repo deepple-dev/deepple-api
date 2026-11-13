@@ -3,8 +3,8 @@ package kr.co.deepple.notification.infra;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-import kr.co.deepple.admin.command.domain.warning.WarningIssuedEvent;
 import kr.co.deepple.admin.command.domain.warning.WarningReasonType;
+import kr.co.deepple.admin.event.WarningIssuedEvent;
 import kr.co.deepple.notification.command.application.NotificationSendRequest;
 import kr.co.deepple.notification.command.application.NotificationSendService;
 import org.junit.jupiter.api.DisplayName;

@@ -1,8 +1,8 @@
 package kr.co.deepple.member.command.infra.member;
 
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningCreatedEvent;
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningRejectedEvent;
+import kr.co.deepple.admin.event.ScreeningApprovedEvent;
+import kr.co.deepple.admin.event.ScreeningCreatedEvent;
+import kr.co.deepple.admin.event.ScreeningRejectedEvent;
 import kr.co.deepple.member.command.application.member.MemberProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;

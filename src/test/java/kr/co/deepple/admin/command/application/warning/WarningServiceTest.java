@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.Set;
 import kr.co.deepple.admin.command.domain.warning.Warning;
 import kr.co.deepple.admin.command.domain.warning.WarningCommandRepository;
-import kr.co.deepple.admin.command.domain.warning.WarningIssuedEvent;
+import kr.co.deepple.admin.event.WarningIssuedEvent;
 import kr.co.deepple.admin.presentation.warning.WarningCreateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

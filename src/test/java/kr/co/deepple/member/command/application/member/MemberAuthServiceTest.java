@@ -22,7 +22,7 @@ import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
-import kr.co.deepple.member.command.domain.member.event.MemberLoggedInEvent;
+import kr.co.deepple.member.event.MemberLoggedInEvent;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

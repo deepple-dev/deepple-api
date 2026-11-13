@@ -9,7 +9,7 @@ import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOpt
 import kr.co.deepple.payment.command.domain.order.Order;
 import kr.co.deepple.payment.command.domain.order.OrderCommandRepository;
 import kr.co.deepple.payment.command.domain.order.PaymentMethod;
-import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
+import kr.co.deepple.payment.event.HeartPurchasedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

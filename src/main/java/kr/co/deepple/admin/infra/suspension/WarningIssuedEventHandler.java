@@ -1,7 +1,7 @@
 package kr.co.deepple.admin.infra.suspension;
 
 import kr.co.deepple.admin.command.application.suspension.SuspensionService;
-import kr.co.deepple.admin.command.domain.warning.WarningIssuedEvent;
+import kr.co.deepple.admin.event.WarningIssuedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

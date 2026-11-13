@@ -1,6 +1,6 @@
 package kr.co.deepple.notification.command.infra;
 
-import kr.co.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
+import kr.co.deepple.member.event.MemberSettingUpdatedEvent;
 import kr.co.deepple.notification.command.application.NotificationPreferenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;

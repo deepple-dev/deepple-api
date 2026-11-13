@@ -6,7 +6,7 @@ import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.command.domain.ReportResult;
-import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
+import kr.co.deepple.report.event.ReportWarnedEvent;
 import kr.co.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

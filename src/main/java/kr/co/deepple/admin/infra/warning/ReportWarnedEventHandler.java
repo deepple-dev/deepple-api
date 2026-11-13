@@ -3,7 +3,7 @@ package kr.co.deepple.admin.infra.warning;
 import java.util.Set;
 import kr.co.deepple.admin.command.application.warning.WarningService;
 import kr.co.deepple.admin.presentation.warning.WarningCreateRequest;
-import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
+import kr.co.deepple.report.event.ReportWarnedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

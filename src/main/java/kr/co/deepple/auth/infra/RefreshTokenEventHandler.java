@@ -1,9 +1,9 @@
 package kr.co.deepple.auth.infra;
 
-import kr.co.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
+import kr.co.deepple.admin.event.MemberSuspendedEvent;
 import kr.co.deepple.auth.domain.RefreshTokenService;
 import kr.co.deepple.auth.domain.TokenOwner;
-import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
+import kr.co.deepple.member.event.MemberBecameDormantEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

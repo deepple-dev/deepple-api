@@ -21,7 +21,7 @@ import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOpt
 import kr.co.deepple.payment.command.domain.order.Order;
 import kr.co.deepple.payment.command.domain.order.OrderCommandRepository;
 import kr.co.deepple.payment.command.domain.order.PaymentMethod;
-import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
+import kr.co.deepple.payment.event.HeartPurchasedEvent;
 import kr.co.deepple.payment.fixture.OrderFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

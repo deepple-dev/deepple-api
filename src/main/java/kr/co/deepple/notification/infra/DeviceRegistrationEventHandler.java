@@ -1,9 +1,9 @@
 package kr.co.deepple.notification.infra;
 
-import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberLoggedInEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberLoggedOutEvent;
+import kr.co.deepple.member.event.MemberBecameActiveEvent;
+import kr.co.deepple.member.event.MemberBecameDormantEvent;
+import kr.co.deepple.member.event.MemberLoggedInEvent;
+import kr.co.deepple.member.event.MemberLoggedOutEvent;
 import kr.co.deepple.notification.command.application.DeviceRegistrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;

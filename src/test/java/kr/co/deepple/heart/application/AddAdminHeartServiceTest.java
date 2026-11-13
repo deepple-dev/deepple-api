@@ -11,7 +11,7 @@ import kr.co.deepple.heart.application.port.in.AddAdminHeartCommand;
 import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
 import kr.co.deepple.heart.domain.HeartErrorCode;
 import kr.co.deepple.heart.domain.TransactionType;
-import kr.co.deepple.heart.domain.event.AdminHeartGrantedEvent;
+import kr.co.deepple.heart.event.AdminHeartGrantedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,6 +1,6 @@
 package kr.co.deepple.member.command.infra.member;
 
-import kr.co.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
+import kr.co.deepple.datingexam.event.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.member.command.application.member.MemberProfileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

@@ -14,7 +14,7 @@ import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.command.domain.ReportReasonType;
-import kr.co.deepple.report.command.domain.event.ReportCreatedEvent;
+import kr.co.deepple.report.event.ReportCreatedEvent;
 import kr.co.deepple.report.presentation.dto.ReportCreateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
