@@ -9,6 +9,7 @@ import kr.co.deepple.admin.fixture.ScreeningFixture;
 import kr.co.deepple.admin.fixture.SuspensionFixture;
 import kr.co.deepple.admin.fixture.WarningFixture;
 import kr.co.deepple.auth.fixture.AdminFixture;
+import kr.co.deepple.auth.fixture.MemberAccountFixture;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
@@ -55,6 +56,7 @@ class FixturePersistenceTest extends RepositoryTestSupport {
   static Stream<Arguments> fixtures() {
     return Stream.of(
         arguments("Admin", (Supplier<Object>) () -> AdminFixture.builder().build()),
+        arguments("MemberAccount", (Supplier<Object>) () -> MemberAccountFixture.builder().build()),
         arguments("Screening", (Supplier<Object>) () -> ScreeningFixture.builder().build()),
         arguments("Suspension", (Supplier<Object>) () -> SuspensionFixture.builder().build()),
         arguments("Warning", (Supplier<Object>) () -> WarningFixture.builder().build()),

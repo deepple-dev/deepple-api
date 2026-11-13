@@ -9,14 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MemberErrorCode implements ErrorCode {
   MEMBER_NOT_FOUND(ErrorType.NOT_FOUND, "회원을 찾을 수 없습니다."),
-  MEMBER_DELETED(ErrorType.PERMISSION_DENIED, "탈퇴한 회원입니다."),
-  MEMBER_PERMANENTLY_SUSPENDED(ErrorType.PERMISSION_DENIED, "영구 정지된 회원입니다."),
-  MEMBER_TEMPORARILY_SUSPENDED(ErrorType.PERMISSION_DENIED, "일시 정지된 회원입니다."),
-  MEMBER_NOT_ACTIVE(ErrorType.FAILED_PRECONDITION, "활동 중인 회원이 아닙니다."),
   INVALID_ACTIVITY_STATUS_CHANGE(ErrorType.FAILED_PRECONDITION, "현재 회원 상태에서는 변경할 수 없습니다."),
-  AUTH_CODE_NOT_FOUND(ErrorType.NOT_FOUND, "인증번호가 만료되었거나 발송되지 않았습니다."),
-  AUTH_CODE_MISMATCH(ErrorType.INVALID_ARGUMENT, "인증번호가 일치하지 않습니다."),
-  SMS_SEND_FAILED(ErrorType.UNAVAILABLE, "인증번호 발송에 실패했습니다."),
   PHONE_NUMBER_ALREADY_EXISTS(ErrorType.ALREADY_EXISTS, "이미 사용 중인 전화번호입니다."),
   KAKAO_ID_ALREADY_EXISTS(ErrorType.ALREADY_EXISTS, "이미 사용 중인 카카오 아이디입니다."),
   CONTACT_TYPE_SETTING_NEEDED(ErrorType.FAILED_PRECONDITION, "연락 수단 설정이 필요합니다."),

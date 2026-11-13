@@ -5,8 +5,6 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -22,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "members")
@@ -29,11 +28,9 @@ import lombok.NonNull;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Member extends SoftDeleteBaseEntity {
+public class Member extends SoftDeleteBaseEntity implements Persistable<Long> {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @Id private Long id;
 
   @Embedded private PhoneNumber phoneNumber;
 
@@ -61,14 +58,20 @@ public class Member extends SoftDeleteBaseEntity {
 
   private LocalDateTime lastAccessedAt;
 
-  public static Member fromPhoneNumber(@NonNull String phoneNumber) {
+  public static Member register(long id, @NonNull String phoneNumber) {
     return Member.builder()
+        .id(id)
         .phoneNumber(PhoneNumber.from(phoneNumber))
         .activityStatus(ActivityStatus.INITIAL)
         .isVip(false)
         .primaryContactType(PrimaryContactType.NONE)
         .grade(Grade.SILVER)
         .build();
+  }
+
+  @Override
+  public boolean isNew() {
+    return getCreatedAt() == null;
   }
 
   public void updateProfile(@NonNull MemberProfile profile) {

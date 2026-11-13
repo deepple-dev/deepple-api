@@ -19,7 +19,13 @@ public enum AuthErrorCode implements ErrorCode {
   INVALID_EMAIL(ErrorType.INVALID_ARGUMENT, "유효하지 않은 이메일 형식입니다."),
   INVALID_NAME(ErrorType.INVALID_ARGUMENT, "이름은 문자와 숫자로 10자 이내여야 합니다."),
   INVALID_PASSWORD(ErrorType.INVALID_ARGUMENT, "유효하지 않은 비밀번호 형식입니다."),
-  INVALID_PHONE_NUMBER(ErrorType.INVALID_ARGUMENT, "유효하지 않은 전화번호 형식입니다.");
+  INVALID_PHONE_NUMBER(ErrorType.INVALID_ARGUMENT, "유효하지 않은 전화번호 형식입니다."),
+  MEMBER_DELETED(ErrorType.PERMISSION_DENIED, "탈퇴한 회원입니다."),
+  MEMBER_PERMANENTLY_SUSPENDED(ErrorType.PERMISSION_DENIED, "영구 정지된 회원입니다."),
+  MEMBER_TEMPORARILY_SUSPENDED(ErrorType.PERMISSION_DENIED, "일시 정지된 회원입니다."),
+  AUTH_CODE_NOT_FOUND(ErrorType.NOT_FOUND, "인증번호가 만료되었거나 발송되지 않았습니다."),
+  AUTH_CODE_MISMATCH(ErrorType.INVALID_ARGUMENT, "인증번호가 일치하지 않습니다."),
+  SMS_SEND_FAILED(ErrorType.UNAVAILABLE, "인증번호 발송에 실패했습니다.");
 
   private final ErrorType type;
   private final String message;

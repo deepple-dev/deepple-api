@@ -24,6 +24,11 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
   }
 
   @Override
+  public Member saveAndFlush(Member member) {
+    return memberCommandJpaRepository.saveAndFlush(member);
+  }
+
+  @Override
   public Optional<Member> findById(long id) {
     return memberCommandJpaRepository.findById(id);
   }
