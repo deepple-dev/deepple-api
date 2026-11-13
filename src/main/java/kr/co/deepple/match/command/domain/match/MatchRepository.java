@@ -12,6 +12,4 @@ public interface MatchRepository {
   Optional<Match> findByIdAndRequesterId(long id, long requesterId);
 
   Optional<Match> findByIdAndResponderId(long id, long responderId);
-
-  Optional<Match> findByRequesterIdAndResponderId(long requesterId, long responderId);
 }

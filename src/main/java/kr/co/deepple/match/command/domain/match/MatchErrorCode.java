@@ -14,7 +14,6 @@ public enum MatchErrorCode implements ErrorCode {
   INVALID_MATCH_MESSAGE(ErrorType.INVALID_ARGUMENT, "메시지를 입력해 주세요."),
   MATCH_MESSAGE_TOO_LONG(ErrorType.INVALID_ARGUMENT, "메시지는 200자 이하로 입력해 주세요."),
   INVALID_MATCH_CONTACT_TYPE(ErrorType.INVALID_ARGUMENT, "유효하지 않은 연락 수단입니다."),
-  MATCH_ACCESS_DENIED(ErrorType.PERMISSION_DENIED, "매치 당사자가 아닙니다."),
   MATCH_REQUESTER_INACTIVE(ErrorType.FAILED_PRECONDITION, "활동 중이 아닌 회원의 매치 요청입니다.");
 
   private final ErrorType type;

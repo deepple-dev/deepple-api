@@ -1,10 +1,10 @@
 package kr.co.deepple.member.query.member.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -14,7 +14,6 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
-import kr.co.deepple.member.event.MemberProfileRetrievedEvent;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileResponse;
 import kr.co.deepple.member.presentation.member.dto.ProfileImageInfo;
 import kr.co.deepple.member.query.member.infra.MemberQueryRepository;
@@ -36,10 +35,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class MemberQueryServiceTest {
@@ -47,8 +43,6 @@ class MemberQueryServiceTest {
   @Mock private MemberQueryRepository memberQueryRepository;
 
   @Mock private ProfileImageQueryRepository profileImageQueryRepository;
-
-  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private MemberQueryService memberQueryService;
 
@@ -230,25 +224,9 @@ class MemberQueryServiceTest {
       when(memberQueryRepository.findOtherProfileByMemberId(memberId, otherMemberId))
           .thenReturn(Optional.of(view));
 
-      try (MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
-          mockStatic(MemberProfileRetrievedEvent.class)) {
-        MemberProfileRetrievedEvent memberProfileRetrievedEvent =
-            mock(MemberProfileRetrievedEvent.class);
-        mockMemberProfileRetrievedEvent
-            .when(() ->
-                MemberProfileRetrievedEvent.of(
-                    memberId,
-                    otherMemberId,
-                    profileAccessView.matchRequesterId(),
-                    profileAccessView.matchResponderId()))
-            .thenReturn(memberProfileRetrievedEvent);
-
-        // When
-        memberQueryService.getMemberProfile(memberId, otherMemberId);
-
-        // Then
-        Mockito.verify(eventPublisher).publishEvent(memberProfileRetrievedEvent);
-      }
+      // When & Then
+      assertThatCode(() -> memberQueryService.getMemberProfile(memberId, otherMemberId))
+          .doesNotThrowAnyException();
     }
 
     @DisplayName("상대방 프로필 조회 시 메인 이미지를 제외한 추가 이미지를 순서대로 반환한다.")
@@ -277,11 +255,7 @@ class MemberQueryServiceTest {
                   new ProfileImageView(3L, "https://image/sub2.jpg", false, 2)));
 
       // When
-      MemberProfileResponse response;
-      try (MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
-          mockStatic(MemberProfileRetrievedEvent.class)) {
-        response = memberQueryService.getMemberProfile(memberId, otherMemberId);
-      }
+      MemberProfileResponse response = memberQueryService.getMemberProfile(memberId, otherMemberId);
 
       // Then
       assertThat(response.memberInfo().additionalProfileImages())
@@ -311,11 +285,7 @@ class MemberQueryServiceTest {
           .thenReturn(List.of(new ProfileImageView(1L, "https://image/main.jpg", true, 0)));
 
       // When
-      MemberProfileResponse response;
-      try (MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
-          mockStatic(MemberProfileRetrievedEvent.class)) {
-        response = memberQueryService.getMemberProfile(memberId, otherMemberId);
-      }
+      MemberProfileResponse response = memberQueryService.getMemberProfile(memberId, otherMemberId);
 
       // Then
       assertThat(response.memberInfo().additionalProfileImages()).isEmpty();

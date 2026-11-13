@@ -6,7 +6,6 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
-import kr.co.deepple.member.event.MemberProfileRetrievedEvent;
 import kr.co.deepple.member.presentation.member.MemberMapper;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileResponse;
 import kr.co.deepple.member.query.member.infra.MemberQueryRepository;
@@ -19,7 +18,6 @@ import kr.co.deepple.member.query.member.view.ProfileAccessView;
 import kr.co.deepple.member.query.profileimage.ProfileImageQueryRepository;
 import kr.co.deepple.member.query.profileimage.view.ProfileImageView;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +28,6 @@ public class MemberQueryService {
 
   private final MemberQueryRepository memberQueryRepository;
   private final ProfileImageQueryRepository profileImageQueryRepository;
-  private final ApplicationEventPublisher eventPublisher;
 
   public MemberInfoView getInfoCache(long memberId) {
     return memberQueryRepository
@@ -74,13 +71,6 @@ public class MemberQueryService {
 
     List<ProfileImageView> profileImages =
         profileImageQueryRepository.findByMemberId(otherMemberId);
-
-    eventPublisher.publishEvent(
-        MemberProfileRetrievedEvent.of(
-            memberId,
-            otherMemberId,
-            profileAccessView.matchRequesterId(),
-            profileAccessView.matchResponderId()));
 
     return new MemberProfileResponse(
         MemberMapper.toBasicInfo(profileView.basicMemberInfo(), profileImages),

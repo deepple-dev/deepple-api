@@ -3,8 +3,6 @@ package kr.co.deepple.match.command.application.match;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -406,64 +404,6 @@ class MatchServiceTest {
 
       // Then
       Assertions.assertThat(match.getReadByResponderAt()).isNotNull();
-    }
-  }
-
-  @Nested
-  @DisplayName("매치 읽음 처리 테스트")
-  class Read {
-
-    @Test
-    @DisplayName("읽는 사람의 아이디가 매치 참여자 아이디와 일치하지 않는 경우, 예외 발생")
-    void throwsExceptionWhenReaderIdIsNotEqual() {
-      // Given
-      Long readerId = 1L;
-      Long matchRequesterId = 2L;
-      Long matchResponderId = 3L;
-
-      // When & Then
-      Assertions.assertThatThrownBy(
-              () -> matchService.read(readerId, matchRequesterId, matchResponderId))
-          .isInstanceOf(DeeppleException.class)
-          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ACCESS_DENIED);
-    }
-
-    @Test
-    @DisplayName("매치가 존재하지 않는 경우, 예외 발생")
-    void throwsExceptionWhenMatchNotFound() {
-      // Given
-      Long readerId = 2L;
-      Long matchRequesterId = 2L;
-      Long matchResponderId = 3L;
-
-      when(matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId))
-          .thenReturn(Optional.empty());
-
-      // When & Then
-      Assertions.assertThatThrownBy(
-              () -> matchService.read(readerId, matchRequesterId, matchResponderId))
-          .isInstanceOf(DeeppleException.class)
-          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("매치 읽음 처리 성공")
-    void readMatch() {
-      // Given
-      Long readerId = 2L;
-      Long matchRequesterId = 2L;
-      Long matchResponderId = 3L;
-
-      Match match = mock(Match.class);
-
-      when(matchRepository.findByRequesterIdAndResponderId(matchRequesterId, matchResponderId))
-          .thenReturn(Optional.of(match));
-
-      // When
-      matchService.read(readerId, matchRequesterId, matchResponderId);
-
-      // Then
-      verify(match, times(1)).read(readerId);
     }
   }
 }
