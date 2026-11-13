@@ -13,6 +13,7 @@ import kr.co.deepple.member.event.MemberProfileInitializedEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.presentation.member.MemberMapper;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
+import kr.co.deepple.member.presentation.member.dto.MemberStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,14 @@ public class MemberProfileService {
     if (member.isProfileInitialized()) {
       eventPublisher.publishEvent(MemberProfileInitializedEvent.from(memberId));
     }
+  }
+
+  @Transactional(readOnly = true)
+  public MemberStatusResponse getStatus(long memberId) {
+    Member member = getMemberById(memberId);
+    ActivityStatus activityStatus = member.getActivityStatus();
+    return new MemberStatusResponse(
+        activityStatus == null ? null : activityStatus.name(), member.isProfileSettingNeeded());
   }
 
   @Transactional
