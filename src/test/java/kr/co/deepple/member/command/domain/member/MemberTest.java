@@ -225,6 +225,25 @@ class MemberTest {
   }
 
   @Nested
+  @DisplayName("markDatingExamSubmitted 메서드 테스트")
+  class MarkDatingExamSubmittedTest {
+
+    @Test
+    @DisplayName("이미 제출 상태여도 예외 없이 제출 상태를 유지한다.")
+    void keepSubmittedWhenAlreadySubmitted() {
+      // Given
+      Member member = MemberFixture.builder().build();
+      member.markDatingExamSubmitted();
+
+      // When
+      member.markDatingExamSubmitted();
+
+      // Then
+      Assertions.assertThat(member.isDatingExamSubmitted()).isTrue();
+    }
+  }
+
+  @Nested
   @DisplayName("delete 메서드 테스트")
   class DeleteMethodTest {
 

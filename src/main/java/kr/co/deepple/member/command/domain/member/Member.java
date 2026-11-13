@@ -183,9 +183,6 @@ public class Member extends SoftDeleteBaseEntity {
   }
 
   public void markDatingExamSubmitted() {
-    if (isDatingExamSubmitted) {
-      throw new IllegalStateException("이미 연애 모의고사를 제출한 멤버입니다. member id: " + id);
-    }
     isDatingExamSubmitted = true;
   }
 

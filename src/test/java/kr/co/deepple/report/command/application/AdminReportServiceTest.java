@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -63,7 +64,7 @@ class AdminReportServiceTest {
     void shouldRejectReportWhenResultIsRejected() {
       // given
       stubFindReport();
-      var request = new ReportResultUpdateRequest(version, REJECTED.name());
+      var request = new ReportResultUpdateRequest(version, REJECTED.name(), null);
 
       // when
       adminReportService.updateResult(reportId, request, adminId);
@@ -80,13 +81,17 @@ class AdminReportServiceTest {
     void shouldWarnReportWhenResultIsWarned() {
       // given
       stubFindReport();
-      var request = new ReportResultUpdateRequest(version, WARNED.name());
+      var request = new ReportResultUpdateRequest(version, WARNED.name(), "key-1");
 
       // when
       adminReportService.updateResult(reportId, request, adminId);
 
       // then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ReportWarnedEvent.class));
+      Mockito.verify(eventPublisher)
+          .publishEvent(
+              ArgumentMatchers.<Object>argThat(published ->
+                  published instanceof ReportWarnedEvent event
+                      && "key-1".equals(event.idempotencyKey())));
       assertThat(report.getResult()).isEqualTo(WARNED);
       assertThat(report.getAdminId()).isEqualTo(adminId);
       verify(reportCommandRepository, never()).save(any());
@@ -97,7 +102,7 @@ class AdminReportServiceTest {
     void shouldThrowInvalidReportResultExceptionWhenResultIsPending() {
       // given
       stubFindReport();
-      var request = new ReportResultUpdateRequest(version, PENDING.name());
+      var request = new ReportResultUpdateRequest(version, PENDING.name(), null);
 
       // when & then
       assertThatThrownBy(() -> adminReportService.updateResult(reportId, request, adminId))
@@ -115,7 +120,7 @@ class AdminReportServiceTest {
     void shouldThrowInvalidReportResultExceptionWhenResultIsUnknown() {
       // given
       stubFindReport();
-      var request = new ReportResultUpdateRequest(version, "UNKNOWN");
+      var request = new ReportResultUpdateRequest(version, "UNKNOWN", null);
 
       // when & then
       assertThatThrownBy(() -> adminReportService.updateResult(reportId, request, adminId))
@@ -133,7 +138,7 @@ class AdminReportServiceTest {
     void shouldThrowOptimisticLockingFailureExceptionWhenVersionConflict() {
       // given
       stubFindReport(version + 1);
-      var request = new ReportResultUpdateRequest(version, REJECTED.name());
+      var request = new ReportResultUpdateRequest(version, REJECTED.name(), null);
 
       // when & then
       assertThatThrownBy(() -> adminReportService.updateResult(reportId, request, adminId))
@@ -150,7 +155,7 @@ class AdminReportServiceTest {
     void shouldThrowReportNotFoundWhenReportNotFound() {
       // given
       when(reportCommandRepository.findById(reportId)).thenReturn(Optional.empty());
-      var request = new ReportResultUpdateRequest(version, REJECTED.name());
+      var request = new ReportResultUpdateRequest(version, REJECTED.name(), null);
 
       // when & then
       assertThatThrownBy(() -> adminReportService.updateResult(reportId, request, adminId))
