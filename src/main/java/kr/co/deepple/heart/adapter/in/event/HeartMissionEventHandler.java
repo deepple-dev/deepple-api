@@ -4,10 +4,8 @@ import kr.co.deepple.heart.application.port.in.AddMissionHeartCommand;
 import kr.co.deepple.heart.application.port.in.AddMissionHeartUseCase;
 import kr.co.deepple.mission.event.MemberMissionCompletedEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -15,8 +13,7 @@ public class HeartMissionEventHandler {
 
   private final AddMissionHeartUseCase addMissionHeartUseCase;
 
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener
   public void handle(MemberMissionCompletedEvent event) {
     addMissionHeartUseCase.addMissionHeart(
         new AddMissionHeartCommand(

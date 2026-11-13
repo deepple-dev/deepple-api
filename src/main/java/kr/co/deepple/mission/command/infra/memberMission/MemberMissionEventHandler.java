@@ -6,10 +6,8 @@ import kr.co.deepple.mission.command.application.memberMission.MemberMissionServ
 import kr.co.deepple.mission.command.domain.mission.ActionType;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,15 +15,13 @@ public class MemberMissionEventHandler {
 
   private final MemberMissionService memberMissionService;
 
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener
   public void handle(AllRequiredSubjectSubmittedEvent event) {
     memberMissionService.executeMissionsByAction(
         event.memberId(), ActionType.FIRST_DATE_EXAM.name());
   }
 
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener
   public void handle(SelfIntroductionFirstWrittenEvent event) {
     memberMissionService.executeMissionsByAction(
         event.memberId(), ActionType.SELF_INTRODUCTION.name());
