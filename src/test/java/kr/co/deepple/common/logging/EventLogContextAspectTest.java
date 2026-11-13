@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -38,6 +39,15 @@ class EventLogContextAspectTest {
 
     assertThat(handler.getCapturedAction()).isEqualTo("SampleEvent");
     assertThat(MDC.get(LogContext.EVENT_ACTION)).isEqualTo("OuterEvent");
+  }
+
+  @Test
+  @DisplayName("@ApplicationModuleListener 핸들러에도 이벤트 이름을 넣는다.")
+  void putEventNameDuringApplicationModuleListener() {
+    handler.handleInModule(new SampleEvent());
+
+    assertThat(handler.getCapturedAction()).isEqualTo("SampleEvent");
+    assertThat(MDC.get(LogContext.EVENT_ACTION)).isNull();
   }
 
   @Test
@@ -72,6 +82,11 @@ class EventLogContextAspectTest {
 
     @TransactionalEventListener
     public void handleAfterCommit(SampleEvent event) {
+      capturedAction = MDC.get(LogContext.EVENT_ACTION);
+    }
+
+    @ApplicationModuleListener
+    public void handleInModule(SampleEvent event) {
       capturedAction = MDC.get(LogContext.EVENT_ACTION);
     }
 

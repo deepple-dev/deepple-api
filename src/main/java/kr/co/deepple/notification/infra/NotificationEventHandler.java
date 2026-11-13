@@ -19,10 +19,9 @@ import kr.co.deepple.notification.command.domain.NotificationType;
 import kr.co.deepple.notification.command.domain.SenderType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.annotation.Propagation;
 
 @Slf4j
 @Service
@@ -33,10 +32,7 @@ public class NotificationEventHandler {
 
   private final NotificationSendService notificationSendService;
 
-  @Async
-  @TransactionalEventListener(
-      value = MatchRequestedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleMatchRequestedEvent(MatchRequestedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -49,10 +45,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = MatchAcceptedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleMatchAcceptedEvent(MatchAcceptedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -65,10 +58,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = MatchRejectedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleMatchRejectedEvent(MatchRejectedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -81,10 +71,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = ProfileExchangeRequestedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleProfileExchangeRequestedEvent(ProfileExchangeRequestedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -97,10 +84,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = ProfileExchangeAcceptedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleProfileExchangeAcceptedEvent(ProfileExchangeAcceptedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -113,10 +97,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = ProfileExchangeRejectedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleProfileExchangeRejectedEvent(ProfileExchangeRejectedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -129,10 +110,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = WarningIssuedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleWarningIssuedEvent(WarningIssuedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -145,8 +123,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(value = LikeSentEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleLikeSentEvent(LikeSentEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -159,10 +136,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = ScreeningApprovedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleScreeningApprovedEvent(ScreeningApprovedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -175,10 +149,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = ScreeningRejectedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleScreeningRejectedEvent(ScreeningRejectedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
@@ -191,10 +162,7 @@ public class NotificationEventHandler {
     notificationSendService.send(request);
   }
 
-  @Async
-  @TransactionalEventListener(
-      value = AdminHeartGrantedEvent.class,
-      phase = TransactionPhase.AFTER_COMMIT)
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handleAdminHeartGrantedEvent(AdminHeartGrantedEvent event) {
     NotificationSendRequest request =
         new NotificationSendRequest(
