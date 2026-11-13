@@ -20,6 +20,6 @@ public class HeartMemberEventHandler {
   public void handle(MemberSummaryChangedEvent event) {
     syncHeartMemberUseCase.syncHeartMember(
         new SyncHeartMemberCommand(
-            event.getMemberId(), event.getGender(), event.isVip(), event.getTimestamp()));
+            event.memberId(), event.gender(), event.isVip(), event.occurredAt()));
   }
 }

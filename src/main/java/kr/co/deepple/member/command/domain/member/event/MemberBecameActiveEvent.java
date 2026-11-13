@@ -1,17 +1,13 @@
 package kr.co.deepple.member.command.domain.member.event;
 
 import kr.co.deepple.common.event.Event;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MemberBecameActiveEvent extends Event {
-
-  private final long memberId;
+public record MemberBecameActiveEvent(long memberId, @NonNull EventMetadata metadata)
+    implements Event {
 
   public static MemberBecameActiveEvent from(long memberId) {
-    return new MemberBecameActiveEvent(memberId);
+    return new MemberBecameActiveEvent(memberId, EventMetadata.create());
   }
 }

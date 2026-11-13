@@ -1,20 +1,18 @@
 package kr.co.deepple.mission.command.domain.memberMission.event;
 
-import java.util.Map;
 import kr.co.deepple.common.event.Event;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@RequiredArgsConstructor
-@Getter
-public class MemberMissionCompletedEvent extends Event {
-
-  private final long memberId;
-  private final long memberMissionId;
-  private final int successCount;
-  private final long rewardHeartAmount;
-  private final String memberNickname;
-  private final String actionType;
+public record MemberMissionCompletedEvent(
+    long memberId,
+    long memberMissionId,
+    int successCount,
+    long rewardHeartAmount,
+    String memberNickname,
+    String actionType,
+    @NonNull EventMetadata metadata)
+    implements Event {
 
   public static MemberMissionCompletedEvent of(
       long memberId,
@@ -24,12 +22,12 @@ public class MemberMissionCompletedEvent extends Event {
       long rewardedHeart,
       String actionType) {
     return new MemberMissionCompletedEvent(
-        memberId, memberMissionId, successCount, rewardedHeart, memberNickname, actionType);
-  }
-
-  @Override
-  public Map<String, Object> logAttributes() {
-    return Map.of(
-        "memberId", memberId, "memberMissionId", memberMissionId, "successCount", successCount);
+        memberId,
+        memberMissionId,
+        successCount,
+        rewardedHeart,
+        memberNickname,
+        actionType,
+        EventMetadata.create());
   }
 }

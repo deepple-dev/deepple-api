@@ -58,12 +58,10 @@ class GooglePlayPaymentServiceTest {
           Events.raise(
               argThat(event ->
                   event instanceof GooglePlayReceiptVerifiedEvent
-                      && ((GooglePlayReceiptVerifiedEvent) event).getMemberId() == MEMBER_ID
-                      && ((GooglePlayReceiptVerifiedEvent) event)
-                          .getTransactionId()
-                          .equals(ORDER_ID)
-                      && ((GooglePlayReceiptVerifiedEvent) event).getProductId().equals(PRODUCT_ID)
-                      && ((GooglePlayReceiptVerifiedEvent) event).getQuantity() == QUANTITY)));
+                      && ((GooglePlayReceiptVerifiedEvent) event).memberId() == MEMBER_ID
+                      && ((GooglePlayReceiptVerifiedEvent) event).transactionId().equals(ORDER_ID)
+                      && ((GooglePlayReceiptVerifiedEvent) event).productId().equals(PRODUCT_ID)
+                      && ((GooglePlayReceiptVerifiedEvent) event).quantity() == QUANTITY)));
       verify(googlePlayClient).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
     }
   }

@@ -19,6 +19,6 @@ public class MemberRegisteredEventHandler {
       value = MemberRegisteredEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberRegisteredEvent event) {
-    notificationPreferenceService.createIfAbsent(event.getMemberId());
+    notificationPreferenceService.createIfAbsent(event.memberId());
   }
 }

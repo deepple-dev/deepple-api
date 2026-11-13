@@ -20,6 +20,6 @@ public class WarningIssuedEventHandler {
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(WarningIssuedEvent event) {
     suspensionService.suspendByWarningCount(
-        event.getAdminId(), event.getMemberId(), event.getWarningCount());
+        event.adminId(), event.memberId(), event.warningCount());
   }
 }

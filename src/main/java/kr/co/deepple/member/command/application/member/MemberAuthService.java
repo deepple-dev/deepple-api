@@ -131,7 +131,7 @@ public class MemberAuthService {
   private Member create(String phoneNumber) {
     try {
       Member member = memberCommandRepository.save(Member.fromPhoneNumber(phoneNumber));
-      Events.raise(new MemberRegisteredEvent(member.getId())); // Event 발행.
+      Events.raise(MemberRegisteredEvent.from(member.getId()));
       Events.raise(MemberSummaryChangedEvent.of(member.getId(), null, member.isVip()));
       return member;
     } catch (DataIntegrityViolationException e) {

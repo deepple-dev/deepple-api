@@ -21,7 +21,7 @@ public class RefreshTokenEventHandler {
       value = MemberSuspendedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberSuspendedEvent event) {
-    refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
+    refreshTokenService.revokeAll(TokenOwner.member(event.memberId()));
   }
 
   @Async
@@ -29,6 +29,6 @@ public class RefreshTokenEventHandler {
       value = MemberBecameDormantEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberBecameDormantEvent event) {
-    refreshTokenService.revokeAll(TokenOwner.member(event.getMemberId()));
+    refreshTokenService.revokeAll(TokenOwner.member(event.memberId()));
   }
 }

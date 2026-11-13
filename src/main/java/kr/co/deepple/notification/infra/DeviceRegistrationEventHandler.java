@@ -22,7 +22,7 @@ public class DeviceRegistrationEventHandler {
       value = MemberLoggedInEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleMemberLoggedInEvent(MemberLoggedInEvent event) {
-    deviceRegistrationService.activateByMemberId(event.getMemberId());
+    deviceRegistrationService.activateByMemberId(event.memberId());
   }
 
   @Async
@@ -30,7 +30,7 @@ public class DeviceRegistrationEventHandler {
       value = MemberLoggedOutEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleMemberLoggedOutEvent(MemberLoggedOutEvent event) {
-    deviceRegistrationService.deactivateByMemberId(event.getMemberId());
+    deviceRegistrationService.deactivateByMemberId(event.memberId());
   }
 
   @Async
@@ -38,7 +38,7 @@ public class DeviceRegistrationEventHandler {
       value = MemberBecameDormantEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleMemberBecameDormantEvent(MemberBecameDormantEvent event) {
-    deviceRegistrationService.deactivateByMemberId(event.getMemberId());
+    deviceRegistrationService.deactivateByMemberId(event.memberId());
   }
 
   @Async
@@ -46,6 +46,6 @@ public class DeviceRegistrationEventHandler {
       value = MemberBecameActiveEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handleMemberActivatedEvent(MemberBecameActiveEvent event) {
-    deviceRegistrationService.activateByMemberId(event.getMemberId());
+    deviceRegistrationService.activateByMemberId(event.memberId());
   }
 }

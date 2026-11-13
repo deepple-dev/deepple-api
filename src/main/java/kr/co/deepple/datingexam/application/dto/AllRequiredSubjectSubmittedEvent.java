@@ -1,20 +1,13 @@
 package kr.co.deepple.datingexam.application.dto;
 
 import kr.co.deepple.common.event.Event;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@Getter
-@EqualsAndHashCode
-public class AllRequiredSubjectSubmittedEvent extends Event {
-
-  private final long memberId;
-
-  private AllRequiredSubjectSubmittedEvent(long memberId) {
-    this.memberId = memberId;
-  }
+public record AllRequiredSubjectSubmittedEvent(long memberId, @NonNull EventMetadata metadata)
+    implements Event {
 
   public static AllRequiredSubjectSubmittedEvent from(long memberId) {
-    return new AllRequiredSubjectSubmittedEvent(memberId);
+    return new AllRequiredSubjectSubmittedEvent(memberId, EventMetadata.create());
   }
 }

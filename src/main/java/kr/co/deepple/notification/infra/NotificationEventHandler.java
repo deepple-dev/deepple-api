@@ -41,10 +41,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getRequesterId(),
-            event.getResponderId(),
+            event.requesterId(),
+            event.responderId(),
             NotificationType.MATCH_REQUEST,
-            Map.of(SENDER_NAME, event.getRequesterName()),
+            Map.of(SENDER_NAME, event.requesterName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -57,10 +57,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getResponderId(),
-            event.getRequesterId(),
+            event.responderId(),
+            event.requesterId(),
             NotificationType.MATCH_ACCEPT,
-            Map.of(SENDER_NAME, event.getResponderName()),
+            Map.of(SENDER_NAME, event.responderName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -73,10 +73,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getResponderId(),
-            event.getRequesterId(),
+            event.responderId(),
+            event.requesterId(),
             NotificationType.MATCH_REJECT,
-            Map.of(SENDER_NAME, event.getResponderName()),
+            Map.of(SENDER_NAME, event.responderName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -89,10 +89,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getRequesterId(),
-            event.getResponderId(),
+            event.requesterId(),
+            event.responderId(),
             NotificationType.PROFILE_EXCHANGE_REQUEST,
-            Map.of(SENDER_NAME, event.getSenderName()),
+            Map.of(SENDER_NAME, event.senderName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -105,10 +105,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getResponderId(),
-            event.getRequesterId(),
+            event.responderId(),
+            event.requesterId(),
             NotificationType.PROFILE_EXCHANGE_ACCEPT,
-            Map.of(SENDER_NAME, event.getSenderName()),
+            Map.of(SENDER_NAME, event.senderName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -121,10 +121,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getResponderId(),
-            event.getRequesterId(),
+            event.responderId(),
+            event.requesterId(),
             NotificationType.PROFILE_EXCHANGE_REJECT,
-            Map.of(SENDER_NAME, event.getSenderName()),
+            Map.of(SENDER_NAME, event.senderName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -137,9 +137,9 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
-            event.getAdminId(),
-            event.getMemberId(),
-            NotificationType.valueOf(event.getReasonType()),
+            event.adminId(),
+            event.memberId(),
+            NotificationType.valueOf(event.reasonType()),
             Map.of(),
             ChannelType.PUSH);
     notificationSendService.send(request);
@@ -151,10 +151,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.MEMBER,
-            event.getSenderId(),
-            event.getReceiverId(),
+            event.senderId(),
+            event.receiverId(),
             NotificationType.LIKE,
-            Map.of(SENDER_NAME, event.getSenderName()),
+            Map.of(SENDER_NAME, event.senderName()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -167,8 +167,8 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
-            event.getAdminId(),
-            event.getMemberId(),
+            event.adminId(),
+            event.memberId(),
             NotificationType.SCREENING_APPROVED,
             Map.of(),
             ChannelType.PUSH);
@@ -183,10 +183,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
-            event.getAdminId(),
-            event.getMemberId(),
+            event.adminId(),
+            event.memberId(),
             NotificationType.SCREENING_REJECTED,
-            Map.of("rejectionReason", event.getRejectionReason()),
+            Map.of("rejectionReason", event.rejectionReason()),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }
@@ -199,10 +199,10 @@ public class NotificationEventHandler {
     NotificationSendRequest request =
         new NotificationSendRequest(
             SenderType.ADMIN,
-            event.getAdminId(),
-            event.getMemberId(),
+            event.adminId(),
+            event.memberId(),
             NotificationType.HEART_GRANTED,
-            Map.of("amount", String.valueOf(event.getAmount())),
+            Map.of("amount", String.valueOf(event.amount())),
             ChannelType.PUSH);
     notificationSendService.send(request);
   }

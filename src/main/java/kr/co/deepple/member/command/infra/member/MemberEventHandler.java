@@ -18,6 +18,6 @@ public class MemberEventHandler {
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(AllRequiredSubjectSubmittedEvent event) {
-    memberProfileService.markDatingExamSubmitted(event.getMemberId());
+    memberProfileService.markDatingExamSubmitted(event.memberId());
   }
 }

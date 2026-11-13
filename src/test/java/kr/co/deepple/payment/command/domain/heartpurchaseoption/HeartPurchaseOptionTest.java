@@ -89,9 +89,9 @@ class HeartPurchaseOptionTest {
           () ->
               Events.raise(
                   argThat((HeartPurchasedEvent event) ->
-                      event.getMemberId() == memberId
-                          && event.getOrderId() == orderId
-                          && event.getAmount() == expectedAmount)),
+                      event.memberId() == memberId
+                          && event.orderId() == orderId
+                          && event.amount() == expectedAmount)),
           times(1));
     }
   }

@@ -197,7 +197,7 @@ class MemberTest {
             Events.raise(
                 argThat(event ->
                     event instanceof MemberSettingUpdatedEvent
-                        && ((MemberSettingUpdatedEvent) event).getMemberId() == memberId
+                        && ((MemberSettingUpdatedEvent) event).memberId() == memberId
                         && !((MemberSettingUpdatedEvent) event).isPushNotificationEnabled())));
       }
     }
@@ -270,8 +270,8 @@ class MemberTest {
                 Events.raise(
                     argThat(event ->
                         event instanceof MemberSummaryChangedEvent summaryChanged
-                            && summaryChanged.getMemberId() == memberId
-                            && profile.getGender().name().equals(summaryChanged.getGender()))),
+                            && summaryChanged.memberId() == memberId
+                            && profile.getGender().name().equals(summaryChanged.gender()))),
             times(1));
       }
       Assertions.assertThat(member.getProfile()).isEqualTo(profile);

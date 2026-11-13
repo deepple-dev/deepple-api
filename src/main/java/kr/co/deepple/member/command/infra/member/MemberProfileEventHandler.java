@@ -15,11 +15,11 @@ public class MemberProfileEventHandler {
 
   @EventListener(value = MatchRequestedEvent.class)
   public void handle(MatchRequestedEvent event) {
-    memberProfileService.validateContactTypeSetting(event.getRequesterId(), event.getContactType());
+    memberProfileService.validateContactTypeSetting(event.requesterId(), event.contactType());
   }
 
   @EventListener(value = MatchRespondedEvent.class)
   public void handle(MatchRespondedEvent event) {
-    memberProfileService.validateContactTypeSetting(event.getResponderId(), event.getContactType());
+    memberProfileService.validateContactTypeSetting(event.responderId(), event.contactType());
   }
 }

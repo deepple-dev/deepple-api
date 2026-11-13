@@ -1,18 +1,13 @@
 package kr.co.deepple.match.command.domain.match.event;
 
 import kr.co.deepple.common.event.Event;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MatchRequestCompletedEvent extends Event {
-
-  private final long requesterId;
-  private final long responderId;
+public record MatchRequestCompletedEvent(
+    long requesterId, long responderId, @NonNull EventMetadata metadata) implements Event {
 
   public static MatchRequestCompletedEvent of(long requesterId, long responderId) {
-    return new MatchRequestCompletedEvent(requesterId, responderId);
+    return new MatchRequestCompletedEvent(requesterId, responderId, EventMetadata.create());
   }
 }

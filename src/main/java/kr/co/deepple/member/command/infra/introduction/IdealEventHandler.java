@@ -19,6 +19,6 @@ public class IdealEventHandler {
       value = MemberRegisteredEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberRegisteredEvent event) {
-    memberIdealService.initIfAbsent(event.getMemberId());
+    memberIdealService.initIfAbsent(event.memberId());
   }
 }

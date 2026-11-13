@@ -18,6 +18,6 @@ public class BlockEventHandler {
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ReportCreatedEvent event) {
-    blockCommander.createBlockIfAbsent(event.getReporterId(), event.getReporteeId());
+    blockCommander.createBlockIfAbsent(event.reporterId(), event.reporteeId());
   }
 }

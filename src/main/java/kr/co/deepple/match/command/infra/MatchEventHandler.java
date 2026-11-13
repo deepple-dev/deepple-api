@@ -18,10 +18,9 @@ public class MatchEventHandler {
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberProfileRetrievedEvent event) {
-    if (event.getMatchRequesterId() == null || event.getMatchResponderId() == null) {
+    if (event.matchRequesterId() == null || event.matchResponderId() == null) {
       return;
     }
-    matchService.read(
-        event.getRetrieverId(), event.getMatchRequesterId(), event.getMatchResponderId());
+    matchService.read(event.retrieverId(), event.matchRequesterId(), event.matchResponderId());
   }
 }

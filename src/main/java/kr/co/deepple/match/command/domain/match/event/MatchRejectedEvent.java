@@ -1,19 +1,14 @@
 package kr.co.deepple.match.command.domain.match.event;
 
 import kr.co.deepple.common.event.Event;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MatchRejectedEvent extends Event {
-
-  private final long requesterId;
-  private final long responderId;
-  private final String responderName;
+public record MatchRejectedEvent(
+    long requesterId, long responderId, String responderName, @NonNull EventMetadata metadata)
+    implements Event {
 
   public static MatchRejectedEvent of(long requesterId, long responderId, String responderName) {
-    return new MatchRejectedEvent(requesterId, responderId, responderName);
+    return new MatchRejectedEvent(requesterId, responderId, responderName, EventMetadata.create());
   }
 }

@@ -53,12 +53,12 @@ class AppStorePaymentServiceTest {
           Events.raise(
               argThat(event ->
                   event instanceof AppStoreReceiptVerifiedEvent
-                      && ((AppStoreReceiptVerifiedEvent) event).getMemberId() == memberId
+                      && ((AppStoreReceiptVerifiedEvent) event).memberId() == memberId
                       && ((AppStoreReceiptVerifiedEvent) event)
-                          .getTransactionId()
+                          .transactionId()
                           .equals(transactionId)
-                      && ((AppStoreReceiptVerifiedEvent) event).getProductId().equals(productId)
-                      && ((AppStoreReceiptVerifiedEvent) event).getQuantity() == quantity)));
+                      && ((AppStoreReceiptVerifiedEvent) event).productId().equals(productId)
+                      && ((AppStoreReceiptVerifiedEvent) event).quantity() == quantity)));
     }
   }
 
