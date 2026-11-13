@@ -39,11 +39,6 @@ public class MemberCommandRepositoryImpl implements MemberCommandRepository {
   }
 
   @Override
-  public Optional<Member> findByPhoneNumber(String phoneNumber) {
-    return memberCommandJpaRepository.findByPhoneNumber(PhoneNumber.from(phoneNumber));
-  }
-
-  @Override
   public boolean existsByPhoneNumberAndIdNot(String phoneNumber, long id) {
     return memberCommandJpaRepository.existsByPhoneNumberAndIdNot(
         PhoneNumber.from(phoneNumber), id);
