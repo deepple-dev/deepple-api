@@ -83,3 +83,6 @@ firebase:
 
 bizgo:
   enabled: false
+
+scheduler:
+  event-resubmission-cron: "-"

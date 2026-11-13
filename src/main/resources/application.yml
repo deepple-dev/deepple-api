@@ -8,6 +8,13 @@ spring:
   config:
     import: optional:classpath:git.properties
 
+  modulith:
+    events:
+      staleness:
+        published: 5m
+        processing: 5m
+        resubmitted: 5m
+
   jackson:
     use-jackson2-defaults: true
     deserialization:
@@ -138,3 +145,4 @@ bizgo:
 
 scheduler:
   cron: "0 0 0 * * *"
+  event-resubmission-cron: "0 * * * * *"
