@@ -6,10 +6,10 @@ import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
 import java.time.Instant;
+import kr.co.deepple.auth.application.RefreshTokenService;
+import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.auth.domain.AuthErrorCode;
-import kr.co.deepple.auth.domain.RefreshTokenService;
 import kr.co.deepple.auth.domain.TokenOwner;
-import kr.co.deepple.auth.domain.TokenProvider;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;

@@ -3,7 +3,7 @@ package kr.co.deepple.community.presentation.selfintroduction;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
-import kr.co.deepple.auth.domain.TokenProvider;
+import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;

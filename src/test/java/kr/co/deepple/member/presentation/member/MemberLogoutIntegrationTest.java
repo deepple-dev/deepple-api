@@ -5,7 +5,7 @@ import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
 import java.time.Instant;
-import kr.co.deepple.auth.domain.TokenProvider;
+import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.notification.command.domain.DeviceRegistration;
