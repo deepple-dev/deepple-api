@@ -1,4 +1,4 @@
-package kr.co.deepple.block.adapter.in.web.dto;
+package kr.co.deepple.block.application.dto;
 
 import jakarta.validation.constraints.NotNull;
 

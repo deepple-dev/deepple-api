@@ -12,10 +12,10 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.Instant;
 import java.util.Optional;
+import kr.co.deepple.auth.application.dto.AdminLoginRequest;
 import kr.co.deepple.auth.application.dto.AdminLoginResponse;
+import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
-import kr.co.deepple.auth.application.port.in.LoginAdminCommand;
-import kr.co.deepple.auth.application.port.in.SignupAdminCommand;
 import kr.co.deepple.auth.application.port.out.AdminCommandRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.auth.domain.Admin;
@@ -61,7 +61,7 @@ class AdminAuthServiceTest {
       // given
       String email = "test@example.com";
       String rawPassword = "password123^^";
-      SignupAdminCommand command = new SignupAdminCommand(email, rawPassword, "홍길동", "01012345678");
+      AdminSignupRequest request = new AdminSignupRequest(email, rawPassword, "홍길동", "01012345678");
 
       when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
       when(passwordHasher.hash(rawPassword)).thenReturn("hashed-password123^^");
@@ -73,7 +73,7 @@ class AdminAuthServiceTest {
           });
 
       // when
-      AdminSignupResponse response = adminAuthService.signup(command);
+      AdminSignupResponse response = adminAuthService.signup(request);
 
       // then
       assertThat(response).isNotNull();
@@ -90,14 +90,14 @@ class AdminAuthServiceTest {
     void throwAdminEmailAlreadyExistsWhenEmailAlreadyExists() {
       // given
       String email = "exists@example.com";
-      SignupAdminCommand command =
-          new SignupAdminCommand(email, "password123^^", "홍길동", "01012345678");
+      AdminSignupRequest request =
+          new AdminSignupRequest(email, "password123^^", "홍길동", "01012345678");
 
       when(adminCommandRepository.findByEmail(Email.from(email)))
           .thenReturn(Optional.of(AdminFixture.builder().build()));
 
       // when & then
-      assertThatThrownBy(() -> adminAuthService.signup(command))
+      assertThatThrownBy(() -> adminAuthService.signup(request))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.ADMIN_EMAIL_ALREADY_EXISTS);
 
@@ -111,13 +111,13 @@ class AdminAuthServiceTest {
       // given
       String email = "test2@example.com";
       String invalidPassword = "short12^^";
-      SignupAdminCommand command =
-          new SignupAdminCommand(email, invalidPassword, "홍길동", "01012345678");
+      AdminSignupRequest request =
+          new AdminSignupRequest(email, invalidPassword, "홍길동", "01012345678");
 
       when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> adminAuthService.signup(command))
+      assertThatThrownBy(() -> adminAuthService.signup(request))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_PASSWORD);
 
@@ -138,7 +138,7 @@ class AdminAuthServiceTest {
       // given
       String email = "valid@example.com";
       String requestPassword = "password123^^";
-      LoginAdminCommand command = new LoginAdminCommand(email, requestPassword);
+      AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
 
       Admin admin =
           AdminFixture.builder()
@@ -158,7 +158,7 @@ class AdminAuthServiceTest {
       when(refreshTokenService.issue(new TokenOwner(1L, Role.ADMIN))).thenReturn(newRefreshToken);
 
       // when
-      AdminLoginResponse response = adminAuthService.login(command);
+      AdminLoginResponse response = adminAuthService.login(request);
 
       // then
       assertThat(response).isNotNull();
@@ -172,12 +172,12 @@ class AdminAuthServiceTest {
       // given
       String email = "invalid@example.com";
       String requestPassword = "password123^^";
-      LoginAdminCommand command = new LoginAdminCommand(email, requestPassword);
+      AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
 
       when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> adminAuthService.login(command))
+      assertThatThrownBy(() -> adminAuthService.login(request))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_CREDENTIALS);
     }
@@ -187,13 +187,13 @@ class AdminAuthServiceTest {
     void loginThrowsInvalidCredentialsWhenDeleted() {
       // given
       String email = "deleted@example.com";
-      LoginAdminCommand command = new LoginAdminCommand(email, "password123^^");
+      AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
       Admin admin = AdminFixture.builder().email(email).build();
       admin.delete();
       when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
 
       // when & then
-      assertThatThrownBy(() -> adminAuthService.login(command))
+      assertThatThrownBy(() -> adminAuthService.login(request))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_CREDENTIALS);
       verify(refreshTokenService, never()).issue(any());
@@ -205,7 +205,7 @@ class AdminAuthServiceTest {
       // given
       String email = "pending@example.com";
       String requestPassword = "password123^^";
-      LoginAdminCommand command = new LoginAdminCommand(email, requestPassword);
+      AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
       Admin admin =
           AdminFixture.builder()
               .email(email)
@@ -216,7 +216,7 @@ class AdminAuthServiceTest {
       when(passwordHasher.matches(requestPassword, HASHED_PASSWORD)).thenReturn(true);
 
       // when & then
-      assertThatThrownBy(() -> adminAuthService.login(command))
+      assertThatThrownBy(() -> adminAuthService.login(request))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.ADMIN_NOT_APPROVED);
       verify(refreshTokenService, never()).issue(any());

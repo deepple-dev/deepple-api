@@ -1,7 +1,7 @@
 package kr.co.deepple.heart.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.heart.application.port.in.AddAdminHeartCommand;
+import kr.co.deepple.heart.application.dto.AdminHeartGrantRequest;
 import kr.co.deepple.heart.application.port.in.AddAdminHeartUseCase;
 import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
 import kr.co.deepple.heart.domain.HeartErrorCode;
@@ -24,25 +24,25 @@ public class AddAdminHeartService implements AddAdminHeartUseCase {
 
   @Override
   @Transactional
-  public void addAdminHeart(AddAdminHeartCommand command) {
-    if (!heartMemberRepository.existsByMemberId(command.memberId())) {
-      throw new DeeppleException(HeartErrorCode.MEMBER_NOT_FOUND, "memberId=" + command.memberId());
+  public void addAdminHeart(long adminId, AdminHeartGrantRequest request) {
+    if (!heartMemberRepository.existsByMemberId(request.memberId())) {
+      throw new DeeppleException(HeartErrorCode.MEMBER_NOT_FOUND, "memberId=" + request.memberId());
     }
     boolean transacted =
         heartTransactor.transact(
-            command.memberId(),
+            request.memberId(),
             TransactionType.ADMIN_GRANT,
-            command.reason(),
-            command.amount(),
-            command.idempotencyKey());
+            request.reason(),
+            request.amount(),
+            request.idempotencyKey());
     if (!transacted) {
       return;
     }
     log.atInfo()
-        .addKeyValue("memberId", command.memberId())
-        .addKeyValue("amount", command.amount())
+        .addKeyValue("memberId", request.memberId())
+        .addKeyValue("amount", request.amount())
         .log("관리자 하트 지급");
     eventPublisher.publishEvent(
-        AdminHeartGrantedEvent.of(command.memberId(), command.adminId(), command.amount()));
+        AdminHeartGrantedEvent.of(request.memberId(), adminId, request.amount()));
   }
 }

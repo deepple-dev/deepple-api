@@ -55,13 +55,14 @@
   ```
   event/               다른 도메인이 듣는 이벤트 (`@NamedInterface("event")`로 공개)
   adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)
-  application/         port/in(들어오는 포트), port/out(나가는 포트), 서비스
+  application/         port/in(들어오는 포트), port/out(나가는 포트), dto(요청·응답·조회 조건), 서비스
   domain/              엔티티, 값 객체, ErrorCode
   ```
 
 ## 코딩 규칙
 
 - 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 성공 응답은 감싸지 않고 응답 객체를 그대로 돌려준다(목록은 `MatchViews(matches, hasMore)`처럼 리소스 복수형 필드를 가진 객체로 감싸고, 본문이 없으면 204). 오류 응답은 `GlobalExceptionHandler`가 ProblemDetail로 만든다.
+- 헥사고날 모듈에서는 요청 클래스(`…Request`)를 `Command` 같은 다른 객체로 바꾸지 않고 서비스에 그대로 넘긴다(쓰는 값이 한두 개면 값만 넘겨도 된다). 요청 본문 밖의 값(토큰의 ID, 경로 값)은 메서드 인자로 따로 넘긴다. 이벤트 핸들러나 다른 모듈이 넘기는 입력을 객체로 묶을 때는 `port/in`의 `…Command`로 둔다.
 - 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
   - 발행: 서비스가 `ApplicationEventPublisher`를 주입받아 `publishEvent(event)`로 발행한다. 엔티티는 이벤트를 만들지 않는다. 이벤트는 `Event`(`common/event`)를 구현한 `record`이고, 다른 도메인이 듣는 이벤트는 `<도메인>/event`에 둔다
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@ApplicationModuleListener`(커밋 후, 비동기, 새 트랜잭션). 외부 호출을 하거나 분산 락을 잡는 등 트랜잭션 밖에서 돌아야 하면 `propagation = Propagation.NOT_SUPPORTED`를 준다
@@ -97,7 +98,7 @@
 | 파일 | 내용 | 적용 대상 |
 |---|---|---|
 | `java.md` | 타입·작성 규칙, Lombok | 모든 Java 파일 |
-| `swagger.md` | API 문서화 | `presentation`, `adapter/in/web`, `query` |
+| `swagger.md` | API 문서화 | `presentation`, `adapter/in/web`, `application/dto`, `query` |
 | `exception.md` | 예외 던지기, ErrorCode, 오류 응답 | `src/main` Java 파일 |
 | `logging.md` | 로그 레벨·형식, 자동 문맥(MDC), 남기지 않는 값 | `src/main` Java 파일 |
 | `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `infra`, `adapter`, `common/config` |

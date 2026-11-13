@@ -4,10 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.common.security.CurrentAdminId;
-import kr.co.deepple.heart.adapter.in.web.dto.AdminHeartGrantRequest;
+import kr.co.deepple.heart.application.dto.AdminHeartGrantRequest;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionSearchCondition;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionView;
-import kr.co.deepple.heart.application.port.in.AddAdminHeartCommand;
 import kr.co.deepple.heart.application.port.in.AddAdminHeartUseCase;
 import kr.co.deepple.heart.application.port.in.FindAdminHeartTransactionsUseCase;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +44,7 @@ public class AdminHeartTransactionController {
   @PostMapping("/grants")
   public ResponseEntity<Void> grant(
       @CurrentAdminId long adminId, @Valid @RequestBody AdminHeartGrantRequest request) {
-    addAdminHeartUseCase.addAdminHeart(
-        new AddAdminHeartCommand(
-            adminId,
-            request.memberId(),
-            request.amount(),
-            request.reason(),
-            request.idempotencyKey()));
+    addAdminHeartUseCase.addAdminHeart(adminId, request);
     return ResponseEntity.noContent().build();
   }
 }
