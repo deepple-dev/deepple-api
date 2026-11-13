@@ -1,10 +1,10 @@
 package kr.co.deepple.auth.application;
 
 import java.time.Instant;
+import kr.co.deepple.auth.application.dto.AdminLoginRequest;
 import kr.co.deepple.auth.application.dto.AdminLoginResponse;
+import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
-import kr.co.deepple.auth.application.port.in.LoginAdminCommand;
-import kr.co.deepple.auth.application.port.in.SignupAdminCommand;
 import kr.co.deepple.auth.application.port.out.AdminCommandRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.auth.domain.Admin;
@@ -31,17 +31,17 @@ public class AdminAuthService {
   private final RefreshTokenService refreshTokenService;
 
   @Transactional
-  public AdminSignupResponse signup(SignupAdminCommand command) {
-    validateEmailUniqueness(command.email());
-    Admin newAdmin = createAdmin(command);
+  public AdminSignupResponse signup(AdminSignupRequest request) {
+    validateEmailUniqueness(request.email());
+    Admin newAdmin = createAdmin(request);
     log.atInfo().addKeyValue("adminId", newAdmin.getId()).log("관리자 가입 신청");
     return AdminAuthMapper.toSignupResponse(newAdmin);
   }
 
   @Transactional
-  public AdminLoginResponse login(LoginAdminCommand command) {
-    Admin admin = findAdminByEmail(command.email());
-    admin.matchPassword(command.password(), passwordHasher);
+  public AdminLoginResponse login(AdminLoginRequest request) {
+    Admin admin = findAdminByEmail(request.email());
+    admin.matchPassword(request.password(), passwordHasher);
     validateApproved(admin);
 
     log.atInfo().addKeyValue("adminId", admin.getId()).log("관리자 로그인");
@@ -87,9 +87,9 @@ public class AdminAuthService {
         });
   }
 
-  private Admin createAdmin(SignupAdminCommand command) {
-    Password password = Password.fromRaw(command.password(), passwordHasher);
-    Admin newAdmin = AdminAuthMapper.toAdmin(command, password);
+  private Admin createAdmin(AdminSignupRequest request) {
+    Password password = Password.fromRaw(request.password(), passwordHasher);
+    Admin newAdmin = AdminAuthMapper.toAdmin(request, password);
     return adminCommandRepository.save(newAdmin);
   }
 

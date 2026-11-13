@@ -3,14 +3,12 @@ package kr.co.deepple.auth.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.deepple.auth.adapter.in.web.dto.AdminLoginRequest;
-import kr.co.deepple.auth.adapter.in.web.dto.AdminRefreshResponse;
-import kr.co.deepple.auth.adapter.in.web.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.AdminAuthService;
+import kr.co.deepple.auth.application.dto.AdminLoginRequest;
 import kr.co.deepple.auth.application.dto.AdminLoginResponse;
+import kr.co.deepple.auth.application.dto.AdminRefreshResponse;
+import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
-import kr.co.deepple.auth.application.port.in.LoginAdminCommand;
-import kr.co.deepple.auth.application.port.in.SignupAdminCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -35,18 +33,14 @@ public class AdminAuthController {
   @PostMapping("/signup")
   public ResponseEntity<AdminSignupResponse> signup(
       @Valid @RequestBody AdminSignupRequest request) {
-    AdminSignupResponse data =
-        adminAuthService.signup(
-            new SignupAdminCommand(
-                request.email(), request.password(), request.name(), request.phoneNumber()));
+    AdminSignupResponse data = adminAuthService.signup(request);
     return ResponseEntity.ok(data);
   }
 
   @Operation(summary = "관리자 로그인")
   @PostMapping("/login")
   public ResponseEntity<Void> login(@Valid @RequestBody AdminLoginRequest request) {
-    AdminLoginResponse response =
-        adminAuthService.login(new LoginAdminCommand(request.email(), request.password()));
+    AdminLoginResponse response = adminAuthService.login(request);
 
     HttpHeaders headers = new HttpHeaders();
     headers.set(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + response.accessToken());

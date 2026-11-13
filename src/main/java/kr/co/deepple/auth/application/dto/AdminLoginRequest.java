@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.adapter.in.web.dto;
+package kr.co.deepple.auth.application.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

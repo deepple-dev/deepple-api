@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.adapter.in.web.dto;
+package kr.co.deepple.auth.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

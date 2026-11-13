@@ -2,7 +2,7 @@ package kr.co.deepple.block.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.deepple.block.adapter.in.web.dto.BlockCreateRequest;
+import kr.co.deepple.block.application.dto.BlockCreateRequest;
 import kr.co.deepple.block.application.port.in.BlockCommander;
 import kr.co.deepple.common.security.CurrentMemberId;
 import lombok.AccessLevel;

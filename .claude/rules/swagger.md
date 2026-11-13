@@ -2,6 +2,7 @@
 paths:
   - "src/main/java/**/presentation/**/*.java"
   - "src/main/java/**/adapter/in/web/**/*.java"
+  - "src/main/java/**/application/dto/**/*.java"
   - "src/main/java/**/query/**/*.java"
 ---
 

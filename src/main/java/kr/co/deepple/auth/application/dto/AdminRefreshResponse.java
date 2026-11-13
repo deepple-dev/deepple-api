@@ -1,3 +1,3 @@
-package kr.co.deepple.auth.adapter.in.web.dto;
+package kr.co.deepple.auth.application.dto;
 
 public record AdminRefreshResponse(String accessToken) {}
