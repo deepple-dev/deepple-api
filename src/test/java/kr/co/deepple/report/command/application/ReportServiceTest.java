@@ -14,16 +14,21 @@ import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.command.domain.ReportReasonType;
+import kr.co.deepple.report.command.domain.event.ReportCreatedEvent;
 import kr.co.deepple.report.presentation.dto.ReportCreateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class ReportServiceTest {
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private ReportService reportService;
 
@@ -106,6 +111,7 @@ class ReportServiceTest {
     reportService.report(request, reporterId);
 
     // then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(ReportCreatedEvent.class));
     verify(reportCommandRepository, times(1))
         .save(
             argThat(reportCommand ->

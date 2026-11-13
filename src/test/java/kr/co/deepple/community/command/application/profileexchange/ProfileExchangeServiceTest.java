@@ -7,13 +7,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.co.deepple.block.application.port.out.BlockRepository;
-import kr.co.deepple.common.MockEventsExtension;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchange;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
+import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeAcceptedEvent;
+import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeRejectedEvent;
+import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeRequestedEvent;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
@@ -28,8 +30,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
-@ExtendWith({MockitoExtension.class, MockEventsExtension.class})
+@ExtendWith(MockitoExtension.class)
 class ProfileExchangeServiceTest {
 
   Member sender = MemberFixture.builder().id(1L).nickname("닉네임").build();
@@ -43,6 +46,8 @@ class ProfileExchangeServiceTest {
   @Mock private BlockRepository blockRepository;
 
   @Mock private UseHeartUseCase useHeartUseCase;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private ProfileExchangeService profileExchangeService;
 
@@ -195,6 +200,7 @@ class ProfileExchangeServiceTest {
       profileExchangeService.request(requesterId, responderId);
 
       // Then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeRequestedEvent.class));
       Mockito.verify(profileExchangeRepository).save(Mockito.any(ProfileExchange.class));
     }
   }
@@ -277,6 +283,7 @@ class ProfileExchangeServiceTest {
       profileExchangeService.approve(profileExchangeId, responderId);
 
       // Then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeAcceptedEvent.class));
       assertThat(profileExchange.getStatus()).isEqualTo(ProfileExchangeStatus.APPROVE);
     }
 
@@ -302,6 +309,7 @@ class ProfileExchangeServiceTest {
       profileExchangeService.reject(profileExchangeId, responderId);
 
       // Then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeRejectedEvent.class));
       assertThat(profileExchange.getStatus()).isEqualTo(ProfileExchangeStatus.REJECTED);
     }
   }

@@ -10,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,7 +46,6 @@ public class Suspension extends BaseEntity {
   }
 
   public static Suspension createTemporary(long adminId, long memberId) {
-    Events.raise(MemberSuspendedEvent.of(memberId, SuspensionStatus.TEMPORARY.toString()));
     return new Suspension(
         adminId,
         memberId,
@@ -56,18 +54,16 @@ public class Suspension extends BaseEntity {
   }
 
   public static Suspension createPermanent(long adminId, long memberId) {
-    Events.raise(MemberSuspendedEvent.of(memberId, SuspensionStatus.PERMANENT.toString()));
     return new Suspension(adminId, memberId, SuspensionStatus.PERMANENT, null);
   }
 
-  public void changeToPermanent(long adminId) {
+  public boolean changeToPermanent(long adminId) {
     if (status == SuspensionStatus.PERMANENT) {
-      return;
+      return false;
     }
     this.adminId = adminId;
     this.status = SuspensionStatus.PERMANENT;
     this.expireAt = null;
-
-    Events.raise(MemberSuspendedEvent.of(memberId, SuspensionStatus.PERMANENT.toString()));
+    return true;
   }
 }

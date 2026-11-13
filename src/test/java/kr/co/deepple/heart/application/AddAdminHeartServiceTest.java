@@ -6,8 +6,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import kr.co.deepple.common.MockEventsExtension;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.heart.application.port.in.AddAdminHeartCommand;
 import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
@@ -19,10 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
-@ExtendWith({MockitoExtension.class, MockEventsExtension.class})
+@ExtendWith(MockitoExtension.class)
 class AddAdminHeartServiceTest {
 
   private static final long MEMBER_ID = 1L;
@@ -32,6 +31,8 @@ class AddAdminHeartServiceTest {
   @Mock private HeartMemberRepository heartMemberRepository;
 
   @Mock private HeartTransactor heartTransactor;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private AddAdminHeartService addAdminHeartService;
 
@@ -43,7 +44,7 @@ class AddAdminHeartServiceTest {
 
   @Test
   @DisplayName("거래가 이루어지면 이벤트를 발행한다.")
-  void raiseEventWhenTransacted(MockedStatic<Events> events) {
+  void raiseEventWhenTransacted() {
     // given
     givenTransacted(true);
 
@@ -51,12 +52,12 @@ class AddAdminHeartServiceTest {
     addAdminHeartService.addAdminHeart(COMMAND);
 
     // then
-    events.verify(() -> Events.raise(any(AdminHeartGrantedEvent.class)));
+    Mockito.verify(eventPublisher).publishEvent(any(AdminHeartGrantedEvent.class));
   }
 
   @Test
   @DisplayName("같은 멱등 키로 이미 처리된 거래면 이벤트를 발행하지 않는다.")
-  void skipEventWhenAlreadyTransacted(MockedStatic<Events> events) {
+  void skipEventWhenAlreadyTransacted() {
     // given
     givenTransacted(false);
 
@@ -64,7 +65,7 @@ class AddAdminHeartServiceTest {
     addAdminHeartService.addAdminHeart(COMMAND);
 
     // then
-    events.verify(() -> Events.raise(any()), never());
+    Mockito.verify(eventPublisher, never()).publishEvent(Mockito.any(Object.class));
   }
 
   @Test

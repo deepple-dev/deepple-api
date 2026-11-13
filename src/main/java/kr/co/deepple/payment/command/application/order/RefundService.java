@@ -1,7 +1,6 @@
 package kr.co.deepple.payment.command.application.order;
 
 import java.time.LocalDateTime;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
@@ -16,6 +15,7 @@ import kr.co.deepple.payment.command.domain.refund.RefundCommandRepository;
 import kr.co.deepple.payment.command.domain.refund.RefundDetail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +27,7 @@ public class RefundService {
   private final OrderCommandRepository orderCommandRepository;
   private final RefundCommandRepository refundCommandRepository;
   private final HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void processRefund(
@@ -96,7 +97,7 @@ public class RefundService {
   }
 
   private void raiseRefundEvent(Order order, long refundAmount) {
-    Events.raise(
+    eventPublisher.publishEvent(
         HeartRefundedEvent.of(
             order.getMemberId(), order.getId(), refundAmount, order.getTransactionId()));
   }

@@ -9,8 +9,10 @@ import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOpt
 import kr.co.deepple.payment.command.domain.order.Order;
 import kr.co.deepple.payment.command.domain.order.OrderCommandRepository;
 import kr.co.deepple.payment.command.domain.order.PaymentMethod;
+import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -21,6 +23,7 @@ public class OrderService {
   private final OrderCommandRepository orderCommandRepository;
   private final HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
   private final DistributedLockTemplate distributedLockTemplate;
+  private final ApplicationEventPublisher eventPublisher;
 
   public void processReceipt(
       long memberId,
@@ -84,6 +87,8 @@ public class OrderService {
                 new DeeppleException(
                     PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND,
                     "하트 구매 옵션이 존재하지 않습니다. product id:" + productId));
-    heartPurchaseOption.purchase(memberId, orderId, quantity);
+    eventPublisher.publishEvent(
+        HeartPurchasedEvent.of(
+            memberId, orderId, heartPurchaseOption.calculateHeartAmount(quantity)));
   }
 }

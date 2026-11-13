@@ -1,13 +1,10 @@
 package kr.co.deepple.payment.command.application.order;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.order.event.AppStoreReceiptVerifiedEvent;
@@ -15,15 +12,19 @@ import kr.co.deepple.payment.command.infra.order.AppStoreClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class AppStorePaymentServiceTest {
 
   @Mock private AppStoreClient appStoreClient;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private AppStorePaymentService appStorePaymentService;
 
@@ -47,19 +48,15 @@ class AppStorePaymentServiceTest {
     when(appStoreClient.verifyAndDecodeTransaction(signedTransaction)).thenReturn(decodedPayload);
 
     // When & Then
-    try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-      appStorePaymentService.verifyReceipt(signedTransaction, memberId);
-      eventsMockedStatic.verify(() ->
-          Events.raise(
-              argThat(event ->
-                  event instanceof AppStoreReceiptVerifiedEvent
-                      && ((AppStoreReceiptVerifiedEvent) event).memberId() == memberId
-                      && ((AppStoreReceiptVerifiedEvent) event)
-                          .transactionId()
-                          .equals(transactionId)
-                      && ((AppStoreReceiptVerifiedEvent) event).productId().equals(productId)
-                      && ((AppStoreReceiptVerifiedEvent) event).quantity() == quantity)));
-    }
+    appStorePaymentService.verifyReceipt(signedTransaction, memberId);
+    Mockito.verify(eventPublisher)
+        .publishEvent(
+            ArgumentMatchers.<Object>argThat(event ->
+                event instanceof AppStoreReceiptVerifiedEvent
+                    && ((AppStoreReceiptVerifiedEvent) event).memberId() == memberId
+                    && ((AppStoreReceiptVerifiedEvent) event).transactionId().equals(transactionId)
+                    && ((AppStoreReceiptVerifiedEvent) event).productId().equals(productId)
+                    && ((AppStoreReceiptVerifiedEvent) event).quantity() == quantity));
   }
 
   @Test

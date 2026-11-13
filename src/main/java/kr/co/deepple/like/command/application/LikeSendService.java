@@ -4,7 +4,6 @@ import static kr.co.deepple.like.command.application.LikeMapper.toLikeLevel;
 import static kr.co.deepple.mission.command.domain.mission.ActionType.LIKE;
 
 import kr.co.deepple.block.application.port.out.BlockRepository;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.command.domain.Like;
 import kr.co.deepple.like.command.domain.LikeCommandRepository;
@@ -16,6 +15,7 @@ import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.mission.command.application.memberMission.MemberMissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +27,7 @@ public class LikeSendService {
   private final LikeCommandRepository likeCommandRepository;
   private final MemberCommandRepository memberCommandRepository;
   private final BlockRepository blockRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public boolean send(long senderId, LikeSendRequest request) {
@@ -54,7 +55,7 @@ public class LikeSendService {
 
     boolean hasProcessedMission =
         memberMissionService.executeMissionsByAction(senderId, LIKE.name());
-    Events.raise(
+    eventPublisher.publishEvent(
         LikeSentEvent.of(senderId, sender.getProfile().getNickname().getValue(), receiverId));
 
     return hasProcessedMission;

@@ -4,15 +4,16 @@ import static kr.co.deepple.admin.command.application.suspension.SuspensionMappe
 
 import java.time.Instant;
 import java.util.Optional;
+import kr.co.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
 import kr.co.deepple.admin.command.domain.suspension.MemberUnsuspendedEvent;
 import kr.co.deepple.admin.command.domain.suspension.Suspension;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionPolicy;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionStatus;
 import kr.co.deepple.admin.presentation.suspension.SuspendRequest;
-import kr.co.deepple.common.event.Events;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class SuspensionService {
   private final SuspensionCommandRepository suspensionCommandRepository;
   private final SuspensionPolicy suspensionPolicy;
   private final TaskScheduler taskScheduler;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void suspendByAdmin(long adminId, long memberId, SuspendRequest request) {
@@ -41,7 +43,7 @@ public class SuspensionService {
   @Transactional
   public void delete(long memberId) {
     suspensionCommandRepository.deleteByMemberId(memberId);
-    Events.raise(MemberUnsuspendedEvent.from(memberId));
+    eventPublisher.publishEvent(MemberUnsuspendedEvent.from(memberId));
     log.atInfo().addKeyValue("memberId", memberId).log("회원 정지 해제");
   }
 
@@ -54,6 +56,7 @@ public class SuspensionService {
       }
       Suspension newSuspension = Suspension.createTemporary(adminId, memberId);
       suspensionCommandRepository.save(newSuspension);
+      publishSuspendedEvent(memberId, status);
 
       registerTemporaryScheduler(newSuspension.getMemberId(), newSuspension.getExpireAt());
       logSuspension(memberId, status);
@@ -61,13 +64,22 @@ public class SuspensionService {
 
     if (status == SuspensionStatus.PERMANENT) {
       existingSuspension.ifPresentOrElse(
-          suspension -> suspension.changeToPermanent(adminId),
+          suspension -> {
+            if (suspension.changeToPermanent(adminId)) {
+              publishSuspendedEvent(memberId, status);
+            }
+          },
           () -> {
             Suspension newSuspension = Suspension.createPermanent(adminId, memberId);
             suspensionCommandRepository.save(newSuspension);
+            publishSuspendedEvent(memberId, status);
           });
       logSuspension(memberId, status);
     }
+  }
+
+  private void publishSuspendedEvent(long memberId, SuspensionStatus status) {
+    eventPublisher.publishEvent(MemberSuspendedEvent.of(memberId, status.name()));
   }
 
   private void logSuspension(long memberId, SuspensionStatus status) {
@@ -90,7 +102,7 @@ public class SuspensionService {
           }
 
           suspensionCommandRepository.deleteByMemberId(memberId);
-          Events.raise(MemberUnsuspendedEvent.from(memberId));
+          eventPublisher.publishEvent(MemberUnsuspendedEvent.from(memberId));
         },
         expireAt);
   }

@@ -1,6 +1,7 @@
 package kr.co.deepple.member.command.application.member;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,13 +12,17 @@ import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Grade;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
+import kr.co.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.presentation.member.dto.AdminMemberSettingUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class AdminMemberServiceTest {
@@ -25,6 +30,8 @@ class AdminMemberServiceTest {
   @InjectMocks AdminMemberService adminMemberService;
 
   @Mock MemberCommandRepository memberCommandRepository;
+
+  @Mock ApplicationEventPublisher eventPublisher;
 
   @Test
   @DisplayName("관리자 회원 설정 업데이트 테스트")
@@ -40,9 +47,14 @@ class AdminMemberServiceTest {
     adminMemberService.updateMemberSetting(memberId, request);
 
     // then
-    verify(member)
-        .updateSetting(
-            Grade.from(request.grade()), request.isVip(), request.isPushNotificationEnabled());
+    verify(member).updateSetting(Grade.from(request.grade()), request.isVip());
+    verify(eventPublisher)
+        .publishEvent(
+            ArgumentMatchers.<Object>argThat(published ->
+                published instanceof MemberSettingUpdatedEvent event
+                    && event.memberId() == memberId
+                    && event.isPushNotificationEnabled() == request.isPushNotificationEnabled()));
+    verify(eventPublisher).publishEvent(any(MemberSummaryChangedEvent.class));
   }
 
   @Test

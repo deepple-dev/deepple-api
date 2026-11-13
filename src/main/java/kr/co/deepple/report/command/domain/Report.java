@@ -10,10 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.report.command.domain.event.ReportCreatedEvent;
-import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -67,9 +64,7 @@ public class Report extends BaseEntity {
 
   public static Report of(
       long reporterId, long reporteeId, ReportReasonType reason, String content) {
-    Report report = new Report(reporterId, reporteeId, null, reason, content, ReportResult.PENDING);
-    Events.raise(ReportCreatedEvent.of(reporterId, reporteeId));
-    return report;
+    return new Report(reporterId, reporteeId, null, reason, content, ReportResult.PENDING);
   }
 
   public void reject(long adminId) {
@@ -82,7 +77,6 @@ public class Report extends BaseEntity {
     validateResult();
     this.adminId = adminId;
     this.result = ReportResult.WARNED;
-    Events.raise(ReportWarnedEvent.of(adminId, reporteeId, reason.name()));
   }
 
   public boolean hasVersionConflict(long version) {

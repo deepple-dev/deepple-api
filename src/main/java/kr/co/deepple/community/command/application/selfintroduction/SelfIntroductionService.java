@@ -6,10 +6,12 @@ import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import kr.co.deepple.community.command.domain.selfintroduction.SelfIntroductionCommandRepository;
+import kr.co.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,19 +24,18 @@ public class SelfIntroductionService {
   private final SelfIntroductionCommandRepository selfIntroductionCommandRepository;
   private final MemberCommandRepository memberCommandRepository;
   private final S3Uploader s3Uploader;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public boolean write(SelfIntroductionWriteRequest request, long memberId) {
     validateMemberId(memberId);
     boolean isFirstSelfIntroduction = isFirstSelfIntroduction(memberId);
     SelfIntroduction selfIntroduction =
-        SelfIntroduction.write(
-            memberId,
-            request.title(),
-            request.content(),
-            request.imageUrl(),
-            isFirstSelfIntroduction);
+        SelfIntroduction.write(memberId, request.title(), request.content(), request.imageUrl());
     selfIntroductionCommandRepository.save(selfIntroduction);
+    if (isFirstSelfIntroduction) {
+      eventPublisher.publishEvent(SelfIntroductionFirstWrittenEvent.from(memberId));
+    }
     return isFirstSelfIntroduction;
   }
 

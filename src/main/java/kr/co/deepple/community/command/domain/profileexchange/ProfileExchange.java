@@ -9,12 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
-import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeAcceptedEvent;
-import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeRejectedEvent;
-import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeRequestedEvent;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,20 +45,17 @@ public class ProfileExchange extends BaseEntity {
     this.status = status;
   }
 
-  public static ProfileExchange request(long requesterId, long responderId, String senderName) {
-    Events.raise(ProfileExchangeRequestedEvent.of(requesterId, responderId, senderName));
+  public static ProfileExchange request(long requesterId, long responderId) {
     return new ProfileExchange(requesterId, responderId, ProfileExchangeStatus.WAITING);
   }
 
-  public void approve(String senderName) {
+  public void approve() {
     validateWaitingStatus();
-    Events.raise(ProfileExchangeAcceptedEvent.of(requesterId, responderId, senderName));
     status = ProfileExchangeStatus.APPROVE;
   }
 
-  public void reject(String senderName) {
+  public void reject() {
     validateWaitingStatus();
-    Events.raise(ProfileExchangeRejectedEvent.of(requesterId, responderId, senderName));
     status = ProfileExchangeStatus.REJECTED;
   }
 

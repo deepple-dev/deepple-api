@@ -1,10 +1,5 @@
 package kr.co.deepple.match.command.domain.match;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.match.command.domain.match.vo.Message;
 import kr.co.deepple.match.fixture.MatchFixture;
@@ -12,7 +7,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
 public class MatchTest {
 
@@ -27,13 +21,11 @@ public class MatchTest {
       Long requesterId = null;
       Long responderId = 2L;
       Message requestMessage = Message.from("매칭을 요청합니다!");
-      MatchType type = MatchType.MATCH;
       MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
       // When & Then
-      Assertions.assertThatThrownBy(() ->
-              Match.request(
-                  requesterId, responderId, requestMessage, "testUser", type, contactType))
+      Assertions.assertThatThrownBy(
+              () -> Match.request(requesterId, responderId, requestMessage, contactType))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -44,13 +36,11 @@ public class MatchTest {
       Long requesterId = 1L;
       Long responderId = null;
       Message requestMessage = Message.from("매칭을 요청합니다!");
-      MatchType type = MatchType.MATCH;
       MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
       // When & Then
-      Assertions.assertThatThrownBy(() ->
-              Match.request(
-                  requesterId, responderId, requestMessage, "testUser", type, contactType))
+      Assertions.assertThatThrownBy(
+              () -> Match.request(requesterId, responderId, requestMessage, contactType))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -61,13 +51,11 @@ public class MatchTest {
       Long requesterId = 1L;
       Long responderId = 2L;
       Message requestMessage = null;
-      MatchType type = MatchType.MATCH;
       MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
       // When & Then
-      Assertions.assertThatThrownBy(() ->
-              Match.request(
-                  requesterId, responderId, requestMessage, "testUser", type, contactType))
+      Assertions.assertThatThrownBy(
+              () -> Match.request(requesterId, responderId, requestMessage, contactType))
           .isInstanceOf(NullPointerException.class);
     }
 
@@ -78,20 +66,15 @@ public class MatchTest {
       Long requesterId = 1L;
       Long responderId = 2L;
       Message requestMessage = Message.from("매칭을 요청합니다.");
-      MatchType type = MatchType.MATCH;
       MatchContactType contactType = MatchContactType.PHONE_NUMBER;
 
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        // When
-        Match match =
-            Match.request(requesterId, responderId, requestMessage, "testUser", type, contactType);
+      // When
+      Match match = Match.request(requesterId, responderId, requestMessage, contactType);
 
-        // Then
-        Assertions.assertThat(match.getRequesterId()).isEqualTo(requesterId);
-        Assertions.assertThat(match.getResponderId()).isEqualTo(responderId);
-        Assertions.assertThat(match.getRequestMessage()).isEqualTo(requestMessage);
-        eventsMockedStatic.verify(() -> Events.raise(any()), times(2));
-      }
+      // Then
+      Assertions.assertThat(match.getRequesterId()).isEqualTo(requesterId);
+      Assertions.assertThat(match.getResponderId()).isEqualTo(responderId);
+      Assertions.assertThat(match.getRequestMessage()).isEqualTo(requestMessage);
     }
   }
 
@@ -108,7 +91,7 @@ public class MatchTest {
       Match match = MatchFixture.builder().status(MatchStatus.EXPIRED).build();
 
       // When & Then
-      Assertions.assertThatThrownBy(() -> match.approve(responseMessage, "testUser", contactType))
+      Assertions.assertThatThrownBy(() -> match.approve(responseMessage, contactType))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_STATUS_CHANGE);
     }
@@ -121,10 +104,8 @@ public class MatchTest {
       MatchContactType contactType = MatchContactType.PHONE_NUMBER;
       Match match = MatchFixture.builder().build();
 
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        // When
-        match.approve(responseMessage, "testUser", contactType);
-      }
+      // When
+      match.approve(responseMessage, contactType);
 
       // Then
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);

@@ -21,14 +21,17 @@ import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOpt
 import kr.co.deepple.payment.command.domain.order.Order;
 import kr.co.deepple.payment.command.domain.order.OrderCommandRepository;
 import kr.co.deepple.payment.command.domain.order.PaymentMethod;
+import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
 import kr.co.deepple.payment.fixture.OrderFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -48,6 +51,8 @@ class OrderServiceTest {
   @Mock private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
 
   @Mock private DistributedLockTemplate distributedLockTemplate;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @BeforeEach
   void setUp() {
@@ -135,10 +140,12 @@ class OrderServiceTest {
         .thenReturn(Optional.empty());
     when(orderCommandRepository.save(any(Order.class)))
         .thenReturn(OrderFixture.builder().id(orderId).build());
+    long heartAmount = 50L;
     HeartPurchaseOption heartPurchaseOption = mock(HeartPurchaseOption.class);
     when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(
             normalizedProductId))
         .thenReturn(Optional.of(heartPurchaseOption));
+    when(heartPurchaseOption.calculateHeartAmount(quantity)).thenReturn(heartAmount);
 
     // when
     orderService.processReceipt(memberId, transactionId, productId, quantity, paymentMethod);
@@ -150,6 +157,12 @@ class OrderServiceTest {
                 order.getMemberId() == memberId
                     && order.getTransactionId().equals(transactionId)
                     && order.getPaymentMethod() == paymentMethod));
-    verify(heartPurchaseOption).purchase(memberId, orderId, quantity);
+    verify(eventPublisher)
+        .publishEvent(
+            ArgumentMatchers.<Object>argThat(published ->
+                published instanceof HeartPurchasedEvent event
+                    && event.memberId() == memberId
+                    && event.orderId() == orderId
+                    && event.amount() == heartAmount));
   }
 }

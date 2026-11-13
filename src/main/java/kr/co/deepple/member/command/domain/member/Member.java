@@ -11,14 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
-import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
 import kr.co.deepple.member.command.domain.member.vo.MemberProfile;
 import kr.co.deepple.member.command.domain.member.vo.PhoneNumber;
@@ -79,11 +73,10 @@ public class Member extends SoftDeleteBaseEntity {
 
   public void updateProfile(@NonNull MemberProfile profile) {
     this.profile = profile;
-    raiseSummaryChanged();
+  }
 
-    if (!isProfileSettingNeeded() && activityStatus == ActivityStatus.INITIAL) {
-      Events.raise(MemberProfileInitializedEvent.from(id));
-    }
+  public boolean isProfileInitialized() {
+    return !isProfileSettingNeeded() && activityStatus == ActivityStatus.INITIAL;
   }
 
   public boolean isProfileSettingNeeded() {
@@ -106,12 +99,10 @@ public class Member extends SoftDeleteBaseEntity {
 
   private void changeToDormant() {
     activityStatus = ActivityStatus.DORMANT;
-    Events.raise(MemberBecameDormantEvent.from(id));
   }
 
   private void changeToActive() {
     activityStatus = ActivityStatus.ACTIVE;
-    Events.raise(MemberBecameActiveEvent.from(id));
   }
 
   public void deactivate() {
@@ -166,21 +157,13 @@ public class Member extends SoftDeleteBaseEntity {
     return profile.getGender();
   }
 
-  private void raiseSummaryChanged() {
-    Gender gender = getGender();
-    Events.raise(MemberSummaryChangedEvent.of(id, gender != null ? gender.name() : null, isVip));
-  }
-
   public void updateGrade(@NonNull Grade grade) {
     this.grade = grade;
   }
 
-  public void updateSetting(
-      @NonNull Grade grade, boolean isVip, boolean isPushNotificationEnabled) {
+  public void updateSetting(@NonNull Grade grade, boolean isVip) {
     this.grade = grade;
     this.isVip = isVip;
-    Events.raise(MemberSettingUpdatedEvent.of(id, isPushNotificationEnabled));
-    raiseSummaryChanged();
   }
 
   public void publishProfile() {

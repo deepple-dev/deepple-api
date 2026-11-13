@@ -21,7 +21,6 @@ import kr.co.deepple.auth.domain.RefreshTokenService;
 import kr.co.deepple.auth.domain.TokenOwner;
 import kr.co.deepple.auth.domain.TokenProvider;
 import kr.co.deepple.common.enums.Role;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import kr.co.deepple.member.command.application.member.dto.TokenPairResponse;
@@ -36,6 +35,7 @@ import kr.co.deepple.member.command.domain.member.event.MemberRegisteredEvent;
 import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -54,6 +54,7 @@ public class MemberAuthService {
   private final AuthMessageService authMessageService;
   private final TokenProvider tokenProvider;
   private final RefreshTokenService refreshTokenService;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public MemberLoginServiceDto login(String phoneNumber, String code) {
@@ -68,7 +69,7 @@ public class MemberAuthService {
     String refreshToken = refreshTokenService.issue(TokenOwner.member(member.getId()));
 
     if (!member.isDormant()) {
-      Events.raise(MemberLoggedInEvent.from(member.getId()));
+      eventPublisher.publishEvent(MemberLoggedInEvent.from(member.getId()));
     }
 
     memberCommandRepository.updateLastAccessedAt(
@@ -88,7 +89,7 @@ public class MemberAuthService {
 
   @Transactional
   public void logout(long memberId, String token) {
-    Events.raise(MemberLoggedOutEvent.from(memberId));
+    eventPublisher.publishEvent(MemberLoggedOutEvent.from(memberId));
     refreshTokenService.revoke(token);
   }
 
@@ -131,8 +132,9 @@ public class MemberAuthService {
   private Member create(String phoneNumber) {
     try {
       Member member = memberCommandRepository.save(Member.fromPhoneNumber(phoneNumber));
-      Events.raise(MemberRegisteredEvent.from(member.getId()));
-      Events.raise(MemberSummaryChangedEvent.of(member.getId(), null, member.isVip()));
+      eventPublisher.publishEvent(MemberRegisteredEvent.from(member.getId()));
+      eventPublisher.publishEvent(
+          MemberSummaryChangedEvent.of(member.getId(), null, member.isVip()));
       return member;
     } catch (DataIntegrityViolationException e) {
       throw new ConcurrencyFailureException("같은 전화번호로 회원 가입이 동시에 요청되었습니다.", e);

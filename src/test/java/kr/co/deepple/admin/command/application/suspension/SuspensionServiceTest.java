@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
+import kr.co.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
 import kr.co.deepple.admin.command.domain.suspension.Suspension;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionPolicy;
@@ -17,7 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.TaskScheduler;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +31,8 @@ class SuspensionServiceTest {
   @Mock SuspensionPolicy suspensionPolicy;
 
   @Mock TaskScheduler taskScheduler;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks SuspensionService suspensionService;
 
@@ -44,6 +49,7 @@ class SuspensionServiceTest {
     suspensionService.suspendByAdmin(adminId, memberId, request);
 
     // then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     var captor = ArgumentCaptor.forClass(Suspension.class);
     verify(suspensionCommandRepository).save(captor.capture());
     var saved = captor.getValue();
@@ -71,6 +77,7 @@ class SuspensionServiceTest {
     suspensionService.suspendByAdmin(adminId, memberId, request);
 
     // then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     assertThat(existing.getAdminId()).isEqualTo(adminId);
     assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
     assertThat(existing.getExpireAt()).isNull();
@@ -90,6 +97,7 @@ class SuspensionServiceTest {
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
 
     // then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     var captor = ArgumentCaptor.forClass(Suspension.class);
     verify(suspensionCommandRepository).save(captor.capture());
     var saved = captor.getValue();
@@ -113,6 +121,7 @@ class SuspensionServiceTest {
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
 
     // then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     var captor = ArgumentCaptor.forClass(Suspension.class);
     verify(suspensionCommandRepository).save(captor.capture());
     var saved = captor.getValue();
@@ -143,6 +152,7 @@ class SuspensionServiceTest {
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
 
     // then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     assertThat(existing.getAdminId()).isEqualTo(adminId);
     assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
     assertThat(existing.getExpireAt()).isNull();

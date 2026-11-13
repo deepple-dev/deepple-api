@@ -8,8 +8,10 @@ import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.command.domain.ReportReasonType;
+import kr.co.deepple.report.command.domain.event.ReportCreatedEvent;
 import kr.co.deepple.report.presentation.dto.ReportCreateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +20,7 @@ public class ReportService {
 
   private final ReportCommandRepository reportCommandRepository;
   private final MemberCommandRepository memberCommandRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void report(ReportCreateRequest request, long reporterId) {
@@ -26,6 +29,7 @@ public class ReportService {
     Report report =
         Report.of(reporterId, request.reporteeId(), reportReasonType, request.content());
     reportCommandRepository.save(report);
+    eventPublisher.publishEvent(ReportCreatedEvent.of(reporterId, request.reporteeId()));
   }
 
   private void validateRequest(ReportCreateRequest request, long reporterId) {
