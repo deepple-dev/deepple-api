@@ -17,6 +17,6 @@ public class ScreeningEventHandler {
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberProfileInitializedEvent event) {
-    screeningService.createIfAbsent(event.getMemberId());
+    screeningService.createIfAbsent(event.memberId());
   }
 }

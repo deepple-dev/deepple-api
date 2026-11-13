@@ -17,20 +17,20 @@ public class ReceiptVerifiedEventHandler {
   @EventListener(value = AppStoreReceiptVerifiedEvent.class)
   public void handle(AppStoreReceiptVerifiedEvent event) {
     orderService.processReceipt(
-        event.getMemberId(),
-        event.getTransactionId(),
-        event.getProductId(),
-        event.getQuantity(),
+        event.memberId(),
+        event.transactionId(),
+        event.productId(),
+        event.quantity(),
         PaymentMethod.APP_STORE);
   }
 
   @EventListener(value = GooglePlayReceiptVerifiedEvent.class)
   public void handle(GooglePlayReceiptVerifiedEvent event) {
     orderService.processReceipt(
-        event.getMemberId(),
-        event.getTransactionId(),
-        event.getProductId(),
-        event.getQuantity(),
+        event.memberId(),
+        event.transactionId(),
+        event.productId(),
+        event.quantity(),
         PaymentMethod.GOOGLE_PLAY);
   }
 }

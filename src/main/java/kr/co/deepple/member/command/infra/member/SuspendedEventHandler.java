@@ -20,7 +20,7 @@ public class SuspendedEventHandler {
       value = MemberSuspendedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberSuspendedEvent event) {
-    memberProfileService.changeMemberActivityStatus(event.getMemberId(), event.getStatus());
+    memberProfileService.changeMemberActivityStatus(event.memberId(), event.status());
   }
 
   @Async
@@ -28,6 +28,6 @@ public class SuspendedEventHandler {
       value = MemberUnsuspendedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberUnsuspendedEvent event) {
-    memberProfileService.changeMemberActivityStatus(event.getMemberId(), "ACTIVE");
+    memberProfileService.changeMemberActivityStatus(event.memberId(), "ACTIVE");
   }
 }

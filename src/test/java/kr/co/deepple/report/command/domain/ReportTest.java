@@ -87,8 +87,8 @@ class ReportTest {
               Events.raise(
                   argThat(event ->
                       event instanceof ReportCreatedEvent
-                          && ((ReportCreatedEvent) event).getReporterId() == reporterId
-                          && ((ReportCreatedEvent) event).getReporteeId() == reporteeId)),
+                          && ((ReportCreatedEvent) event).reporterId() == reporterId
+                          && ((ReportCreatedEvent) event).reporteeId() == reporteeId)),
           times(1));
 
       assertThat(report).isNotNull();
@@ -206,9 +206,9 @@ class ReportTest {
               Events.raise(
                   argThat(event ->
                       event instanceof ReportWarnedEvent
-                          && ((ReportWarnedEvent) event).getReporteeId() == report.getReporteeId()
+                          && ((ReportWarnedEvent) event).reporteeId() == report.getReporteeId()
                           && ((ReportWarnedEvent) event)
-                              .getReportReason()
+                              .reportReason()
                               .equals(report.getReason().name()))),
           times(1));
       assertThat(report.getResult()).isEqualTo(ReportResult.WARNED);

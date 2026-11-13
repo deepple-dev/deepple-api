@@ -22,7 +22,7 @@ public class ReportWarnedEventHandler {
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ReportWarnedEvent event) {
     WarningCreateRequest request =
-        new WarningCreateRequest(event.getReporteeId(), Set.of("REPORT"), true);
-    warningService.issue(event.getAdminId(), request);
+        new WarningCreateRequest(event.reporteeId(), Set.of("REPORT"), true);
+    warningService.issue(event.adminId(), request);
   }
 }

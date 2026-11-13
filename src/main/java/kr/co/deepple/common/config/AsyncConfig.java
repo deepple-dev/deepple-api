@@ -2,7 +2,6 @@ package kr.co.deepple.common.config;
 
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.context.integration.Slf4jThreadLocalAccessor;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import kr.co.deepple.common.event.Event;
@@ -54,9 +53,7 @@ public class AsyncConfig implements AsyncConfigurer {
                     "code.function.name",
                     method.getDeclaringClass().getSimpleName() + "." + method.getName());
         if (params.length > 0 && params[0] instanceof Event domainEvent) {
-          for (Map.Entry<String, Object> attribute : domainEvent.logAttributes().entrySet()) {
-            event = event.addKeyValue(attribute.getKey(), attribute.getValue());
-          }
+          event = event.addKeyValue("eventId", domainEvent.id());
         }
         event.log("비동기 작업 실패");
       } finally {

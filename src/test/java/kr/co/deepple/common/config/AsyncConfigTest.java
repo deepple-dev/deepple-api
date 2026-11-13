@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import kr.co.deepple.common.event.Event;
+import kr.co.deepple.common.event.EventMetadata;
 import kr.co.deepple.common.logging.LogContext;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,18 +67,19 @@ class AsyncConfigTest {
   }
 
   @Test
-  @DisplayName("비동기 작업 실패 로그에 이벤트 이름과 이벤트의 로그 속성을 남긴다.")
-  void logEventAttributesOnFailure() throws Exception {
+  @DisplayName("비동기 작업 실패 로그에 이벤트 이름과 이벤트 ID를 남긴다.")
+  void logEventIdOnFailure() throws Exception {
     Logger logger = (Logger) LoggerFactory.getLogger(AsyncConfig.class);
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
     Method method = TestHandler.class.getMethod("handle", TestEvent.class);
+    TestEvent event = new TestEvent(EventMetadata.create());
 
     try {
       new AsyncConfig()
           .getAsyncUncaughtExceptionHandler()
-          .handleUncaughtException(new IllegalStateException("실패"), method, new TestEvent(7L));
+          .handleUncaughtException(new IllegalStateException("실패"), method, event);
     } finally {
       logger.detachAppender(appender);
     }
@@ -87,20 +88,12 @@ class AsyncConfigTest {
     assertThat(logged.getMDCPropertyMap()).containsEntry(LogContext.EVENT_ACTION, "TestEvent");
     assertThat(logged.getKeyValuePairs())
         .extracting(pair -> pair.key + "=" + pair.value)
-        .containsExactlyInAnyOrder("code.function.name=TestHandler.handle", "memberId=7");
+        .containsExactlyInAnyOrder(
+            "code.function.name=TestHandler.handle", "eventId=" + event.id());
     assertThat(MDC.get(LogContext.EVENT_ACTION)).isNull();
   }
 
-  @RequiredArgsConstructor
-  static class TestEvent extends Event {
-
-    private final long memberId;
-
-    @Override
-    public Map<String, Object> logAttributes() {
-      return Map.of("memberId", memberId);
-    }
-  }
+  record TestEvent(EventMetadata metadata) implements Event {}
 
   static class TestHandler {
 

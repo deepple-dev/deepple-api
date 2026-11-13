@@ -1,20 +1,16 @@
 package kr.co.deepple.community.command.domain.profileexchange.event;
 
 import kr.co.deepple.common.event.Event;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProfileExchangeAcceptedEvent extends Event {
-
-  private final long requesterId;
-  private final long responderId;
-  private final String senderName;
+public record ProfileExchangeAcceptedEvent(
+    long requesterId, long responderId, String senderName, @NonNull EventMetadata metadata)
+    implements Event {
 
   public static ProfileExchangeAcceptedEvent of(
       long requesterId, long responderId, String senderName) {
-    return new ProfileExchangeAcceptedEvent(requesterId, responderId, senderName);
+    return new ProfileExchangeAcceptedEvent(
+        requesterId, responderId, senderName, EventMetadata.create());
   }
 }

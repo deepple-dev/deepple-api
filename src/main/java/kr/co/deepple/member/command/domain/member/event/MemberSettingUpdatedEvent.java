@@ -1,24 +1,15 @@
 package kr.co.deepple.member.command.domain.member.event;
 
-import java.util.Map;
 import kr.co.deepple.common.event.Event;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
-public class MemberSettingUpdatedEvent extends Event {
-
-  private final long memberId;
-  private final boolean isPushNotificationEnabled;
+public record MemberSettingUpdatedEvent(
+    long memberId, boolean isPushNotificationEnabled, @NonNull EventMetadata metadata)
+    implements Event {
 
   public static MemberSettingUpdatedEvent of(long memberId, boolean isPushNotificationEnabled) {
-    return new MemberSettingUpdatedEvent(memberId, isPushNotificationEnabled);
-  }
-
-  @Override
-  public Map<String, Object> logAttributes() {
-    return Map.of("memberId", memberId);
+    return new MemberSettingUpdatedEvent(
+        memberId, isPushNotificationEnabled, EventMetadata.create());
   }
 }

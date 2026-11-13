@@ -58,7 +58,7 @@ class ScreeningTest {
         eventsMockedStatic.verify(
             () ->
                 Events.raise(
-                    argThat((ScreeningApprovedEvent event) -> event.getMemberId() == memberId)),
+                    argThat((ScreeningApprovedEvent event) -> event.memberId() == memberId)),
             times(1));
       }
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
@@ -87,7 +87,7 @@ class ScreeningTest {
         eventsMockedStatic.verify(
             () ->
                 Events.raise(
-                    argThat((ScreeningApprovedEvent event) -> event.getMemberId() == memberId)),
+                    argThat((ScreeningApprovedEvent event) -> event.memberId() == memberId)),
             times(1));
       }
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
@@ -114,7 +114,7 @@ class ScreeningTest {
         eventsMockedStatic.verify(
             () ->
                 Events.raise(
-                    argThat((ScreeningApprovedEvent event) -> event.getMemberId() == memberId)),
+                    argThat((ScreeningApprovedEvent event) -> event.memberId() == memberId)),
             times(1));
       }
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);

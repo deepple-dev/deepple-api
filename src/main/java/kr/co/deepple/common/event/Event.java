@@ -1,19 +1,17 @@
 package kr.co.deepple.common.event;
 
 import java.time.Instant;
-import java.util.Map;
-import lombok.Getter;
+import java.util.UUID;
 
-@Getter
-public abstract class Event {
+public interface Event {
 
-  private final Instant timestamp;
+  EventMetadata metadata();
 
-  protected Event() {
-    timestamp = Instant.now();
+  default UUID id() {
+    return metadata().id();
   }
 
-  public Map<String, Object> logAttributes() {
-    return Map.of();
+  default Instant occurredAt() {
+    return metadata().occurredAt();
   }
 }

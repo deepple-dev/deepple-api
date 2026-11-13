@@ -1,20 +1,20 @@
 package kr.co.deepple.payment.command.domain.order.event;
 
 import kr.co.deepple.common.event.Event;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import kr.co.deepple.common.event.EventMetadata;
+import lombok.NonNull;
 
-@Getter
-@RequiredArgsConstructor
-public class GooglePlayReceiptVerifiedEvent extends Event {
-
-  private final long memberId;
-  private final String transactionId;
-  private final String productId;
-  private final int quantity;
+public record GooglePlayReceiptVerifiedEvent(
+    long memberId,
+    String transactionId,
+    String productId,
+    int quantity,
+    @NonNull EventMetadata metadata)
+    implements Event {
 
   public static GooglePlayReceiptVerifiedEvent of(
       long memberId, String transactionId, String productId, int quantity) {
-    return new GooglePlayReceiptVerifiedEvent(memberId, transactionId, productId, quantity);
+    return new GooglePlayReceiptVerifiedEvent(
+        memberId, transactionId, productId, quantity, EventMetadata.create());
   }
 }

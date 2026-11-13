@@ -21,7 +21,7 @@ public class MemberScreeningEventHandler {
       value = ScreeningApprovedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ScreeningApprovedEvent event) {
-    memberProfileService.approveScreening(event.getMemberId());
+    memberProfileService.approveScreening(event.memberId());
   }
 
   @Async
@@ -29,7 +29,7 @@ public class MemberScreeningEventHandler {
       value = ScreeningRejectedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ScreeningRejectedEvent event) {
-    memberProfileService.changeReject(event.getMemberId());
+    memberProfileService.changeReject(event.memberId());
   }
 
   @Async
@@ -37,6 +37,6 @@ public class MemberScreeningEventHandler {
       value = ScreeningCreatedEvent.class,
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ScreeningCreatedEvent event) {
-    memberProfileService.changeWaiting(event.getMemberId());
+    memberProfileService.changeWaiting(event.memberId());
   }
 }

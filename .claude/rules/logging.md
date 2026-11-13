@@ -44,7 +44,7 @@ paths:
 ## 이벤트 핸들러
 
 - `@Async` 이벤트 핸들러에서 `catch (Exception)`으로 로그만 남기지 않는다. 처리하지 못한 예외는 `AsyncConfig`의 `AsyncUncaughtExceptionHandler`가 ERROR로 남긴다.
-- 실패했을 때 찾아야 하는 ID(`memberId`, `transactionId` 등)는 이벤트의 `logAttributes()`로 돌려준다. 비동기 실패 로그에 key-value로 붙는다.
+- 비동기 실패 로그에는 이벤트 종류(`event.action`)와 이벤트 ID(`eventId`)가 자동으로 붙는다. 이벤트에 로그용 값을 따로 담지 않는다.
 - 이미 있음처럼 예상된 실패는 예외 대신 멱등 메서드(`createIfAbsent` 등)로 처리한다.
 
 ## 남기지 않는 값

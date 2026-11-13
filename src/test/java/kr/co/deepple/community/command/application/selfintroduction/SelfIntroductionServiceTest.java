@@ -26,6 +26,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -131,8 +132,11 @@ public class SelfIntroductionServiceTest {
 
         // Then
         Assertions.assertThat(hasProcessedMission).isTrue();
-        mockedEvents.verify(
-            () -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.from(memberId))));
+        mockedEvents.verify(() ->
+            Events.raise(
+                ArgumentMatchers.argThat(event ->
+                    event instanceof SelfIntroductionFirstWrittenEvent written
+                        && written.memberId() == memberId)));
       }
     }
 

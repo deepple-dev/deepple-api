@@ -105,10 +105,10 @@ class RefundServiceTest {
             Events.raise(
                 argThat(event ->
                     event instanceof HeartRefundedEvent
-                        && ((HeartRefundedEvent) event).getMemberId() == memberId
-                        && ((HeartRefundedEvent) event).getOrderId() == orderId
-                        && ((HeartRefundedEvent) event).getAmount() == heartAmount * quantity
-                        && ((HeartRefundedEvent) event).getTransactionId().equals(transactionId))));
+                        && ((HeartRefundedEvent) event).memberId() == memberId
+                        && ((HeartRefundedEvent) event).orderId() == orderId
+                        && ((HeartRefundedEvent) event).amount() == heartAmount * quantity
+                        && ((HeartRefundedEvent) event).transactionId().equals(transactionId))));
       }
     }
 

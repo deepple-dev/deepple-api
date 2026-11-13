@@ -21,13 +21,13 @@ public class MemberMissionEventHandler {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(AllRequiredSubjectSubmittedEvent event) {
     memberMissionService.executeMissionsByAction(
-        event.getMemberId(), ActionType.FIRST_DATE_EXAM.name());
+        event.memberId(), ActionType.FIRST_DATE_EXAM.name());
   }
 
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(SelfIntroductionFirstWrittenEvent event) {
     memberMissionService.executeMissionsByAction(
-        event.getMemberId(), ActionType.SELF_INTRODUCTION.name());
+        event.memberId(), ActionType.SELF_INTRODUCTION.name());
   }
 }

@@ -23,13 +23,13 @@ public class HeartPaymentEventHandler {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(HeartPurchasedEvent event) {
     addPurchaseHeartUseCase.addPurchaseHeart(
-        new AddPurchaseHeartCommand(event.getMemberId(), event.getOrderId(), event.getAmount()));
+        new AddPurchaseHeartCommand(event.memberId(), event.orderId(), event.amount()));
   }
 
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(HeartRefundedEvent event) {
     refundHeartUseCase.refundHeart(
-        new RefundHeartCommand(event.getMemberId(), event.getOrderId(), event.getAmount()));
+        new RefundHeartCommand(event.memberId(), event.orderId(), event.amount()));
   }
 }

@@ -2,7 +2,6 @@ package kr.co.deepple.community.command.domain.selfintroduction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 
 import kr.co.deepple.common.event.Events;
@@ -13,6 +12,7 @@ import kr.co.deepple.community.fixture.SelfIntroductionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
 
 public class SelfIntroductionTest {
@@ -64,7 +64,11 @@ public class SelfIntroductionTest {
       SelfIntroduction.write(memberId, title, content, null, true);
 
       // Then
-      mockedEvents.verify(() -> Events.raise(eq(SelfIntroductionFirstWrittenEvent.from(memberId))));
+      mockedEvents.verify(() ->
+          Events.raise(
+              ArgumentMatchers.argThat(event ->
+                  event instanceof SelfIntroductionFirstWrittenEvent written
+                      && written.memberId() == memberId)));
     }
   }
 

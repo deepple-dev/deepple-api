@@ -20,6 +20,6 @@ public class MemberSettingUpdatedEventHandler {
       phase = TransactionPhase.AFTER_COMMIT)
   public void handle(MemberSettingUpdatedEvent event) {
     notificationPreferenceService.changeGloballyIfPresent(
-        event.getMemberId(), event.isPushNotificationEnabled());
+        event.memberId(), event.isPushNotificationEnabled());
   }
 }

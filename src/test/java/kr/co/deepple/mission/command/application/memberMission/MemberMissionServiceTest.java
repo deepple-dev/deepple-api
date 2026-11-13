@@ -117,10 +117,10 @@ public class MemberMissionServiceTest {
       events.verify(() ->
           Events.raise(
               ArgumentMatchers.<MemberMissionCompletedEvent>argThat(event ->
-                  event.getMemberId() == memberId
-                      && event.getMemberMissionId() == memberMissionId
-                      && event.getSuccessCount() == 1
-                      && event.getRewardHeartAmount() == rewardedHeart)));
+                  event.memberId() == memberId
+                      && event.memberMissionId() == memberMissionId
+                      && event.successCount() == 1
+                      && event.rewardHeartAmount() == rewardedHeart)));
     }
 
     @Test

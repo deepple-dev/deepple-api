@@ -2,7 +2,6 @@ package kr.co.deepple.datingexam.application;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -37,6 +36,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -213,8 +213,11 @@ class DatingExamModifyServiceTest {
         mockedDatingExamSubmit.verify(() -> DatingExamSubmit.of(request, answerEncoder, memberId));
         verify(datingExamSubmitRepository).save(submit);
         verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
-        mockedEvents.verify(
-            () -> Events.raise(eq(AllRequiredSubjectSubmittedEvent.from(memberId))));
+        mockedEvents.verify(() ->
+            Events.raise(
+                ArgumentMatchers.argThat(event ->
+                    event instanceof AllRequiredSubjectSubmittedEvent written
+                        && written.memberId() == memberId)));
       }
     }
   }

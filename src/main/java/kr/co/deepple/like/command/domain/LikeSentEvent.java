@@ -1,20 +1,14 @@
 package kr.co.deepple.like.command.domain;
 
 import kr.co.deepple.common.event.Event;
-import lombok.AccessLevel;
-import lombok.Getter;
+import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-@Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class LikeSentEvent extends Event {
+public record LikeSentEvent(
+    long senderId, @NonNull String senderName, long receiverId, @NonNull EventMetadata metadata)
+    implements Event {
 
-  private final long senderId;
-  private final String senderName;
-  private final long receiverId;
-
-  public static LikeSentEvent of(long senderId, @NonNull String senderName, long receiverId) {
-    return new LikeSentEvent(senderId, senderName, receiverId);
+  public static LikeSentEvent of(long senderId, String senderName, long receiverId) {
+    return new LikeSentEvent(senderId, senderName, receiverId, EventMetadata.create());
   }
 }
