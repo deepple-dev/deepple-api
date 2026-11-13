@@ -52,7 +52,7 @@
   command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
   query/               읽기 전용 조회 (QueryDSL)
   ```
-- 헥사고날 스타일 (`auth`, `block`, `datingexam`, `heart`, `recommendation`)
+- 헥사고날 스타일 (`auth`, `block`, `datingexam`, `heart`, `member`, `recommendation`)
   ```
   event/               다른 도메인이 듣는 이벤트 (`@NamedInterface("event")`로 공개)
   adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)

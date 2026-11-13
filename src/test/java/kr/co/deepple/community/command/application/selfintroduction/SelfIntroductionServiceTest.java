@@ -16,8 +16,8 @@ import kr.co.deepple.community.command.domain.selfintroduction.SelfIntroductionC
 import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
 import kr.co.deepple.community.fixture.SelfIntroductionFixture;
 import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
-import kr.co.deepple.member.command.domain.MemberErrorCode;
-import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

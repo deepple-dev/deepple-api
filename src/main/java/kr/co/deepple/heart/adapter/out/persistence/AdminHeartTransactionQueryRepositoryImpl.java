@@ -1,7 +1,7 @@
 package kr.co.deepple.heart.adapter.out.persistence;
 
 import static kr.co.deepple.heart.domain.QHeartTransaction.heartTransaction;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
+import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;

@@ -2,7 +2,7 @@ package kr.co.deepple.recommendation.domain;
 
 import jakarta.persistence.Embeddable;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.command.domain.MemberErrorCode;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

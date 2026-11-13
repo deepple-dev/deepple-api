@@ -17,7 +17,7 @@ import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductio
 import kr.co.deepple.community.query.selfintroduction.SelfIntroductionQueryRepository;
 import kr.co.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import kr.co.deepple.community.query.selfintroduction.view.SelfIntroductionView;
-import kr.co.deepple.member.presentation.profileimage.dto.PresignedUrlPostRequest;
+import kr.co.deepple.member.application.dto.PresignedUrlPostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;

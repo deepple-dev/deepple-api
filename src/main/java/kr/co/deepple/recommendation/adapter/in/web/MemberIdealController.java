@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.security.CurrentMemberId;
-import kr.co.deepple.member.command.domain.MemberErrorCode;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.recommendation.adapter.out.persistence.MemberIdealQueryRepository;
 import kr.co.deepple.recommendation.application.MemberIdealService;
 import kr.co.deepple.recommendation.application.dto.MemberIdealUpdateRequest;

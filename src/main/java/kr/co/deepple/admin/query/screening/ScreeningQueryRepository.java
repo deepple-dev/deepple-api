@@ -1,7 +1,7 @@
 package kr.co.deepple.admin.query.screening;
 
 import static kr.co.deepple.admin.command.domain.screening.QScreening.screening;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
+import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

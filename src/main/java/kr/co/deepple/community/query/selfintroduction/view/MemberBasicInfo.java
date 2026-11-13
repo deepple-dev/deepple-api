@@ -4,11 +4,11 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
-import kr.co.deepple.member.command.domain.member.City;
-import kr.co.deepple.member.command.domain.member.District;
-import kr.co.deepple.member.command.domain.member.Gender;
-import kr.co.deepple.member.command.domain.member.Hobby;
-import kr.co.deepple.member.command.domain.member.Mbti;
+import kr.co.deepple.member.domain.City;
+import kr.co.deepple.member.domain.District;
+import kr.co.deepple.member.domain.Gender;
+import kr.co.deepple.member.domain.Hobby;
+import kr.co.deepple.member.domain.Mbti;
 
 public record MemberBasicInfo(
     Long memberId,

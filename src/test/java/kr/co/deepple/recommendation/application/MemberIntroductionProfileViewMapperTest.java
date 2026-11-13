@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Set;
-import kr.co.deepple.member.command.domain.member.Hobby;
+import kr.co.deepple.member.domain.Hobby;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import org.junit.jupiter.api.DisplayName;

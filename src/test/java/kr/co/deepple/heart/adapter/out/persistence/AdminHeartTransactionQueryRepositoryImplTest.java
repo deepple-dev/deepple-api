@@ -11,7 +11,7 @@ import kr.co.deepple.heart.application.dto.AdminHeartTransactionView;
 import kr.co.deepple.heart.domain.HeartTransaction;
 import kr.co.deepple.heart.domain.TransactionType;
 import kr.co.deepple.heart.fixture.HeartTransactionFixture;
-import kr.co.deepple.member.command.domain.member.Member;
+import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

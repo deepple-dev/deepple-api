@@ -8,7 +8,7 @@ import static kr.co.deepple.community.command.domain.profileexchange.QProfileExc
 import static kr.co.deepple.community.command.domain.selfintroduction.QSelfIntroduction.selfIntroduction;
 import static kr.co.deepple.datingexam.domain.QDatingExamSubmitResult.datingExamSubmitResult;
 import static kr.co.deepple.like.command.domain.QLike.like;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
+import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
@@ -23,7 +23,7 @@ import kr.co.deepple.community.query.selfintroduction.view.QSelfIntroductionSumm
 import kr.co.deepple.community.query.selfintroduction.view.QSelfIntroductionView;
 import kr.co.deepple.community.query.selfintroduction.view.SelfIntroductionSummaryView;
 import kr.co.deepple.community.query.selfintroduction.view.SelfIntroductionView;
-import kr.co.deepple.member.command.domain.member.Hobby;
+import kr.co.deepple.member.domain.Hobby;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

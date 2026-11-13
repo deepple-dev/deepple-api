@@ -1,7 +1,7 @@
 package kr.co.deepple.community.query.selfintroduction;
 
 import static kr.co.deepple.community.command.domain.selfintroduction.QSelfIntroduction.selfIntroduction;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
+import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;

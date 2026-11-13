@@ -9,8 +9,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.command.domain.MemberErrorCode;
-import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.command.domain.ReportReasonType;

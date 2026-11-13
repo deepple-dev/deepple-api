@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Set;
 import kr.co.deepple.like.command.domain.LikeLevel;
-import kr.co.deepple.member.query.member.AgeConverter;
+import kr.co.deepple.member.domain.AgeConverter;
 
 public record SelfIntroductionView(
     MemberBasicInfo memberBasicInfo,
