@@ -86,3 +86,4 @@ bizgo:
 
 scheduler:
   event-resubmission-cron: "-"
+  event-cleanup-cron: "-"

@@ -146,3 +146,4 @@ bizgo:
 scheduler:
   cron: "0 0 0 * * *"
   event-resubmission-cron: "0 * * * * *"
+  event-cleanup-cron: "0 30 4 * * *"

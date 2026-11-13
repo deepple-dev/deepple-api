@@ -68,6 +68,7 @@
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@ApplicationModuleListener`(커밋 후, 비동기, 새 트랜잭션). 외부 호출을 하거나 분산 락을 잡는 등 트랜잭션 밖에서 돌아야 하면 `propagation = Propagation.NOT_SUPPORTED`를 준다
   - 커밋 후 처리되는 이벤트는 발행할 때 `event_publication`에 기록된다(Spring Modulith Event Publication Registry). 읽기 전용 트랜잭션이나 트랜잭션 밖에서 발행하면 기록·처리되지 않으므로 쓰기 트랜잭션 안에서 발행한다
   - 기록에는 이벤트 클래스와 핸들러 메서드의 전체 이름이 저장된다. 이름이나 패키지를 바꾸기 전에 미완료 기록이 없는지 확인한다
+  - 완료된 기록은 7일 뒤 지워진다(`CompletedEventPublicationCleaner`)
   - 실패한 기록은 1분마다 다시 보내진다(`FailedEventResubmitter`, 시도 10번까지). 핸들러는 같은 이벤트로 여러 번 실행돼도 결과가 같게 만든다
   - 이벤트에 칸을 추가하면 이전 버전 코드는 그 기록을 읽지 못한다(`fail-on-unknown-properties`). 칸을 지우거나 이름을 바꿀 때도 미완료 기록을 먼저 확인한다
 - 동시성 처리는 막을 대상에 맞게 고른다.
