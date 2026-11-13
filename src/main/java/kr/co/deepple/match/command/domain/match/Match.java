@@ -12,13 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.match.command.domain.match.event.MatchAcceptedEvent;
-import kr.co.deepple.match.command.domain.match.event.MatchRejectedEvent;
-import kr.co.deepple.match.command.domain.match.event.MatchRequestCompletedEvent;
-import kr.co.deepple.match.command.domain.match.event.MatchRequestedEvent;
-import kr.co.deepple.match.command.domain.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.command.domain.match.vo.Message;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -69,48 +63,31 @@ public class Match extends BaseEntity {
       long requesterId,
       long responderId,
       @NonNull Message requestMessage,
-      @NonNull String requesterName,
-      @NonNull MatchType type,
       @NonNull MatchContactType contactType) {
-    Match match =
-        Match.builder()
-            .requesterId(requesterId)
-            .responderId(responderId)
-            .requestMessage(requestMessage)
-            .status(MatchStatus.WAITING)
-            .requesterContactType(contactType)
-            .build();
-
-    Events.raise(
-        MatchRequestedEvent.of(
-            requesterId, requesterName, responderId, type.name(), contactType.name()));
-    Events.raise(MatchRequestCompletedEvent.of(requesterId, responderId));
-
-    return match;
+    return Match.builder()
+        .requesterId(requesterId)
+        .responderId(responderId)
+        .requestMessage(requestMessage)
+        .status(MatchStatus.WAITING)
+        .requesterContactType(contactType)
+        .build();
   }
 
-  public void approve(
-      @NonNull Message message, String responderName, @NonNull MatchContactType contactType) {
+  public void approve(@NonNull Message message, @NonNull MatchContactType contactType) {
     validateChangeStatus();
     status = MatchStatus.MATCHED;
     responseMessage = message;
     responderContactType = contactType;
-    Events.raise(
-        MatchRespondedEvent.of(requesterId, responderId, status.name(), contactType.name()));
-    Events.raise(MatchAcceptedEvent.of(requesterId, responderId, responderName));
   }
 
-  public void reject(String responderName) {
+  public void reject() {
     validateChangeStatus();
     status = MatchStatus.REJECTED;
-    Events.raise(MatchRespondedEvent.of(requesterId, responderId, status.name(), null));
-    Events.raise(MatchRejectedEvent.of(requesterId, responderId, responderName));
   }
 
   public void expire() {
     validateChangeStatus();
     status = MatchStatus.EXPIRED;
-    Events.raise(MatchRespondedEvent.of(requesterId, responderId, status.name(), null));
   }
 
   public void checkRejected() {

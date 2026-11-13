@@ -3,7 +3,6 @@ package kr.co.deepple.mission.command.application.memberMission;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Member;
@@ -17,6 +16,7 @@ import kr.co.deepple.mission.command.domain.mission.Mission;
 import kr.co.deepple.mission.command.domain.mission.MissionCommandRepository;
 import kr.co.deepple.mission.command.domain.mission.TargetGender;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +27,7 @@ public class MemberMissionService {
   private final MemberMissionCommandRepository memberMissionCommandRepository;
   private final MissionCommandRepository missionCommandRepository;
   private final MemberCommandRepository memberCommandRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public boolean executeMissionsByAction(long memberId, String actionType) {
@@ -46,7 +47,7 @@ public class MemberMissionService {
       boolean isSucceeded =
           memberMission.countPlus(mission.getRequiredAttempt(), mission.getRepeatableCount());
       if (isSucceeded) {
-        Events.raise(
+        eventPublisher.publishEvent(
             MemberMissionCompletedEvent.of(
                 member.getId(),
                 memberMission.getId(),

@@ -17,6 +17,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
+import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
 import kr.co.deepple.report.fixture.ReportFixture;
 import kr.co.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +26,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 
 @ExtendWith(MockitoExtension.class)
 class AdminReportServiceTest {
 
   @Mock private ReportCommandRepository reportCommandRepository;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private AdminReportService adminReportService;
 
@@ -64,6 +69,7 @@ class AdminReportServiceTest {
       adminReportService.updateResult(reportId, request, adminId);
 
       // then
+      Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
       assertThat(report.getResult()).isEqualTo(REJECTED);
       assertThat(report.getAdminId()).isEqualTo(adminId);
       verify(reportCommandRepository, never()).save(any());
@@ -80,6 +86,7 @@ class AdminReportServiceTest {
       adminReportService.updateResult(reportId, request, adminId);
 
       // then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ReportWarnedEvent.class));
       assertThat(report.getResult()).isEqualTo(WARNED);
       assertThat(report.getAdminId()).isEqualTo(adminId);
       verify(reportCommandRepository, never()).save(any());

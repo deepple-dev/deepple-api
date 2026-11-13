@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoResponse;
@@ -25,6 +24,7 @@ import kr.co.deepple.datingexam.domain.SubjectType;
 import kr.co.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -41,6 +41,7 @@ public class DatingExamModifyService implements DatingExamSubmitter {
   private final DatingExamAnswerEncoder answerEncoder;
   private final DatingExamAnswerRepository datingExamAnswerRepository;
   private final DatingExamSubmitResultRepository datingExamSubmitResultRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -81,7 +82,7 @@ public class DatingExamModifyService implements DatingExamSubmitter {
     }
 
     if (isAllRequiredSubjectsSubmitted(memberId)) {
-      Events.raise(AllRequiredSubjectSubmittedEvent.from(memberId));
+      eventPublisher.publishEvent(AllRequiredSubjectSubmittedEvent.from(memberId));
     }
   }
 

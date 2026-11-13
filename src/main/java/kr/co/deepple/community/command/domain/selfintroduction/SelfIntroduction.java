@@ -6,10 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
-import kr.co.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,15 +47,6 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
   public static SelfIntroduction write(
       long memberId, String title, String content, String imageUrl) {
     return new SelfIntroduction(memberId, title, content, imageUrl, false);
-  }
-
-  public static SelfIntroduction write(
-      long memberId, String title, String content, String imageUrl, boolean isFirstWrite) {
-    SelfIntroduction selfIntroduction = write(memberId, title, content, imageUrl);
-    if (isFirstWrite) {
-      Events.raise(SelfIntroductionFirstWrittenEvent.from(memberId));
-    }
-    return selfIntroduction;
   }
 
   public void update(String title, String content, String imageUrl) {

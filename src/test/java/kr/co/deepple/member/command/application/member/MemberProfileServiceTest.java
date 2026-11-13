@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import kr.co.deepple.common.MockEventsExtension;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
@@ -21,6 +20,9 @@ import kr.co.deepple.member.command.domain.member.Job;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.command.domain.member.Religion;
+import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -31,11 +33,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
-@ExtendWith({MockEventsExtension.class, MockitoExtension.class})
+@ExtendWith(MockitoExtension.class)
 class MemberProfileServiceTest {
 
   @Mock private MemberCommandRepository memberCommandRepository;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private MemberProfileService memberProfileService;
 
@@ -123,6 +128,7 @@ class MemberProfileServiceTest {
     memberProfileService.updateMember(memberId, request);
 
     // Then
+    Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSummaryChangedEvent.class));
     assertThat(existingMember.getProfile().getNickname().getValue()).isEqualTo("nickname");
     assertThat(existingMember.getProfile().getGender()).isEqualTo(Gender.MALE);
     assertThat(existingMember.getProfile().getJob()).isEqualTo(job);
@@ -297,6 +303,62 @@ class MemberProfileServiceTest {
             .isInstanceOf(DeeppleException.class)
             .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED);
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("활동 상태 변경 이벤트 테스트")
+  class ActivityStatusEventTest {
+
+    @Test
+    @DisplayName("휴면으로 전환하면 휴면 전환 이벤트를 발행합니다.")
+    void publishDormantEventWhenDeactivated() {
+      // Given
+      long memberId = 1L;
+      Member member =
+          MemberFixture.builder().id(memberId).activityStatus(ActivityStatus.ACTIVE).build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.deactivate(memberId);
+
+      // Then
+      assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.DORMANT);
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameDormantEvent.class));
+    }
+
+    @Test
+    @DisplayName("휴면을 해제하면 활동 전환 이벤트를 발행합니다.")
+    void publishActiveEventWhenReactivated() {
+      // Given
+      long memberId = 1L;
+      Member member =
+          MemberFixture.builder().id(memberId).activityStatus(ActivityStatus.DORMANT).build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.reactivate(memberId);
+
+      // Then
+      assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.ACTIVE);
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameActiveEvent.class));
+    }
+
+    @Test
+    @DisplayName("심사가 승인되면 활동 전환 이벤트를 발행합니다.")
+    void publishActiveEventWhenScreeningApproved() {
+      // Given
+      long memberId = 1L;
+      Member member =
+          MemberFixture.builder().id(memberId).activityStatus(ActivityStatus.INITIAL).build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.approveScreening(memberId);
+
+      // Then
+      assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.ACTIVE);
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameActiveEvent.class));
     }
   }
 }

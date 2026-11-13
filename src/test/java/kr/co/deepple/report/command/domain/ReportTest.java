@@ -2,38 +2,16 @@ package kr.co.deepple.report.command.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.times;
 
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.report.command.domain.event.ReportCreatedEvent;
-import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
 import kr.co.deepple.report.fixture.ReportFixture;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 class ReportTest {
-
-  private static MockedStatic<Events> eventsMockedStatic;
-
-  @BeforeEach
-  void setUp() {
-    eventsMockedStatic = Mockito.mockStatic(Events.class);
-    eventsMockedStatic.when(() -> Events.raise(Mockito.any())).thenAnswer(invocation -> null);
-  }
-
-  @AfterEach
-  void tearDown() {
-    eventsMockedStatic.close();
-  }
 
   @Nested
   @DisplayName("of 메서드 테스트")
@@ -70,8 +48,8 @@ class ReportTest {
     }
 
     @Test
-    @DisplayName("of 메서드의 필드 값이 정상적이면 객체를 생성하고 이벤트를 발행한다.")
-    void createsObjectAndRaiseEventWhenFieldValueIsValid() {
+    @DisplayName("of 메서드의 필드 값이 정상적이면 객체를 생성한다.")
+    void createsObjectWhenFieldValueIsValid() {
       // given
       Long reporterId = 1L;
       Long reporteeId = 2L;
@@ -82,15 +60,6 @@ class ReportTest {
       Report report = Report.of(reporterId, reporteeId, reason, content);
 
       // then
-      eventsMockedStatic.verify(
-          () ->
-              Events.raise(
-                  argThat(event ->
-                      event instanceof ReportCreatedEvent
-                          && ((ReportCreatedEvent) event).reporterId() == reporterId
-                          && ((ReportCreatedEvent) event).reporteeId() == reporteeId)),
-          times(1));
-
       assertThat(report).isNotNull();
       assertThat(report.getReporterId()).isEqualTo(reporterId);
       assertThat(report.getReporteeId()).isEqualTo(reporteeId);
@@ -191,8 +160,8 @@ class ReportTest {
   class WarnTest {
 
     @Test
-    @DisplayName("Pending 상태의 report로 warn 호출 시 결과가 WARNED로 변경되고 이벤트를 발행한다.")
-    void shouldChangeResultToWarnedAndRaiseEvent() {
+    @DisplayName("Pending 상태의 report로 warn 호출 시 결과가 WARNED로 변경된다.")
+    void shouldChangeResultToWarned() {
       // given
       Long adminId = 1L;
       Report report = ReportFixture.builder().build();
@@ -201,16 +170,6 @@ class ReportTest {
       report.warn(adminId);
 
       // then
-      eventsMockedStatic.verify(
-          () ->
-              Events.raise(
-                  argThat(event ->
-                      event instanceof ReportWarnedEvent
-                          && ((ReportWarnedEvent) event).reporteeId() == report.getReporteeId()
-                          && ((ReportWarnedEvent) event)
-                              .reportReason()
-                              .equals(report.getReason().name()))),
-          times(1));
       assertThat(report.getResult()).isEqualTo(ReportResult.WARNED);
     }
 

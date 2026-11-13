@@ -1,12 +1,12 @@
 package kr.co.deepple.payment.command.application.order;
 
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.order.event.AppStoreReceiptVerifiedEvent;
 import kr.co.deepple.payment.command.infra.order.AppStoreClient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class AppStorePaymentService {
 
   private final AppStoreClient appStoreClient;
+  private final ApplicationEventPublisher eventPublisher;
 
   public void verifyReceipt(String signedTransaction, long memberId) {
     JWSTransactionDecodedPayload decodedPayload =
@@ -32,7 +33,7 @@ public class AppStorePaymentService {
 
   private void raiseReceiptVerifiedEvent(
       long memberId, JWSTransactionDecodedPayload decodedPayload) {
-    Events.raise(
+    eventPublisher.publishEvent(
         AppStoreReceiptVerifiedEvent.of(
             memberId,
             decodedPayload.getTransactionId(),

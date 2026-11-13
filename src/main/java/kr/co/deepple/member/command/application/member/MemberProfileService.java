@@ -3,12 +3,18 @@ package kr.co.deepple.member.command.application.member;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.ActivityStatus;
+import kr.co.deepple.member.command.domain.member.Gender;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.command.domain.member.PrimaryContactType;
+import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
+import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.presentation.member.MemberMapper;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,21 +23,28 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberProfileService {
 
   private final MemberCommandRepository memberCommandRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void updateMember(long memberId, MemberProfileUpdateRequest request) {
     Member member = getMemberById(memberId);
     member.updateProfile(MemberMapper.toMemberProfile(request));
+    publishSummaryChangedEvent(member);
+    if (member.isProfileInitialized()) {
+      eventPublisher.publishEvent(MemberProfileInitializedEvent.from(memberId));
+    }
   }
 
   @Transactional
   public void deactivate(long memberId) {
     getMemberById(memberId).deactivate();
+    eventPublisher.publishEvent(MemberBecameDormantEvent.from(memberId));
   }
 
   @Transactional
   public void reactivate(long memberId) {
     getMemberById(memberId).reactivate();
+    eventPublisher.publishEvent(MemberBecameActiveEvent.from(memberId));
   }
 
   @Transactional
@@ -53,6 +66,7 @@ public class MemberProfileService {
   public void approveScreening(long memberId) {
     Member member = getMemberById(memberId);
     member.approveScreening();
+    eventPublisher.publishEvent(MemberBecameActiveEvent.from(memberId));
     changeProfilePublishStatus(memberId, true);
   }
 
@@ -85,6 +99,12 @@ public class MemberProfileService {
     Member member = getMemberById(memberId);
     ActivityStatus activityStatus = getActivityStatus(status);
     member.changeActivityStatus(activityStatus);
+    if (activityStatus == ActivityStatus.DORMANT) {
+      eventPublisher.publishEvent(MemberBecameDormantEvent.from(memberId));
+    }
+    if (activityStatus == ActivityStatus.ACTIVE) {
+      eventPublisher.publishEvent(MemberBecameActiveEvent.from(memberId));
+    }
 
     if (activityStatus != ActivityStatus.ACTIVE) {
       nonPublish(member);
@@ -97,6 +117,13 @@ public class MemberProfileService {
   public void markDatingExamSubmitted(long memberId) {
     Member member = getMemberById(memberId);
     member.markDatingExamSubmitted();
+  }
+
+  private void publishSummaryChangedEvent(Member member) {
+    Gender gender = member.getGender();
+    eventPublisher.publishEvent(
+        MemberSummaryChangedEvent.of(
+            member.getId(), gender != null ? gender.name() : null, member.isVip()));
   }
 
   private void publish(Member member) {

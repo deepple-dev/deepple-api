@@ -2,16 +2,13 @@ package kr.co.deepple.payment.command.application.order;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.androidpublisher.model.ProductPurchase;
 import java.util.Optional;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.order.OrderCommandRepository;
@@ -22,10 +19,12 @@ import kr.co.deepple.payment.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class GooglePlayPaymentServiceTest {
@@ -40,6 +39,8 @@ class GooglePlayPaymentServiceTest {
 
   @Mock private OrderCommandRepository orderCommandRepository;
 
+  @Mock private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks private GooglePlayPaymentService googlePlayPaymentService;
 
   @Test
@@ -51,19 +52,17 @@ class GooglePlayPaymentServiceTest {
     when(googlePlayClient.resolveQuantity(purchase)).thenReturn(QUANTITY);
 
     // when & then
-    try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-      googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID);
+    googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID);
 
-      eventsMockedStatic.verify(() ->
-          Events.raise(
-              argThat(event ->
-                  event instanceof GooglePlayReceiptVerifiedEvent
-                      && ((GooglePlayReceiptVerifiedEvent) event).memberId() == MEMBER_ID
-                      && ((GooglePlayReceiptVerifiedEvent) event).transactionId().equals(ORDER_ID)
-                      && ((GooglePlayReceiptVerifiedEvent) event).productId().equals(PRODUCT_ID)
-                      && ((GooglePlayReceiptVerifiedEvent) event).quantity() == QUANTITY)));
-      verify(googlePlayClient).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
-    }
+    Mockito.verify(eventPublisher)
+        .publishEvent(
+            ArgumentMatchers.<Object>argThat(event ->
+                event instanceof GooglePlayReceiptVerifiedEvent
+                    && ((GooglePlayReceiptVerifiedEvent) event).memberId() == MEMBER_ID
+                    && ((GooglePlayReceiptVerifiedEvent) event).transactionId().equals(ORDER_ID)
+                    && ((GooglePlayReceiptVerifiedEvent) event).productId().equals(PRODUCT_ID)
+                    && ((GooglePlayReceiptVerifiedEvent) event).quantity() == QUANTITY));
+    verify(googlePlayClient).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
   }
 
   @Test
@@ -98,14 +97,14 @@ class GooglePlayPaymentServiceTest {
         .consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
 
     // when & then
-    try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-      assertThatCode(
-              () -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
-          .doesNotThrowAnyException();
+    assertThatCode(
+            () -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
+        .doesNotThrowAnyException();
 
-      eventsMockedStatic.verify(
-          () -> Events.raise(argThat(event -> event instanceof GooglePlayReceiptVerifiedEvent)));
-    }
+    Mockito.verify(eventPublisher)
+        .publishEvent(
+            ArgumentMatchers.<Object>argThat(
+                event -> event instanceof GooglePlayReceiptVerifiedEvent));
   }
 
   @Test
@@ -119,14 +118,12 @@ class GooglePlayPaymentServiceTest {
         .thenReturn(Optional.of(OrderFixture.builder().memberId(MEMBER_ID).build()));
 
     // when & then
-    try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-      assertThatCode(
-              () -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
-          .doesNotThrowAnyException();
+    assertThatCode(
+            () -> googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID))
+        .doesNotThrowAnyException();
 
-      eventsMockedStatic.verifyNoInteractions();
-      verify(googlePlayClient, never()).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
-    }
+    Mockito.verifyNoInteractions(eventPublisher);
+    verify(googlePlayClient, never()).consumePurchase(PRODUCT_ID, PURCHASE_TOKEN);
   }
 
   @Test

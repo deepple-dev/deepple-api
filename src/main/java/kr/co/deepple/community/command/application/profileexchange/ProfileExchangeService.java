@@ -6,12 +6,16 @@ import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchange;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeRepository;
+import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeAcceptedEvent;
+import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeRejectedEvent;
+import kr.co.deepple.community.command.domain.profileexchange.event.ProfileExchangeRequestedEvent;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +31,7 @@ public class ProfileExchangeService {
   private final MemberCommandRepository memberCommandRepository;
   private final BlockRepository blockRepository;
   private final UseHeartUseCase useHeartUseCase;
+  private final ApplicationEventPublisher eventPublisher;
 
   public void request(long requesterId, long responderId) {
     String key = generateKey(requesterId, responderId);
@@ -37,7 +42,7 @@ public class ProfileExchangeService {
   private void createProfileExchange(long requesterId, long responderId) {
     validateProfileExchangeRequest(requesterId, responderId);
     String senderName = getNickNameByMemberId(requesterId);
-    ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId, senderName);
+    ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId);
     profileExchangeRepository.save(profileExchange);
     useHeartUseCase.useHeart(
         new UseHeartCommand(
@@ -46,6 +51,8 @@ public class ProfileExchangeService {
             HEART_USAGE_TYPE,
             null,
             String.valueOf(profileExchange.getId())));
+    eventPublisher.publishEvent(
+        ProfileExchangeRequestedEvent.of(requesterId, responderId, senderName));
   }
 
   @Transactional
@@ -53,7 +60,10 @@ public class ProfileExchangeService {
     String senderName = getNickNameByMemberId(responderId);
     ProfileExchange profileExchange = getProfileExchangeById(profileExchangeId);
     validateProfileExchangeResponse(profileExchange, responderId);
-    profileExchange.approve(senderName);
+    profileExchange.approve();
+    eventPublisher.publishEvent(
+        ProfileExchangeAcceptedEvent.of(
+            profileExchange.getRequesterId(), profileExchange.getResponderId(), senderName));
   }
 
   @Transactional
@@ -61,7 +71,10 @@ public class ProfileExchangeService {
     String senderName = getNickNameByMemberId(responderId);
     ProfileExchange profileExchange = getProfileExchangeById(profileExchangeId);
     validateProfileExchangeResponse(profileExchange, responderId);
-    profileExchange.reject(senderName);
+    profileExchange.reject();
+    eventPublisher.publishEvent(
+        ProfileExchangeRejectedEvent.of(
+            profileExchange.getRequesterId(), profileExchange.getResponderId(), senderName));
   }
 
   private String getNickNameByMemberId(long memberId) {

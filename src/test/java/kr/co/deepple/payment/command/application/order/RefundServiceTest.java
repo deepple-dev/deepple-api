@@ -4,15 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
@@ -32,10 +29,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class RefundServiceTest {
@@ -45,6 +44,8 @@ class RefundServiceTest {
   @Mock private RefundCommandRepository refundCommandRepository;
 
   @Mock private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private RefundService refundService;
 
@@ -82,34 +83,32 @@ class RefundServiceTest {
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        refundService.processRefund(
-            transactionId, productId, quantity, paymentMethod, notificationType);
+      refundService.processRefund(
+          transactionId, productId, quantity, paymentMethod, notificationType);
 
-        verify(orderCommandRepository)
-            .findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod);
-        verify(heartPurchaseOptionCommandRepository).findByProductIdAndDeletedAtIsNull(productId);
+      verify(orderCommandRepository)
+          .findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod);
+      verify(heartPurchaseOptionCommandRepository).findByProductIdAndDeletedAtIsNull(productId);
 
-        ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-        verify(refundCommandRepository).save(refundCaptor.capture());
+      ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+      verify(refundCommandRepository).save(refundCaptor.capture());
 
-        Refund savedRefund = refundCaptor.getValue();
-        assertThat(savedRefund.getMemberId()).isEqualTo(memberId);
-        assertThat(savedRefund.getTransactionId()).isEqualTo(transactionId);
-        assertThat(savedRefund.getProductId()).isEqualTo(productId);
-        assertThat(savedRefund.getQuantity()).isEqualTo(quantity);
-        assertThat(savedRefund.getRefundAmount()).isEqualTo(heartAmount * quantity);
-        assertThat(savedRefund.getNotificationType()).isEqualTo(notificationType);
+      Refund savedRefund = refundCaptor.getValue();
+      assertThat(savedRefund.getMemberId()).isEqualTo(memberId);
+      assertThat(savedRefund.getTransactionId()).isEqualTo(transactionId);
+      assertThat(savedRefund.getProductId()).isEqualTo(productId);
+      assertThat(savedRefund.getQuantity()).isEqualTo(quantity);
+      assertThat(savedRefund.getRefundAmount()).isEqualTo(heartAmount * quantity);
+      assertThat(savedRefund.getNotificationType()).isEqualTo(notificationType);
 
-        eventsMockedStatic.verify(() ->
-            Events.raise(
-                argThat(event ->
-                    event instanceof HeartRefundedEvent
-                        && ((HeartRefundedEvent) event).memberId() == memberId
-                        && ((HeartRefundedEvent) event).orderId() == orderId
-                        && ((HeartRefundedEvent) event).amount() == heartAmount * quantity
-                        && ((HeartRefundedEvent) event).transactionId().equals(transactionId))));
-      }
+      Mockito.verify(eventPublisher)
+          .publishEvent(
+              ArgumentMatchers.<Object>argThat(event ->
+                  event instanceof HeartRefundedEvent
+                      && ((HeartRefundedEvent) event).memberId() == memberId
+                      && ((HeartRefundedEvent) event).orderId() == orderId
+                      && ((HeartRefundedEvent) event).amount() == heartAmount * quantity
+                      && ((HeartRefundedEvent) event).transactionId().equals(transactionId)));
     }
 
     @Test
@@ -142,16 +141,14 @@ class RefundServiceTest {
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        refundService.processRefund(
-            transactionId, productId, quantity, paymentMethod, notificationType);
+      refundService.processRefund(
+          transactionId, productId, quantity, paymentMethod, notificationType);
 
-        ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-        verify(refundCommandRepository).save(refundCaptor.capture());
+      ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+      verify(refundCommandRepository).save(refundCaptor.capture());
 
-        Refund savedRefund = refundCaptor.getValue();
-        assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
-      }
+      Refund savedRefund = refundCaptor.getValue();
+      assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
     }
   }
 
@@ -180,17 +177,15 @@ class RefundServiceTest {
           .thenReturn(Optional.of(order));
 
       // when & then
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        assertThatCode(() ->
-                refundService.processRefund(
-                    transactionId, productId, quantity, paymentMethod, notificationType))
-            .doesNotThrowAnyException();
+      assertThatCode(() ->
+              refundService.processRefund(
+                  transactionId, productId, quantity, paymentMethod, notificationType))
+          .doesNotThrowAnyException();
 
-        verify(heartPurchaseOptionCommandRepository, never())
-            .findByProductIdAndDeletedAtIsNull(any());
-        verify(refundCommandRepository, never()).save(any(Refund.class));
-        eventsMockedStatic.verifyNoInteractions();
-      }
+      verify(heartPurchaseOptionCommandRepository, never())
+          .findByProductIdAndDeletedAtIsNull(any());
+      verify(refundCommandRepository, never()).save(any(Refund.class));
+      Mockito.verifyNoInteractions(eventPublisher);
     }
   }
 
@@ -301,16 +296,14 @@ class RefundServiceTest {
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        refundService.processRefund(
-            transactionId, productId, quantity, paymentMethod, notificationType);
+      refundService.processRefund(
+          transactionId, productId, quantity, paymentMethod, notificationType);
 
-        ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-        verify(refundCommandRepository).save(refundCaptor.capture());
+      ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+      verify(refundCommandRepository).save(refundCaptor.capture());
 
-        Refund savedRefund = refundCaptor.getValue();
-        assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
-      }
+      Refund savedRefund = refundCaptor.getValue();
+      assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
     }
   }
 
@@ -349,12 +342,10 @@ class RefundServiceTest {
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        refundService.processRefund(
-            transactionId, productId, quantity, paymentMethod, notificationType);
+      refundService.processRefund(
+          transactionId, productId, quantity, paymentMethod, notificationType);
 
-        verify(order).refund();
-      }
+      verify(order).refund();
     }
   }
 }

@@ -1,7 +1,6 @@
 package kr.co.deepple.payment.command.application.order;
 
 import com.google.api.services.androidpublisher.model.ProductPurchase;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
 import kr.co.deepple.payment.command.domain.order.OrderCommandRepository;
@@ -10,6 +9,7 @@ import kr.co.deepple.payment.command.domain.order.event.GooglePlayReceiptVerifie
 import kr.co.deepple.payment.command.infra.order.GooglePlayClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -21,6 +21,7 @@ public class GooglePlayPaymentService {
 
   private final GooglePlayClient googlePlayClient;
   private final OrderCommandRepository orderCommandRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   public void verifyReceipt(String productId, String purchaseToken, long memberId) {
     ProductPurchase purchase = googlePlayClient.verifyPurchase(productId, purchaseToken);
@@ -52,7 +53,7 @@ public class GooglePlayPaymentService {
 
   private void raiseReceiptVerifiedEvent(
       long memberId, String productId, ProductPurchase purchase) {
-    Events.raise(
+    eventPublisher.publishEvent(
         GooglePlayReceiptVerifiedEvent.of(
             memberId,
             purchase.getOrderId(),

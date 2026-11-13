@@ -33,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 
 @DisplayName("Google Play 결제 재시도 통합 테스트")
 class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
@@ -57,6 +58,8 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private HeartTransactionRepository heartTransactionRepository;
 
+  @Autowired private ApplicationEventPublisher eventPublisher;
+
   private HeartPurchaseOption option;
   private Member member;
 
@@ -69,7 +72,7 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
             HeartPurchaseOptionFixture.builder().amount(OPTION_AMOUNT).build());
     when(googlePlayClient.resolveQuantity(any())).thenReturn(1);
     googlePlayPaymentService =
-        new GooglePlayPaymentService(googlePlayClient, orderCommandRepository);
+        new GooglePlayPaymentService(googlePlayClient, orderCommandRepository, eventPublisher);
   }
 
   @AfterEach

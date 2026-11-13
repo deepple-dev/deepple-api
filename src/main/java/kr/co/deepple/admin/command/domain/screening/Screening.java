@@ -10,11 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import kr.co.deepple.admin.command.domain.AdminErrorCode;
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningCreatedEvent;
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningRejectedEvent;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -53,7 +49,6 @@ public class Screening extends BaseEntity {
   }
 
   public static Screening from(long memberId) {
-    Events.raise(ScreeningCreatedEvent.from(memberId));
     return new Screening(memberId, null, null, ScreeningStatus.PENDING);
   }
 
@@ -65,7 +60,6 @@ public class Screening extends BaseEntity {
     this.adminId = adminId;
     this.status = ScreeningStatus.APPROVED;
     this.rejectionReason = null;
-    Events.raise(ScreeningApprovedEvent.of(adminId, memberId));
   }
 
   public void reject(long adminId, RejectionReasonType rejectionReason) {
@@ -73,7 +67,6 @@ public class Screening extends BaseEntity {
     this.adminId = adminId;
     this.status = ScreeningStatus.REJECTED;
     this.rejectionReason = rejectionReason;
-    Events.raise(ScreeningRejectedEvent.of(adminId, memberId, rejectionReason.getDescription()));
   }
 
   private void validateNotApproved() {

@@ -1,6 +1,5 @@
 package kr.co.deepple.heart.application;
 
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.heart.application.port.in.AddAdminHeartCommand;
 import kr.co.deepple.heart.application.port.in.AddAdminHeartUseCase;
@@ -10,6 +9,7 @@ import kr.co.deepple.heart.domain.TransactionType;
 import kr.co.deepple.heart.domain.event.AdminHeartGrantedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +20,7 @@ public class AddAdminHeartService implements AddAdminHeartUseCase {
 
   private final HeartMemberRepository heartMemberRepository;
   private final HeartTransactor heartTransactor;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -41,7 +42,7 @@ public class AddAdminHeartService implements AddAdminHeartUseCase {
         .addKeyValue("memberId", command.memberId())
         .addKeyValue("amount", command.amount())
         .log("관리자 하트 지급");
-    Events.raise(
+    eventPublisher.publishEvent(
         AdminHeartGrantedEvent.of(command.memberId(), command.adminId(), command.amount()));
   }
 }

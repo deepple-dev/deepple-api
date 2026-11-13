@@ -11,6 +11,11 @@ import kr.co.deepple.match.command.domain.match.MatchErrorCode;
 import kr.co.deepple.match.command.domain.match.MatchRepository;
 import kr.co.deepple.match.command.domain.match.MatchStatus;
 import kr.co.deepple.match.command.domain.match.MatchType;
+import kr.co.deepple.match.command.domain.match.event.MatchAcceptedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRejectedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRequestCompletedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRequestedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.command.domain.match.vo.Message;
 import kr.co.deepple.match.presentation.dto.MatchRequestDto;
 import kr.co.deepple.match.presentation.dto.MatchResponseDto;
@@ -21,6 +26,7 @@ import kr.co.deepple.member.command.domain.introduction.MemberIntroductionComman
 import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +42,7 @@ public class MatchService {
   private final MatchRepository matchRepository;
   private final DistributedLockTemplate distributedLockTemplate;
   private final UseHeartUseCase useHeartUseCase;
+  private final ApplicationEventPublisher eventPublisher;
 
   public void request(long requesterId, MatchRequestDto request) {
     long responderId = request.responderId();
@@ -57,8 +64,11 @@ public class MatchService {
 
     String requesterName = findNickname(requesterId);
     MatchType matchType = getMatchType(requesterId, responderId);
-    Match match =
-        Match.request(requesterId, responderId, message, requesterName, matchType, contactType);
+    Match match = Match.request(requesterId, responderId, message, contactType);
+    eventPublisher.publishEvent(
+        MatchRequestedEvent.of(
+            requesterId, requesterName, responderId, matchType.name(), contactType.name()));
+    eventPublisher.publishEvent(MatchRequestCompletedEvent.of(requesterId, responderId));
     matchRepository.save(match);
     useHeartUseCase.useHeart(
         new UseHeartCommand(
@@ -89,7 +99,12 @@ public class MatchService {
     validateMatch(match);
     String responderName = findNickname(responderId);
     MatchContactType contactType = MatchContactType.from(respondDto.contactType());
-    match.approve(Message.from(respondDto.responseMessage()), responderName, contactType);
+    match.approve(Message.from(respondDto.responseMessage()), contactType);
+    eventPublisher.publishEvent(
+        MatchRespondedEvent.of(
+            match.getRequesterId(), responderId, match.getStatus().name(), contactType.name()));
+    eventPublisher.publishEvent(
+        MatchAcceptedEvent.of(match.getRequesterId(), responderId, responderName));
   }
 
   @Transactional
@@ -97,7 +112,12 @@ public class MatchService {
     Match match = getWaitingMatchByIdAndResponderId(matchId, responderId);
     validateMatch(match);
     String responderName = findNickname(responderId);
-    match.reject(responderName);
+    match.reject();
+    eventPublisher.publishEvent(
+        MatchRespondedEvent.of(
+            match.getRequesterId(), responderId, match.getStatus().name(), null));
+    eventPublisher.publishEvent(
+        MatchRejectedEvent.of(match.getRequesterId(), responderId, responderName));
   }
 
   @Transactional

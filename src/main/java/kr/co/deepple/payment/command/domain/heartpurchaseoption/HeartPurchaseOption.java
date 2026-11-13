@@ -7,10 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
-import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -65,8 +63,7 @@ public class HeartPurchaseOption extends SoftDeleteBaseEntity {
     return amount.getAmount();
   }
 
-  public void purchase(long memberId, long orderId, int quantity) {
-    long heartAmount = getHeartAmount() * quantity;
-    Events.raise(HeartPurchasedEvent.of(memberId, orderId, heartAmount));
+  public long calculateHeartAmount(int quantity) {
+    return getHeartAmount() * quantity;
   }
 }

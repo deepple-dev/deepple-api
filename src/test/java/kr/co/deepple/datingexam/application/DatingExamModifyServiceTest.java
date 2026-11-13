@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoResponse;
@@ -40,10 +39,14 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class DatingExamModifyServiceTest {
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private DatingExamModifyService datingExamModifyService;
 
@@ -190,8 +193,7 @@ class DatingExamModifyServiceTest {
       try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit =
               mockStatic(DatingExamSubmit.class);
           MockedStatic<DatingExamSubmitRequestValidator> mockedValidator =
-              mockStatic(DatingExamSubmitRequestValidator.class);
-          MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
+              mockStatic(DatingExamSubmitRequestValidator.class)) {
 
         DatingExamSubmit submit =
             DatingExamSubmitFixture.builder().memberId(memberId).subjectId(subjectId).build();
@@ -213,11 +215,11 @@ class DatingExamModifyServiceTest {
         mockedDatingExamSubmit.verify(() -> DatingExamSubmit.of(request, answerEncoder, memberId));
         verify(datingExamSubmitRepository).save(submit);
         verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
-        mockedEvents.verify(() ->
-            Events.raise(
-                ArgumentMatchers.argThat(event ->
+        Mockito.verify(eventPublisher)
+            .publishEvent(
+                ArgumentMatchers.<Object>argThat(event ->
                     event instanceof AllRequiredSubjectSubmittedEvent written
-                        && written.memberId() == memberId)));
+                        && written.memberId() == memberId));
       }
     }
   }

@@ -1,21 +1,9 @@
 package kr.co.deepple.member.command.domain.member;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
-import kr.co.deepple.member.command.domain.member.event.MemberBecameActiveEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberBecameDormantEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberProfileInitializedEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberSettingUpdatedEvent;
-import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.command.domain.member.vo.KakaoId;
 import kr.co.deepple.member.command.domain.member.vo.MemberProfile;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -26,7 +14,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.MockedStatic;
 
 class MemberTest {
 
@@ -73,14 +60,11 @@ class MemberTest {
       Member member =
           MemberFixture.builder().id(1L).activityStatus(ActivityStatus.WAITING_SCREENING).build();
 
-      try (MockedStatic<Events> events = mockStatic(Events.class)) {
-        // When
-        member.approveScreening();
+      // When
+      member.approveScreening();
 
-        // Then
-        Assertions.assertThat(member.isActive()).isTrue();
-        events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
-      }
+      // Then
+      Assertions.assertThat(member.isActive()).isTrue();
     }
 
     @Test
@@ -89,14 +73,11 @@ class MemberTest {
       // Given
       Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.ACTIVE).build();
 
-      try (MockedStatic<Events> events = mockStatic(Events.class)) {
-        // When
-        member.deactivate();
+      // When
+      member.deactivate();
 
-        // Then
-        Assertions.assertThat(member.isDormant()).isTrue();
-        events.verify(() -> Events.raise(any(MemberBecameDormantEvent.class)));
-      }
+      // Then
+      Assertions.assertThat(member.isDormant()).isTrue();
     }
 
     @ParameterizedTest
@@ -119,14 +100,11 @@ class MemberTest {
       // Given
       Member member = MemberFixture.builder().id(1L).activityStatus(ActivityStatus.DORMANT).build();
 
-      try (MockedStatic<Events> events = mockStatic(Events.class)) {
-        // When
-        member.reactivate();
+      // When
+      member.reactivate();
 
-        // Then
-        Assertions.assertThat(member.isActive()).isTrue();
-        events.verify(() -> Events.raise(any(MemberBecameActiveEvent.class)));
-      }
+      // Then
+      Assertions.assertThat(member.isActive()).isTrue();
     }
 
     @ParameterizedTest
@@ -179,27 +157,18 @@ class MemberTest {
     @Test
     @DisplayName("멤버의 설정을 업데이트합니다.")
     void shouldUpdateMemberSettings() {
-      try (MockedStatic<Events> eventsMock = mockStatic(Events.class)) {
-        // Given
-        Long memberId = 1L;
-        Member member = MemberFixture.builder().id(memberId).build();
-        Grade grade = Grade.GOLD;
-        boolean isVip = true;
-        boolean isPushNotificationEnabled = false;
+      // Given
+      Long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).build();
+      Grade grade = Grade.GOLD;
+      boolean isVip = true;
 
-        // When
-        member.updateSetting(grade, isVip, isPushNotificationEnabled);
+      // When
+      member.updateSetting(grade, isVip);
 
-        // Then
-        Assertions.assertThat(member.getGrade()).isEqualTo(grade);
-        Assertions.assertThat(member.isVip()).isEqualTo(isVip);
-        eventsMock.verify(() ->
-            Events.raise(
-                argThat(event ->
-                    event instanceof MemberSettingUpdatedEvent
-                        && ((MemberSettingUpdatedEvent) event).memberId() == memberId
-                        && !((MemberSettingUpdatedEvent) event).isPushNotificationEnabled())));
-      }
+      // Then
+      Assertions.assertThat(member.getGrade()).isEqualTo(grade);
+      Assertions.assertThat(member.isVip()).isEqualTo(isVip);
     }
   }
 
@@ -226,8 +195,8 @@ class MemberTest {
   class UpdateProfileMethodTest {
 
     @Test
-    @DisplayName("최초로 멤버 프로필을 초기화 시 멤버 프로필을 업데이트 하고 이벤트를 발행합니다.")
-    void shouldUpdateMemberProfileAndRaiseEventWhenInitializingProfileForTheFirstTime() {
+    @DisplayName("심사 전 상태에서 프로필을 채우면 프로필 초기화 상태가 되고, 활동 중이면 아닙니다.")
+    void shouldBeProfileInitializedOnlyBeforeScreening() {
       // Given
       Long memberId = 1L;
       Member member =
@@ -239,41 +208,18 @@ class MemberTest {
 
       MemberProfile profile = MemberProfileFixture.builder().build();
 
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class);
-          MockedStatic<MemberProfileInitializedEvent> memberProfileInitializedEventMockedStatic =
-              mockStatic(MemberProfileInitializedEvent.class)) {
-        MemberProfileInitializedEvent memberProfileInitializedEvent =
-            mock(MemberProfileInitializedEvent.class);
-        memberProfileInitializedEventMockedStatic
-            .when(() -> MemberProfileInitializedEvent.from(memberId))
-            .thenReturn(memberProfileInitializedEvent);
+      // When
+      member.updateProfile(profile);
 
-        // When
-        member.updateProfile(profile);
+      // Then
+      Assertions.assertThat(member.isProfileInitialized()).isTrue();
 
-        // Then
-        memberProfileInitializedEventMockedStatic.verify(
-            () -> MemberProfileInitializedEvent.from(memberId), times(1));
-        eventsMockedStatic.verify(() -> Events.raise(memberProfileInitializedEvent), times(1));
-        Assertions.assertThat(member.getProfile()).isEqualTo(profile);
+      // When
+      setField(member, "activityStatus", ActivityStatus.ACTIVE);
+      member.updateProfile(profile);
 
-        eventsMockedStatic.clearInvocations();
-
-        // When
-        setField(member, "activityStatus", ActivityStatus.ACTIVE);
-        member.updateProfile(profile);
-
-        // Then
-        eventsMockedStatic.verify(() -> Events.raise(memberProfileInitializedEvent), never());
-        eventsMockedStatic.verify(
-            () ->
-                Events.raise(
-                    argThat(event ->
-                        event instanceof MemberSummaryChangedEvent summaryChanged
-                            && summaryChanged.memberId() == memberId
-                            && profile.getGender().name().equals(summaryChanged.gender()))),
-            times(1));
-      }
+      // Then
+      Assertions.assertThat(member.isProfileInitialized()).isFalse();
       Assertions.assertThat(member.getProfile()).isEqualTo(profile);
     }
   }

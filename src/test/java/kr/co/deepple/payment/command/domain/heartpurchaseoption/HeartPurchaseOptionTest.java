@@ -2,20 +2,14 @@ package kr.co.deepple.payment.command.domain.heartpurchaseoption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.command.domain.PaymentErrorCode;
-import kr.co.deepple.payment.command.domain.order.event.HeartPurchasedEvent;
 import kr.co.deepple.payment.fixture.HeartPurchaseOptionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.MockedStatic;
 
 class HeartPurchaseOptionTest {
 
@@ -69,30 +63,18 @@ class HeartPurchaseOptionTest {
   }
 
   @Test
-  @DisplayName("purchase를 호출하면 이벤트를 호출한다")
-  void publishEventWhenCallPurchaseMethod() {
+  @DisplayName("수량만큼 곱한 하트 수를 계산한다")
+  void calculateHeartAmountByQuantity() {
     // given
     Long amount = 10L;
     HeartPurchaseOption heartPurchaseOption =
         HeartPurchaseOptionFixture.builder().amount(amount).build();
-    long memberId = 1L;
-    long orderId = 10L;
     int quantity = 5;
-    long expectedAmount = amount * quantity;
 
-    try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-      // When
-      heartPurchaseOption.purchase(memberId, orderId, quantity);
+    // when
+    long heartAmount = heartPurchaseOption.calculateHeartAmount(quantity);
 
-      // Then
-      eventsMockedStatic.verify(
-          () ->
-              Events.raise(
-                  argThat((HeartPurchasedEvent event) ->
-                      event.memberId() == memberId
-                          && event.orderId() == orderId
-                          && event.amount() == expectedAmount)),
-          times(1));
-    }
+    // then
+    assertThat(heartAmount).isEqualTo(amount * quantity);
   }
 }

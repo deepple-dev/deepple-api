@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
@@ -38,7 +37,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class MemberQueryServiceTest {
@@ -46,6 +47,8 @@ class MemberQueryServiceTest {
   @Mock private MemberQueryRepository memberQueryRepository;
 
   @Mock private ProfileImageQueryRepository profileImageQueryRepository;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private MemberQueryService memberQueryService;
 
@@ -227,9 +230,8 @@ class MemberQueryServiceTest {
       when(memberQueryRepository.findOtherProfileByMemberId(memberId, otherMemberId))
           .thenReturn(Optional.of(view));
 
-      try (MockedStatic<Events> mockEvents = mockStatic(Events.class);
-          MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
-              mockStatic(MemberProfileRetrievedEvent.class)) {
+      try (MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
+          mockStatic(MemberProfileRetrievedEvent.class)) {
         MemberProfileRetrievedEvent memberProfileRetrievedEvent =
             mock(MemberProfileRetrievedEvent.class);
         mockMemberProfileRetrievedEvent
@@ -245,7 +247,7 @@ class MemberQueryServiceTest {
         memberQueryService.getMemberProfile(memberId, otherMemberId);
 
         // Then
-        mockEvents.verify(() -> Events.raise(memberProfileRetrievedEvent));
+        Mockito.verify(eventPublisher).publishEvent(memberProfileRetrievedEvent);
       }
     }
 
@@ -276,9 +278,8 @@ class MemberQueryServiceTest {
 
       // When
       MemberProfileResponse response;
-      try (MockedStatic<Events> mockEvents = mockStatic(Events.class);
-          MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
-              mockStatic(MemberProfileRetrievedEvent.class)) {
+      try (MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
+          mockStatic(MemberProfileRetrievedEvent.class)) {
         response = memberQueryService.getMemberProfile(memberId, otherMemberId);
       }
 
@@ -311,9 +312,8 @@ class MemberQueryServiceTest {
 
       // When
       MemberProfileResponse response;
-      try (MockedStatic<Events> mockEvents = mockStatic(Events.class);
-          MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
-              mockStatic(MemberProfileRetrievedEvent.class)) {
+      try (MockedStatic<MemberProfileRetrievedEvent> mockMemberProfileRetrievedEvent =
+          mockStatic(MemberProfileRetrievedEvent.class)) {
         response = memberQueryService.getMemberProfile(memberId, otherMemberId);
       }
 

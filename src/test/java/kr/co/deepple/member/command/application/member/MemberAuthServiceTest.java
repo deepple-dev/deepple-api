@@ -13,9 +13,7 @@ import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.RefreshTokenService;
 import kr.co.deepple.auth.domain.TokenOwner;
 import kr.co.deepple.auth.infra.JwtProvider;
-import kr.co.deepple.common.MockEventsExtension;
 import kr.co.deepple.common.enums.Role;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.application.member.dto.MemberLoginServiceDto;
 import kr.co.deepple.member.command.application.member.dto.TokenPairResponse;
@@ -37,10 +35,11 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 
-@ExtendWith({MockitoExtension.class, MockEventsExtension.class})
+@ExtendWith(MockitoExtension.class)
 class MemberAuthServiceTest {
 
   @Mock private MemberCommandRepository memberCommandRepository;
@@ -52,6 +51,8 @@ class MemberAuthServiceTest {
   @Mock private RefreshTokenService refreshTokenService;
 
   @Mock private AuthMessageService authMessageService;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private MemberAuthService memberAuthService;
 
@@ -159,7 +160,7 @@ class MemberAuthServiceTest {
 
     @Test
     @DisplayName("휴면 회원도 로그인하고, 응답에 휴면 상태를 담으며 로그인 이벤트는 발행하지 않는다")
-    void loginDormantMember(MockedStatic<Events> events) {
+    void loginDormantMember() {
       // Given
       String phoneNumber = "01012345678";
       String code = "01012345678";
@@ -180,12 +181,13 @@ class MemberAuthServiceTest {
       // Then
       Assertions.assertThat(response.activityStatus()).isEqualTo(ActivityStatus.DORMANT.name());
       Mockito.verify(refreshTokenService).issue(TokenOwner.member(memberId));
-      events.verify(() -> Events.raise(Mockito.any(MemberLoggedInEvent.class)), Mockito.never());
+      Mockito.verify(eventPublisher, Mockito.never())
+          .publishEvent(Mockito.any(MemberLoggedInEvent.class));
     }
 
     @Test
     @DisplayName("활동 중인 회원이 로그인하면 로그인 이벤트를 발행한다")
-    void raiseLoggedInEventForActiveMember(MockedStatic<Events> events) {
+    void raiseLoggedInEventForActiveMember() {
       // Given
       String phoneNumber = "01012345678";
       String code = "01012345678";
@@ -197,7 +199,7 @@ class MemberAuthServiceTest {
       memberAuthService.login(phoneNumber, code);
 
       // Then
-      events.verify(() -> Events.raise(Mockito.any(MemberLoggedInEvent.class)));
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberLoggedInEvent.class));
     }
 
     @Test

@@ -2,19 +2,13 @@ package kr.co.deepple.admin.command.domain.screening;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 
 import kr.co.deepple.admin.command.domain.AdminErrorCode;
-import kr.co.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
 import kr.co.deepple.admin.fixture.ScreeningFixture;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
 class ScreeningTest {
 
@@ -51,16 +45,9 @@ class ScreeningTest {
       Screening screening = ScreeningFixture.builder().memberId(memberId).build();
 
       // when
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        screening.approve(1L);
+      screening.approve(1L);
 
-        // then
-        eventsMockedStatic.verify(
-            () ->
-                Events.raise(
-                    argThat((ScreeningApprovedEvent event) -> event.memberId() == memberId)),
-            times(1));
-      }
+      // then
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
       assertThat(screening.getAdminId()).isEqualTo(1L);
       assertThat(screening.getRejectionReason()).isNull();
@@ -80,16 +67,9 @@ class ScreeningTest {
               .build();
 
       // when
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        screening.approve(2L);
+      screening.approve(2L);
 
-        // then
-        eventsMockedStatic.verify(
-            () ->
-                Events.raise(
-                    argThat((ScreeningApprovedEvent event) -> event.memberId() == memberId)),
-            times(1));
-      }
+      // then
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
       assertThat(screening.getAdminId()).isEqualTo(2L); // adminId 갱신
       assertThat(screening.getRejectionReason()).isNull();
@@ -107,16 +87,9 @@ class ScreeningTest {
               .status(ScreeningStatus.APPROVED)
               .build();
 
-      try (MockedStatic<Events> eventsMockedStatic = mockStatic(Events.class)) {
-        screening.approve(2L);
+      screening.approve(2L);
 
-        // then
-        eventsMockedStatic.verify(
-            () ->
-                Events.raise(
-                    argThat((ScreeningApprovedEvent event) -> event.memberId() == memberId)),
-            times(1));
-      }
+      // then
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
       assertThat(screening.getAdminId()).isEqualTo(2L);
       assertThat(screening.getRejectionReason()).isNull();

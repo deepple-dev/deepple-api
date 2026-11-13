@@ -4,14 +4,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
@@ -20,6 +18,11 @@ import kr.co.deepple.match.command.domain.match.MatchContactType;
 import kr.co.deepple.match.command.domain.match.MatchErrorCode;
 import kr.co.deepple.match.command.domain.match.MatchRepository;
 import kr.co.deepple.match.command.domain.match.MatchStatus;
+import kr.co.deepple.match.command.domain.match.event.MatchAcceptedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRejectedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRequestCompletedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRequestedEvent;
+import kr.co.deepple.match.command.domain.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.fixture.MatchFixture;
 import kr.co.deepple.match.presentation.dto.MatchRequestDto;
 import kr.co.deepple.match.presentation.dto.MatchResponseDto;
@@ -28,21 +31,18 @@ import kr.co.deepple.member.command.domain.member.Member;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class MatchServiceTest {
-
-  private static MockedStatic<Events> mockedEvents;
 
   @Mock private MatchRepository matchRepository;
 
@@ -54,18 +54,9 @@ class MatchServiceTest {
 
   @Mock private UseHeartUseCase useHeartUseCase;
 
+  @Mock private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks private MatchService matchService;
-
-  @BeforeEach
-  void setUp() {
-    mockedEvents = mockStatic(Events.class);
-    mockedEvents.when(() -> Events.raise(any())).thenAnswer(invocation -> null);
-  }
-
-  @AfterEach
-  void tearDown() {
-    mockedEvents.close();
-  }
 
   private void mockMember(Long memberId, String nickname) {
     Member member = MemberFixture.builder().id(memberId).nickname(nickname).build();
@@ -139,6 +130,8 @@ class MatchServiceTest {
       matchService.request(requesterId, requestDto);
 
       // Then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestedEvent.class));
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestCompletedEvent.class));
       verify(matchRepository)
           .save(
               argThat(match ->
@@ -224,6 +217,8 @@ class MatchServiceTest {
       matchService.approve(matchId, responderId, responseDto);
 
       // Then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchAcceptedEvent.class));
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
       Assertions.assertThat(match.getResponseMessage().getValue()).isEqualTo(responseMessage);
       verifyNoInteractions(useHeartUseCase);
@@ -300,6 +295,8 @@ class MatchServiceTest {
       matchService.reject(matchId, responderId);
 
       // Then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRejectedEvent.class));
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECTED);
     }
   }

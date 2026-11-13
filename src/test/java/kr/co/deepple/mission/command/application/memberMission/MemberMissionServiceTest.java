@@ -5,8 +5,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import kr.co.deepple.common.MockEventsExtension;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Gender;
@@ -32,11 +30,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
-@ExtendWith({MockEventsExtension.class, MockitoExtension.class})
+@ExtendWith(MockitoExtension.class)
 public class MemberMissionServiceTest {
 
   @Mock private MemberMissionCommandRepository memberMissionCommandRepository;
@@ -44,6 +42,8 @@ public class MemberMissionServiceTest {
   @Mock private MissionCommandRepository missionCommandRepository;
 
   @Mock private MemberCommandRepository memberCommandRepository;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private MemberMissionService memberMissionService;
 
@@ -102,7 +102,7 @@ public class MemberMissionServiceTest {
 
     @Test
     @DisplayName("미션에 성공하면 회원 미션 ID와 성공 횟수를 담은 보상 이벤트를 발행합니다.")
-    void raiseEventWhenSucceeded(MockedStatic<Events> events) {
+    void raiseEventWhenSucceeded() {
       // Given
       givenMissionAndMember(mission);
       givenMemberMission(mission, memberMission);
@@ -114,18 +114,18 @@ public class MemberMissionServiceTest {
       // Then
       assertThat(hasProcessedMission).isTrue();
       assertThat(memberMission.getSuccessCount()).isEqualTo(1);
-      events.verify(() ->
-          Events.raise(
+      Mockito.verify(eventPublisher)
+          .publishEvent(
               ArgumentMatchers.<MemberMissionCompletedEvent>argThat(event ->
                   event.memberId() == memberId
                       && event.memberMissionId() == memberMissionId
                       && event.successCount() == 1
-                      && event.rewardHeartAmount() == rewardedHeart)));
+                      && event.rewardHeartAmount() == rewardedHeart));
     }
 
     @Test
     @DisplayName("필요한 시도 횟수를 채우지 못하면 보상 이벤트를 발행하지 않습니다.")
-    void notRaiseEventWhenNotSucceeded(MockedStatic<Events> events) {
+    void notRaiseEventWhenNotSucceeded() {
       // Given
       Mission twoAttemptMission =
           MissionFixture.builder()
@@ -146,7 +146,7 @@ public class MemberMissionServiceTest {
       // Then
       assertThat(hasProcessedMission).isTrue();
       assertThat(memberMission.getAttemptCount()).isEqualTo(1);
-      events.verify(() -> Events.raise(Mockito.any()), Mockito.never());
+      Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
     }
 
     @Test
@@ -175,7 +175,7 @@ public class MemberMissionServiceTest {
 
     @Test
     @DisplayName("멤버가 해당 미션을 완료한 경우, 해당 멤버-미션을 수행하지 않습니다.")
-    void notDoMemberMissionWhenIsCompleted(MockedStatic<Events> events) {
+    void notDoMemberMissionWhenIsCompleted() {
       // Given
       MemberMission completedMemberMission =
           MemberMissionFixture.builder()
@@ -195,7 +195,7 @@ public class MemberMissionServiceTest {
       assertThat(completedMemberMission.getSuccessCount()).isEqualTo(repeatableCount);
       assertThat(completedMemberMission.getAttemptCount()).isZero();
       assertThat(hasProcessedMission).isFalse();
-      events.verify(() -> Events.raise(Mockito.any()), Mockito.never());
+      Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
     }
 
     private void givenMissionAndMember(Mission mission) {

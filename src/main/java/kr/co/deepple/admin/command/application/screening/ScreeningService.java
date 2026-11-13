@@ -3,15 +3,20 @@ package kr.co.deepple.admin.command.application.screening;
 import static kr.co.deepple.admin.command.application.screening.ScreeningMapper.toRejectionReasonType;
 
 import kr.co.deepple.admin.command.domain.AdminErrorCode;
+import kr.co.deepple.admin.command.domain.screening.RejectionReasonType;
 import kr.co.deepple.admin.command.domain.screening.Screening;
 import kr.co.deepple.admin.command.domain.screening.ScreeningCommandRepository;
 import kr.co.deepple.admin.command.domain.screening.ScreeningStatus;
+import kr.co.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
+import kr.co.deepple.admin.command.domain.screening.event.ScreeningCreatedEvent;
+import kr.co.deepple.admin.command.domain.screening.event.ScreeningRejectedEvent;
 import kr.co.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import kr.co.deepple.admin.presentation.screening.ScreeningRejectRequest;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,7 @@ public class ScreeningService {
 
   private final ScreeningCommandRepository screeningCommandRepository;
   private final DistributedLockTemplate distributedLockTemplate;
+  private final ApplicationEventPublisher eventPublisher;
 
   public void createIfAbsent(long memberId) {
     distributedLockTemplate.executeInTransaction(
@@ -32,6 +38,7 @@ public class ScreeningService {
             return;
           }
           screeningCommandRepository.save(Screening.from(memberId));
+          eventPublisher.publishEvent(ScreeningCreatedEvent.from(memberId));
         });
   }
 
@@ -44,6 +51,7 @@ public class ScreeningService {
     }
 
     screening.approve(adminId);
+    eventPublisher.publishEvent(ScreeningApprovedEvent.of(adminId, screening.getMemberId()));
     logScreening(screening, "프로필 심사 승인");
   }
 
@@ -55,7 +63,11 @@ public class ScreeningService {
       throw new OptimisticLockingFailureException("심사를 반려할 수 없습니다.");
     }
 
-    screening.reject(adminId, toRejectionReasonType(request.rejectionReason()));
+    RejectionReasonType rejectionReason = toRejectionReasonType(request.rejectionReason());
+    screening.reject(adminId, rejectionReason);
+    eventPublisher.publishEvent(
+        ScreeningRejectedEvent.of(
+            adminId, screening.getMemberId(), rejectionReason.getDescription()));
     logScreening(screening, "프로필 심사 반려");
   }
 
@@ -75,6 +87,7 @@ public class ScreeningService {
             return;
           }
           screeningCommandRepository.save(Screening.from(memberId));
+          eventPublisher.publishEvent(ScreeningCreatedEvent.from(memberId));
         });
   }
 

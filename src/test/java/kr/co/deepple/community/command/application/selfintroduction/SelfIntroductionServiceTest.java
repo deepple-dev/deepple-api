@@ -4,11 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
-import kr.co.deepple.common.event.Events;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
@@ -29,9 +27,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class SelfIntroductionServiceTest {
@@ -41,6 +39,8 @@ public class SelfIntroductionServiceTest {
   @Mock private MemberCommandRepository memberCommandRepository;
 
   @Mock private S3Uploader s3Uploader;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private SelfIntroductionService selfIntroductionService;
 
@@ -124,20 +124,18 @@ public class SelfIntroductionServiceTest {
           .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(false);
 
-      try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
-        // When
-        boolean hasProcessedMission =
-            selfIntroductionService.write(
-                new SelfIntroductionWriteRequest(title, content, null), memberId);
+      // When
+      boolean hasProcessedMission =
+          selfIntroductionService.write(
+              new SelfIntroductionWriteRequest(title, content, null), memberId);
 
-        // Then
-        Assertions.assertThat(hasProcessedMission).isTrue();
-        mockedEvents.verify(() ->
-            Events.raise(
-                ArgumentMatchers.argThat(event ->
-                    event instanceof SelfIntroductionFirstWrittenEvent written
-                        && written.memberId() == memberId)));
-      }
+      // Then
+      Assertions.assertThat(hasProcessedMission).isTrue();
+      Mockito.verify(eventPublisher)
+          .publishEvent(
+              ArgumentMatchers.<Object>argThat(event ->
+                  event instanceof SelfIntroductionFirstWrittenEvent written
+                      && written.memberId() == memberId));
     }
 
     @DisplayName("이미 셀프 소개를 작성한 적이 있는 경우, 셀프 소개 작성 완료 이벤트를 발행하지 않는다.")
@@ -152,16 +150,14 @@ public class SelfIntroductionServiceTest {
           .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(true);
 
-      try (MockedStatic<Events> mockedEvents = mockStatic(Events.class)) {
-        // When
-        boolean hasProcessedMission =
-            selfIntroductionService.write(
-                new SelfIntroductionWriteRequest(title, content, null), memberId);
+      // When
+      boolean hasProcessedMission =
+          selfIntroductionService.write(
+              new SelfIntroductionWriteRequest(title, content, null), memberId);
 
-        // Then
-        Assertions.assertThat(hasProcessedMission).isFalse();
-        mockedEvents.verifyNoInteractions();
-      }
+      // Then
+      Assertions.assertThat(hasProcessedMission).isFalse();
+      Mockito.verifyNoInteractions(eventPublisher);
     }
   }
 

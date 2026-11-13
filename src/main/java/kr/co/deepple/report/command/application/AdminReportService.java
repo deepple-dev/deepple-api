@@ -6,8 +6,10 @@ import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
 import kr.co.deepple.report.command.domain.ReportResult;
+import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
 import kr.co.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class AdminReportService {
 
   private final ReportCommandRepository reportCommandRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void updateResult(long reportId, ReportResultUpdateRequest request, long adminId) {
@@ -41,7 +44,11 @@ public class AdminReportService {
     ReportResult reportResult = ReportResult.from(request.result());
     switch (reportResult) {
       case REJECTED -> report.reject(adminId);
-      case WARNED -> report.warn(adminId);
+      case WARNED -> {
+        report.warn(adminId);
+        eventPublisher.publishEvent(
+            ReportWarnedEvent.of(adminId, report.getReporteeId(), report.getReason().name()));
+      }
       case PENDING ->
           throw new DeeppleException(
               ReportErrorCode.INVALID_REPORT_RESULT, "PENDING 으로 결과를 설정할 수 없습니다.");

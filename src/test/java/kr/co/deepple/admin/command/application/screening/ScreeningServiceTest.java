@@ -16,6 +16,9 @@ import kr.co.deepple.admin.command.domain.screening.RejectionReasonType;
 import kr.co.deepple.admin.command.domain.screening.Screening;
 import kr.co.deepple.admin.command.domain.screening.ScreeningCommandRepository;
 import kr.co.deepple.admin.command.domain.screening.ScreeningStatus;
+import kr.co.deepple.admin.command.domain.screening.event.ScreeningApprovedEvent;
+import kr.co.deepple.admin.command.domain.screening.event.ScreeningCreatedEvent;
+import kr.co.deepple.admin.command.domain.screening.event.ScreeningRejectedEvent;
 import kr.co.deepple.admin.fixture.ScreeningFixture;
 import kr.co.deepple.admin.presentation.screening.ScreeningApproveRequest;
 import kr.co.deepple.admin.presentation.screening.ScreeningRejectRequest;
@@ -28,7 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class ScreeningServiceTest {
@@ -36,6 +41,8 @@ class ScreeningServiceTest {
   @Mock private ScreeningCommandRepository screeningCommandRepository;
 
   @Mock private DistributedLockTemplate distributedLockTemplate;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private ScreeningService screeningService;
 
@@ -65,6 +72,7 @@ class ScreeningServiceTest {
       screeningService.createIfAbsent(memberId);
 
       // then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ScreeningCreatedEvent.class));
       verify(distributedLockTemplate)
           .executeInTransaction(eq("screening:" + memberId), any(Runnable.class));
       verify(screeningCommandRepository).save(any(Screening.class));
@@ -81,6 +89,7 @@ class ScreeningServiceTest {
       screeningService.createIfAbsent(memberId);
 
       // then
+      Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
       verify(screeningCommandRepository, never()).save(any(Screening.class));
     }
   }
@@ -101,6 +110,7 @@ class ScreeningServiceTest {
       screeningService.rescreen(memberId);
 
       // then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ScreeningCreatedEvent.class));
       verify(distributedLockTemplate)
           .executeInTransaction(eq("screening:" + memberId), any(Runnable.class));
       verify(screeningCommandRepository).save(any(Screening.class));
@@ -118,6 +128,7 @@ class ScreeningServiceTest {
       screeningService.rescreen(memberId);
 
       // then
+      Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
       verify(screeningCommandRepository, never()).save(any(Screening.class));
     }
   }
@@ -140,6 +151,7 @@ class ScreeningServiceTest {
       screeningService.approve(screeningId, new ScreeningApproveRequest(1L), adminId);
 
       // then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ScreeningApprovedEvent.class));
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.APPROVED);
       assertThat(screening.getAdminId()).isEqualTo(adminId);
     }
@@ -180,6 +192,7 @@ class ScreeningServiceTest {
       screeningService.reject(screeningId, adminId, request);
 
       // then
+      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ScreeningRejectedEvent.class));
       assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.REJECTED);
       assertThat(screening.getAdminId()).isEqualTo(adminId);
       assertThat(screening.getRejectionReason()).isEqualTo(RejectionReasonType.STOLEN_IMAGE);

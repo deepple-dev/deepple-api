@@ -14,7 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.util.Set;
 import kr.co.deepple.common.entity.BaseEntity;
-import kr.co.deepple.common.event.Events;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,15 +53,7 @@ public class Warning extends BaseEntity {
   }
 
   public static Warning issue(
-      long adminId,
-      long memberId,
-      long warningCount,
-      Set<WarningReasonType> reasonTypes,
-      boolean isCritical) {
-    reasonTypes.forEach(reasonType ->
-        Events.raise(
-            WarningIssuedEvent.of(
-                adminId, memberId, warningCount, reasonType.toString(), isCritical)));
+      long adminId, long memberId, Set<WarningReasonType> reasonTypes, boolean isCritical) {
     return new Warning(adminId, memberId, reasonTypes, isCritical);
   }
 }
