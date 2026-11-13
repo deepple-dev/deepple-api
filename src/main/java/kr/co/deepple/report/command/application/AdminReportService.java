@@ -47,7 +47,11 @@ public class AdminReportService {
       case WARNED -> {
         report.warn(adminId);
         eventPublisher.publishEvent(
-            ReportWarnedEvent.of(adminId, report.getReporteeId(), report.getReason().name()));
+            ReportWarnedEvent.of(
+                adminId,
+                report.getReporteeId(),
+                report.getReason().name(),
+                request.idempotencyKey()));
       }
       case PENDING ->
           throw new DeeppleException(

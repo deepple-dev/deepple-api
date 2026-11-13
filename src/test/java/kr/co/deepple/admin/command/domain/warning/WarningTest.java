@@ -17,7 +17,7 @@ class WarningTest {
     var reasons = Set.of(WarningReasonType.INAPPROPRIATE_INTERVIEW);
 
     // when
-    var warning = Warning.issue(adminId, memberId, reasons, true);
+    var warning = Warning.issue(adminId, memberId, reasons, true, null);
 
     // then
     assertEquals(adminId, warning.getAdminId());

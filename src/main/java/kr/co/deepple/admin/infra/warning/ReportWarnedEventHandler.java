@@ -17,7 +17,8 @@ public class ReportWarnedEventHandler {
   @ApplicationModuleListener
   public void handle(ReportWarnedEvent event) {
     WarningCreateRequest request =
-        new WarningCreateRequest(event.reporteeId(), Set.of("REPORT"), true);
+        new WarningCreateRequest(
+            event.reporteeId(), Set.of("REPORT"), true, event.idempotencyKey());
     warningService.issue(event.adminId(), request);
   }
 }

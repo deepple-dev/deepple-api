@@ -41,19 +41,27 @@ public class Warning extends BaseEntity {
 
   private boolean isCritical;
 
+  private String idempotencyKey;
+
   private Warning(
       long adminId,
       long memberId,
       @NonNull Set<WarningReasonType> reasonTypes,
-      boolean isCritical) {
+      boolean isCritical,
+      String idempotencyKey) {
     this.adminId = adminId;
     this.memberId = memberId;
     this.reasonTypes = reasonTypes;
     this.isCritical = isCritical;
+    this.idempotencyKey = idempotencyKey;
   }
 
   public static Warning issue(
-      long adminId, long memberId, Set<WarningReasonType> reasonTypes, boolean isCritical) {
-    return new Warning(adminId, memberId, reasonTypes, isCritical);
+      long adminId,
+      long memberId,
+      Set<WarningReasonType> reasonTypes,
+      boolean isCritical,
+      String idempotencyKey) {
+    return new Warning(adminId, memberId, reasonTypes, isCritical, idempotencyKey);
   }
 }

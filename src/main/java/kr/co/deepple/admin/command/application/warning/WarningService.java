@@ -25,13 +25,19 @@ public class WarningService {
   @Transactional
   public void issue(long adminId, WarningCreateRequest request) {
     long memberId = request.memberId();
+    String idempotencyKey = request.idempotencyKey();
+    if (idempotencyKey != null && warningCommandRepository.existsByIdempotencyKey(idempotencyKey)) {
+      log.atInfo().addKeyValue("memberId", memberId).log("이미 처리된 경고 요청");
+      return;
+    }
 
     long currentWarningCount = warningCommandRepository.countByMemberIdAndIsCriticalTrue(memberId);
     if (request.isCritical()) {
       currentWarningCount += 1;
     }
     Set<WarningReasonType> reasonTypes = toWarningReasonTypes(request.reasonTypes());
-    Warning warning = Warning.issue(adminId, memberId, reasonTypes, request.isCritical());
+    Warning warning =
+        Warning.issue(adminId, memberId, reasonTypes, request.isCritical(), idempotencyKey);
 
     warningCommandRepository.save(warning);
     for (WarningReasonType reasonType : reasonTypes) {
