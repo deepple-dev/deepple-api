@@ -137,32 +137,6 @@ public class MatchService {
     match.read(readerId);
   }
 
-  @Transactional
-  public void read(long readerId, long matchRequesterId, long matchResponderId) {
-    validateReader(readerId, matchRequesterId, matchResponderId);
-    Match match =
-        matchRepository
-            .findByRequesterIdAndResponderId(matchRequesterId, matchResponderId)
-            .orElseThrow(() ->
-                new DeeppleException(
-                    MatchErrorCode.MATCH_NOT_FOUND,
-                    "requesterId=" + matchRequesterId + ", responderId=" + matchResponderId));
-    match.read(readerId);
-  }
-
-  private void validateReader(long readerId, long matchRequesterId, long matchResponderId) {
-    if (readerId != matchRequesterId && readerId != matchResponderId) {
-      throw new DeeppleException(
-          MatchErrorCode.MATCH_ACCESS_DENIED,
-          "readerId="
-              + readerId
-              + ", requesterId="
-              + matchRequesterId
-              + ", responderId="
-              + matchResponderId);
-    }
-  }
-
   private String findNickname(long memberId) {
     return memberCommandRepository
         .findById(memberId)

@@ -25,6 +25,7 @@ spring-cloud-aws-starter-s3 = { module = "io.awspring.cloud:spring-cloud-aws-sta
 spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
 spring-modulith-api = { module = "org.springframework.modulith:spring-modulith-api" }
 spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
+spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
 
 querydsl-jpa = { module = "io.github.openfeign.querydsl:querydsl-jpa", version.ref = "querydsl" }
 querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.ref = "querydsl" }

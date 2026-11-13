@@ -65,6 +65,8 @@
 - 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
   - 발행: 서비스가 `ApplicationEventPublisher`를 주입받아 `publishEvent(event)`로 발행한다. 엔티티는 이벤트를 만들지 않는다. 이벤트는 `Event`(`common/event`)를 구현한 `record`이고, 다른 도메인이 듣는 이벤트는 `<도메인>/event`에 둔다
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`
+  - 커밋 후 처리되는 이벤트는 발행할 때 `event_publication`에 기록된다(Spring Modulith Event Publication Registry). 읽기 전용 트랜잭션이나 트랜잭션 밖에서 발행하면 기록·처리되지 않으므로 쓰기 트랜잭션 안에서 발행한다
+  - 기록에는 이벤트 클래스와 핸들러 메서드의 전체 이름이 저장된다. 이름이나 패키지를 바꾸기 전에 미완료 기록이 없는지 확인한다
 - 동시성 처리는 막을 대상에 맞게 고른다.
   - 이미 있는 행의 값 변경: 비관적 락(`@Lock(PESSIMISTIC_WRITE)`, 예: `MemberCommandRepository.findByIdForUpdate`). 락 대기는 3초(`innodb_lock_wait_timeout`)
   - 아직 없는 행의 중복 생성: unique 제약. 제약으로 표현할 수 없는 규칙이거나 저장 전 작업까지 줄 세워야 하면 `DistributedLockTemplate.executeInTransaction`(Redisson)을 함께 쓴다. 락을 잡는 메서드에는 `@Transactional`을 붙이지 않는다(락 → 트랜잭션 → 커밋 → 해제 순서).
