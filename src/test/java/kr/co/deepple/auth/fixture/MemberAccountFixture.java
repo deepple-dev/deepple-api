@@ -25,6 +25,7 @@ public class MemberAccountFixture {
   private MemberAccountStatus status = MemberAccountStatus.ACTIVE;
   private Instant suspendedUntil;
   private boolean deleted;
+  private LocalDateTime deletedAt;
 
   public static MemberAccountFixture builder() {
     return new MemberAccountFixture();
@@ -42,8 +43,8 @@ public class MemberAccountFixture {
             .status(status)
             .suspendedUntil(suspendedUntil)
             .build();
-    if (deleted) {
-      setField(account, "deletedAt", LocalDateTime.now());
+    if (deleted || deletedAt != null) {
+      setField(account, "deletedAt", deletedAt == null ? LocalDateTime.now() : deletedAt);
     }
     return account;
   }

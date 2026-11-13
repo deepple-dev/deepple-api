@@ -101,4 +101,15 @@ class MemberAccountSyncServiceTest {
 
     verify(memberCommandRepository).updateLastAccessedAt(MEMBER_ID, ACCESSED_AT);
   }
+
+  @Test
+  @DisplayName("계정이 탈퇴하면 회원을 삭제 처리한다.")
+  void deleteMemberWhenAccountDeleted() {
+    Member member = MemberFixture.builder().id(MEMBER_ID).build();
+    when(memberCommandRepository.findById(MEMBER_ID)).thenReturn(Optional.of(member));
+
+    memberAccountSyncService.delete(MEMBER_ID);
+
+    assertThat(member.isDeleted()).isTrue();
+  }
 }

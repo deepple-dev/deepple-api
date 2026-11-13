@@ -50,6 +50,21 @@ public class MemberAccount extends SoftDeleteBaseEntity {
         .build();
   }
 
+  public void suspendTemporarily(@NonNull Instant suspendedUntil) {
+    this.status = MemberAccountStatus.SUSPENDED_TEMPORARILY;
+    this.suspendedUntil = suspendedUntil;
+  }
+
+  public void suspendPermanently() {
+    this.status = MemberAccountStatus.SUSPENDED_PERMANENTLY;
+    this.suspendedUntil = null;
+  }
+
+  public void unsuspend() {
+    this.status = MemberAccountStatus.ACTIVE;
+    this.suspendedUntil = null;
+  }
+
   public void validateLoginAllowed(@NonNull Instant now) {
     if (isDeleted()) {
       throw new DeeppleException(AuthErrorCode.MEMBER_DELETED, "accountId=" + id);
