@@ -6,7 +6,7 @@ import kr.co.deepple.heart.application.port.in.AddAdminHeartUseCase;
 import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
 import kr.co.deepple.heart.domain.HeartErrorCode;
 import kr.co.deepple.heart.domain.TransactionType;
-import kr.co.deepple.heart.domain.event.AdminHeartGrantedEvent;
+import kr.co.deepple.heart.event.AdminHeartGrantedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

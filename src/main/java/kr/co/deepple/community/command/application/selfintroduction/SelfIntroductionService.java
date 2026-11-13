@@ -6,7 +6,7 @@ import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.community.command.domain.CommunityErrorCode;
 import kr.co.deepple.community.command.domain.selfintroduction.SelfIntroduction;
 import kr.co.deepple.community.command.domain.selfintroduction.SelfIntroductionCommandRepository;
-import kr.co.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
+import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
 import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductionWriteRequest;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.MemberCommandRepository;

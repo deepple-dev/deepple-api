@@ -2,7 +2,7 @@ package kr.co.deepple.heart.adapter.in.event;
 
 import kr.co.deepple.heart.application.port.in.AddMissionHeartCommand;
 import kr.co.deepple.heart.application.port.in.AddMissionHeartUseCase;
-import kr.co.deepple.mission.command.domain.memberMission.event.MemberMissionCompletedEvent;
+import kr.co.deepple.mission.event.MemberMissionCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

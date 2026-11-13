@@ -44,14 +44,16 @@
 
 - CQRS 스타일 (대부분의 도메인)
   ```
+  event/               다른 도메인이 듣는 이벤트 (`@NamedInterface("event")`로 공개)
   presentation/        컨트롤러, 요청·응답 DTO
   command/application  쓰기 서비스
-  command/domain       엔티티, 값 객체, 도메인 이벤트, 리포지토리 인터페이스, ErrorCode
+  command/domain       엔티티, 값 객체, 도메인 안에서만 쓰는 이벤트, 리포지토리 인터페이스, ErrorCode
   command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
   query/               읽기 전용 조회 (QueryDSL)
   ```
 - 헥사고날 스타일 (`block`, `datingexam`, `heart`)
   ```
+  event/               다른 도메인이 듣는 이벤트 (`@NamedInterface("event")`로 공개)
   adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)
   application/         port/in(들어오는 포트), port/out(나가는 포트), 서비스
   domain/              엔티티, 값 객체, ErrorCode
@@ -61,7 +63,7 @@
 
 - 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 성공 응답은 감싸지 않고 응답 객체를 그대로 돌려준다(목록은 `MatchViews(matches, hasMore)`처럼 리소스 복수형 필드를 가진 객체로 감싸고, 본문이 없으면 204). 오류 응답은 `GlobalExceptionHandler`가 ProblemDetail로 만든다.
 - 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 한다.
-  - 발행: 서비스가 `ApplicationEventPublisher`를 주입받아 `publishEvent(event)`로 발행한다. 엔티티는 이벤트를 만들지 않는다. 이벤트는 `Event`(`common/event`)를 구현한 `record`
+  - 발행: 서비스가 `ApplicationEventPublisher`를 주입받아 `publishEvent(event)`로 발행한다. 엔티티는 이벤트를 만들지 않는다. 이벤트는 `Event`(`common/event`)를 구현한 `record`이고, 다른 도메인이 듣는 이벤트는 `<도메인>/event`에 둔다
   - 처리: 다른 도메인의 `infra`에 핸들러, 보통 `@TransactionalEventListener(AFTER_COMMIT)` + `@Async`
 - 동시성 처리는 막을 대상에 맞게 고른다.
   - 이미 있는 행의 값 변경: 비관적 락(`@Lock(PESSIMISTIC_WRITE)`, 예: `MemberCommandRepository.findByIdForUpdate`). 락 대기는 3초(`innodb_lock_wait_timeout`)

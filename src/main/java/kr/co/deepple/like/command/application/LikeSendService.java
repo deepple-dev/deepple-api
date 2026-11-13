@@ -8,7 +8,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.command.domain.Like;
 import kr.co.deepple.like.command.domain.LikeCommandRepository;
 import kr.co.deepple.like.command.domain.LikeErrorCode;
-import kr.co.deepple.like.command.domain.LikeSentEvent;
+import kr.co.deepple.like.event.LikeSentEvent;
 import kr.co.deepple.like.presentation.LikeSendRequest;
 import kr.co.deepple.member.command.domain.MemberErrorCode;
 import kr.co.deepple.member.command.domain.member.Member;

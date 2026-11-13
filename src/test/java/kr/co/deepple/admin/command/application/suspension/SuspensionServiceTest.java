@@ -5,11 +5,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
-import kr.co.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
 import kr.co.deepple.admin.command.domain.suspension.Suspension;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionPolicy;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionStatus;
+import kr.co.deepple.admin.event.MemberSuspendedEvent;
 import kr.co.deepple.admin.fixture.SuspensionFixture;
 import kr.co.deepple.admin.presentation.suspension.SuspendRequest;
 import org.junit.jupiter.api.DisplayName;

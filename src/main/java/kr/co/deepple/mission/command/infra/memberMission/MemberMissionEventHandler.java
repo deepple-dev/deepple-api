@@ -1,7 +1,7 @@
 package kr.co.deepple.mission.command.infra.memberMission;
 
-import kr.co.deepple.community.command.domain.selfintroduction.event.SelfIntroductionFirstWrittenEvent;
-import kr.co.deepple.datingexam.application.dto.AllRequiredSubjectSubmittedEvent;
+import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
+import kr.co.deepple.datingexam.event.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.mission.command.application.memberMission.MemberMissionService;
 import kr.co.deepple.mission.command.domain.mission.ActionType;
 import lombok.AccessLevel;

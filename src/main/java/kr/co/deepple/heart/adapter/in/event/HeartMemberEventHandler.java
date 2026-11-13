@@ -2,7 +2,7 @@ package kr.co.deepple.heart.adapter.in.event;
 
 import kr.co.deepple.heart.application.port.in.SyncHeartMemberCommand;
 import kr.co.deepple.heart.application.port.in.SyncHeartMemberUseCase;
-import kr.co.deepple.member.command.domain.member.event.MemberSummaryChangedEvent;
+import kr.co.deepple.member.event.MemberSummaryChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

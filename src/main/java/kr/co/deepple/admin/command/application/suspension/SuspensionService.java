@@ -4,12 +4,12 @@ import static kr.co.deepple.admin.command.application.suspension.SuspensionMappe
 
 import java.time.Instant;
 import java.util.Optional;
-import kr.co.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
-import kr.co.deepple.admin.command.domain.suspension.MemberUnsuspendedEvent;
 import kr.co.deepple.admin.command.domain.suspension.Suspension;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionCommandRepository;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionPolicy;
 import kr.co.deepple.admin.command.domain.suspension.SuspensionStatus;
+import kr.co.deepple.admin.event.MemberSuspendedEvent;
+import kr.co.deepple.admin.event.MemberUnsuspendedEvent;
 import kr.co.deepple.admin.presentation.suspension.SuspendRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

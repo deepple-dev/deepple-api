@@ -1,7 +1,7 @@
 package kr.co.deepple.match.command.infra;
 
 import kr.co.deepple.match.command.application.match.MatchService;
-import kr.co.deepple.member.query.member.application.event.MemberProfileRetrievedEvent;
+import kr.co.deepple.member.event.MemberProfileRetrievedEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;

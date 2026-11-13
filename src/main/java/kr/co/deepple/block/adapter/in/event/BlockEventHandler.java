@@ -1,7 +1,7 @@
 package kr.co.deepple.block.adapter.in.event;
 
 import kr.co.deepple.block.application.port.in.BlockCommander;
-import kr.co.deepple.report.command.domain.event.ReportCreatedEvent;
+import kr.co.deepple.report.event.ReportCreatedEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;

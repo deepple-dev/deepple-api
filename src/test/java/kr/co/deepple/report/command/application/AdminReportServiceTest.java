@@ -17,7 +17,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
-import kr.co.deepple.report.command.domain.event.ReportWarnedEvent;
+import kr.co.deepple.report.event.ReportWarnedEvent;
 import kr.co.deepple.report.fixture.ReportFixture;
 import kr.co.deepple.report.presentation.dto.ReportResultUpdateRequest;
 import org.junit.jupiter.api.DisplayName;

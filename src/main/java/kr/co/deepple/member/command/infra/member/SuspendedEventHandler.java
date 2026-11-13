@@ -1,7 +1,7 @@
 package kr.co.deepple.member.command.infra.member;
 
-import kr.co.deepple.admin.command.domain.suspension.MemberSuspendedEvent;
-import kr.co.deepple.admin.command.domain.suspension.MemberUnsuspendedEvent;
+import kr.co.deepple.admin.event.MemberSuspendedEvent;
+import kr.co.deepple.admin.event.MemberUnsuspendedEvent;
 import kr.co.deepple.member.command.application.member.MemberProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
