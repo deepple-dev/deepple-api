@@ -10,9 +10,9 @@ import static kr.co.deepple.interview.command.domain.answer.QInterviewAnswer.int
 import static kr.co.deepple.interview.command.domain.question.QInterviewQuestion.interviewQuestion;
 import static kr.co.deepple.like.command.domain.QLike.like;
 import static kr.co.deepple.match.command.domain.match.QMatch.match;
-import static kr.co.deepple.member.command.domain.introduction.QMemberIntroduction.memberIntroduction;
 import static kr.co.deepple.member.command.domain.member.QMember.member;
 import static kr.co.deepple.member.command.domain.profileImage.QProfileImage.profileImage;
+import static kr.co.deepple.recommendation.domain.QMemberIntroduction.memberIntroduction;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
