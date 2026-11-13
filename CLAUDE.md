@@ -25,13 +25,13 @@
 
 | 도메인 | 역할 |
 |---|---|
-| `auth` | JWT 발급, refresh token 발급·재발급·폐기 |
+| `auth` | JWT 발급, refresh token 발급·재발급·폐기, 관리자 계정(가입 신청·로그인·승인) |
 | `member` | SMS 인증, 프로필·이미지, 이상형, 이성 소개, 프로필 블러 해제 |
 | `match` | 매칭 요청 메시지, 수락·거절, 메시지 내역 |
 | `heart` | 하트 보유량, 하트 거래 내역 |
 | `payment` | App Store·Google Play 결제, 영수증 검증, 하트 패키지 |
 | `notification` | FCM 기기 등록, 알림 조회·읽음·삭제, 수신 설정 |
-| `admin` | 관리자 인증, 회원 관리, 프로필 심사, 정지·경고, 신고 처리 |
+| `admin` | 회원 관리, 프로필 심사, 정지·경고, 신고 처리 |
 | `community` | 셀프 소개, 프로필 교환 신청·수락·거절 |
 | `interview` | 인터뷰 질문, 사용자 답변 |
 | `like` | 좋아요 전송, 보낸·받은 목록 |
@@ -51,7 +51,7 @@
   command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
   query/               읽기 전용 조회 (QueryDSL)
   ```
-- 헥사고날 스타일 (`block`, `datingexam`, `heart`)
+- 헥사고날 스타일 (`auth`, `block`, `datingexam`, `heart`)
   ```
   event/               다른 도메인이 듣는 이벤트 (`@NamedInterface("event")`로 공개)
   adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)

@@ -1,6 +1,6 @@
 package kr.co.deepple.common.support;
 
-import kr.co.deepple.auth.infra.RefreshTokenRepository;
+import kr.co.deepple.auth.application.port.out.RefreshTokenRepository;
 import kr.co.deepple.common.config.MySqlContainerConfig;
 import kr.co.deepple.common.config.QueryDslConfig;
 import kr.co.deepple.member.command.infra.member.AuthMessageRedisRepository;

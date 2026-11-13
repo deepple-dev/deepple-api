@@ -2,7 +2,7 @@ package kr.co.deepple.member.presentation.member;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.co.deepple.auth.presentation.RefreshTokenCookies;
+import kr.co.deepple.auth.adapter.in.web.RefreshTokenCookies;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.member.command.application.member.MemberAuthService;
 import kr.co.deepple.member.command.application.member.MemberContactService;

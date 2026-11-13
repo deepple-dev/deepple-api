@@ -5,10 +5,10 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import kr.co.deepple.admin.fixture.AdminFixture;
 import kr.co.deepple.admin.fixture.ScreeningFixture;
 import kr.co.deepple.admin.fixture.SuspensionFixture;
 import kr.co.deepple.admin.fixture.WarningFixture;
+import kr.co.deepple.auth.fixture.AdminFixture;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
