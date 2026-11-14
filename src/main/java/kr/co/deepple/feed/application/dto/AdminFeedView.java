@@ -14,6 +14,10 @@ public record AdminFeedView(
     @Schema(description = "작성자 닉네임. 관리자 피드는 공식 계정 이름") String authorNickname,
     String content,
     List<FeedImageView> images,
+    @Schema(
+            description = "보여줄 등급 목록. 비어 있으면 모든 등급에 보인다. 사용자 피드는 빈 목록. 값은 회원의 grade와 같다",
+            example = "[\"DIAMOND\"]")
+        List<String> targetGrades,
     @Schema(description = "상단 고정 여부") boolean isPinned,
     LocalDateTime createdAt,
     @Schema(description = "공개된 시각. 공개된 적이 없으면 null") LocalDateTime publishedAt) {}
