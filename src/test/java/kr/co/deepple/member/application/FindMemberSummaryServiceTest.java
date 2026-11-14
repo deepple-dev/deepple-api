@@ -62,6 +62,8 @@ class FindMemberSummaryServiceTest {
     assertThat(summary.age()).isNull();
     assertThat(summary.city()).isNull();
     assertThat(summary.isActive()).isFalse();
+    assertThatThrownBy(summary::requireNickname).isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(summary::requireGender).isInstanceOf(IllegalStateException.class);
   }
 
   @Test

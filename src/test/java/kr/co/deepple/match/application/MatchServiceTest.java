@@ -24,9 +24,10 @@ import kr.co.deepple.match.event.MatchRejectedEvent;
 import kr.co.deepple.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.fixture.MatchFixture;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +47,7 @@ class MatchServiceTest {
 
   @Mock private DistributedLockTemplate distributedLockTemplate;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private MemberIntroductionCommandRepository introductionCommandRepository;
 
@@ -59,7 +60,8 @@ class MatchServiceTest {
   private void mockMember(Long memberId, String nickname) {
     Member member = MemberFixture.builder().id(memberId).nickname(nickname).build();
 
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenReturn(MemberSummaryFixture.from(member));
   }
 
   @Nested
@@ -207,7 +209,8 @@ class MatchServiceTest {
           .thenReturn(Optional.of(match));
 
       Member requester = MemberFixture.builder().id(requesterId).build();
-      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(requester));
 
       mockMember(responderId, "responder");
 
@@ -285,7 +288,8 @@ class MatchServiceTest {
           .thenReturn(Optional.of(match));
 
       Member requester = MemberFixture.builder().id(requesterId).build();
-      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(requester));
 
       mockMember(responderId, "responder");
 
@@ -358,7 +362,8 @@ class MatchServiceTest {
           .thenReturn(Optional.of(match));
 
       Member requester = MemberFixture.builder().id(requesterId).build();
-      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(requester));
 
       // When
       matchService.rejectCheck(requesterId, matchId);

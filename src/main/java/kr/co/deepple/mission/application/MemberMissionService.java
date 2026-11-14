@@ -4,9 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.mission.application.port.out.MemberMissionCommandRepository;
 import kr.co.deepple.mission.application.port.out.MissionCommandRepository;
 import kr.co.deepple.mission.domain.ActionType;
@@ -26,15 +25,15 @@ public class MemberMissionService {
 
   private final MemberMissionCommandRepository memberMissionCommandRepository;
   private final MissionCommandRepository missionCommandRepository;
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public boolean executeMissionsByAction(long memberId, String actionType) {
-    Member member = getMember(memberId);
+    MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);
     validateMember(member);
 
-    List<Mission> missions = getMission(actionType, member.getProfile().getGender().name());
+    List<Mission> missions = getMission(actionType, member.gender());
     LocalDate today = LocalDate.now();
     boolean hasProcessedMission = false;
     for (Mission mission : missions) {
@@ -49,10 +48,10 @@ public class MemberMissionService {
       if (isSucceeded) {
         eventPublisher.publishEvent(
             MemberMissionCompletedEvent.of(
-                member.getId(),
+                member.memberId(),
                 memberMission.getId(),
                 memberMission.getSuccessCount(),
-                member.getProfile().getNickname().getValue(),
+                member.requireNickname(),
                 mission.getRewardedHeart(),
                 mission.getActionType().getDescription()));
       }
@@ -73,16 +72,9 @@ public class MemberMissionService {
     return Stream.concat(mission.stream(), allGenderMission.stream()).toList();
   }
 
-  private Member getMember(long memberId) {
-    return memberCommandRepository
-        .findById(memberId)
-        .orElseThrow(
-            () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
-  }
-
-  private void validateMember(Member member) {
-    if (member.getProfile() == null || member.getProfile().getGender() == null) {
-      throw new DeeppleException(MissionErrorCode.GENDER_NOT_SET, "memberId=" + member.getId());
+  private void validateMember(MemberSummary member) {
+    if (member.gender() == null) {
+      throw new DeeppleException(MissionErrorCode.GENDER_NOT_SET, "memberId=" + member.memberId());
     }
   }
 }

@@ -19,9 +19,8 @@ import kr.co.deepple.match.event.MatchAcceptedEvent;
 import kr.co.deepple.match.event.MatchRejectedEvent;
 import kr.co.deepple.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.event.MatchRespondedEvent;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
@@ -37,7 +36,7 @@ public class MatchService {
   private static final String LOCK_PREFIX = "MATCH:";
   private static final String REQUEST_HEART_USAGE_TYPE = "MESSAGE";
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIntroductionCommandRepository introductionCommandRepository;
   private final MatchRepository matchRepository;
   private final DistributedLockTemplate distributedLockTemplate;
@@ -138,13 +137,7 @@ public class MatchService {
   }
 
   private String findNickname(long memberId) {
-    return memberCommandRepository
-        .findById(memberId)
-        .orElseThrow(
-            () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId))
-        .getProfile()
-        .getNickname()
-        .getValue();
+    return findMemberSummaryUseCase.getMemberSummary(memberId).requireNickname();
   }
 
   private boolean existsMutualMatch(long requesterId, long responderId) {
@@ -189,15 +182,10 @@ public class MatchService {
   }
 
   private void validateMatch(Match match) {
-    Member member =
-        memberCommandRepository
-            .findById(match.getRequesterId())
-            .orElseThrow(() ->
-                new DeeppleException(
-                    MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + match.getRequesterId()));
-    if (!member.isActive()) {
+    MemberSummary requester = findMemberSummaryUseCase.getMemberSummary(match.getRequesterId());
+    if (!requester.isActive()) {
       throw new DeeppleException(
-          MatchErrorCode.MATCH_REQUESTER_INACTIVE, "requesterId=" + member.getId());
+          MatchErrorCode.MATCH_REQUESTER_INACTIVE, "requesterId=" + requester.memberId());
     }
   }
 }

@@ -8,8 +8,7 @@ import kr.co.deepple.community.application.port.out.SelfIntroductionCommandRepos
 import kr.co.deepple.community.domain.CommunityErrorCode;
 import kr.co.deepple.community.domain.SelfIntroduction;
 import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ public class SelfIntroductionService {
   private static final String IMAGE_PATH_PREFIX = "self-introduction";
 
   private final SelfIntroductionCommandRepository selfIntroductionCommandRepository;
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final S3Uploader s3Uploader;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -91,9 +90,6 @@ public class SelfIntroductionService {
   }
 
   private void validateMemberId(long memberId) {
-    memberCommandRepository
-        .findById(memberId)
-        .orElseThrow(
-            () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
+    findMemberSummaryUseCase.getMemberSummary(memberId);
   }
 }
