@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.within;
 
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionSearchCondition;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionView;
@@ -40,7 +41,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
 
     // when
     Page<AdminHeartTransactionView> result =
-        adminHeartTransactionQueryRepository.findPage(condition, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(condition, null, pageRequest);
 
     // then
     assertThat(result).isNotNull();
@@ -59,7 +60,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
   }
 
   @Test
-  @DisplayName("하트 거래 내역 페이지 조회 nickname condition 테스트")
+  @DisplayName("회원 번호 집합을 주면 그 회원들의 하트 거래 내역만 조회한다 (닉네임으로 찾은 경우)")
   void findPageWithNicknameCondition() {
     // given
     AdminHeartTransactionSearchCondition condition =
@@ -82,7 +83,8 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
 
     // when
     Page<AdminHeartTransactionView> result =
-        adminHeartTransactionQueryRepository.findPage(condition, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(
+            condition, Set.of(member1.getId()), pageRequest);
 
     // then
     assertThat(result).isNotNull();
@@ -93,7 +95,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
   }
 
   @Test
-  @DisplayName("하트 거래 내역 페이지 조회 phoneNumber condition 테스트")
+  @DisplayName("회원 번호 집합을 주면 그 회원들의 하트 거래 내역만 조회한다 (전화번호로 찾은 경우)")
   void findPageWithPhoneNumberCondition() {
     // given
     AdminHeartTransactionSearchCondition condition =
@@ -116,7 +118,8 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
 
     // when
     Page<AdminHeartTransactionView> result =
-        adminHeartTransactionQueryRepository.findPage(condition, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(
+            condition, Set.of(member1.getId()), pageRequest);
 
     // then
     assertThat(result).isNotNull();
@@ -127,7 +130,7 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
   }
 
   @Test
-  @DisplayName("하트 거래 내역 페이지 조회 nickname and phoneNumber condition 테스트")
+  @DisplayName("회원 번호 집합이 비어 있으면 빈 페이지를 돌려준다")
   void findPageWithNicknameAndPhoneNumberCondition() {
     // given
     AdminHeartTransactionSearchCondition condition1 =
@@ -152,9 +155,10 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
 
     // when
     Page<AdminHeartTransactionView> result1 =
-        adminHeartTransactionQueryRepository.findPage(condition1, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(
+            condition1, Set.of(member1.getId()), pageRequest);
     Page<AdminHeartTransactionView> result2 =
-        adminHeartTransactionQueryRepository.findPage(condition2, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(condition2, Set.of(), pageRequest);
 
     // then
     assertThat(result1).isNotNull();
@@ -185,10 +189,10 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
 
     // when
     Page<AdminHeartTransactionView> result1 =
-        adminHeartTransactionQueryRepository.findPage(condition1, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(condition1, null, pageRequest);
 
     Page<AdminHeartTransactionView> result2 =
-        adminHeartTransactionQueryRepository.findPage(condition2, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(condition2, null, pageRequest);
 
     // then
     assertThat(result1).isNotNull();
@@ -219,10 +223,10 @@ class AdminHeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport
 
     // when
     Page<AdminHeartTransactionView> result1 =
-        adminHeartTransactionQueryRepository.findPage(condition1, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(condition1, null, pageRequest);
 
     Page<AdminHeartTransactionView> result2 =
-        adminHeartTransactionQueryRepository.findPage(condition2, pageRequest);
+        adminHeartTransactionQueryRepository.findPage(condition2, null, pageRequest);
 
     // then
     assertThat(result1).isNotNull();

@@ -1033,4 +1033,28 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
           .isNull();
     }
   }
+
+  @Nested
+  @DisplayName("닉네임·전화번호로 회원 번호 찾기 테스트")
+  class FindIdsQueryTest {
+
+    @Test
+    @DisplayName("닉네임은 포함 여부로, 전화번호는 일치 여부로 찾고 두 조건을 함께 주면 모두 만족하는 회원만 찾는다.")
+    void findIdsByNicknameAndPhoneNumber() {
+      Member first =
+          entityManager.persist(
+              MemberFixture.builder().nickname("검색대상1").phoneNumber("01088880001").build());
+      Member second =
+          entityManager.persist(
+              MemberFixture.builder().nickname("검색대상2").phoneNumber("01088880002").build());
+      entityManager.flush();
+
+      assertThat(memberQueryRepository.findIdsByNicknameAndPhoneNumber("검색대상", null))
+          .containsExactlyInAnyOrder(first.getId(), second.getId());
+      assertThat(memberQueryRepository.findIdsByNicknameAndPhoneNumber(null, "01088880002"))
+          .containsExactly(second.getId());
+      assertThat(memberQueryRepository.findIdsByNicknameAndPhoneNumber("검색대상1", "01088880002"))
+          .isEmpty();
+    }
+  }
 }

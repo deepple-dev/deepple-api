@@ -1,13 +1,11 @@
 package kr.co.deepple.heart.adapter.out.persistence;
 
 import static kr.co.deepple.heart.domain.QHeartTransaction.heartTransaction;
-import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionSearchCondition;
@@ -29,10 +27,8 @@ public class AdminHeartTransactionQueryRepositoryImpl
 
   @Override
   public Page<AdminHeartTransactionView> findPage(
-      AdminHeartTransactionSearchCondition condition, Pageable pageable) {
-    Set<Long> memberIds = getMemberIds(condition.nickname(), condition.phoneNumber());
+      AdminHeartTransactionSearchCondition condition, Set<Long> memberIds, Pageable pageable) {
     if (memberIds != null && memberIds.isEmpty()) {
-      // nickname과 phoneNumber 검색 결과 대상 멤버가 없는 경우 빈 페이지를 반환합니다.
       return new PageImpl<>(List.of(), pageable, 0);
     }
 
@@ -67,30 +63,6 @@ public class AdminHeartTransactionQueryRepositoryImpl
             .fetchOne();
 
     return new PageImpl<>(views, pageable, totalCount);
-  }
-
-  private Set<Long> getMemberIds(String nickname, String phoneNumber) {
-    if (nickname == null && phoneNumber == null) {
-      // nickname과 phoneNumber가 모두 null인 경우 null을 반환하여 memberId 조건을 무시합니다.
-      return null;
-    }
-
-    List<Long> list =
-        queryFactory
-            .select(member.id)
-            .from(member)
-            .where(nicknameContains(nickname), phoneNumberEq(phoneNumber))
-            .fetch();
-
-    return new HashSet<>(list);
-  }
-
-  private BooleanExpression nicknameContains(String nickname) {
-    return nickname != null ? member.profile.nickname.value.contains(nickname) : null;
-  }
-
-  private BooleanExpression phoneNumberEq(String phoneNumber) {
-    return phoneNumber != null ? member.phoneNumber.value.eq(phoneNumber) : null;
   }
 
   private NumberExpression<Long> getHeartBalance() {
