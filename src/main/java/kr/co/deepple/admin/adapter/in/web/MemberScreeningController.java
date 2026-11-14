@@ -1,4 +1,4 @@
-package kr.co.deepple.member.adapter.in.web;
+package kr.co.deepple.admin.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

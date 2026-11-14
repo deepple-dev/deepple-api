@@ -3,8 +3,7 @@ package kr.co.deepple.admin.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.deepple.admin.adapter.out.persistence.ScreeningDetailQueryRepository;
-import kr.co.deepple.admin.adapter.out.persistence.ScreeningQueryRepository;
+import kr.co.deepple.admin.application.ScreeningQueryService;
 import kr.co.deepple.admin.application.ScreeningService;
 import kr.co.deepple.admin.application.dto.ScreeningApproveRequest;
 import kr.co.deepple.admin.application.dto.ScreeningDetailView;
@@ -32,21 +31,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class ScreeningController {
 
   private final ScreeningService screeningService;
-  private final ScreeningQueryRepository screeningQueryRepository;
-  private final ScreeningDetailQueryRepository screeningDetailQueryRepository;
+  private final ScreeningQueryService screeningQueryService;
 
   @Operation(summary = "심사 목록 조회")
   @GetMapping
   public ResponseEntity<Page<ScreeningView>> getScreenings(
-      @Valid @ModelAttribute ScreeningSearchCondition condition,
+      @Valid @ModelAttribute ScreeningSearchCondition screeningSearchCondition,
       @PageableDefault(size = 100) Pageable pageable) {
-    return ResponseEntity.ok(screeningQueryRepository.findScreenings(condition, pageable));
+    return ResponseEntity.ok(
+        screeningQueryService.findScreenings(screeningSearchCondition, pageable));
   }
 
   @Operation(summary = "심사 상세 조회")
   @GetMapping("/{screeningId}")
   public ResponseEntity<ScreeningDetailView> getScreeningDetail(@PathVariable long screeningId) {
-    return ResponseEntity.ok(screeningDetailQueryRepository.findById(screeningId));
+    return ResponseEntity.ok(screeningQueryService.getScreeningDetail(screeningId));
   }
 
   @Operation(summary = "심사 승인")

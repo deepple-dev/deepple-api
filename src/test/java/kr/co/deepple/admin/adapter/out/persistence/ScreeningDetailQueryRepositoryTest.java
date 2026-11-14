@@ -2,21 +2,13 @@ package kr.co.deepple.admin.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Calendar;
-import kr.co.deepple.admin.application.dto.ScreeningDetailView;
+import java.util.Optional;
+import kr.co.deepple.admin.application.dto.RawScreeningDetailView;
+import kr.co.deepple.admin.domain.RejectionReasonType;
 import kr.co.deepple.admin.domain.Screening;
+import kr.co.deepple.admin.domain.ScreeningStatus;
 import kr.co.deepple.admin.fixture.ScreeningFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.interview.domain.InterviewAnswer;
-import kr.co.deepple.interview.domain.InterviewCategory;
-import kr.co.deepple.interview.domain.InterviewQuestion;
-import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
-import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.ProfileImage;
-import kr.co.deepple.member.fixture.MemberFixture;
-import kr.co.deepple.member.fixture.ProfileImageFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,90 +24,49 @@ class ScreeningDetailQueryRepositoryTest extends RepositoryTestSupport {
   @DisplayName("상세 심사를 조회합니다.")
   void findById() {
     // given
-    Member member = createMember();
-    long memberId = (Long) em.persistAndGetId(member);
-
-    Screening screening = ScreeningFixture.builder().memberId(memberId).build();
-    long screeningId = (Long) em.persistAndGetId(screening);
-
-    ProfileImage profileImage1 = createProfileImage(memberId, "image_url_1", true);
-    ProfileImage profileImage2 = createProfileImage(memberId, "image_url_2", false);
-    em.persist(profileImage1);
-    em.persist(profileImage2);
-
-    InterviewQuestion question1 = createInterviewQuestion("question1", true);
-    InterviewQuestion question2 = createInterviewQuestion("question2", false);
-    InterviewQuestion question3 = createInterviewQuestion("question3", true);
-    long question1Id = (Long) em.persistAndGetId(question1);
-    long question2Id = (Long) em.persistAndGetId(question2);
-    em.persist(question3);
-
-    InterviewAnswer answer1 =
-        InterviewAnswerFixture.builder()
-            .questionId(question1Id)
-            .memberId(memberId)
-            .content("answer for question1")
-            .build();
-    InterviewAnswer answer2 =
-        InterviewAnswerFixture.builder()
-            .questionId(question2Id)
-            .memberId(memberId)
-            .content("answer for question2")
-            .build();
-    em.persist(answer1);
-    em.persist(answer2);
-
+    Screening screening = em.persist(ScreeningFixture.builder().memberId(101L).build());
     em.flush();
     em.clear();
 
     // when
-    ScreeningDetailView screeningDetail = screeningDetailQueryRepository.findById(screeningId);
+    Optional<RawScreeningDetailView> screeningDetail =
+        screeningDetailQueryRepository.findById(screening.getId());
 
     // then
-    assertThat(screeningDetail).isNotNull();
-
-    assertThat(screeningDetail.screeningId()).isEqualTo(screening.getId());
-    assertThat(screeningDetail.profile().nickname()).isEqualTo("member");
-    assertThat(screeningDetail.profile().gender()).isEqualTo("MALE");
-    assertThat(screeningDetail.profile().screeningStatus())
-        .isEqualTo(screening.getStatus().toString());
-    assertThat(screeningDetail.profile().rejectionReason()).isNull();
-
-    assertThat(screeningDetail.profileImages()).hasSize(2);
-    assertThat(screeningDetail.profileImages())
-        .extracting("imageUrl")
-        .containsExactlyInAnyOrder("image_url_1", "image_url_2");
-    assertThat(screeningDetail.profileImages())
-        .extracting("isPrimary")
-        .containsExactlyInAnyOrder(true, false);
-
-    assertThat(screeningDetail.interviews()).hasSize(1);
-    assertThat(screeningDetail.interviews().getFirst().question()).isEqualTo("question1");
-    assertThat(screeningDetail.interviews().getFirst().answer()).isEqualTo("answer for question1");
+    assertThat(screeningDetail)
+        .contains(
+            new RawScreeningDetailView(
+                screening.getId(), screening.getVersion(), 101L, "PENDING", null));
+    assertThat(screening.getVersion()).isNotNull();
   }
 
-  private Member createMember() {
-    return MemberFixture.builder()
-        .phoneNumber("01011111111")
-        .nickname("member")
-        .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25)
-        .gender(Gender.MALE)
-        .build();
+  @Test
+  @DisplayName("반려된 심사는 반려 사유를 함께 조회합니다.")
+  void findRejectedScreening() {
+    // given
+    RejectionReasonType rejectionReason = RejectionReasonType.STOLEN_IMAGE;
+    Screening screening =
+        em.persist(
+            ScreeningFixture.builder()
+                .memberId(101L)
+                .status(ScreeningStatus.REJECTED)
+                .rejectionReason(rejectionReason)
+                .build());
+    em.flush();
+    em.clear();
+
+    // when
+    RawScreeningDetailView screeningDetail =
+        screeningDetailQueryRepository.findById(screening.getId()).orElseThrow();
+
+    // then
+    assertThat(screeningDetail.screeningStatus()).isEqualTo("REJECTED");
+    assertThat(screeningDetail.rejectionReason()).isEqualTo(rejectionReason.name());
   }
 
-  private ProfileImage createProfileImage(long memberId, String imageUrl, boolean isPrimary) {
-    return ProfileImageFixture.builder()
-        .memberId(memberId)
-        .imageUrl(imageUrl)
-        .primary(isPrimary)
-        .build();
-  }
-
-  private InterviewQuestion createInterviewQuestion(String question1, boolean isPublic) {
-    return InterviewQuestionFixture.builder()
-        .content(question1)
-        .category(InterviewCategory.PERSONAL)
-        .publicQuestion(isPublic)
-        .build();
+  @Test
+  @DisplayName("없는 심사는 빈 결과를 돌려줍니다.")
+  void findByIdWhenAbsent() {
+    assertThat(screeningDetailQueryRepository.findById(-1L)).isEmpty();
   }
 }

@@ -1,6 +1,5 @@
-package kr.co.deepple.admin.application.dto;
+package kr.co.deepple.match.application.dto;
 
-import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.deepple.match.domain.MatchStatus;
 
@@ -11,7 +10,4 @@ public record MatchHistoryView(
     String requestMessage,
     String responseMessage,
     @Schema(implementation = MatchStatus.class) String status,
-    String readByResponderAt) {
-  @QueryProjection
-  public MatchHistoryView {}
-}
+    String readByResponderAt) {}

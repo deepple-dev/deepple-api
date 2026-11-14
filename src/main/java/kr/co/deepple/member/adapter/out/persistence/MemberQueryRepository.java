@@ -40,8 +40,10 @@ import kr.co.deepple.member.application.dto.QMemberInfoView;
 import kr.co.deepple.member.application.dto.QMemberProfileView;
 import kr.co.deepple.member.application.dto.QOtherMemberProfileView;
 import kr.co.deepple.member.application.dto.QProfileAccessView;
+import kr.co.deepple.member.application.port.in.MemberIdSearchCondition;
 import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.application.port.in.MemberProfileSummary;
+import kr.co.deepple.member.application.port.in.MemberScreeningProfile;
 import kr.co.deepple.member.application.port.in.MemberSearchCondition;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.AgeConverter;
@@ -372,6 +374,40 @@ public class MemberQueryRepository {
                     : null,
                 phoneNumber != null ? member.phoneNumber.value.eq(phoneNumber) : null)
             .fetch());
+  }
+
+  public Set<Long> searchIds(MemberIdSearchCondition condition) {
+    return new HashSet<>(
+        queryFactory
+            .select(member.id)
+            .from(member)
+            .where(
+                condition.nickname() != null
+                    ? member.profile.nickname.value.eq(condition.nickname())
+                    : null,
+                condition.phoneNumber() != null
+                    ? member.phoneNumber.value.eq(condition.phoneNumber())
+                    : null,
+                condition.joinedFrom() != null
+                    ? member.createdAt.goe(condition.joinedFrom())
+                    : null,
+                condition.joinedTo() != null ? member.createdAt.loe(condition.joinedTo()) : null)
+            .fetch());
+  }
+
+  public List<MemberScreeningProfile> findScreeningProfilesByMemberIds(Collection<Long> memberIds) {
+    return queryFactory
+        .select(
+            Projections.constructor(
+                MemberScreeningProfile.class,
+                member.id,
+                member.profile.nickname.value,
+                member.profile.yearOfBirth.value,
+                member.profile.gender.stringValue(),
+                member.createdAt))
+        .from(member)
+        .where(member.id.in(memberIds))
+        .fetch();
   }
 
   public List<Long> findIntroducibleIds(
