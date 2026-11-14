@@ -18,8 +18,6 @@ public interface MemberCommandJpaRepository extends JpaRepository<Member, Long> 
   @Query("SELECT m FROM Member m WHERE m.id = :id")
   Optional<Member> findByIdForUpdate(long id);
 
-  Optional<Member> findByPhoneNumber(PhoneNumber phoneNumber);
-
   boolean existsByPhoneNumberAndIdNot(PhoneNumber phoneNumber, long id);
 
   boolean existsByKakaoIdAndIdNot(KakaoId kakaoId, long id);
