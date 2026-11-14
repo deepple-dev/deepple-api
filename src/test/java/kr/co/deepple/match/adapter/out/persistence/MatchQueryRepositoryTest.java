@@ -1,10 +1,13 @@
 package kr.co.deepple.match.adapter.out.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.match.application.dto.MatchView;
+import kr.co.deepple.match.application.dto.RawMatchView;
 import kr.co.deepple.match.domain.Match;
 import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchStatus;
@@ -63,13 +66,14 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     // When
-    List<MatchView> matchViews = matchQueryRepository.findSentMatches(targetMember.getId(), null);
+    List<RawMatchView> matchViews =
+        matchQueryRepository.findSentMatches(targetMember.getId(), null, Set.of());
 
     // Then
     Assertions.assertThat(matchViews.size()).isEqualTo(9);
 
     for (int i = 0; i < matchViews.size(); i++) {
-      MatchView matchView = matchViews.get(i);
+      RawMatchView matchView = matchViews.get(i);
       Long opponentId = matchView.opponentId();
       Member member =
           members.stream().filter(m -> m.getId().equals(opponentId)).findFirst().orElse(null);
@@ -80,7 +84,6 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
               .orElse(null);
       Assertions.assertThat(member).isNotNull();
       Assertions.assertThat(profileImage).isNotNull();
-      Assertions.assertThat(matchView.profileImageUrl()).isEqualTo(profileImage.getUrl());
     }
   }
 
@@ -111,14 +114,14 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
     }
 
     // When
-    List<MatchView> matchViews =
-        matchQueryRepository.findReceiveMatches(targetMember.getId(), null);
+    List<RawMatchView> matchViews =
+        matchQueryRepository.findReceiveMatches(targetMember.getId(), null, Set.of());
 
     // Then
     Assertions.assertThat(matchViews.size()).isEqualTo(9);
 
     for (int i = 0; i < matchViews.size(); i++) {
-      MatchView matchView = matchViews.get(i);
+      RawMatchView matchView = matchViews.get(i);
       Long opponentId = matchView.opponentId();
       Member member =
           members.stream().filter(m -> m.getId().equals(opponentId)).findFirst().orElse(null);
@@ -129,7 +132,6 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
               .orElse(null);
       Assertions.assertThat(member).isNotNull();
       Assertions.assertThat(profileImage).isNotNull();
-      Assertions.assertThat(matchView.profileImageUrl()).isEqualTo(profileImage.getUrl());
     }
   }
 
@@ -159,15 +161,16 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
     em.persist(unreadMatch);
 
     // when
-    List<MatchView> matchViews = matchQueryRepository.findSentMatches(requester.getId(), null);
+    List<RawMatchView> matchViews =
+        matchQueryRepository.findSentMatches(requester.getId(), null, Set.of());
 
     // then
-    MatchView readView =
+    RawMatchView readView =
         matchViews.stream()
             .filter(v -> v.opponentId() == readResponder.getId())
             .findFirst()
             .orElseThrow();
-    MatchView unreadView =
+    RawMatchView unreadView =
         matchViews.stream()
             .filter(v -> v.opponentId() == unreadResponder.getId())
             .findFirst()
@@ -207,5 +210,51 @@ public class MatchQueryRepositoryTest extends RepositoryTestSupport {
 
   private ProfileImage createProfileImage(long memberId, String url) {
     return ProfileImageFixture.builder().memberId(memberId).imageUrl(url).build();
+  }
+
+  @Test
+  @DisplayName("차단한 회원과 주고받은 메세지는 보낸·받은 목록에서 빠지고, 내 메세지와 상대 메세지가 각자의 자리에 들어간다.")
+  void excludeBlockedOpponentsAndMapMessages() {
+    // given
+    Member me = em.persist(MemberFixture.builder().build());
+    Member opponent = em.persist(MemberFixture.builder().build());
+    Member blocked = em.persist(MemberFixture.builder().build());
+    Member blockedRequester = em.persist(MemberFixture.builder().build());
+
+    em.persist(
+        MatchFixture.builder()
+            .requesterId(me.getId())
+            .responderId(opponent.getId())
+            .requestMessage("내가 보낸 요청")
+            .responseMessage("상대의 응답")
+            .build());
+    em.persist(
+        MatchFixture.builder()
+            .requesterId(me.getId())
+            .responderId(blocked.getId())
+            .requestMessage("차단한 회원에게 보낸 요청")
+            .responseMessage("차단한 회원의 응답")
+            .build());
+    em.persist(
+        MatchFixture.builder()
+            .requesterId(blockedRequester.getId())
+            .responderId(me.getId())
+            .requestMessage("차단한 회원이 보낸 요청")
+            .responseMessage("내가 한 응답")
+            .build());
+    Set<Long> blockedIds = Set.of(blocked.getId(), blockedRequester.getId());
+
+    // when
+    List<RawMatchView> sent = matchQueryRepository.findSentMatches(me.getId(), null, blockedIds);
+    List<RawMatchView> received =
+        matchQueryRepository.findReceiveMatches(me.getId(), null, blockedIds);
+
+    // then
+    assertThat(sent).extracting(RawMatchView::opponentId).containsExactly(opponent.getId());
+    assertThat(sent.getFirst().myMessage()).isEqualTo("내가 보낸 요청");
+    assertThat(sent.getFirst().opponentMessage()).isEqualTo("상대의 응답");
+    assertThat(received).extracting(RawMatchView::opponentId).containsExactly(opponent.getId());
+    assertThat(received.getFirst().myMessage()).isEqualTo("내가 보낸 요청");
+    assertThat(received.getFirst().opponentMessage()).isEqualTo("상대의 응답");
   }
 }
