@@ -4,7 +4,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import kr.co.deepple.member.command.domain.member.Gender;
+import kr.co.deepple.member.domain.Gender;
 
 public record AdminSelfIntroductionView(
     long selfIntroductionId,

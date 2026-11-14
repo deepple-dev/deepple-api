@@ -1,7 +1,7 @@
 package kr.co.deepple.recommendation.application;
 
 import java.util.List;
-import kr.co.deepple.member.query.member.AgeConverter;
+import kr.co.deepple.member.domain.AgeConverter;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import lombok.AccessLevel;

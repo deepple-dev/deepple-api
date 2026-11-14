@@ -2,7 +2,7 @@ package kr.co.deepple.datingexam.adapter.out.persistence;
 
 import static kr.co.deepple.block.domain.QBlock.block;
 import static kr.co.deepple.datingexam.domain.QDatingExamSubmitResult.datingExamSubmitResult;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
+import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Collections;
@@ -14,8 +14,8 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.out.PersonalityTypeMemberQueryRepository;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
-import kr.co.deepple.member.command.domain.member.ActivityStatus;
-import kr.co.deepple.member.command.domain.member.Gender;
+import kr.co.deepple.member.domain.ActivityStatus;
+import kr.co.deepple.member.domain.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

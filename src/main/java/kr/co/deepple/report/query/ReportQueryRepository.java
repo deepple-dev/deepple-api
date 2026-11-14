@@ -7,7 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import kr.co.deepple.member.command.domain.member.QMember;
+import kr.co.deepple.member.domain.QMember;
 import kr.co.deepple.report.query.condition.ReportSearchCondition;
 import kr.co.deepple.report.query.view.QReportDetailView;
 import kr.co.deepple.report.query.view.QReportView;

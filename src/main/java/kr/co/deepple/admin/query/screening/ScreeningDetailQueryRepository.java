@@ -3,8 +3,8 @@ package kr.co.deepple.admin.query.screening;
 import static kr.co.deepple.admin.command.domain.screening.QScreening.screening;
 import static kr.co.deepple.interview.command.domain.answer.QInterviewAnswer.interviewAnswer;
 import static kr.co.deepple.interview.command.domain.question.QInterviewQuestion.interviewQuestion;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
-import static kr.co.deepple.member.command.domain.profileImage.QProfileImage.profileImage;
+import static kr.co.deepple.member.domain.QMember.member;
+import static kr.co.deepple.member.domain.QProfileImage.profileImage;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;

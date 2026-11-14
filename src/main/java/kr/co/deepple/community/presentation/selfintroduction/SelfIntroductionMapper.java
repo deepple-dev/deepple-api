@@ -2,8 +2,8 @@ package kr.co.deepple.community.presentation.selfintroduction;
 
 import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchCondition;
 import kr.co.deepple.community.presentation.selfintroduction.dto.SelfIntroductionSearchRequest;
-import kr.co.deepple.member.command.domain.member.Gender;
-import kr.co.deepple.member.query.member.AgeConverter;
+import kr.co.deepple.member.domain.AgeConverter;
+import kr.co.deepple.member.domain.Gender;
 
 public class SelfIntroductionMapper {
 

@@ -4,7 +4,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.deepple.admin.command.domain.screening.RejectionReasonType;
 import kr.co.deepple.admin.command.domain.screening.ScreeningStatus;
-import kr.co.deepple.member.command.domain.member.Gender;
+import kr.co.deepple.member.domain.Gender;
 
 public record ScreeningDetailProfileView(
     long memberId,

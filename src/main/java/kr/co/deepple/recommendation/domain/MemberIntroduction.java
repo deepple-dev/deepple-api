@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.command.domain.MemberErrorCode;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

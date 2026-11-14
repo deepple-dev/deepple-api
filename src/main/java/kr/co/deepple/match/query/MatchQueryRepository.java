@@ -2,8 +2,8 @@ package kr.co.deepple.match.query;
 
 import static kr.co.deepple.block.domain.QBlock.block;
 import static kr.co.deepple.match.command.domain.match.QMatch.match;
-import static kr.co.deepple.member.command.domain.member.QMember.member;
-import static kr.co.deepple.member.command.domain.profileImage.QProfileImage.profileImage;
+import static kr.co.deepple.member.domain.QMember.member;
+import static kr.co.deepple.member.domain.QProfileImage.profileImage;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;

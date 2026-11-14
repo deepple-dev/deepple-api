@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Set;
-import kr.co.deepple.member.command.domain.member.City;
-import kr.co.deepple.member.command.domain.member.DrinkingStatus;
-import kr.co.deepple.member.command.domain.member.Hobby;
-import kr.co.deepple.member.command.domain.member.Religion;
-import kr.co.deepple.member.command.domain.member.SmokingStatus;
+import kr.co.deepple.member.domain.City;
+import kr.co.deepple.member.domain.DrinkingStatus;
+import kr.co.deepple.member.domain.Hobby;
+import kr.co.deepple.member.domain.Religion;
+import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

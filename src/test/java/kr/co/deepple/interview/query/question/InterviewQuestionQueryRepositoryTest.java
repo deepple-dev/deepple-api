@@ -12,7 +12,7 @@ import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
 import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
 import kr.co.deepple.interview.query.condition.InterviewQuestionSearchCondition;
 import kr.co.deepple.interview.query.question.view.InterviewQuestionView;
-import kr.co.deepple.member.command.domain.member.Member;
+import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

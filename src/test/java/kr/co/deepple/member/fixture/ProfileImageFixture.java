@@ -2,8 +2,8 @@ package kr.co.deepple.member.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.member.command.domain.profileImage.ProfileImage;
-import kr.co.deepple.member.command.domain.profileImage.vo.ImageUrl;
+import kr.co.deepple.member.domain.ImageUrl;
+import kr.co.deepple.member.domain.ProfileImage;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

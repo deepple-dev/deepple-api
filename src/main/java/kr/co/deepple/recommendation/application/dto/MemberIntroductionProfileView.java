@@ -4,11 +4,11 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import kr.co.deepple.like.command.domain.LikeLevel;
-import kr.co.deepple.member.command.domain.member.City;
-import kr.co.deepple.member.command.domain.member.District;
-import kr.co.deepple.member.command.domain.member.Hobby;
-import kr.co.deepple.member.command.domain.member.Mbti;
-import kr.co.deepple.member.command.domain.member.Religion;
+import kr.co.deepple.member.domain.City;
+import kr.co.deepple.member.domain.District;
+import kr.co.deepple.member.domain.Hobby;
+import kr.co.deepple.member.domain.Mbti;
+import kr.co.deepple.member.domain.Religion;
 
 public record MemberIntroductionProfileView(
     long memberId,

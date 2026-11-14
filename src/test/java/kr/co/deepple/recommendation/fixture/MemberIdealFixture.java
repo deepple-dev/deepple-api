@@ -4,11 +4,11 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.HashSet;
 import java.util.Set;
-import kr.co.deepple.member.command.domain.member.City;
-import kr.co.deepple.member.command.domain.member.DrinkingStatus;
-import kr.co.deepple.member.command.domain.member.Hobby;
-import kr.co.deepple.member.command.domain.member.Religion;
-import kr.co.deepple.member.command.domain.member.SmokingStatus;
+import kr.co.deepple.member.domain.City;
+import kr.co.deepple.member.domain.DrinkingStatus;
+import kr.co.deepple.member.domain.Hobby;
+import kr.co.deepple.member.domain.Religion;
+import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import lombok.AccessLevel;

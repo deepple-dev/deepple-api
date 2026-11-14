@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.command.domain.MemberErrorCode;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

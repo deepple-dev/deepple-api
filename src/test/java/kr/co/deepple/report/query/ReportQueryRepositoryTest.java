@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.member.command.domain.member.Member;
+import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportReasonType;

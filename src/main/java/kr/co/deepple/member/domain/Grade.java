@@ -1,0 +1,23 @@
+package kr.co.deepple.member.domain;
+
+import kr.co.deepple.common.exception.DeeppleException;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum Grade {
+  DIAMOND("다이아몬드"),
+  GOLD("골드"),
+  SILVER("실버");
+
+  private final String description;
+
+  public static Grade from(String grade) {
+    try {
+      return Grade.valueOf(grade.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new DeeppleException(MemberErrorCode.INVALID_GRADE, "grade=" + grade, e);
+    }
+  }
+}
