@@ -59,7 +59,12 @@ class LikeQueryServiceTest {
                         Function.identity(),
                         id ->
                             new MemberPreview(
-                                id, "nickname" + id, "https://example.com/" + id, "SEOUL", 1995))));
+                                id,
+                                "nickname" + id,
+                                "https://example.com/" + id,
+                                "SEOUL",
+                                1995,
+                                "FEMALE"))));
   }
 
   private List<RawLikeView> createRawLikes(int count) {
@@ -293,7 +298,7 @@ class LikeQueryServiceTest {
     long senderId = 1L;
     given(likeQueryRepository.findSentLikes(senderId, null, Set.of()))
         .willReturn(List.of(new RawLikeView(10L, 200L, true, LocalDateTime.now())));
-    doReturn(Map.of(200L, new MemberPreview(200L, null, null, null, null)))
+    doReturn(Map.of(200L, new MemberPreview(200L, null, null, null, null, null)))
         .when(findMemberPreviewsUseCase)
         .findMemberPreviews(any());
 
@@ -310,6 +315,6 @@ class LikeQueryServiceTest {
         .collect(
             Collectors.toMap(
                 Function.identity(),
-                id -> new MemberPreview(id, "nickname" + id, null, "SEOUL", 1995)));
+                id -> new MemberPreview(id, "nickname" + id, null, "SEOUL", 1995, "FEMALE")));
   }
 }

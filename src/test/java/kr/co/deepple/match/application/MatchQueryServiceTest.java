@@ -46,7 +46,9 @@ class MatchQueryServiceTest {
     given(findMemberPreviewsUseCase.findMemberPreviews(List.of(200L)))
         .willReturn(
             Map.of(
-                200L, new MemberPreview(200L, "상대", "https://example.com/a.jpg", "SEOUL", 1995)));
+                200L,
+                new MemberPreview(
+                    200L, "상대", "https://example.com/a.jpg", "SEOUL", 1995, "FEMALE")));
 
     MatchViews result = matchQueryService.getSentMatches(MEMBER_ID, null);
 
@@ -118,6 +120,6 @@ class MatchQueryServiceTest {
         .collect(
             Collectors.toMap(
                 Function.identity(),
-                id -> new MemberPreview(id, "nickname" + id, null, "SEOUL", 1995)));
+                id -> new MemberPreview(id, "nickname" + id, null, "SEOUL", 1995, "FEMALE")));
   }
 }

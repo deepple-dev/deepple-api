@@ -2,7 +2,7 @@ package kr.co.deepple.community.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.co.deepple.community.adapter.out.persistence.AdminSelfIntroductionQueryRepository;
+import kr.co.deepple.community.application.SelfIntroductionQueryService;
 import kr.co.deepple.community.application.SelfIntroductionService;
 import kr.co.deepple.community.application.dto.AdminSelfIntroductionSearchCondition;
 import kr.co.deepple.community.application.dto.AdminSelfIntroductionView;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminSelfIntroductionController {
 
-  private final AdminSelfIntroductionQueryRepository adminSelfIntroductionQueryRepository;
+  private final SelfIntroductionQueryService selfIntroductionQueryService;
   private final SelfIntroductionService selfIntroductionService;
 
   @Operation(summary = "셀프 소개 목록 조회 API")
@@ -33,7 +33,7 @@ public class AdminSelfIntroductionController {
       @ModelAttribute AdminSelfIntroductionSearchCondition condition,
       @PageableDefault(size = 100) Pageable pageable) {
     return ResponseEntity.ok(
-        adminSelfIntroductionQueryRepository.findSelfIntroductions(condition, pageable));
+        selfIntroductionQueryService.findAdminSelfIntroductions(condition, pageable));
   }
 
   @Operation(summary = "셀프 소개 공개 전환 API")

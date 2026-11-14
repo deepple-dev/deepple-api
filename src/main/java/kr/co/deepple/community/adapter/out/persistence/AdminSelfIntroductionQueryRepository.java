@@ -1,7 +1,6 @@
 package kr.co.deepple.community.adapter.out.persistence;
 
 import static kr.co.deepple.community.domain.QSelfIntroduction.selfIntroduction;
-import static kr.co.deepple.member.domain.QMember.member;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -9,9 +8,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.community.application.dto.AdminSelfIntroductionSearchCondition;
-import kr.co.deepple.community.application.dto.AdminSelfIntroductionView;
-import kr.co.deepple.community.application.dto.QAdminSelfIntroductionView;
+import kr.co.deepple.community.application.dto.QRawAdminSelfIntroductionView;
+import kr.co.deepple.community.application.dto.RawAdminSelfIntroductionView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,18 +24,17 @@ public class AdminSelfIntroductionQueryRepository {
 
   private final JPAQueryFactory queryFactory;
 
-  public Page<AdminSelfIntroductionView> findSelfIntroductions(
-      AdminSelfIntroductionSearchCondition condition, Pageable pageable) {
+  public Page<RawAdminSelfIntroductionView> findSelfIntroductions(
+      AdminSelfIntroductionSearchCondition condition, Set<Long> memberIds, Pageable pageable) {
 
-    BooleanExpression searchCondition = buildAdminSearchCondition(condition);
+    BooleanExpression searchCondition = buildAdminSearchCondition(condition, memberIds);
 
-    List<AdminSelfIntroductionView> content =
+    List<RawAdminSelfIntroductionView> content =
         queryFactory
             .select(
-                new QAdminSelfIntroductionView(
+                new QRawAdminSelfIntroductionView(
                     selfIntroduction.id,
-                    member.profile.nickname.value,
-                    member.profile.gender.stringValue(),
+                    selfIntroduction.memberId,
                     selfIntroduction.isOpened,
                     selfIntroduction.content,
                     selfIntroduction.imageUrl,
@@ -43,8 +42,6 @@ public class AdminSelfIntroductionQueryRepository {
                     selfIntroduction.updatedAt,
                     selfIntroduction.deletedAt))
             .from(selfIntroduction)
-            .join(member)
-            .on(member.id.eq(selfIntroduction.memberId))
             .where(searchCondition)
             .orderBy(selfIntroduction.id.desc())
             .offset(pageable.getOffset())
@@ -56,8 +53,6 @@ public class AdminSelfIntroductionQueryRepository {
                 queryFactory
                     .select(selfIntroduction.count())
                     .from(selfIntroduction)
-                    .join(member)
-                    .on(member.id.eq(selfIntroduction.memberId))
                     .where(searchCondition)
                     .fetchOne())
             .orElse(0L);
@@ -66,20 +61,19 @@ public class AdminSelfIntroductionQueryRepository {
   }
 
   private BooleanExpression buildAdminSearchCondition(
-      AdminSelfIntroductionSearchCondition condition) {
+      AdminSelfIntroductionSearchCondition condition, Set<Long> memberIds) {
     return Expressions.allOf(
-        nicknameEq(condition.nickname()),
+        memberIdIn(memberIds),
         isOpenedEq(condition.isOpened()),
         startDateGoe(condition.startDate()),
-        loeEndDate(condition.endDate()),
-        phoneNumberEq(condition.phoneNumber()));
+        loeEndDate(condition.endDate()));
   }
 
-  private BooleanExpression nicknameEq(String nickname) {
-    if (nickname == null || nickname.isBlank()) {
+  private BooleanExpression memberIdIn(Set<Long> memberIds) {
+    if (memberIds == null) {
       return null;
     }
-    return member.profile.nickname.value.eq(nickname);
+    return selfIntroduction.memberId.in(memberIds);
   }
 
   private BooleanExpression isOpenedEq(Boolean isOpened) {
@@ -101,12 +95,5 @@ public class AdminSelfIntroductionQueryRepository {
       return null;
     }
     return selfIntroduction.createdAt.lt(endDate.plusDays(1).atStartOfDay());
-  }
-
-  private BooleanExpression phoneNumberEq(String phoneNumber) {
-    if (phoneNumber == null || phoneNumber.isBlank()) {
-      return null;
-    }
-    return member.phoneNumber.value.eq(phoneNumber);
   }
 }

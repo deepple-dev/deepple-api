@@ -17,6 +17,7 @@ import static kr.co.deepple.recommendation.domain.QMemberIntroduction.memberIntr
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,7 +39,9 @@ import kr.co.deepple.member.application.dto.QMemberProfileView;
 import kr.co.deepple.member.application.dto.QOtherMemberProfileView;
 import kr.co.deepple.member.application.dto.QProfileAccessView;
 import kr.co.deepple.member.application.port.in.MemberPreview;
+import kr.co.deepple.member.application.port.in.MemberProfileSummary;
 import kr.co.deepple.member.domain.ActivityStatus;
+import kr.co.deepple.member.domain.AgeConverter;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Hobby;
 import lombok.RequiredArgsConstructor;
@@ -302,12 +305,57 @@ public class MemberQueryRepository {
                 member.profile.nickname.value,
                 profileImage.imageUrl.value,
                 member.profile.region.city.stringValue(),
-                member.profile.yearOfBirth.value))
+                member.profile.yearOfBirth.value,
+                member.profile.gender.stringValue()))
         .from(member)
         .leftJoin(profileImage)
         .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .where(member.id.in(memberIds))
         .fetch();
+  }
+
+  public List<MemberProfileSummary> findProfilesByMemberIds(Collection<Long> memberIds) {
+    EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
+    StringExpression gender = member.profile.gender.stringValue();
+    StringExpression city = member.profile.region.city.stringValue();
+    StringExpression district = member.profile.region.district.stringValue();
+    StringExpression mbti = member.profile.mbti.stringValue();
+    StringExpression religion = member.profile.religion.stringValue();
+    StringExpression hobbyName = hobby.stringValue();
+
+    return queryFactory
+        .from(member)
+        .leftJoin(profileImage)
+        .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
+        .leftJoin(member.profile.hobbies, hobby)
+        .where(member.id.in(memberIds))
+        .transform(
+            groupBy(member.id)
+                .as(
+                    member.profile.nickname.value,
+                    profileImage.imageUrl.value,
+                    member.profile.yearOfBirth.value,
+                    gender,
+                    city,
+                    district,
+                    mbti,
+                    religion,
+                    set(hobbyName)))
+        .entrySet()
+        .stream()
+        .map(entry ->
+            new MemberProfileSummary(
+                entry.getKey(),
+                entry.getValue().getOne(member.profile.nickname.value),
+                entry.getValue().getOne(profileImage.imageUrl.value),
+                AgeConverter.toAge(entry.getValue().getOne(member.profile.yearOfBirth.value)),
+                entry.getValue().getOne(gender),
+                entry.getValue().getOne(city),
+                entry.getValue().getOne(district),
+                entry.getValue().getOne(mbti),
+                entry.getValue().getOne(religion),
+                entry.getValue().getSet(hobbyName)))
+        .toList();
   }
 
   public Set<Long> findIdsByNicknameAndPhoneNumber(String nicknameKeyword, String phoneNumber) {

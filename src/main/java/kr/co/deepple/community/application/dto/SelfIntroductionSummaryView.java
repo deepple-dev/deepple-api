@@ -1,9 +1,7 @@
 package kr.co.deepple.community.application.dto;
 
-import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 
 public record SelfIntroductionSummaryView(
     Long id,
@@ -14,9 +12,6 @@ public record SelfIntroductionSummaryView(
     String imageUrl,
     LocalDateTime createdAt,
     @Schema(
-            implementation = AnswerPersonalityType.class,
-            description = AnswerPersonalityType.SCHEMA_DESCRIPTION)
-        String personalityType) {
-  @QueryProjection
-  public SelfIntroductionSummaryView {}
-}
+            description = "연애가치관 유형. 값은 연애고사 결과의 대표 유형과 같고, 연애고사를 제출하지 않았으면 null이다",
+            example = "DECISIVE_INDEPENDENT")
+        String personalityType) {}

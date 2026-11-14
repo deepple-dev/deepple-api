@@ -37,4 +37,35 @@ class SelfIntroductionControllerIntegrationTest extends IntegrationTestSupport {
     assertThat(result).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
     assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("SELF_INTRODUCTION_NOT_FOUND");
   }
+
+  @Test
+  @DisplayName("셀프 소개 목록을 잘못된 성별로 조회하면 400을 응답한다.")
+  void respondBadRequestWhenGenderInvalid() {
+    MvcTestResult result =
+        mockMvc
+            .get()
+            .uri("/self-introduction?gender=UNKNOWN")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer " + tokenProvider.createAccessToken(1L, Role.MEMBER, Instant.now()))
+            .exchange();
+
+    assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+    assertThat(result).hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+  }
+
+  @Test
+  @DisplayName("셀프 소개 목록을 소문자 성별로 조회하면 200을 응답한다.")
+  void respondOkWhenGenderLowerCase() {
+    MvcTestResult result =
+        mockMvc
+            .get()
+            .uri("/self-introduction?gender=male")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer " + tokenProvider.createAccessToken(1L, Role.MEMBER, Instant.now()))
+            .exchange();
+
+    assertThat(result).hasStatus(HttpStatus.OK);
+  }
 }
