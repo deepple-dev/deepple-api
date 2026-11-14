@@ -85,6 +85,6 @@ class IntroducibleMemberFilterTest {
 
   private MemberSummary summary(String gender) {
     return new MemberSummary(
-        MEMBER_ID, "닉네임", gender, 30, "SEOUL", null, "SILVER", "ACTIVE", false);
+        MEMBER_ID, "닉네임", gender, 30, "SEOUL", null, "SILVER", "ACTIVE", false, false);
   }
 }

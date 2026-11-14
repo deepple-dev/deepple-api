@@ -1,13 +1,12 @@
 package kr.co.deepple.recommendation.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
 import kr.co.deepple.common.security.CurrentMemberId;
-import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.recommendation.application.IntroductionQueryService;
 import kr.co.deepple.recommendation.application.MemberIntroductionService;
 import kr.co.deepple.recommendation.application.PersonalityIntroductionQueryService;
@@ -33,11 +32,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/member/introduction")
 public class MemberIntroductionController {
 
+  private static final String PERSONALITY_TYPE_DESCRIPTION =
+      "연애가치관 유형. 값은 연애고사의 대표 성격 유형과 같다 - DECISIVE_INDEPENDENT: 단호한 독립주의자, "
+          + "GROWING_RUNNING_MATE: 성장하는 러닝메이트, DEVOTED_ROMANTIC: 헌신적인 로맨티스트, "
+          + "REALISTIC_SHELTER: 현실적인 안식처, STIMULATING_ADVENTURER: 자극모험형, "
+          + "RATIONAL_REALIST: 이성중심형";
+
   private final TodayCardService todayCardService;
   private final TodayCardQueryService todayCardQueryService;
   private final IntroductionQueryService introductionQueryService;
   private final MemberIntroductionService memberIntroductionService;
-  private final SoulmateFinder soulmateFinder;
   private final PersonalityIntroductionQueryService personalityIntroductionQueryService;
   private final PersonalityIntroductionUnlockService personalityIntroductionUnlockService;
 
@@ -141,9 +145,8 @@ public class MemberIntroductionController {
   @GetMapping("/soulmate")
   public ResponseEntity<MemberIntroductionProfileViews> findSoulmateIntroductions(
       @CurrentMemberId long memberId) {
-    Set<Long> soulmateMemberIds = soulmateFinder.findSoulmateIds(memberId);
     List<MemberIntroductionProfileView> introductionProfileViews =
-        introductionQueryService.findMemberIntroductionProfileViews(memberId, soulmateMemberIds);
+        introductionQueryService.findSoulmateIntroductions(memberId);
     return ResponseEntity.ok(new MemberIntroductionProfileViews(introductionProfileViews));
   }
 
@@ -184,17 +187,16 @@ public class MemberIntroductionController {
   @GetMapping("/personality-status")
   public ResponseEntity<PersonalityIntroductionOpenStatusView>
       findPersonalityIntroductionOpenStatus(@CurrentMemberId long memberId) {
-    PersonalityIntroductionOpenStatusView openStatusView =
-        personalityIntroductionQueryService
-            .findOpenStatus(memberId)
-            .orElseGet(() -> new PersonalityIntroductionOpenStatusView(null, null));
-    return ResponseEntity.ok(openStatusView);
+    return ResponseEntity.ok(personalityIntroductionQueryService.getOpenStatus(memberId));
   }
 
   @Operation(summary = "유형별 이상형 조회 (하루 1회 오픈, 최대 3명)")
   @GetMapping("/{personalityType}")
   public ResponseEntity<MemberIntroductionProfileViews> findPersonalityTypeIntroductions(
-      @PathVariable AnswerPersonalityType personalityType, @CurrentMemberId long memberId) {
+      @Parameter(description = PERSONALITY_TYPE_DESCRIPTION, example = "DECISIVE_INDEPENDENT")
+          @PathVariable
+          String personalityType,
+      @CurrentMemberId long memberId) {
     List<MemberIntroductionProfileView> introductionProfileViews =
         personalityIntroductionQueryService.open(memberId, personalityType);
     return ResponseEntity.ok(new MemberIntroductionProfileViews(introductionProfileViews));
@@ -203,7 +205,9 @@ public class MemberIntroductionController {
   @Operation(summary = "유형별 이상형 프로필 상세 언락 (첫 상대 무료, 이후 하트 차감)")
   @PostMapping("/{personalityType}/{targetMemberId}")
   public ResponseEntity<Void> unlockPersonalityTypeIntroduction(
-      @PathVariable AnswerPersonalityType personalityType,
+      @Parameter(description = PERSONALITY_TYPE_DESCRIPTION, example = "DECISIVE_INDEPENDENT")
+          @PathVariable
+          String personalityType,
       @PathVariable long targetMemberId,
       @CurrentMemberId long memberId) {
     personalityIntroductionUnlockService.unlock(memberId, personalityType, targetMemberId);

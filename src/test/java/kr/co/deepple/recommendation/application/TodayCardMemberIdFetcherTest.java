@@ -11,16 +11,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
 import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +44,7 @@ class TodayCardMemberIdFetcherTest {
 
   @Mock private IntroductionRedisRepository introductionRedisRepository;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
 
@@ -97,7 +100,8 @@ class TodayCardMemberIdFetcherTest {
     when(introductionRedisRepository.findIntroductionMemberIds(
             cacheKeyPrefix.getPrefix() + memberId))
         .thenReturn(Set.of());
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
 
     // when & then
     assertThatThrownBy(() -> todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix))
@@ -116,13 +120,14 @@ class TodayCardMemberIdFetcherTest {
         .thenReturn(Set.of());
 
     Member member = MemberFixture.builder().id(memberId).build();
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenReturn(MemberSummaryFixture.from(member));
     when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_IDEAL_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.MEMBER_IDEAL_NOT_FOUND);
   }
 
   @Test
@@ -141,8 +146,10 @@ class TodayCardMemberIdFetcherTest {
     when(memberIdeal.isUpdated()).thenReturn(false);
 
     Gender memberGender = Gender.MALE;
-    Member member = MemberFixture.builder().id(memberId).gender(memberGender).build();
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    MemberSummary member =
+        MemberSummaryFixture.from(
+            MemberFixture.builder().id(memberId).gender(memberGender).build());
+    when(findMemberSummaryUseCase.getMemberSummary(memberId)).thenReturn(member);
 
     Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
@@ -151,8 +158,7 @@ class TodayCardMemberIdFetcherTest {
       IntroductionSearchCondition condition = mock(IntroductionSearchCondition.class);
       conditionMockedStatic
           .when(() ->
-              IntroductionSearchCondition.ofTodayCardDefault(
-                  excludedMemberIds, memberGender.getOpposite(), member))
+              IntroductionSearchCondition.ofTodayCardDefault(excludedMemberIds, "FEMALE", member))
           .thenReturn(condition);
       Set<Long> expectedIntroducedMemberId = Set.of(2L, 3L, 4L);
       when(introductionQueryRepository.findAllIntroductionMemberId(condition, MALE_LIMIT))
@@ -182,8 +188,10 @@ class TodayCardMemberIdFetcherTest {
     when(memberIdeal.isUpdated()).thenReturn(true);
 
     Gender memberGender = Gender.MALE;
-    Member member = MemberFixture.builder().id(memberId).gender(memberGender).build();
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    MemberSummary member =
+        MemberSummaryFixture.from(
+            MemberFixture.builder().id(memberId).gender(memberGender).build());
+    when(findMemberSummaryUseCase.getMemberSummary(memberId)).thenReturn(member);
 
     Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
@@ -193,9 +201,7 @@ class TodayCardMemberIdFetcherTest {
             mockStatic(IntroductionSearchConditionCombinator.class)) {
       IntroductionSearchCondition baseCondition = mock(IntroductionSearchCondition.class);
       conditionMockedStatic
-          .when(() ->
-              IntroductionSearchCondition.ofIdeal(
-                  excludedMemberIds, memberIdeal, memberGender.getOpposite()))
+          .when(() -> IntroductionSearchCondition.ofIdeal(excludedMemberIds, memberIdeal, "FEMALE"))
           .thenReturn(baseCondition);
 
       IntroductionSearchCondition combinationCondition1 = mock(IntroductionSearchCondition.class);

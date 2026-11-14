@@ -6,20 +6,21 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,7 @@ class MemberIntroductionServiceTest {
 
   @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private SoulmateFinder soulmateFinder;
 
@@ -50,7 +51,10 @@ class MemberIntroductionServiceTest {
     long memberId = 1L;
     long introducedMemberId = 2L;
 
-    when(memberCommandRepository.findById(introducedMemberId)).thenReturn(Optional.empty());
+    when(findMemberSummaryUseCase.getMemberSummary(introducedMemberId))
+        .thenThrow(
+            new DeeppleException(
+                MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + introducedMemberId));
 
     // when & then
     assertThatThrownBy(
@@ -71,14 +75,15 @@ class MemberIntroductionServiceTest {
             .id(introducedMemberId)
             .activityStatus(ActivityStatus.DORMANT)
             .build();
-    when(memberCommandRepository.findById(introducedMemberId))
-        .thenReturn(Optional.of(introducedMember));
+    when(findMemberSummaryUseCase.getMemberSummary(introducedMemberId))
+        .thenReturn(MemberSummaryFixture.from(introducedMember));
 
     // when & then
     assertThatThrownBy(
             () -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE);
+        .hasFieldOrPropertyWithValue(
+            "errorCode", RecommendationErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE);
   }
 
   @Test
@@ -89,15 +94,16 @@ class MemberIntroductionServiceTest {
     long introducedMemberId = 2L;
 
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
-    when(memberCommandRepository.findById(introducedMemberId))
-        .thenReturn(Optional.of(introducedMember));
+    when(findMemberSummaryUseCase.getMemberSummary(introducedMemberId))
+        .thenReturn(MemberSummaryFixture.from(introducedMember));
     when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(true);
 
     // when & then
     assertThatThrownBy(
             () -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INTRODUCED_MEMBER_BLOCKED);
+        .hasFieldOrPropertyWithValue(
+            "errorCode", RecommendationErrorCode.INTRODUCED_MEMBER_BLOCKED);
   }
 
   @Test
@@ -108,8 +114,8 @@ class MemberIntroductionServiceTest {
     long introducedMemberId = 2L;
 
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
-    when(memberCommandRepository.findById(introducedMemberId))
-        .thenReturn(Optional.of(introducedMember));
+    when(findMemberSummaryUseCase.getMemberSummary(introducedMemberId))
+        .thenReturn(MemberSummaryFixture.from(introducedMember));
     when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(true);
 
@@ -117,7 +123,8 @@ class MemberIntroductionServiceTest {
     assertThatThrownBy(
             () -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INTRODUCED_MEMBER_BLOCKED);
+        .hasFieldOrPropertyWithValue(
+            "errorCode", RecommendationErrorCode.INTRODUCED_MEMBER_BLOCKED);
   }
 
   @Test
@@ -128,8 +135,8 @@ class MemberIntroductionServiceTest {
     long introducedMemberId = 2L;
 
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
-    when(memberCommandRepository.findById(introducedMemberId))
-        .thenReturn(Optional.of(introducedMember));
+    when(findMemberSummaryUseCase.getMemberSummary(introducedMemberId))
+        .thenReturn(MemberSummaryFixture.from(introducedMember));
     when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(false);
     when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
@@ -141,7 +148,7 @@ class MemberIntroductionServiceTest {
             () -> memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue(
-            "errorCode", MemberErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS);
+            "errorCode", RecommendationErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS);
   }
 
   @Test
@@ -152,8 +159,8 @@ class MemberIntroductionServiceTest {
     long introducedMemberId = 2L;
 
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
-    when(memberCommandRepository.findById(introducedMemberId))
-        .thenReturn(Optional.of(introducedMember));
+    when(findMemberSummaryUseCase.getMemberSummary(introducedMemberId))
+        .thenReturn(MemberSummaryFixture.from(introducedMember));
     when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(false);
     when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
@@ -183,13 +190,15 @@ class MemberIntroductionServiceTest {
     long introducedMemberId = 2L;
 
     Member member = MemberFixture.builder().id(memberId).datingExamSubmitted(false).build();
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenReturn(MemberSummaryFixture.from(member));
 
     // when & then
     assertThatThrownBy(() ->
             memberIntroductionService.createSoulmateIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.DATING_EXAM_NOT_SUBMITTED);
+        .hasFieldOrPropertyWithValue(
+            "errorCode", RecommendationErrorCode.DATING_EXAM_NOT_SUBMITTED);
   }
 
   @Test
@@ -200,14 +209,15 @@ class MemberIntroductionServiceTest {
     long introducedMemberId = 2L;
 
     Member member = MemberFixture.builder().id(memberId).datingExamSubmitted(true).build();
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenReturn(MemberSummaryFixture.from(member));
     when(soulmateFinder.findSoulmateIds(memberId)).thenReturn(Set.of(3L, 4L, 5L));
 
     // when & then
     assertThatThrownBy(() ->
             memberIntroductionService.createSoulmateIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.NOT_SOULMATE);
+        .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.NOT_SOULMATE);
   }
 
   @Test
@@ -223,6 +233,6 @@ class MemberIntroductionServiceTest {
     assertThatThrownBy(() ->
             memberIntroductionService.createSameAnswerIntroduction(memberId, introducedMemberId))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.NOT_SAME_ANSWER_MEMBER);
+        .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.NOT_SAME_ANSWER_MEMBER);
   }
 }

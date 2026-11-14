@@ -3,6 +3,7 @@ package kr.co.deepple.recommendation.application;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -15,18 +16,20 @@ import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
+import kr.co.deepple.datingexam.application.port.in.ValidatePersonalityTypeUseCase;
+import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,13 +41,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PersonalityIntroductionUnlockServiceTest {
 
-  private static final AnswerPersonalityType TYPE = AnswerPersonalityType.STIMULATING_ADVENTURER;
+  private static final String TYPE = "STIMULATING_ADVENTURER";
 
   @Mock private UseHeartUseCase useHeartUseCase;
 
   @InjectMocks private PersonalityIntroductionUnlockService personalityIntroductionUnlockService;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
+
+  @Mock private ValidatePersonalityTypeUseCase validatePersonalityTypeUseCase;
 
   @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
 
@@ -64,7 +69,26 @@ class PersonalityIntroductionUnlockServiceTest {
             () -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue(
-            "errorCode", MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
+            "errorCode", RecommendationErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
+  }
+
+  @Test
+  @DisplayName("유형 값이 잘못되면 오픈 상태를 확인하기 전에 예외를 던진다.")
+  void throwsWhenTypeIsInvalid() {
+    long memberId = 1L;
+    long targetMemberId = 2L;
+    doThrow(
+            new DeeppleException(
+                DatingExamErrorCode.INVALID_PERSONALITY_TYPE, "personalityType=UNKNOWN"))
+        .when(validatePersonalityTypeUseCase)
+        .validate("UNKNOWN");
+
+    assertThatThrownBy(
+            () -> personalityIntroductionUnlockService.unlock(memberId, "UNKNOWN", targetMemberId))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_PERSONALITY_TYPE);
+
+    verify(personalityIntroductionRedisRepository, never()).findOpenState(anyLong());
   }
 
   @Test
@@ -82,7 +106,7 @@ class PersonalityIntroductionUnlockServiceTest {
             () -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue(
-            "errorCode", MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
+            "errorCode", RecommendationErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
   }
 
   @Test
@@ -94,15 +118,13 @@ class PersonalityIntroductionUnlockServiceTest {
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
-                    AnswerPersonalityType.RATIONAL_REALIST,
-                    List.of(2L, 3L, 4L),
-                    LocalDateTime.now())));
+                    "RATIONAL_REALIST", List.of(2L, 3L, 4L), LocalDateTime.now())));
 
     assertThatThrownBy(
             () -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue(
-            "errorCode", MemberErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
+            "errorCode", RecommendationErrorCode.INVALID_PERSONALITY_INTRODUCTION_UNLOCK);
   }
 
   @Test
@@ -212,7 +234,8 @@ class PersonalityIntroductionUnlockServiceTest {
 
   private void givenValidTarget(long memberId, long targetMemberId) {
     Member target = MemberFixture.builder().id(targetMemberId).build();
-    when(memberCommandRepository.findById(targetMemberId)).thenReturn(Optional.of(target));
+    when(findMemberSummaryUseCase.getMemberSummary(targetMemberId))
+        .thenReturn(MemberSummaryFixture.from(target));
     when(checkBlockUseCase.isBlocked(memberId, targetMemberId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(targetMemberId, memberId)).thenReturn(false);
   }

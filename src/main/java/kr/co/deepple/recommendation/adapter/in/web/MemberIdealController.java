@@ -3,10 +3,7 @@ package kr.co.deepple.recommendation.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.security.CurrentMemberId;
-import kr.co.deepple.member.domain.MemberErrorCode;
-import kr.co.deepple.recommendation.adapter.out.persistence.MemberIdealQueryRepository;
 import kr.co.deepple.recommendation.application.MemberIdealService;
 import kr.co.deepple.recommendation.application.dto.MemberIdealUpdateRequest;
 import kr.co.deepple.recommendation.application.dto.MemberIdealView;
@@ -25,18 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberIdealController {
 
   private final MemberIdealService idealService;
-  private final MemberIdealQueryRepository memberIdealQueryRepository;
 
   @Operation(summary = "멤버 이상형 설정 조회")
   @GetMapping
   public ResponseEntity<MemberIdealView> getMemberIdeal(@CurrentMemberId long memberId) {
-    MemberIdealView memberIdealView =
-        memberIdealQueryRepository
-            .findMemberIdealByMemberId(memberId)
-            .orElseThrow(() ->
-                new DeeppleException(
-                    MemberErrorCode.MEMBER_IDEAL_NOT_FOUND, "memberId=" + memberId));
-    return ResponseEntity.ok(memberIdealView);
+    return ResponseEntity.ok(idealService.getMemberIdeal(memberId));
   }
 
   @Operation(summary = "멤버 이상형 설정 수정")

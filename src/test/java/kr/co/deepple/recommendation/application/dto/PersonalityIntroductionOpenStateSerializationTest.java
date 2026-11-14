@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
@@ -28,8 +27,7 @@ class PersonalityIntroductionOpenStateSerializationTest {
   void roundTripsWithOpenedAt() throws Exception {
     LocalDateTime openedAt = LocalDateTime.of(2026, 8, 8, 12, 0, 0);
     PersonalityIntroductionOpenState state =
-        new PersonalityIntroductionOpenState(
-            AnswerPersonalityType.STIMULATING_ADVENTURER, List.of(1L, 2L), openedAt);
+        new PersonalityIntroductionOpenState("STIMULATING_ADVENTURER", List.of(1L, 2L), openedAt);
 
     String json = objectMapper.writeValueAsString(state);
     PersonalityIntroductionOpenState deserialized =
@@ -50,7 +48,7 @@ class PersonalityIntroductionOpenStateSerializationTest {
     PersonalityIntroductionOpenState deserialized =
         objectMapper.readValue(legacyJson, PersonalityIntroductionOpenState.class);
 
-    assertThat(deserialized.type()).isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER);
+    assertThat(deserialized.type()).isEqualTo("STIMULATING_ADVENTURER");
     assertThat(deserialized.memberIds()).isEqualTo(List.of(1L, 2L));
     assertThat(deserialized.openedAt()).isNull();
   }

@@ -9,9 +9,12 @@ public record MemberSummary(
     String district,
     String grade,
     String activityStatus,
-    boolean vip) {
+    boolean vip,
+    boolean datingExamSubmitted) {
 
   private static final String ACTIVE = "ACTIVE";
+  private static final String MALE = "MALE";
+  private static final String FEMALE = "FEMALE";
 
   public boolean isActive() {
     return ACTIVE.equals(activityStatus);
@@ -29,5 +32,9 @@ public record MemberSummary(
       throw new IllegalStateException("성별이 없는 회원입니다. memberId=" + memberId);
     }
     return gender;
+  }
+
+  public String oppositeGender() {
+    return MALE.equals(requireGender()) ? FEMALE : MALE;
   }
 }

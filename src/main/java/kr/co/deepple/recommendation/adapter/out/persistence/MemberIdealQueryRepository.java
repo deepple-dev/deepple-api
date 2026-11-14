@@ -2,14 +2,12 @@ package kr.co.deepple.recommendation.adapter.out.persistence;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.set;
-import static com.querydsl.core.types.dsl.Expressions.enumPath;
+import static com.querydsl.core.types.dsl.Expressions.stringPath;
 import static kr.co.deepple.recommendation.domain.QMemberIdeal.memberIdeal;
 
-import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Optional;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.Hobby;
 import kr.co.deepple.recommendation.application.dto.MemberIdealView;
 import kr.co.deepple.recommendation.application.dto.QMemberIdealView;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +20,8 @@ public class MemberIdealQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   public Optional<MemberIdealView> findMemberIdealByMemberId(long memberId) {
-    EnumPath<City> city = enumPath(City.class, "cityAlias");
-    EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
+    StringPath city = stringPath("cityAlias");
+    StringPath hobby = stringPath("hobbyAlias");
 
     MemberIdealView memberIdealView =
         queryFactory
@@ -37,11 +35,11 @@ public class MemberIdealQueryRepository {
                         new QMemberIdealView(
                             memberIdeal.ageRange.minAge,
                             memberIdeal.ageRange.maxAge,
-                            set(hobby.stringValue()),
-                            set(city.stringValue()),
-                            memberIdeal.religion.stringValue(),
-                            memberIdeal.smokingStatus.stringValue(),
-                            memberIdeal.drinkingStatus.stringValue())))
+                            set(hobby),
+                            set(city),
+                            memberIdeal.religion,
+                            memberIdeal.smokingStatus,
+                            memberIdeal.drinkingStatus)))
             .get(memberId);
 
     return Optional.ofNullable(memberIdealView);

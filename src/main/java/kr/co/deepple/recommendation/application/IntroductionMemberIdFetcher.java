@@ -7,14 +7,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
 import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ public class IntroductionMemberIdFetcher {
 
   private final IntroductionQueryRepository introductionQueryRepository;
   private final IntroductionRedisRepository introductionRedisRepository;
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIdealCommandRepository memberIdealCommandRepository;
 
   public <T> Set<Long> fetch(
@@ -45,12 +45,8 @@ public class IntroductionMemberIdFetcher {
             .findByMemberId(memberId)
             .orElseThrow(() ->
                 new DeeppleException(
-                    MemberErrorCode.MEMBER_IDEAL_NOT_FOUND, "memberId=" + memberId));
-    Member member =
-        memberCommandRepository
-            .findById(memberId)
-            .orElseThrow(() ->
-                new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
+                    RecommendationErrorCode.MEMBER_IDEAL_NOT_FOUND, "memberId=" + memberId));
+    MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);
     IntroductionSearchCondition condition =
         supplier.get(excludedMemberIds, memberIdeal, member, criteria);
     Set<Long> introductionMemberIds =
@@ -83,6 +79,6 @@ public class IntroductionMemberIdFetcher {
   @FunctionalInterface
   public interface IntroductionConditionSupplier<T> {
     IntroductionSearchCondition get(
-        Set<Long> excludedMemberIds, MemberIdeal memberIdeal, Member member, T criteria);
+        Set<Long> excludedMemberIds, MemberIdeal memberIdeal, MemberSummary member, T criteria);
   }
 }

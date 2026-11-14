@@ -99,6 +99,6 @@ class ReportQueryServiceTest {
 
   private MemberSummary summary(long memberId, String nickname) {
     return new MemberSummary(
-        memberId, nickname, "MALE", 30, "SEOUL", null, "SILVER", "ACTIVE", false);
+        memberId, nickname, "MALE", 30, "SEOUL", null, "SILVER", "ACTIVE", false, false);
   }
 }

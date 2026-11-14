@@ -14,17 +14,17 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Grade;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
 import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class IntroductionMemberIdFetcherTest {
 
   @Mock private IntroductionRedisRepository introductionRedisRepository;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
 
@@ -110,12 +110,12 @@ class IntroductionMemberIdFetcherTest {
     when(memberIdealCommandRepository.findByMemberId(memberId))
         .thenReturn(Optional.of(memberIdeal));
     Member member = MemberFixture.builder().id(memberId).build();
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenReturn(MemberSummaryFixture.from(member));
 
     IntroductionSearchCondition dummyCondition =
-        IntroductionSearchCondition.ofGrade(
-            excludedMemberIds, memberIdeal, Gender.MALE, Grade.DIAMOND);
-    IntroductionMemberIdFetcher.IntroductionConditionSupplier<Grade> supplier =
+        IntroductionSearchCondition.ofGrade(excludedMemberIds, memberIdeal, "MALE", "DIAMOND");
+    IntroductionMemberIdFetcher.IntroductionConditionSupplier<String> supplier =
         (excluded, ideal, m, grade) -> dummyCondition;
 
     when(introductionQueryRepository.findAllIntroductionMemberId(dummyCondition, 10))
@@ -128,7 +128,7 @@ class IntroductionMemberIdFetcherTest {
     // when
     Set<Long> result =
         introductionMemberIdFetcher.fetch(
-            memberId, IntroductionCacheKeyPrefix.DIAMOND, Grade.DIAMOND, supplier);
+            memberId, IntroductionCacheKeyPrefix.DIAMOND, "DIAMOND", supplier);
 
     // then
     assertThat(result).isEqualTo(savedIds);
@@ -150,18 +150,18 @@ class IntroductionMemberIdFetcherTest {
     MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
     when(memberIdealCommandRepository.findByMemberId(memberId))
         .thenReturn(Optional.of(memberIdeal));
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+    when(findMemberSummaryUseCase.getMemberSummary(memberId))
+        .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
 
     IntroductionSearchCondition dummyCondition =
-        IntroductionSearchCondition.ofGrade(
-            excludedMemberIds, memberIdeal, Gender.MALE, Grade.DIAMOND);
-    IntroductionMemberIdFetcher.IntroductionConditionSupplier<Grade> supplier =
+        IntroductionSearchCondition.ofGrade(excludedMemberIds, memberIdeal, "MALE", "DIAMOND");
+    IntroductionMemberIdFetcher.IntroductionConditionSupplier<String> supplier =
         (excluded, ideal, m, grade) -> dummyCondition;
 
     // when && then
     assertThatThrownBy(() ->
             introductionMemberIdFetcher.fetch(
-                memberId, IntroductionCacheKeyPrefix.DIAMOND, Grade.DIAMOND, supplier))
+                memberId, IntroductionCacheKeyPrefix.DIAMOND, "DIAMOND", supplier))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
   }
@@ -181,16 +181,15 @@ class IntroductionMemberIdFetcherTest {
 
     MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
     IntroductionSearchCondition dummyCondition =
-        IntroductionSearchCondition.ofGrade(
-            excludedMemberIds, memberIdeal, Gender.MALE, Grade.DIAMOND);
-    IntroductionMemberIdFetcher.IntroductionConditionSupplier<Grade> supplier =
+        IntroductionSearchCondition.ofGrade(excludedMemberIds, memberIdeal, "MALE", "DIAMOND");
+    IntroductionMemberIdFetcher.IntroductionConditionSupplier<String> supplier =
         (excluded, ideal, m, grade) -> dummyCondition;
 
     // when && then
     assertThatThrownBy(() ->
             introductionMemberIdFetcher.fetch(
-                memberId, IntroductionCacheKeyPrefix.DIAMOND, Grade.DIAMOND, supplier))
+                memberId, IntroductionCacheKeyPrefix.DIAMOND, "DIAMOND", supplier))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_IDEAL_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.MEMBER_IDEAL_NOT_FOUND);
   }
 }

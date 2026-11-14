@@ -5,8 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,12 +14,6 @@ import java.util.HashSet;
 import java.util.Set;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.MemberErrorCode;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,38 +37,33 @@ public class MemberIdeal extends BaseEntity {
   @CollectionTable(
       name = "member_ideal_hobbies",
       joinColumns = @JoinColumn(name = "member_ideal_id"))
-  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  private Set<Hobby> hobbies = new HashSet<>();
+  private Set<String> hobbies = new HashSet<>();
 
   @ElementCollection
   @CollectionTable(
       name = "member_ideal_cities",
       joinColumns = @JoinColumn(name = "member_ideal_id"))
-  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  private Set<City> cities = new HashSet<>();
+  private Set<String> cities = new HashSet<>();
 
-  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  private Religion religion;
+  private String religion;
 
-  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  private SmokingStatus smokingStatus;
+  private String smokingStatus;
 
-  @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
-  private DrinkingStatus drinkingStatus;
+  private String drinkingStatus;
 
   private MemberIdeal(
       long memberId,
       @NonNull AgeRange ageRange,
-      @NonNull Set<Hobby> hobbies,
-      Set<City> cities,
-      Religion religion,
-      SmokingStatus smokingStatus,
-      DrinkingStatus drinkingStatus) {
+      @NonNull Set<String> hobbies,
+      Set<String> cities,
+      String religion,
+      String smokingStatus,
+      String drinkingStatus) {
     this.memberId = memberId;
     this.ageRange = ageRange;
     this.hobbies = hobbies;
@@ -93,11 +80,11 @@ public class MemberIdeal extends BaseEntity {
 
   public void update(
       @NonNull AgeRange ageRange,
-      @NonNull Set<Hobby> hobbies,
-      Set<City> cities,
-      Religion religion,
-      SmokingStatus smokingStatus,
-      DrinkingStatus drinkingStatus) {
+      @NonNull Set<String> hobbies,
+      Set<String> cities,
+      String religion,
+      String smokingStatus,
+      String drinkingStatus) {
     this.ageRange = ageRange;
     this.hobbies = hobbies;
     setCities(cities);
@@ -110,10 +97,10 @@ public class MemberIdeal extends BaseEntity {
     return getUpdatedAt().isAfter(getCreatedAt());
   }
 
-  private void setCities(@NonNull Set<City> cities) {
+  private void setCities(@NonNull Set<String> cities) {
     if (cities.size() > 2) {
       throw new DeeppleException(
-          MemberErrorCode.INVALID_IDEAL_CITY_COUNT, "count=" + cities.size());
+          RecommendationErrorCode.INVALID_IDEAL_CITY_COUNT, "count=" + cities.size());
     }
     this.cities = cities;
   }

@@ -5,11 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashSet;
 import java.util.Set;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.recommendation.application.dto.MemberIdealView;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
@@ -44,13 +39,11 @@ class MemberIdealQueryRepositoryTest extends RepositoryTestSupport {
     long memberId = 1L;
     int minAge = 20;
     int maxAge = 30;
-    Hobby hobby1 = Hobby.ANIMATION;
-    Hobby hobby2 = Hobby.BOARD_GAMES;
-    Set<Hobby> hobbies = Set.of(hobby1, hobby2);
-    Set<City> cities = Set.of(City.SEOUL);
-    Religion religion = Religion.CHRISTIAN;
-    SmokingStatus smokingStatus = SmokingStatus.NONE;
-    DrinkingStatus drinkingStatus = DrinkingStatus.NONE;
+    Set<String> hobbies = Set.of("ANIMATION", "BOARD_GAMES");
+    Set<String> cities = Set.of("SEOUL");
+    String religion = "CHRISTIAN";
+    String smokingStatus = "NONE";
+    String drinkingStatus = "NONE";
     MemberIdeal memberIdeal =
         MemberIdealFixture.builder()
             .memberId(memberId)
@@ -72,12 +65,10 @@ class MemberIdealQueryRepositoryTest extends RepositoryTestSupport {
     // then
     assertThat(memberIdealView.minAge()).isEqualTo(minAge);
     assertThat(memberIdealView.maxAge()).isEqualTo(maxAge);
-    assertThat(memberIdealView.hobbies())
-        .containsExactlyInAnyOrder(hobbies.stream().map(Hobby::name).toArray(String[]::new));
-    assertThat(memberIdealView.cities())
-        .containsExactlyInAnyOrder(cities.stream().map(City::name).toArray(String[]::new));
-    assertThat(memberIdealView.religion()).isEqualTo(religion.name());
-    assertThat(memberIdealView.smokingStatus()).isEqualTo(smokingStatus.name());
-    assertThat(memberIdealView.drinkingStatus()).isEqualTo(drinkingStatus.name());
+    assertThat(memberIdealView.hobbies()).containsExactlyInAnyOrderElementsOf(hobbies);
+    assertThat(memberIdealView.cities()).containsExactlyInAnyOrderElementsOf(cities);
+    assertThat(memberIdealView.religion()).isEqualTo(religion);
+    assertThat(memberIdealView.smokingStatus()).isEqualTo(smokingStatus);
+    assertThat(memberIdealView.drinkingStatus()).isEqualTo(drinkingStatus);
   }
 }

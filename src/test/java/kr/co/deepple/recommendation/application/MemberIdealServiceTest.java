@@ -11,20 +11,18 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Hobby;
+import kr.co.deepple.member.application.port.in.ProfileOptions;
+import kr.co.deepple.member.application.port.in.ValidateProfileOptionsUseCase;
 import kr.co.deepple.member.domain.MemberErrorCode;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
+import kr.co.deepple.recommendation.adapter.out.persistence.MemberIdealQueryRepository;
 import kr.co.deepple.recommendation.application.dto.MemberIdealUpdateRequest;
+import kr.co.deepple.recommendation.application.dto.MemberIdealView;
 import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,36 +39,55 @@ class MemberIdealServiceTest {
 
   @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
 
+  @Mock private MemberIdealQueryRepository memberIdealQueryRepository;
+
+  @Mock private ValidateProfileOptionsUseCase validateProfileOptionsUseCase;
+
+  @Nested
+  @DisplayName("getMemberIdeal 메서드 테스트")
+  class GetMemberIdealTest {
+
+    @Test
+    @DisplayName("memberIdeal이 존재하지 않는 경우 예외를 던진다.")
+    void throwExceptionWhenMemberIdealIsNotExists() {
+      long memberId = 1L;
+      when(memberIdealQueryRepository.findMemberIdealByMemberId(memberId))
+          .thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> memberIdealService.getMemberIdeal(memberId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.MEMBER_IDEAL_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("memberIdeal이 존재하는 경우 조회 결과를 돌려준다.")
+    void returnMemberIdealView() {
+      long memberId = 1L;
+      MemberIdealView view =
+          new MemberIdealView(20, 30, Set.of("WINE"), Set.of("SEOUL"), "NONE", "NONE", "SOCIAL");
+      when(memberIdealQueryRepository.findMemberIdealByMemberId(memberId))
+          .thenReturn(Optional.of(view));
+
+      assertThat(memberIdealService.getMemberIdeal(memberId)).isEqualTo(view);
+    }
+  }
+
   @Nested
   @DisplayName("update 메서드 테스트")
   class UpdateTest {
 
-    private Set<Hobby> hobbies;
-    private AgeRange ageRange;
-    private Set<City> cities;
-    private Religion religion;
-    private SmokingStatus smokingStatus;
-    private DrinkingStatus drinkingStatus;
-    private MemberIdealUpdateRequest request;
-
-    @BeforeEach
-    void setUp() {
-      ageRange = AgeRange.of(20, 30);
-      cities = Set.of(City.SEOUL);
-      religion = Religion.CHRISTIAN;
-      smokingStatus = SmokingStatus.VAPE;
-      drinkingStatus = DrinkingStatus.SOCIAL;
-      hobbies = Set.of(Hobby.DANCE, Hobby.WINE);
-      request =
-          new MemberIdealUpdateRequest(
-              ageRange.getMinAge(),
-              ageRange.getMaxAge(),
-              cities.stream().map(City::name).collect(Collectors.toSet()),
-              religion.name(),
-              smokingStatus.name(),
-              drinkingStatus.name(),
-              hobbies.stream().map(Hobby::name).collect(Collectors.toSet()));
-    }
+    private final AgeRange ageRange = AgeRange.of(20, 30);
+    private final MemberIdealUpdateRequest request =
+        new MemberIdealUpdateRequest(
+            ageRange.getMinAge(),
+            ageRange.getMaxAge(),
+            Set.of("seoul"),
+            "christian",
+            "vape",
+            "social",
+            Set.of("dance", "wine"));
+    private final ProfileOptions requestedOptions =
+        new ProfileOptions(Set.of("seoul"), Set.of("dance", "wine"), "christian", "vape", "social");
 
     @Test
     @DisplayName("memberIdeal이 존재하지 않는 경우 예외를 던진다.")
@@ -82,27 +99,48 @@ class MemberIdealServiceTest {
       // when && then
       assertThatThrownBy(() -> memberIdealService.update(request, memberId))
           .isInstanceOf(DeeppleException.class)
-          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_IDEAL_NOT_FOUND);
+          .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.MEMBER_IDEAL_NOT_FOUND);
     }
 
     @Test
-    @DisplayName("memberIdeal이 존재하는 경우 memberIdeal을 업데이트한다.")
+    @DisplayName("프로필 선택 값이 유효하지 않으면 memberIdeal을 바꾸지 않고 예외를 던진다.")
+    void throwExceptionWhenProfileOptionIsInvalid() {
+      long memberId = 1L;
+      MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
+      when(memberIdealCommandRepository.findByMemberId(memberId))
+          .thenReturn(Optional.of(memberIdeal));
+      when(validateProfileOptionsUseCase.validate(requestedOptions))
+          .thenThrow(new DeeppleException(MemberErrorCode.INVALID_PROFILE_OPTION, "City=seoul"));
+
+      assertThatThrownBy(() -> memberIdealService.update(request, memberId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_PROFILE_OPTION);
+      assertThat(memberIdeal.getCities()).isEmpty();
+      assertThat(memberIdeal.getAgeRange()).isEqualTo(AgeRange.init());
+    }
+
+    @Test
+    @DisplayName("memberIdeal이 존재하는 경우 검증을 거쳐 정규화된 값으로 memberIdeal을 업데이트한다.")
     void updateMemberIdeal() {
       long memberId = 1L;
       MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
       when(memberIdealCommandRepository.findByMemberId(memberId))
           .thenReturn(Optional.of(memberIdeal));
+      when(validateProfileOptionsUseCase.validate(requestedOptions))
+          .thenReturn(
+              new ProfileOptions(
+                  Set.of("SEOUL"), Set.of("DANCE", "WINE"), "CHRISTIAN", "VAPE", "SOCIAL"));
 
       // when
       memberIdealService.update(request, memberId);
 
       // then
       assertThat(memberIdeal.getAgeRange()).isEqualTo(ageRange);
-      assertThat(memberIdeal.getHobbies()).isEqualTo(hobbies);
-      assertThat(memberIdeal.getCities()).isEqualTo(cities);
-      assertThat(memberIdeal.getReligion()).isEqualTo(religion);
-      assertThat(memberIdeal.getSmokingStatus()).isEqualTo(smokingStatus);
-      assertThat(memberIdeal.getDrinkingStatus()).isEqualTo(drinkingStatus);
+      assertThat(memberIdeal.getHobbies()).containsExactlyInAnyOrder("DANCE", "WINE");
+      assertThat(memberIdeal.getCities()).containsExactly("SEOUL");
+      assertThat(memberIdeal.getReligion()).isEqualTo("CHRISTIAN");
+      assertThat(memberIdeal.getSmokingStatus()).isEqualTo("VAPE");
+      assertThat(memberIdeal.getDrinkingStatus()).isEqualTo("SOCIAL");
     }
   }
 

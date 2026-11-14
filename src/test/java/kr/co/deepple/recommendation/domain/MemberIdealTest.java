@@ -4,11 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Set;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,21 +52,21 @@ class MemberIdealTest {
   @DisplayName("update 메서드 테스트")
   class UpdateTest {
 
-    private Set<Hobby> hobbies;
+    private Set<String> hobbies;
     private AgeRange ageRange;
-    private Set<City> cities;
-    private Religion religion;
-    private SmokingStatus smokingStatus;
-    private DrinkingStatus drinkingStatus;
+    private Set<String> cities;
+    private String religion;
+    private String smokingStatus;
+    private String drinkingStatus;
 
     @BeforeEach
     void setUp() {
       ageRange = AgeRange.of(20, 30);
-      cities = Set.of(City.SEOUL);
-      religion = Religion.CHRISTIAN;
-      smokingStatus = SmokingStatus.VAPE;
-      drinkingStatus = DrinkingStatus.SOCIAL;
-      hobbies = Set.of(Hobby.DANCE, Hobby.ANIMATION);
+      cities = Set.of("SEOUL");
+      religion = "CHRISTIAN";
+      smokingStatus = "VAPE";
+      drinkingStatus = "SOCIAL";
+      hobbies = Set.of("DANCE", "ANIMATION");
     }
 
     @Test

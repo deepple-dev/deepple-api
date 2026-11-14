@@ -9,12 +9,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
@@ -34,7 +36,7 @@ class TodayCardServiceTest {
 
   @InjectMocks private TodayCardService todayCardService;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
 
@@ -58,7 +60,7 @@ class TodayCardServiceTest {
     todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
 
     // then
-    verify(memberCommandRepository, never()).findAllById(any());
+    verify(findMemberSummaryUseCase, never()).findMemberSummaries(any());
     verify(memberIntroductionCommandRepository, never()).saveAll(any());
   }
 
@@ -72,7 +74,7 @@ class TodayCardServiceTest {
     when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
             memberId, todayCardMemberIds))
         .thenReturn(List.of());
-    when(memberCommandRepository.findAllById(todayCardMemberIds)).thenReturn(List.of());
+    when(findMemberSummaryUseCase.findMemberSummaries(todayCardMemberIds)).thenReturn(Map.of());
 
     // when
     todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
@@ -92,10 +94,11 @@ class TodayCardServiceTest {
             memberId, todayCardMemberIds))
         .thenReturn(List.of());
 
-    Member inactiveMember = MemberFixture.builder().activityStatus(ActivityStatus.DORMANT).build();
+    Member inactiveMember =
+        MemberFixture.builder().id(2L).activityStatus(ActivityStatus.DORMANT).build();
 
-    when(memberCommandRepository.findAllById(todayCardMemberIds))
-        .thenReturn(List.of(inactiveMember));
+    when(findMemberSummaryUseCase.findMemberSummaries(todayCardMemberIds))
+        .thenReturn(Map.of(2L, MemberSummaryFixture.from(inactiveMember)));
 
     // when
     todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
@@ -117,7 +120,8 @@ class TodayCardServiceTest {
 
     Member activeMember = MemberFixture.builder().id(2L).build();
 
-    when(memberCommandRepository.findAllById(todayCardMemberIds)).thenReturn(List.of(activeMember));
+    when(findMemberSummaryUseCase.findMemberSummaries(todayCardMemberIds))
+        .thenReturn(Map.of(2L, MemberSummaryFixture.from(activeMember)));
 
     // when
     try (MockedStatic<MemberIntroduction> memberIntroductionMockedStatic =
