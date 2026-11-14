@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
 import kr.co.deepple.block.application.port.out.BlockRepository;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.application.dto.LikeLevelRequest;
@@ -14,10 +13,11 @@ import kr.co.deepple.like.application.dto.LikeSendRequest;
 import kr.co.deepple.like.application.port.out.LikeCommandRepository;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeErrorCode;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.mission.application.MemberMissionService;
 import kr.co.deepple.mission.domain.ActionType;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +33,7 @@ class LikeSendServiceTest {
 
   @Mock LikeCommandRepository likeCommandRepository;
 
-  @Mock MemberCommandRepository memberCommandRepository;
+  @Mock FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock MemberMissionService memberMissionService;
 
@@ -59,8 +59,10 @@ class LikeSendServiceTest {
         MemberFixture.builder().id(senderId).nickname("nickname").gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
 
-    when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
-    when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
+    when(findMemberSummaryUseCase.getMemberSummary(senderId))
+        .thenReturn(MemberSummaryFixture.from(sender));
+    when(findMemberSummaryUseCase.getMemberSummary(receiverId))
+        .thenReturn(MemberSummaryFixture.from(receiver));
 
     when(blockRepository.existsByBlockerIdAndBlockedId(senderId, receiverId)).thenReturn(false);
     when(blockRepository.existsByBlockerIdAndBlockedId(receiverId, senderId)).thenReturn(false);
@@ -112,8 +114,10 @@ class LikeSendServiceTest {
     var receiver =
         MemberFixture.builder().id(receiverId).activityStatus(ActivityStatus.DORMANT).build();
 
-    when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
-    when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
+    when(findMemberSummaryUseCase.getMemberSummary(senderId))
+        .thenReturn(MemberSummaryFixture.from(sender));
+    when(findMemberSummaryUseCase.getMemberSummary(receiverId))
+        .thenReturn(MemberSummaryFixture.from(receiver));
 
     // when && then
     assertThatThrownBy(() -> likeSendService.send(senderId, request))
@@ -136,8 +140,10 @@ class LikeSendServiceTest {
     var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.MALE).build();
 
-    when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
-    when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
+    when(findMemberSummaryUseCase.getMemberSummary(senderId))
+        .thenReturn(MemberSummaryFixture.from(sender));
+    when(findMemberSummaryUseCase.getMemberSummary(receiverId))
+        .thenReturn(MemberSummaryFixture.from(receiver));
 
     // when && then
     assertThatThrownBy(() -> likeSendService.send(senderId, request))
@@ -160,8 +166,10 @@ class LikeSendServiceTest {
     var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
 
-    when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
-    when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
+    when(findMemberSummaryUseCase.getMemberSummary(senderId))
+        .thenReturn(MemberSummaryFixture.from(sender));
+    when(findMemberSummaryUseCase.getMemberSummary(receiverId))
+        .thenReturn(MemberSummaryFixture.from(receiver));
 
     when(blockRepository.existsByBlockerIdAndBlockedId(senderId, receiverId)).thenReturn(true);
 
@@ -186,8 +194,10 @@ class LikeSendServiceTest {
     var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
 
-    when(memberCommandRepository.findById(senderId)).thenReturn(Optional.of(sender));
-    when(memberCommandRepository.findById(receiverId)).thenReturn(Optional.of(receiver));
+    when(findMemberSummaryUseCase.getMemberSummary(senderId))
+        .thenReturn(MemberSummaryFixture.from(sender));
+    when(findMemberSummaryUseCase.getMemberSummary(receiverId))
+        .thenReturn(MemberSummaryFixture.from(receiver));
 
     when(blockRepository.existsByBlockerIdAndBlockedId(senderId, receiverId)).thenReturn(false);
     when(blockRepository.existsByBlockerIdAndBlockedId(receiverId, senderId)).thenReturn(true);

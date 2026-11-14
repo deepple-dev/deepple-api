@@ -18,10 +18,11 @@ import kr.co.deepple.community.event.ProfileExchangeRejectedEvent;
 import kr.co.deepple.community.event.ProfileExchangeRequestedEvent;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class ProfileExchangeServiceTest {
 
   Member sender = MemberFixture.builder().id(1L).nickname("닉네임").build();
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private ProfileExchangeRepository profileExchangeRepository;
 
@@ -92,7 +93,8 @@ class ProfileExchangeServiceTest {
           .thenReturn(false);
       Member responder =
           MemberFixture.builder().id(responderId).activityStatus(ActivityStatus.DORMANT).build();
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
 
       Mockito.doAnswer(
               invocation -> {
@@ -120,7 +122,8 @@ class ProfileExchangeServiceTest {
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);
       Member responder = MemberFixture.builder().id(responderId).build();
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
       when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
           .thenReturn(true);
 
@@ -149,7 +152,8 @@ class ProfileExchangeServiceTest {
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);
       Member responder = MemberFixture.builder().id(responderId).build();
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
       when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
           .thenReturn(false);
       when(blockRepository.existsByBlockerIdAndBlockedId(responderId, requesterId))
@@ -180,8 +184,10 @@ class ProfileExchangeServiceTest {
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);
       Member responder = MemberFixture.builder().id(responderId).build();
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(responder));
-      when(memberCommandRepository.findById(requesterId)).thenReturn(Optional.of(sender));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(sender));
       when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
           .thenReturn(false);
       when(blockRepository.existsByBlockerIdAndBlockedId(responderId, requesterId))
@@ -218,7 +224,8 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.findById(profileExchangeId)).thenReturn(Optional.empty());
 
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(sender));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(sender));
 
       // When & Then
       assertThatThrownBy(() -> profileExchangeService.approve(profileExchangeId, responderId))
@@ -247,7 +254,8 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.findById(profileExchangeId))
           .thenReturn(Optional.of(profileExchange));
-      when(memberCommandRepository.findById(anotherResponderId)).thenReturn(Optional.of(sender));
+      when(findMemberSummaryUseCase.getMemberSummary(anotherResponderId))
+          .thenReturn(MemberSummaryFixture.from(sender));
 
       // When & Then
       assertThatThrownBy(
@@ -277,7 +285,8 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.findById(profileExchangeId))
           .thenReturn(Optional.of(profileExchange));
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(sender));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(sender));
 
       // When
       profileExchangeService.approve(profileExchangeId, responderId);
@@ -303,7 +312,8 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.findById(profileExchangeId))
           .thenReturn(Optional.of(profileExchange));
-      when(memberCommandRepository.findById(responderId)).thenReturn(Optional.of(sender));
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(sender));
 
       // When
       profileExchangeService.reject(profileExchangeId, responderId);

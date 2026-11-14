@@ -11,9 +11,8 @@ import kr.co.deepple.community.event.ProfileExchangeRejectedEvent;
 import kr.co.deepple.community.event.ProfileExchangeRequestedEvent;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class ProfileExchangeService {
 
   private final ProfileExchangeRepository profileExchangeRepository;
   private final DistributedLockTemplate distributedLockTemplate;
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final BlockRepository blockRepository;
   private final UseHeartUseCase useHeartUseCase;
   private final ApplicationEventPublisher eventPublisher;
@@ -78,13 +77,7 @@ public class ProfileExchangeService {
   }
 
   private String getNickNameByMemberId(long memberId) {
-    return memberCommandRepository
-        .findById(memberId)
-        .orElseThrow(
-            () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId))
-        .getProfile()
-        .getNickname()
-        .getValue();
+    return findMemberSummaryUseCase.getMemberSummary(memberId).requireNickname();
   }
 
   private ProfileExchange getProfileExchangeById(long profileExchangeId) {
@@ -117,11 +110,7 @@ public class ProfileExchangeService {
           CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS,
           "requesterId=" + requesterId + ", responderId=" + responderId);
     }
-    Member responder =
-        memberCommandRepository
-            .findById(responderId)
-            .orElseThrow(() ->
-                new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + responderId));
+    MemberSummary responder = findMemberSummaryUseCase.getMemberSummary(responderId);
     if (!responder.isActive()) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_RESPONDER_INACTIVE, "responderId=" + responderId);

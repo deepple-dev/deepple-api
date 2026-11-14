@@ -16,9 +16,10 @@ import kr.co.deepple.community.domain.CommunityErrorCode;
 import kr.co.deepple.community.domain.SelfIntroduction;
 import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
 import kr.co.deepple.community.fixture.SelfIntroductionFixture;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,7 +37,7 @@ public class SelfIntroductionServiceTest {
 
   @Mock private SelfIntroductionCommandRepository selfIntroductionCommandRepository;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private S3Uploader s3Uploader;
 
@@ -56,7 +57,8 @@ public class SelfIntroductionServiceTest {
       String title = "셀프 소개 제목";
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
 
       // When & Then
       Assertions.assertThatThrownBy(() ->
@@ -74,8 +76,8 @@ public class SelfIntroductionServiceTest {
       String title = "셀프 소개 제목";
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
 
       // When
       selfIntroductionService.write(
@@ -100,8 +102,8 @@ public class SelfIntroductionServiceTest {
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
       String imageUrl = "https://example.com/image.jpg";
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
 
       // When
       selfIntroductionService.write(
@@ -120,8 +122,8 @@ public class SelfIntroductionServiceTest {
       String title = "셀프 소개 제목";
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(false);
 
       // When
@@ -146,8 +148,8 @@ public class SelfIntroductionServiceTest {
       String title = "셀프 소개 제목";
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(true);
 
       // When
@@ -174,7 +176,8 @@ public class SelfIntroductionServiceTest {
       String title = "셀프 소개 제목";
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
 
       // When & Then
       Assertions.assertThatThrownBy(() ->
@@ -195,8 +198,8 @@ public class SelfIntroductionServiceTest {
       String title = "셀프 소개 제목";
       String content = "셀프 소개 내용입니다. 최소 내용이 30자 이상입니다~!!! (30자 이상)";
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
           .thenReturn(Optional.empty());
 
@@ -227,8 +230,8 @@ public class SelfIntroductionServiceTest {
               .content(content)
               .build();
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
@@ -262,8 +265,8 @@ public class SelfIntroductionServiceTest {
               .content(content)
               .build();
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
@@ -292,7 +295,8 @@ public class SelfIntroductionServiceTest {
       Long selfIntroductionId = 1L;
       Long memberId = 2L;
 
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
 
       // When & Then
       Assertions.assertThatThrownBy(
@@ -308,8 +312,8 @@ public class SelfIntroductionServiceTest {
       Long selfIntroductionId = 1L;
       Long memberId = 2L;
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
           .thenReturn(Optional.empty());
 
@@ -330,8 +334,8 @@ public class SelfIntroductionServiceTest {
       SelfIntroduction selfIntroduction =
           SelfIntroductionFixture.builder().id(selfIntroductionId).memberId(1L).build();
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
@@ -353,8 +357,8 @@ public class SelfIntroductionServiceTest {
       SelfIntroduction selfIntroduction =
           SelfIntroductionFixture.builder().id(selfIntroductionId).memberId(memberId).build();
 
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
@@ -437,7 +441,8 @@ public class SelfIntroductionServiceTest {
     void throwExceptionWhenMemberNotFound() {
       // Given
       Long memberId = 1L;
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
 
       // When & Then
       Assertions.assertThatThrownBy(
@@ -453,8 +458,8 @@ public class SelfIntroductionServiceTest {
       Long memberId = 1L;
       String fileName = "a.jpg";
       PresignedUrlResponse expected = new PresignedUrlResponse("https://put", "https://obj");
-      Mockito.when(memberCommandRepository.findById(memberId))
-          .thenReturn(Optional.of(MemberFixture.builder().id(memberId).build()));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
       Mockito.when(s3Uploader.getPresignedUrl(eq(fileName), eq(memberId), eq("self-introduction")))
           .thenReturn(expected);
 

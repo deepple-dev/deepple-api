@@ -4,13 +4,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.mission.application.port.out.MemberMissionCommandRepository;
 import kr.co.deepple.mission.application.port.out.MissionCommandRepository;
 import kr.co.deepple.mission.domain.ActionType;
@@ -41,7 +41,7 @@ public class MemberMissionServiceTest {
 
   @Mock private MissionCommandRepository missionCommandRepository;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -90,7 +90,8 @@ public class MemberMissionServiceTest {
     @DisplayName("멤버가 존재하지 않는 경우, 예외를 발생합니다.")
     void throwExceptionWhenMemberIsNotFound() {
       // Given
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
 
       // When & Then
       Assertions.assertThatThrownBy(() ->
@@ -207,7 +208,8 @@ public class MemberMissionServiceTest {
               missionCommandRepository.findByActionTypeAndTargetGender(
                   mission.getActionType(), TargetGender.ALL))
           .thenReturn(List.of());
-      Mockito.when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(member));
     }
 
     private void givenMemberMission(Mission mission, MemberMission memberMission) {
