@@ -1,41 +1,22 @@
 package kr.co.deepple.member.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.community.domain.ProfileExchange;
-import kr.co.deepple.community.domain.ProfileExchangeStatus;
-import kr.co.deepple.community.fixture.ProfileExchangeFixture;
-import kr.co.deepple.interview.domain.InterviewAnswer;
-import kr.co.deepple.interview.domain.InterviewCategory;
-import kr.co.deepple.interview.domain.InterviewQuestion;
-import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
-import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
-import kr.co.deepple.like.domain.Like;
-import kr.co.deepple.like.domain.LikeLevel;
-import kr.co.deepple.like.fixture.LikeFixture;
-import kr.co.deepple.match.domain.Match;
-import kr.co.deepple.match.domain.MatchContactType;
-import kr.co.deepple.match.domain.MatchStatus;
-import kr.co.deepple.match.fixture.MatchFixture;
-import kr.co.deepple.member.application.dto.BasicInfo;
-import kr.co.deepple.member.application.dto.BasicMemberInfo;
-import kr.co.deepple.member.application.dto.InterviewInfoView;
-import kr.co.deepple.member.application.dto.InterviewResultView;
-import kr.co.deepple.member.application.dto.MatchInfo;
 import kr.co.deepple.member.application.dto.MemberContactView;
-import kr.co.deepple.member.application.dto.MemberInfoView;
 import kr.co.deepple.member.application.dto.MemberProfileView;
-import kr.co.deepple.member.application.dto.OtherMemberProfileView;
-import kr.co.deepple.member.application.dto.ProfileAccessView;
-import kr.co.deepple.member.application.dto.ProfileInfo;
-import kr.co.deepple.member.application.dto.StatusInfo;
+import kr.co.deepple.member.application.port.in.MemberDetail;
 import kr.co.deepple.member.application.port.in.MemberIdSearchCondition;
+import kr.co.deepple.member.application.port.in.MemberPageItem;
+import kr.co.deepple.member.application.port.in.MemberPageSearchCondition;
 import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.application.port.in.MemberScreeningProfile;
 import kr.co.deepple.member.application.port.in.MemberSearchCondition;
@@ -52,15 +33,10 @@ import kr.co.deepple.member.domain.Mbti;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberProfile;
 import kr.co.deepple.member.domain.PrimaryContactType;
-import kr.co.deepple.member.domain.ProfileImage;
 import kr.co.deepple.member.domain.Religion;
 import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.ProfileImageFixture;
-import kr.co.deepple.recommendation.domain.IntroductionType;
-import kr.co.deepple.recommendation.domain.MemberIntroduction;
-import kr.co.deepple.recommendation.fixture.MemberIntroductionFixture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -68,6 +44,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 class MemberQueryRepositoryTest extends RepositoryTestSupport {
 
@@ -76,30 +55,23 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
   @Autowired private TestEntityManager entityManager;
 
   @Nested
-  @DisplayName("프로필 조회 테스트 (캐싱)")
-  class CacheQueryTest {
+  @DisplayName("회원 상세 조회 테스트")
+  class DetailQueryTest {
 
     @Test
-    @DisplayName("존재하지 않은 아이디인 경우, 프로필 빈 값 반환.")
-    void isNullWhenMemberIsNotExists() {
-      // Given
-      Long notExistMemberId = 10L;
-
-      // When & Then
-      assertThat(memberQueryRepository.findContactsByMemberId(notExistMemberId)).isEmpty();
+    @DisplayName("존재하지 않은 아이디인 경우, 빈 값 반환.")
+    void isEmptyWhenMemberIsNotExists() {
+      assertThat(memberQueryRepository.findDetailByMemberId(10L)).isEmpty();
     }
 
     @Test
-    @DisplayName("존재하는 아이디인 경우, 프로필 조회 성공.")
+    @DisplayName("존재하는 아이디인 경우, 계정·프로필·취미 값을 모두 조회한다.")
     void isSuccessWhenMemberIsExists() {
       // Given
-      Job job = Job.JOB_SEARCHING;
-      Hobby hobby1 = Hobby.ANIMATION;
-      Hobby hobby2 = Hobby.BOARD_GAMES;
-
+      LocalDateTime accessedAt = LocalDateTime.of(2026, 1, 1, 12, 0);
       Member member =
           MemberFixture.builder()
-              .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
+              .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25)
               .height(20)
               .highestEducation(HighestEducation.ASSOCIATE)
               .nickname("nickname")
@@ -109,93 +81,259 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
               .mbti(Mbti.ENFJ)
               .drinkingStatus(DrinkingStatus.NONE)
               .religion(Religion.BUDDHIST)
-              .job(job)
-              .hobbies(Set.of(hobby1, hobby2))
+              .job(Job.JOB_SEARCHING)
+              .hobbies(Set.of(Hobby.ANIMATION, Hobby.BOARD_GAMES))
+              .kakaoId("kakaoId")
+              .grade(Grade.DIAMOND)
+              .primaryContactType(PrimaryContactType.KAKAO)
+              .vip(true)
+              .profilePublic(true)
+              .datingExamSubmitted(true)
+              .lastAccessedAt(accessedAt)
               .build();
+      entityManager.persist(member);
+      entityManager.persist(MemberFixture.builder().build());
+      entityManager.flush();
+
+      // When
+      MemberDetail detail = memberQueryRepository.findDetailByMemberId(member.getId()).orElse(null);
+
+      // Then
+      assertThat(detail).isNotNull();
+      assertThat(detail.memberId()).isEqualTo(member.getId());
+      assertThat(detail.activityStatus()).isEqualTo(member.getActivityStatus().name());
+      assertThat(detail.grade()).isEqualTo("DIAMOND");
+      assertThat(detail.vip()).isTrue();
+      assertThat(detail.profilePublic()).isTrue();
+      assertThat(detail.datingExamSubmitted()).isTrue();
+      assertThat(detail.primaryContactType()).isEqualTo("KAKAO");
+      assertThat(detail.phoneNumber()).isEqualTo(member.getPhoneNumber());
+      assertThat(detail.kakaoId()).isEqualTo("kakaoId");
+      assertThat(detail.nickname()).isEqualTo("nickname");
+      assertThat(detail.gender()).isEqualTo("MALE");
+      assertThat(detail.yearOfBirth()).isEqualTo(member.getProfile().getYearOfBirth().getValue());
+      assertThat(detail.age()).isEqualTo(member.getProfile().getYearOfBirth().getAge());
+      assertThat(detail.height()).isEqualTo(20);
+      assertThat(detail.job()).isEqualTo("JOB_SEARCHING");
+      assertThat(detail.highestEducation()).isEqualTo("ASSOCIATE");
+      assertThat(detail.city()).isEqualTo(member.getProfile().getRegion().getCity().name());
+      assertThat(detail.district()).isEqualTo("DONG_GU_DAEJEON");
+      assertThat(detail.mbti()).isEqualTo("ENFJ");
+      assertThat(detail.smokingStatus()).isEqualTo("DAILY");
+      assertThat(detail.drinkingStatus()).isEqualTo("NONE");
+      assertThat(detail.religion()).isEqualTo("BUDDHIST");
+      assertThat(detail.hobbies()).containsExactlyInAnyOrder("ANIMATION", "BOARD_GAMES");
+      assertThat(detail.lastAccessedAt()).isEqualTo(accessedAt);
+      assertThat(detail.joinedAt()).isCloseTo(member.getCreatedAt(), within(1, ChronoUnit.MICROS));
+      assertThat(detail.deletedAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("접속 기록과 취미가 없는 회원은 lastAccessedAt이 null이고 취미가 비어 있다.")
+    void getNullLastAccessedAtAndEmptyHobbies() {
+      // Given
+      Member member = MemberFixture.builder().hobbies(Set.of()).build();
       entityManager.persist(member);
       entityManager.flush();
 
-      InterviewQuestion interviewQuestion1 =
-          createInterviewQuestion("인터뷰 질문 내용1", InterviewCategory.PERSONAL, true);
-      InterviewQuestion interviewQuestion2 =
-          createInterviewQuestion("인터뷰 질문 내용2", InterviewCategory.ROMANTIC, true);
-      InterviewQuestion interviewQuestion3 =
-          createInterviewQuestion("인터뷰 질문 내용3", InterviewCategory.PERSONAL, true);
-      InterviewQuestion interviewQuestion4 =
-          createInterviewQuestion("인터뷰 질문 내용4", InterviewCategory.PERSONAL, false);
-
-      entityManager.persist(interviewQuestion1);
-      entityManager.persist(interviewQuestion2);
-      entityManager.persist(interviewQuestion3);
-      entityManager.persist(interviewQuestion4);
-      entityManager.flush();
-
-      InterviewAnswer interviewAnswer1 =
-          createInterviewAnswer(interviewQuestion1.getId(), member.getId(), "인터뷰 질문 답변1");
-      InterviewAnswer interviewAnswer2 =
-          createInterviewAnswer(interviewQuestion2.getId(), member.getId(), "인터뷰 질문 답변2");
-      InterviewAnswer interviewAnswer4 =
-          createInterviewAnswer(interviewQuestion2.getId(), member.getId(), "인터뷰 질문 답변4");
-
-      entityManager.persist(interviewAnswer1);
-      entityManager.persist(interviewAnswer2);
-      entityManager.persist(interviewAnswer4);
-      entityManager.flush();
-
-      List<InterviewAnswer> interviewAnswers =
-          List.of(interviewAnswer1, interviewAnswer2, interviewAnswer4);
-
       // When
-      MemberInfoView memberInfoView =
-          memberQueryRepository.findInfoByMemberId(member.getId()).orElse(null);
+      MemberDetail detail = memberQueryRepository.findDetailByMemberId(member.getId()).orElse(null);
 
       // Then
-      assertThat(memberInfoView).isNotNull();
-      assertBasicInfo(memberInfoView.basicInfo(), member);
-      assertStatusInfo(memberInfoView.statusInfo(), member);
-      assertProfileInfo(memberInfoView.profileInfo(), member);
-      assertInterviewInfo(memberInfoView.interviewInfoView(), interviewAnswers);
+      assertThat(detail).isNotNull();
+      assertThat(detail.lastAccessedAt()).isNull();
+      assertThat(detail.hobbies()).isEmpty();
+      assertThat(detail.vip()).isFalse();
+      assertThat(detail.profilePublic()).isFalse();
+      assertThat(detail.datingExamSubmitted()).isFalse();
     }
 
-    private void assertBasicInfo(BasicInfo basicInfo, Member member) {
-      assertThat(basicInfo.nickname()).isEqualTo(member.getProfile().getNickname().getValue());
-      assertThat(basicInfo.gender()).isEqualTo(member.getGender().toString());
-      assertThat(basicInfo.kakaoId()).isEqualTo(member.getKakaoId());
-      assertThat(basicInfo.age()).isEqualTo(member.getProfile().getYearOfBirth().getAge());
-      assertThat(basicInfo.height()).isEqualTo(member.getProfile().getHeight());
-      assertThat(basicInfo.phoneNumber()).isEqualTo(member.getPhoneNumber());
+    @Test
+    @DisplayName("프로필을 입력하지 않은 회원은 프로필 값이 비어 있다.")
+    void getDetailWithoutProfile() {
+      // Given
+      Member member = MemberFixture.builder().noProfile().build();
+      entityManager.persist(member);
+      entityManager.flush();
+
+      // When
+      MemberDetail detail = memberQueryRepository.findDetailByMemberId(member.getId()).orElse(null);
+
+      // Then
+      assertThat(detail).isNotNull();
+      assertThat(detail.nickname()).isNull();
+      assertThat(detail.gender()).isNull();
+      assertThat(detail.age()).isNull();
+      assertThat(detail.hobbies()).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("회원 페이지 조회 테스트")
+  class PageQueryTest {
+
+    @Test
+    @DisplayName("조건이 없으면 모든 회원을 회원 번호가 큰 순서로 조회한다.")
+    void findPage() {
+      // given
+      Member member1 =
+          createMember("01011111111", "테스트유저1", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+      Member member2 =
+          createMember(
+              "01022222222", "테스트유저2", ActivityStatus.DORMANT, Gender.FEMALE, Grade.DIAMOND);
+
+      // when
+      Page<MemberPageItem> result =
+          memberQueryRepository.findPage(emptyCondition(), PageRequest.of(0, 10));
+
+      // then
+      assertThat(result.getTotalElements()).isEqualTo(2);
+      assertThat(result.getContent())
+          .extracting(MemberPageItem::memberId)
+          .containsExactly(member2.getId(), member1.getId());
+      assertPageItem(result.getContent().get(0), member2);
+      assertPageItem(result.getContent().get(1), member1);
     }
 
-    private void assertStatusInfo(StatusInfo statusInfo, Member member) {
-      assertThat(statusInfo.memberId()).isEqualTo(member.getId());
-      assertThat(statusInfo.activityStatus()).isEqualTo(member.getActivityStatus().toString());
-      assertThat(statusInfo.isVip()).isEqualTo(member.isVip());
-      assertThat(statusInfo.primaryContactType())
-          .isEqualTo(member.getPrimaryContactType().toString());
+    @Test
+    @DisplayName("offset과 limit만큼만 조회하고 전체 수는 조건에 맞는 회원 수다.")
+    void findPageWithOffsetAndLimit() {
+      // given
+      createMember("01011111111", "테스트유저1", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+      Member member2 =
+          createMember("01022222222", "테스트유저2", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+      createMember("01033333333", "테스트유저3", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+
+      // when
+      Page<MemberPageItem> result =
+          memberQueryRepository.findPage(emptyCondition(), PageRequest.of(1, 1));
+
+      // then
+      assertThat(result.getTotalElements()).isEqualTo(3);
+      assertThat(result.getContent())
+          .extracting(MemberPageItem::memberId)
+          .containsExactly(member2.getId());
     }
 
-    private void assertProfileInfo(ProfileInfo profileInfo, Member member) {
-      assertThat(profileInfo.drinkingStatus())
-          .isEqualTo(member.getProfile().getDrinkingStatus().toString());
-      assertThat(profileInfo.job()).isEqualTo(member.getProfile().getJob().name());
-      for (Hobby hobby : member.getProfile().getHobbies()) {
-        assertThat(profileInfo.hobbies()).contains(hobby.name());
-      }
-      assertThat(profileInfo.city())
-          .isEqualTo(member.getProfile().getRegion().getCity().toString());
-      assertThat(profileInfo.district())
-          .isEqualTo(member.getProfile().getRegion().getDistrict().toString());
-      assertThat(profileInfo.smokingStatus())
-          .isEqualTo(member.getProfile().getSmokingStatus().toString());
-      assertThat(profileInfo.mbti()).isEqualTo(member.getProfile().getMbti().toString());
-      assertThat(profileInfo.religion()).isEqualTo(member.getProfile().getReligion().toString());
-      assertThat(profileInfo.highestEducation())
-          .isEqualTo(member.getProfile().getHighestEducation().toString());
+    @ParameterizedTest
+    @ValueSource(strings = {"phoneNumber", "nickname", "activityStatus", "gender", "grade"})
+    @DisplayName("조건에 맞는 회원만 조회한다.")
+    void findPageWithConditions(String conditionType) {
+      // given
+      Member foundMember =
+          createMember("01011111111", "테스트유저1", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+      createMember("01022222222", "테스트유저2", ActivityStatus.DORMANT, Gender.FEMALE, Grade.DIAMOND);
+
+      MemberPageSearchCondition condition =
+          new MemberPageSearchCondition(
+              conditionType.equals("activityStatus")
+                  ? foundMember.getActivityStatus().name()
+                  : null,
+              conditionType.equals("gender") ? foundMember.getGender().name() : null,
+              conditionType.equals("grade") ? foundMember.getGrade().name() : null,
+              conditionType.equals("nickname")
+                  ? foundMember.getProfile().getNickname().getValue()
+                  : null,
+              conditionType.equals("phoneNumber") ? foundMember.getPhoneNumber() : null,
+              null,
+              null);
+
+      // when
+      Page<MemberPageItem> result =
+          memberQueryRepository.findPage(condition, PageRequest.of(0, 10));
+
+      // then
+      assertThat(result.getTotalElements()).isEqualTo(1);
+      assertThat(result.getContent()).hasSize(1);
+      assertPageItem(result.getContent().get(0), foundMember);
     }
 
-    private void assertInterviewInfo(
-        Set<InterviewInfoView> interviewInfoView, List<InterviewAnswer> interviewAnswers) {
-      assertThat(interviewInfoView).hasSameSizeAs(interviewAnswers);
+    @Test
+    @DisplayName("닉네임은 포함 여부로 찾는다.")
+    void findPageWithNicknameKeyword() {
+      // given
+      Member foundMember =
+          createMember("01011111111", "딥플유저", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+      createMember("01022222222", "다른회원", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+
+      // when
+      Page<MemberPageItem> result =
+          memberQueryRepository.findPage(
+              new MemberPageSearchCondition(null, null, null, "플유", null, null, null),
+              PageRequest.of(0, 10));
+
+      // then
+      assertThat(result.getContent())
+          .extracting(MemberPageItem::memberId)
+          .containsExactly(foundMember.getId());
+    }
+
+    @Test
+    @DisplayName("가입일이 시작일과 종료일 사이(양 끝 날짜 포함)인 회원만 조회한다.")
+    void findPageWithDateConditions() {
+      // given
+      Member member =
+          createMember("01011111111", "테스트유저1", ActivityStatus.ACTIVE, Gender.MALE, Grade.SILVER);
+      LocalDate joinedDate = member.getCreatedAt().toLocalDate();
+      Pageable pageable = PageRequest.of(0, 10);
+
+      // when
+      Page<MemberPageItem> resultAfterStartDate =
+          memberQueryRepository.findPage(dateCondition(joinedDate.plusDays(1), null), pageable);
+      Page<MemberPageItem> resultEqStartDate =
+          memberQueryRepository.findPage(dateCondition(joinedDate, null), pageable);
+      Page<MemberPageItem> resultBeforeEndDate =
+          memberQueryRepository.findPage(dateCondition(null, joinedDate.minusDays(1)), pageable);
+      Page<MemberPageItem> resultEqEndDate =
+          memberQueryRepository.findPage(dateCondition(null, joinedDate), pageable);
+
+      // then
+      assertThat(resultAfterStartDate.getTotalElements()).isZero();
+      assertThat(resultAfterStartDate.getContent()).isEmpty();
+
+      assertThat(resultEqStartDate.getTotalElements()).isEqualTo(1);
+      assertThat(resultEqStartDate.getContent()).hasSize(1);
+
+      assertThat(resultBeforeEndDate.getTotalElements()).isZero();
+      assertThat(resultBeforeEndDate.getContent()).isEmpty();
+
+      assertThat(resultEqEndDate.getTotalElements()).isEqualTo(1);
+      assertThat(resultEqEndDate.getContent()).hasSize(1);
+    }
+
+    private Member createMember(
+        String phoneNumber,
+        String nickname,
+        ActivityStatus activityStatus,
+        Gender gender,
+        Grade grade) {
+      Member member =
+          MemberFixture.builder()
+              .phoneNumber(phoneNumber)
+              .activityStatus(activityStatus)
+              .grade(grade)
+              .nickname(nickname)
+              .gender(gender)
+              .build();
+      entityManager.persist(member);
+      entityManager.flush();
+      return member;
+    }
+
+    private MemberPageSearchCondition emptyCondition() {
+      return new MemberPageSearchCondition(null, null, null, null, null, null, null);
+    }
+
+    private MemberPageSearchCondition dateCondition(LocalDate joinedFrom, LocalDate joinedTo) {
+      return new MemberPageSearchCondition(null, null, null, null, null, joinedFrom, joinedTo);
+    }
+
+    private void assertPageItem(MemberPageItem item, Member member) {
+      assertThat(item.memberId()).isEqualTo(member.getId());
+      assertThat(item.nickname()).isEqualTo(member.getProfile().getNickname().getValue());
+      assertThat(item.activityStatus()).isEqualTo(member.getActivityStatus().name());
+      assertThat(item.gender()).isEqualTo(member.getGender().name());
+      assertThat(item.joinedAt()).isCloseTo(member.getCreatedAt(), within(1, ChronoUnit.MICROS));
     }
   }
 
@@ -302,691 +440,6 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
       assertThat(memberContactView.primaryContactType())
           .isEqualTo(member.getPrimaryContactType().toString());
     }
-  }
-
-  @Nested
-  @DisplayName("다른 유저의 프로필 조회")
-  class OtherMemberProfile {
-
-    Member member;
-    Member otherMember;
-    LikeLevel likeLevel = LikeLevel.INTERESTED;
-    String profileImageUrl = "primaryImage";
-    Job jobName = Job.JOB_SEARCHING;
-
-    @BeforeEach
-    void setUp() {
-      Job job = Job.JOB_SEARCHING;
-      Hobby hobby1 = Hobby.ANIMATION;
-      Hobby hobby2 = Hobby.BOARD_GAMES;
-
-      otherMember =
-          MemberFixture.builder()
-              .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25) // 26살
-              .height(20)
-              .highestEducation(HighestEducation.ASSOCIATE)
-              .nickname("nickname")
-              .district(District.DONG_GU_DAEJEON)
-              .gender(Gender.MALE)
-              .smokingStatus(SmokingStatus.DAILY)
-              .mbti(Mbti.ENFJ)
-              .drinkingStatus(DrinkingStatus.NONE)
-              .religion(Religion.BUDDHIST)
-              .job(job)
-              .hobbies(Set.of(hobby1, hobby2))
-              .build();
-      entityManager.persist(otherMember);
-      entityManager.flush();
-
-      member = MemberFixture.builder().build();
-      entityManager.persist(member);
-      entityManager.flush();
-
-      // 좋아요 생성.
-      Like like =
-          LikeFixture.builder()
-              .senderId(member.getId())
-              .receiverId(otherMember.getId())
-              .level(likeLevel)
-              .build();
-      entityManager.persist(like);
-      entityManager.flush();
-
-      // 프로필 이미지.
-      ProfileImage profileImage1 =
-          ProfileImageFixture.builder()
-              .memberId(otherMember.getId())
-              .order(1)
-              .imageUrl(profileImageUrl)
-              .primary(true)
-              .build();
-
-      ProfileImage profileImage2 =
-          ProfileImageFixture.builder()
-              .memberId(otherMember.getId())
-              .order(2)
-              .imageUrl("secondaryImage")
-              .primary(false)
-              .build();
-
-      entityManager.persist(profileImage1);
-      entityManager.persist(profileImage2);
-      entityManager.flush();
-    }
-
-    @Test
-    @DisplayName("존재하지 않은 아이디인 경우, 빈 값 반환")
-    void getNullWhenMemberIdIsNotExists() {
-      // Given
-      Long otherMemberId = -1L;
-
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMemberId)
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNull();
-    }
-
-    @Test
-    @DisplayName("상대방과의 매치가 존재하지 않은 경우, 기본 정보만 조회.")
-    void getBasicInfoWhenMatchIsNotExists() {
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNotNull();
-      assertThat(memberProfileView.basicMemberInfo().id()).isEqualTo(otherMember.getId());
-
-      BasicMemberInfo basicMemberInfo = memberProfileView.basicMemberInfo();
-      MemberProfile otherMemberProfile = otherMember.getProfile();
-
-      // BasicInfo.
-      assertionsBasicInfo(basicMemberInfo, otherMemberProfile);
-
-      // MatchInfo
-      assertThat(memberProfileView.matchInfo()).isNull();
-    }
-
-    @Test
-    @DisplayName("상대방과의 매치가 만료된 경우, 기본 정보만 조회")
-    void getBasicInfoWhenExpiredMatchExists() {
-      // Given
-      Match match =
-          MatchFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember.getId())
-              .requestMessage("매치 신청합니다.")
-              .status(MatchStatus.EXPIRED)
-              .requesterContactType(MatchContactType.PHONE_NUMBER)
-              .build();
-      entityManager.persist(match);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNotNull();
-      assertThat(memberProfileView.basicMemberInfo().id()).isEqualTo(otherMember.getId());
-
-      BasicMemberInfo basicMemberInfo = memberProfileView.basicMemberInfo();
-      MemberProfile otherMemberProfile = otherMember.getProfile();
-
-      // BasicInfo.
-      assertionsBasicInfo(basicMemberInfo, otherMemberProfile);
-
-      // MatchInfo
-      assertThat(memberProfileView.matchInfo()).isNull();
-    }
-
-    @Test
-    @DisplayName("상대방과의 매치를 거절 확인한 경우, 기본 정보만 조회")
-    void getBasicInfoWhenRejectCheckedMatchExists() {
-      // Given
-      Match match =
-          MatchFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember.getId())
-              .requestMessage("매치 신청합니다.")
-              .status(MatchStatus.REJECT_CHECKED)
-              .requesterContactType(MatchContactType.PHONE_NUMBER)
-              .build();
-      entityManager.persist(match);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNotNull();
-      assertThat(memberProfileView.basicMemberInfo().id()).isEqualTo(otherMember.getId());
-
-      BasicMemberInfo basicMemberInfo = memberProfileView.basicMemberInfo();
-      MemberProfile otherMemberProfile = otherMember.getProfile();
-
-      // BasicInfo.
-      assertionsBasicInfo(basicMemberInfo, otherMemberProfile);
-
-      // MatchInfo
-      assertThat(memberProfileView.matchInfo()).isNull();
-    }
-
-    @Test
-    @DisplayName("상대방에게 매치를 요청한 경우, 기본 정보와 연락처를 제외한 매치 정보를 함께 조회.")
-    void getBasicInfoWithMatchInfoNotIncludingContactWhenWaitingMatchExists() {
-      // Given
-      Match match =
-          MatchFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember.getId())
-              .requestMessage("매치 신청합니다.")
-              .status(MatchStatus.WAITING)
-              .requesterContactType(MatchContactType.PHONE_NUMBER)
-              .build();
-      entityManager.persist(match);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNotNull();
-      assertThat(memberProfileView.basicMemberInfo().id()).isEqualTo(otherMember.getId());
-
-      BasicMemberInfo basicMemberInfo = memberProfileView.basicMemberInfo();
-      MemberProfile otherMemberProfile = otherMember.getProfile();
-
-      // BasicInfo.
-      assertionsBasicInfo(basicMemberInfo, otherMemberProfile);
-
-      // MatchInfo
-      assertionsMatchInfo(memberProfileView.matchInfo(), match);
-      assertThat(memberProfileView.matchInfo().requesterId()).isEqualTo(member.getId());
-    }
-
-    @Test
-    @DisplayName("상대방이 매치를 수락한 경우, 기본 정보와 연락처를 포함한 매치 정보를 조회.")
-    void getBasicInfoWithMatchInfoIncludingContactWhenWaitingMatchNotExists() {
-      // Given
-      Match match =
-          MatchFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember.getId())
-              .requestMessage("매치 신청합니다.")
-              .responseMessage("매치 수락합니다!")
-              .status(MatchStatus.MATCHED)
-              .requesterContactType(MatchContactType.PHONE_NUMBER)
-              .responderContactType(MatchContactType.PHONE_NUMBER)
-              .build();
-      entityManager.persist(match);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNotNull();
-      assertThat(memberProfileView.basicMemberInfo().id()).isEqualTo(otherMember.getId());
-
-      BasicMemberInfo basicMemberInfo = memberProfileView.basicMemberInfo();
-      MemberProfile otherMemberProfile = otherMember.getProfile();
-
-      // BasicInfo.
-      assertionsBasicInfo(basicMemberInfo, otherMemberProfile);
-
-      // MatchInfo
-      assertionsMatchInfo(memberProfileView.matchInfo(), match);
-      assertThat(memberProfileView.matchInfo().requesterId()).isEqualTo(member.getId());
-    }
-
-    @Test
-    @DisplayName("상대방이 매치를 거절한 경우, 기본 정보와 연락처를 제외한 매치 정보를 함께 조회.")
-    void getBasicInfoWithMatchInfoNotIncludingContactWhenWaitingMatchNotExists() {
-      // Given
-      Match match =
-          MatchFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember.getId())
-              .requestMessage("매치 신청합니다.")
-              .status(MatchStatus.REJECTED)
-              .requesterContactType(MatchContactType.PHONE_NUMBER)
-              .build();
-      entityManager.persist(match);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView memberProfileView =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(memberProfileView).isNotNull();
-      assertThat(memberProfileView.basicMemberInfo().id()).isEqualTo(otherMember.getId());
-
-      BasicMemberInfo basicMemberInfo = memberProfileView.basicMemberInfo();
-      MemberProfile otherMemberProfile = otherMember.getProfile();
-
-      // BasicInfo.
-      assertionsBasicInfo(basicMemberInfo, otherMemberProfile);
-
-      // MatchInfo
-      assertionsMatchInfo(memberProfileView.matchInfo(), match);
-      assertThat(memberProfileView.matchInfo().requesterId()).isEqualTo(member.getId());
-    }
-
-    // 프로필 요청이 존재하는 경우.
-    @DisplayName("상대방과의 프로필 요청이 존재하는 경우, 프로필 교환 요청 정보를 포함.")
-    @Test
-    void getProfileExchangeInfoWhenProfileExchangeExists() {
-      // Given
-      ProfileExchange profileExchange =
-          ProfileExchangeFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember.getId())
-              .status(ProfileExchangeStatus.WAITING)
-              .build();
-      entityManager.persist(profileExchange);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView view =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.profileExchangeInfo()).isNotNull();
-      assertThat(view.profileExchangeInfo().profileExchangeId()).isEqualTo(profileExchange.getId());
-      assertThat(view.profileExchangeInfo().requesterId()).isEqualTo(member.getId());
-      assertThat(view.profileExchangeInfo().responderId()).isEqualTo(otherMember.getId());
-      assertThat(view.profileExchangeInfo().profileExchangeStatus())
-          .isEqualTo(profileExchange.getStatus().name());
-    }
-
-    @Test
-    @DisplayName("상대방의 마지막 접속 시각을 함께 조회한다")
-    void getLastAccessedAt() {
-      // Given
-      LocalDateTime accessedAt = LocalDateTime.of(2026, 1, 1, 12, 0);
-      Member accessedMember = MemberFixture.builder().lastAccessedAt(accessedAt).build();
-      entityManager.persist(accessedMember);
-      entityManager.flush();
-
-      // When
-      OtherMemberProfileView view =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), accessedMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.basicMemberInfo().lastAccessedAt()).isEqualTo(accessedAt);
-    }
-
-    @Test
-    @DisplayName("접속 기록이 없는 회원은 lastAccessedAt이 null로 조회된다")
-    void getNullLastAccessedAtWhenNeverAccessed() {
-      // When
-      OtherMemberProfileView view =
-          memberQueryRepository
-              .findOtherProfileByMemberId(member.getId(), otherMember.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.basicMemberInfo().lastAccessedAt()).isNull();
-    }
-
-    private void assertionsBasicInfo(
-        BasicMemberInfo basicMemberInfo, MemberProfile otherMemberProfile) {
-      assertThat(basicMemberInfo.nickname()).isEqualTo(otherMemberProfile.getNickname().getValue());
-      assertThat(basicMemberInfo.profileImageUrl()).isEqualTo(profileImageUrl);
-      assertThat(basicMemberInfo.yearOfBirth())
-          .isEqualTo(otherMemberProfile.getYearOfBirth().getValue());
-      assertThat(basicMemberInfo.gender()).isEqualTo(otherMemberProfile.getGender().toString());
-      assertThat(basicMemberInfo.height()).isEqualTo(otherMemberProfile.getHeight());
-      assertThat(basicMemberInfo.job()).isEqualTo(jobName.toString());
-      assertThat(basicMemberInfo.hobbies()).hasSize(2);
-      assertThat(basicMemberInfo.mbti()).isEqualTo(otherMemberProfile.getMbti().toString());
-      assertThat(basicMemberInfo.city())
-          .isEqualTo(otherMemberProfile.getRegion().getCity().toString());
-      assertThat(basicMemberInfo.district())
-          .isEqualTo(otherMemberProfile.getRegion().getDistrict().toString());
-      assertThat(basicMemberInfo.smokingStatus())
-          .isEqualTo(otherMemberProfile.getSmokingStatus().toString());
-      assertThat(basicMemberInfo.drinkingStatus())
-          .isEqualTo(otherMemberProfile.getDrinkingStatus().toString());
-      assertThat(basicMemberInfo.highestEducation())
-          .isEqualTo(otherMemberProfile.getHighestEducation().toString());
-      assertThat(basicMemberInfo.religion()).isEqualTo(otherMemberProfile.getReligion().toString());
-      assertThat(basicMemberInfo.like()).isEqualTo(likeLevel.toString());
-    }
-
-    private void assertionsMatchInfo(MatchInfo matchInfo, Match match) {
-      assertThat(matchInfo.matchId()).isEqualTo(match.getId());
-      assertThat(matchInfo.responderId()).isEqualTo(otherMember.getId());
-      assertThat(matchInfo.requestMessage()).isEqualTo(match.getRequestMessage().getValue());
-      assertThat(matchInfo.responseMessage())
-          .isEqualTo(
-              match.getResponseMessage() == null ? null : match.getResponseMessage().getValue());
-
-      assertThat(matchInfo.matchStatus()).isEqualTo(match.getStatus().toString());
-      assertThat(matchInfo.requesterContactType())
-          .isEqualTo(match.getRequesterContactType().name());
-    }
-  }
-
-  @Nested
-  @DisplayName("유저의 인터뷰 질문/답변 조회")
-  class Interviews {
-
-    Long memberId = 10L;
-    Long otherMemberId = 5L;
-    List<InterviewQuestion> questions;
-    List<InterviewAnswer> answers;
-
-    @BeforeEach
-    void setUp() {
-      InterviewQuestion interviewQuestion1 =
-          createInterviewQuestion("인터뷰 질문 내용1", InterviewCategory.PERSONAL, true);
-      InterviewQuestion interviewQuestion2 =
-          createInterviewQuestion("인터뷰 질문 내용2", InterviewCategory.ROMANTIC, true);
-      InterviewQuestion interviewQuestion3 =
-          createInterviewQuestion("인터뷰 질문 내용3", InterviewCategory.PERSONAL, true);
-      InterviewQuestion interviewQuestion4 =
-          createInterviewQuestion("인터뷰 질문 내용4", InterviewCategory.PERSONAL, false);
-
-      entityManager.persist(interviewQuestion1);
-      entityManager.persist(interviewQuestion2);
-      entityManager.persist(interviewQuestion3);
-      entityManager.persist(interviewQuestion4);
-      entityManager.flush();
-
-      InterviewAnswer interviewAnswer1 =
-          createInterviewAnswer(interviewQuestion1.getId(), memberId, "인터뷰 질문 답변1");
-      InterviewAnswer interviewAnswer2 =
-          createInterviewAnswer(interviewQuestion2.getId(), memberId, "인터뷰 질문 답변2");
-      InterviewAnswer interviewAnswer4 =
-          createInterviewAnswer(interviewQuestion2.getId(), memberId, "인터뷰 질문 답변4");
-
-      InterviewAnswer otherMemberInterviewAnswer =
-          createInterviewAnswer(interviewQuestion1.getId(), otherMemberId, "인터뷰 질문 답변1");
-
-      entityManager.persist(interviewAnswer1);
-      entityManager.persist(interviewAnswer2);
-      entityManager.persist(interviewAnswer4);
-      entityManager.persist(otherMemberInterviewAnswer);
-      entityManager.flush();
-
-      questions =
-          List.of(interviewQuestion1, interviewQuestion2, interviewQuestion3, interviewQuestion4);
-      answers = List.of(interviewAnswer1, interviewAnswer2, interviewAnswer4);
-    }
-
-    @Test
-    @DisplayName("해당 아이디를 가진 멤버의 인터뷰가 존재하지 않는 경우, 빈 값을 얻는다.")
-    void getEmptyListWhenMemberHasNoInterviews() {
-      // Given
-      Long notExistsMemberId = 100L;
-
-      // When
-      List<InterviewResultView> interviewResultViewList =
-          memberQueryRepository.findInterviewsByMemberId(notExistsMemberId);
-
-      // Then
-      assertThat(interviewResultViewList).isEmpty();
-    }
-
-    @Test
-    @DisplayName("인터뷰에 답변한 경우, 해당 멤버의 공개 질문과 답변을 모두 조회한다.")
-    void getInterviewResultViewsWhenAnswersExist() {
-      // Given
-      List<InterviewQuestion> publicQuestions =
-          questions.stream().filter(InterviewQuestion::isPublic).toList();
-
-      // When
-      List<InterviewResultView> interviewResultViewList =
-          memberQueryRepository.findInterviewsByMemberId(memberId);
-      InterviewResultView interviewResultView1 = interviewResultViewList.get(0);
-      InterviewResultView interviewResultView2 = interviewResultViewList.get(1);
-
-      // Then
-      assertThat(interviewResultViewList).hasSameSizeAs(publicQuestions);
-
-      assertThat(interviewResultView1).isNotNull();
-      assertThat(interviewResultView2).isNotNull();
-
-      assertThat(interviewResultView1.content()).isEqualTo(publicQuestions.get(0).getContent());
-      assertThat(interviewResultView2.content()).isEqualTo(publicQuestions.get(1).getContent());
-
-      assertThat(interviewResultView1.category())
-          .isEqualTo(questions.get(0).getCategory().toString());
-      assertThat(interviewResultView2.category())
-          .isEqualTo(questions.get(1).getCategory().toString());
-
-      assertThat(interviewResultView1.answer()).isEqualTo(answers.get(0).getContent());
-      assertThat(interviewResultView2.answer()).isEqualTo(answers.get(1).getContent());
-    }
-  }
-
-  @Nested
-  @DisplayName("프로필 접근 권한 조회 테스트")
-  class findProfileAccessViewByMemberIdTest {
-
-    Member member;
-    Member otherMember1;
-    Member otherMember2;
-
-    @BeforeEach
-    void setUp() {
-      member = MemberFixture.builder().build();
-      otherMember1 = MemberFixture.builder().build();
-      otherMember2 = MemberFixture.builder().build();
-
-      entityManager.persist(member);
-      entityManager.persist(otherMember1);
-      entityManager.persist(otherMember2);
-      entityManager.flush();
-
-      // 이상형 소개.
-      MemberIntroduction memberIntroduction =
-          MemberIntroductionFixture.builder()
-              .memberId(member.getId())
-              .introducedMemberId(otherMember1.getId())
-              .type(IntroductionType.DIAMOND_GRADE)
-              .build();
-      MemberIntroduction memberIntroduction2 =
-          MemberIntroductionFixture.builder()
-              .memberId(member.getId())
-              .introducedMemberId(otherMember2.getId())
-              .type(IntroductionType.DIAMOND_GRADE)
-              .build();
-      entityManager.persist(memberIntroduction);
-      entityManager.persist(memberIntroduction2);
-      entityManager.flush();
-
-      // 좋아요.
-      Like like =
-          LikeFixture.builder()
-              .senderId(otherMember1.getId())
-              .receiverId(member.getId())
-              .level(LikeLevel.INTERESTED)
-              .build();
-      Like like2 =
-          LikeFixture.builder()
-              .senderId(member.getId())
-              .receiverId(otherMember2.getId())
-              .level(LikeLevel.HIGHLY_INTERESTED)
-              .build();
-      entityManager.persist(like);
-      entityManager.persist(like2);
-      entityManager.flush();
-
-      // 매치 신청.
-      Match match =
-          MatchFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember1.getId())
-              .build();
-      Match match2 =
-          MatchFixture.builder()
-              .requesterId(otherMember2.getId())
-              .responderId(member.getId())
-              .build();
-      entityManager.persist(match);
-      entityManager.persist(match2);
-      entityManager.flush();
-
-      // 프로필 교환 신청.
-      ProfileExchange profileExchange =
-          ProfileExchangeFixture.builder()
-              .requesterId(otherMember1.getId())
-              .responderId(member.getId())
-              .build();
-      ProfileExchange profileExchange2 =
-          ProfileExchangeFixture.builder()
-              .requesterId(member.getId())
-              .responderId(otherMember2.getId())
-              .build();
-      entityManager.persist(profileExchange);
-      entityManager.persist(profileExchange2);
-      entityManager.flush();
-    }
-
-    @Test
-    @DisplayName("멤버가 이상형 소개의 대상자로 받은 경우, isIntroduce 를 true로 반환.")
-    void returnIsIntroduceTrueWhenMemberIsIntroduced() {
-      // Given
-      long memberId = member.getId();
-      long introducedMemberId = otherMember1.getId();
-
-      // When
-      ProfileAccessView view =
-          memberQueryRepository
-              .findProfileAccessViewByMemberId(memberId, introducedMemberId)
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.isIntroduced()).isTrue();
-    }
-
-    @Test
-    @DisplayName("멤버가 매치 요청을 받은 경우, requesterId,responderId를 반환.")
-    void returnMatchRequesterIdAndResponderIdWhenMemberIsRequested() {
-      // Given
-      long memberId = member.getId();
-      long requesterMemberId = otherMember2.getId();
-
-      // When
-      ProfileAccessView view =
-          memberQueryRepository
-              .findProfileAccessViewByMemberId(memberId, requesterMemberId)
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.matchRequesterId()).isEqualTo(requesterMemberId);
-      assertThat(view.matchResponderId()).isEqualTo(memberId);
-    }
-
-    @Test
-    @DisplayName("멤버가 프로필 교환 요청을 받은 경우, requesterId, responderId를 반환.")
-    void returnProfileExchangeRequesterIdAndResponderIdWhenMemberIsRequested() {
-      // Given
-      long memberId = member.getId();
-      long requesterMemberId = otherMember1.getId();
-
-      // When
-      ProfileAccessView view =
-          memberQueryRepository
-              .findProfileAccessViewByMemberId(memberId, requesterMemberId)
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.profileExchangeRequesterId()).isEqualTo(requesterMemberId);
-      assertThat(view.profileExchangeResponderId()).isEqualTo(memberId);
-    }
-
-    @Test
-    @DisplayName("멤버가 좋아요를 받은 경우, likeReceived를 true로 반환.")
-    void returnLikeReceivedWhenMemberIsLiked() {
-      // Given
-      long likeReceivedMember = member.getId();
-      long likeRequesterMember = otherMember1.getId();
-
-      // When
-      ProfileAccessView view =
-          memberQueryRepository
-              .findProfileAccessViewByMemberId(likeReceivedMember, likeRequesterMember)
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.likeReceived()).isTrue();
-    }
-
-    @Test
-    @DisplayName("모든 값을 검증.")
-    void verifyAllValues() {
-      // Given
-      long memberId = member.getId();
-      long otherMemberId = otherMember2.getId();
-
-      // When
-      ProfileAccessView view =
-          memberQueryRepository
-              .findProfileAccessViewByMemberId(memberId, otherMemberId)
-              .orElse(null);
-
-      // Then
-      assertThat(view).isNotNull();
-      assertThat(view.isIntroduced()).isTrue();
-      assertThat(view.matchRequesterId()).isEqualTo(otherMemberId);
-      assertThat(view.matchResponderId()).isEqualTo(memberId);
-      assertThat(view.profileExchangeRequesterId()).isEqualTo(memberId);
-      assertThat(view.profileExchangeResponderId()).isEqualTo(otherMemberId);
-      assertThat(view.profileExchangeStatus()).isEqualTo(ProfileExchangeStatus.WAITING.name());
-      assertThat(view.likeReceived()).isFalse();
-    }
-  }
-
-  private InterviewQuestion createInterviewQuestion(
-      String content, InterviewCategory category, boolean publicQuestion) {
-    return InterviewQuestionFixture.builder()
-        .content(content)
-        .category(category)
-        .publicQuestion(publicQuestion)
-        .build();
-  }
-
-  private InterviewAnswer createInterviewAnswer(long questionId, long memberId, String content) {
-    return InterviewAnswerFixture.builder()
-        .questionId(questionId)
-        .memberId(memberId)
-        .content(content)
-        .build();
   }
 
   @Nested

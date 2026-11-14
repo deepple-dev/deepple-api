@@ -135,4 +135,30 @@ class NotificationPreferenceQueryRepositoryTest extends RepositoryTestSupport {
     assertThat(view.preferences()).containsEntry("MATCH_REQUEST", true);
     assertThat(view.preferences()).containsEntry("PROFILE_EXCHANGE_REQUEST", true);
   }
+
+  @Test
+  @DisplayName("findEnabledGloballyByMemberId(): 회원의 전역 알림 설정 값을 조회한다")
+  void findEnabledGloballyByMemberId() {
+    // given
+    em.persist(NotificationPreferenceFixture.builder().memberId(1L).build());
+    em.persist(NotificationPreferenceFixture.builder().memberId(2L).enabledGlobally(false).build());
+    em.flush();
+    em.clear();
+
+    // when & then
+    assertThat(repository.findEnabledGloballyByMemberId(1L)).contains(true);
+    assertThat(repository.findEnabledGloballyByMemberId(2L)).contains(false);
+  }
+
+  @Test
+  @DisplayName("findEnabledGloballyByMemberId(): 알림 설정이 없는 회원은 빈 값을 돌려준다")
+  void findEnabledGloballyByMemberIdWithoutPreference() {
+    // given
+    em.persist(NotificationPreferenceFixture.builder().memberId(1L).build());
+    em.flush();
+    em.clear();
+
+    // when & then
+    assertThat(repository.findEnabledGloballyByMemberId(999L)).isEmpty();
+  }
 }

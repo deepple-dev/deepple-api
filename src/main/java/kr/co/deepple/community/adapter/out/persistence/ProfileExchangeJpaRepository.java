@@ -1,5 +1,6 @@
 package kr.co.deepple.community.adapter.out.persistence;
 
+import java.util.Optional;
 import kr.co.deepple.community.domain.ProfileExchange;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +16,14 @@ public interface ProfileExchangeJpaRepository extends JpaRepository<ProfileExcha
           OR (pe.requesterId = :anotherMemberId AND pe.responderId = :memberId)
           """)
   boolean existsProfileExchangeBetween(long memberId, long anotherMemberId);
+
+  @Query(
+      value =
+          """
+          SELECT pe
+          FROM ProfileExchange pe
+          WHERE (pe.requesterId = :memberId AND pe.responderId = :anotherMemberId)
+          OR (pe.requesterId = :anotherMemberId AND pe.responderId = :memberId)
+          """)
+  Optional<ProfileExchange> findProfileExchangeBetween(long memberId, long anotherMemberId);
 }

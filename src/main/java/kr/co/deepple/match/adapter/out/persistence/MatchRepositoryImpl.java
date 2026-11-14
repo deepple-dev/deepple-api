@@ -34,6 +34,16 @@ public class MatchRepositoryImpl implements MatchRepository {
   }
 
   @Override
+  public Optional<Match> findActiveMatchBetween(long memberId, long anotherMemberId) {
+    return matchJpaRepository.findActiveMatchBetween(memberId, anotherMemberId);
+  }
+
+  @Override
+  public boolean existsReceivedMatchRequest(long responderId, long requesterId) {
+    return matchJpaRepository.existsReceivedMatchRequest(responderId, requesterId);
+  }
+
+  @Override
   public Optional<Match> findById(long id) {
     return matchJpaRepository.findById(id);
   }

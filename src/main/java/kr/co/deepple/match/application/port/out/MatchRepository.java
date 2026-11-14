@@ -9,6 +9,10 @@ public interface MatchRepository {
 
   boolean existsActiveMatchBetween(long memberId, long anotherMemberId);
 
+  Optional<Match> findActiveMatchBetween(long memberId, long anotherMemberId);
+
+  boolean existsReceivedMatchRequest(long responderId, long requesterId);
+
   Optional<Match> findById(long id);
 
   Optional<Match> findByIdAndRequesterId(long id, long requesterId);

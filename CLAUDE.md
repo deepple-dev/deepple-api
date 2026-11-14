@@ -40,6 +40,7 @@
 | `block` | 사용자 차단 |
 | `report` | 사용자 신고 |
 | `datingexam` | 연애고사(가치관 테스트), 결과 기반 매칭 |
+| `profile` | 회원 프로필 화면 조회. 내 정보, 상대 프로필, 관리자 회원 목록·상세를 여러 모듈의 공개 포트로 모아 응답을 만든다 |
 
 모든 도메인은 헥사고날 패키지를 쓴다.
 
@@ -49,6 +50,8 @@ adapter/             in(web, event, scheduler 등 들어오는 쪽), out(persist
 application/         port/in(들어오는 포트), port/out(나가는 포트), dto(요청·응답·조회 조건), 서비스
 domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤트, ErrorCode
 ```
+
+`profile`은 조회 전용이라 엔티티·테이블·`adapter/out`이 없고, 다른 도메인은 `profile`을 참조하지 않는다.
 
 ## 코딩 규칙
 

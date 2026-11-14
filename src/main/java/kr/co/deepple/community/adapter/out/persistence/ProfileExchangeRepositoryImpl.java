@@ -36,6 +36,11 @@ public class ProfileExchangeRepositoryImpl implements ProfileExchangeRepository 
   }
 
   @Override
+  public Optional<ProfileExchange> findProfileExchangeBetween(long memberId, long anotherMemberId) {
+    return profileExchangeJpaRepository.findProfileExchangeBetween(memberId, anotherMemberId);
+  }
+
+  @Override
   public Optional<ProfileExchange> findById(long id) {
     return profileExchangeJpaRepository.findById(id);
   }

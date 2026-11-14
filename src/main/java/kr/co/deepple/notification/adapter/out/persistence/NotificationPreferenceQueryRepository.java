@@ -27,6 +27,16 @@ public class NotificationPreferenceQueryRepository {
     return Optional.ofNullable(preference).map(this::toView);
   }
 
+  public Optional<Boolean> findEnabledGloballyByMemberId(long memberId) {
+    return Optional.ofNullable(
+        queryFactory
+            .select(notificationPreference.isEnabledGlobally)
+            .from(notificationPreference)
+            .where(notificationPreference.memberId.eq(memberId))
+            .orderBy(notificationPreference.id.asc())
+            .fetchFirst());
+  }
+
   private NotificationPreferenceView toView(NotificationPreference preference) {
     return new NotificationPreferenceView(
         preference.getMemberId(),

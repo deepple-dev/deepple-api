@@ -7,6 +7,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswer;
+import kr.co.deepple.interview.application.port.in.MemberInterviewAnswerDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,5 +33,30 @@ public class InterviewAnswerQueryRepository {
         .where(interviewQuestion.isPublic.isTrue(), interviewAnswer.memberId.eq(memberId))
         .orderBy(interviewAnswer.id.asc())
         .fetch();
+  }
+
+  public List<MemberInterviewAnswerDetail> findAllAnswersByMemberId(long memberId) {
+    return queryFactory
+        .select(
+            interviewAnswer.id,
+            interviewQuestion.id,
+            interviewQuestion.content,
+            interviewQuestion.isPublic,
+            interviewAnswer.content)
+        .from(interviewAnswer)
+        .leftJoin(interviewQuestion)
+        .on(interviewAnswer.questionId.eq(interviewQuestion.id))
+        .where(interviewAnswer.memberId.eq(memberId))
+        .orderBy(interviewAnswer.id.asc())
+        .fetch()
+        .stream()
+        .map(tuple ->
+            new MemberInterviewAnswerDetail(
+                tuple.get(interviewAnswer.id),
+                tuple.get(interviewQuestion.id),
+                tuple.get(interviewQuestion.content),
+                Boolean.TRUE.equals(tuple.get(interviewQuestion.isPublic)),
+                tuple.get(interviewAnswer.content)))
+        .toList();
   }
 }
