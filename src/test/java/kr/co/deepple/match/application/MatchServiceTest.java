@@ -28,7 +28,7 @@ import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,7 +49,7 @@ class MatchServiceTest {
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
-  @Mock private MemberIntroductionCommandRepository introductionCommandRepository;
+  @Mock private FindIntroductionTypeUseCase findIntroductionTypeUseCase;
 
   @Mock private UseHeartUseCase useHeartUseCase;
 
@@ -108,8 +108,7 @@ class MatchServiceTest {
       MatchRequestDto requestDto =
           new MatchRequestDto(responderId, requestMessage, contactType.name());
 
-      when(introductionCommandRepository.findByMemberIdAndIntroducedMemberId(
-              requesterId, responderId))
+      when(findIntroductionTypeUseCase.findIntroductionType(requesterId, responderId))
           .thenReturn(Optional.empty());
 
       doAnswer(

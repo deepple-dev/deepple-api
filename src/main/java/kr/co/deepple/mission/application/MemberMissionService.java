@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
+import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
 import kr.co.deepple.mission.application.port.out.MemberMissionCommandRepository;
 import kr.co.deepple.mission.application.port.out.MissionCommandRepository;
 import kr.co.deepple.mission.domain.ActionType;
@@ -21,13 +22,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class MemberMissionService {
+public class MemberMissionService implements ExecuteMissionUseCase {
 
   private final MemberMissionCommandRepository memberMissionCommandRepository;
   private final MissionCommandRepository missionCommandRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
+  @Override
   @Transactional
   public boolean executeMissionsByAction(long memberId, String actionType) {
     MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);

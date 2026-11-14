@@ -8,8 +8,7 @@ import kr.co.deepple.interview.application.port.out.InterviewQuestionCommandRepo
 import kr.co.deepple.interview.domain.InterviewAnswer;
 import kr.co.deepple.interview.domain.InterviewErrorCode;
 import kr.co.deepple.interview.domain.InterviewQuestion;
-import kr.co.deepple.mission.application.MemberMissionService;
-import kr.co.deepple.mission.domain.ActionType;
+import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class InterviewAnswerService {
 
+  private static final String INTERVIEW_MISSION_ACTION = "INTERVIEW";
+
   private final InterviewAnswerCommandRepository interviewAnswerCommandRepository;
   private final InterviewQuestionCommandRepository interviewQuestionCommandRepository;
-  private final MemberMissionService memberMissionService;
+  private final ExecuteMissionUseCase executeMissionUseCase;
 
   @Transactional
   public boolean saveAnswer(InterviewAnswerSaveRequest request, long memberId) {
@@ -30,7 +31,7 @@ public class InterviewAnswerService {
     boolean hasProcessedMission = false;
     if (isFirstInterviewAnswer) {
       hasProcessedMission =
-          memberMissionService.executeMissionsByAction(memberId, ActionType.INTERVIEW.name());
+          executeMissionUseCase.executeMissionsByAction(memberId, INTERVIEW_MISSION_ACTION);
     }
     return hasProcessedMission;
   }

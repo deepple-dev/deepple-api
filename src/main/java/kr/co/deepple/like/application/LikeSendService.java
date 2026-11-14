@@ -1,9 +1,8 @@
 package kr.co.deepple.like.application;
 
 import static kr.co.deepple.like.application.LikeMapper.toLikeLevel;
-import static kr.co.deepple.mission.domain.ActionType.LIKE;
 
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.application.dto.LikeSendRequest;
 import kr.co.deepple.like.application.port.out.LikeCommandRepository;
@@ -12,7 +11,7 @@ import kr.co.deepple.like.domain.LikeErrorCode;
 import kr.co.deepple.like.event.LikeSentEvent;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
-import kr.co.deepple.mission.application.MemberMissionService;
+import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -22,10 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class LikeSendService {
 
-  private final MemberMissionService memberMissionService;
+  private static final String LIKE_MISSION_ACTION = "LIKE";
+
+  private final ExecuteMissionUseCase executeMissionUseCase;
   private final LikeCommandRepository likeCommandRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final BlockRepository blockRepository;
+  private final CheckBlockUseCase checkBlockUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -45,7 +46,7 @@ public class LikeSendService {
     likeCommandRepository.save(like);
 
     boolean hasProcessedMission =
-        memberMissionService.executeMissionsByAction(senderId, LIKE.name());
+        executeMissionUseCase.executeMissionsByAction(senderId, LIKE_MISSION_ACTION);
     eventPublisher.publishEvent(LikeSentEvent.of(senderId, sender.requireNickname(), receiverId));
 
     return hasProcessedMission;
@@ -61,12 +62,12 @@ public class LikeSendService {
           LikeErrorCode.LIKE_SAME_GENDER,
           "senderId=" + sender.memberId() + ", receiverId=" + receiver.memberId());
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(sender.memberId(), receiver.memberId())) {
+    if (checkBlockUseCase.isBlocked(sender.memberId(), receiver.memberId())) {
       throw new DeeppleException(
           LikeErrorCode.LIKE_BLOCKED,
           "senderId=" + sender.memberId() + ", receiverId=" + receiver.memberId());
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(receiver.memberId(), sender.memberId())) {
+    if (checkBlockUseCase.isBlocked(receiver.memberId(), sender.memberId())) {
       throw new DeeppleException(
           LikeErrorCode.LIKE_BLOCKED,
           "senderId=" + sender.memberId() + ", receiverId=" + receiver.memberId());

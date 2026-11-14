@@ -1,7 +1,7 @@
 package kr.co.deepple.recommendation.application;
 
 import java.util.Set;
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
@@ -26,7 +26,7 @@ public class PersonalityIntroductionUnlockService {
 
   private final MemberCommandRepository memberCommandRepository;
   private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
-  private final BlockRepository blockRepository;
+  private final CheckBlockUseCase checkBlockUseCase;
   private final UseHeartUseCase useHeartUseCase;
   private final PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
 
@@ -84,8 +84,8 @@ public class PersonalityIntroductionUnlockService {
       throw new DeeppleException(
           MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE, "introducedMemberId=" + targetMemberId);
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(memberId, targetMemberId)
-        || blockRepository.existsByBlockerIdAndBlockedId(targetMemberId, memberId)) {
+    if (checkBlockUseCase.isBlocked(memberId, targetMemberId)
+        || checkBlockUseCase.isBlocked(targetMemberId, memberId)) {
       throw new DeeppleException(
           MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
           "memberId=" + memberId + ", introducedMemberId=" + targetMemberId);
