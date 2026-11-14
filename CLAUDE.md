@@ -26,7 +26,8 @@
 | 도메인 | 역할 |
 |---|---|
 | `auth` | 회원 계정(SMS 인증, 로그인·가입), 관리자 계정(가입 신청·로그인·승인), JWT 발급, refresh token 발급·재발급·폐기 |
-| `member` | 프로필·이미지, 이상형, 이성 소개, 프로필 블러 해제 |
+| `member` | 프로필·이미지 |
+| `recommendation` | 이상형, 이성 소개(소개 목록, 오늘의 카드, 소울메이트·성격 유형 소개), 프로필 블러 해제 |
 | `match` | 매칭 요청 메시지, 수락·거절, 메시지 내역 |
 | `heart` | 하트 보유량, 하트 거래 내역 |
 | `payment` | App Store·Google Play 결제, 영수증 검증, 하트 패키지 |
@@ -51,7 +52,7 @@
   command/infra        리포지토리 구현, 외부 연동, 이벤트 핸들러
   query/               읽기 전용 조회 (QueryDSL)
   ```
-- 헥사고날 스타일 (`auth`, `block`, `datingexam`, `heart`)
+- 헥사고날 스타일 (`auth`, `block`, `datingexam`, `heart`, `recommendation`)
   ```
   event/               다른 도메인이 듣는 이벤트 (`@NamedInterface("event")`로 공개)
   adapter/             in(web, event 등 들어오는 쪽), out(persistence 등 나가는 쪽)
