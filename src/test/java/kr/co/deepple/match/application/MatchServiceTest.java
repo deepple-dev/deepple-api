@@ -17,6 +17,7 @@ import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.match.application.dto.MatchRequestDto;
 import kr.co.deepple.match.application.dto.MatchResponseDto;
 import kr.co.deepple.match.application.port.out.MatchRepository;
+import kr.co.deepple.match.application.port.out.spi.IntroductionTypeFinder;
 import kr.co.deepple.match.domain.Match;
 import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchErrorCode;
@@ -33,7 +34,6 @@ import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -57,7 +57,7 @@ class MatchServiceTest {
 
   @Mock private ValidateContactTypeSettingUseCase validateContactTypeSettingUseCase;
 
-  @Mock private FindIntroductionTypeUseCase findIntroductionTypeUseCase;
+  @Mock private IntroductionTypeFinder introductionTypeFinder;
 
   @Mock private UseHeartUseCase useHeartUseCase;
 
@@ -116,7 +116,7 @@ class MatchServiceTest {
       MatchRequestDto requestDto =
           new MatchRequestDto(responderId, requestMessage, contactType.name());
 
-      when(findIntroductionTypeUseCase.findIntroductionType(requesterId, responderId))
+      when(introductionTypeFinder.findIntroductionType(requesterId, responderId))
           .thenReturn(Optional.empty());
 
       doAnswer(
@@ -161,7 +161,7 @@ class MatchServiceTest {
       MatchRequestDto requestDto =
           new MatchRequestDto(responderId, "매칭을 요청합니다!", contactType.name());
 
-      when(findIntroductionTypeUseCase.findIntroductionType(requesterId, responderId))
+      when(introductionTypeFinder.findIntroductionType(requesterId, responderId))
           .thenReturn(Optional.empty());
       doAnswer(
               invocation -> {
