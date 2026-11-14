@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.report.application.dto.ReportResultUpdateRequest;
-import kr.co.deepple.report.application.port.out.ReportCommandRepository;
+import kr.co.deepple.report.application.port.out.ReportRepository;
 import kr.co.deepple.report.domain.Report;
 import kr.co.deepple.report.domain.ReportErrorCode;
 import kr.co.deepple.report.event.ReportWarnedEvent;
@@ -35,7 +35,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 @ExtendWith(MockitoExtension.class)
 class AdminReportServiceTest {
 
-  @Mock private ReportCommandRepository reportCommandRepository;
+  @Mock private ReportRepository reportRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -56,7 +56,7 @@ class AdminReportServiceTest {
 
     private void stubFindReport(long reportVersion) {
       report = ReportFixture.builder().id(reportId).version(reportVersion).build();
-      when(reportCommandRepository.findById(reportId)).thenReturn(Optional.of(report));
+      when(reportRepository.findById(reportId)).thenReturn(Optional.of(report));
     }
 
     @Test
@@ -73,7 +73,7 @@ class AdminReportServiceTest {
       Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
       assertThat(report.getResult()).isEqualTo(REJECTED);
       assertThat(report.getAdminId()).isEqualTo(adminId);
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository, never()).save(any());
     }
 
     @Test
@@ -94,7 +94,7 @@ class AdminReportServiceTest {
                       && "key-1".equals(event.idempotencyKey())));
       assertThat(report.getResult()).isEqualTo(WARNED);
       assertThat(report.getAdminId()).isEqualTo(adminId);
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository, never()).save(any());
     }
 
     @Test
@@ -112,7 +112,7 @@ class AdminReportServiceTest {
 
       assertThat(report.getResult()).isEqualTo(PENDING);
       assertThat(report.getAdminId()).isNull();
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository, never()).save(any());
     }
 
     @Test
@@ -130,7 +130,7 @@ class AdminReportServiceTest {
 
       assertThat(report.getResult()).isEqualTo(PENDING);
       assertThat(report.getAdminId()).isNull();
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository, never()).save(any());
     }
 
     @Test
@@ -147,14 +147,14 @@ class AdminReportServiceTest {
 
       assertThat(report.getResult()).isEqualTo(PENDING);
       assertThat(report.getAdminId()).isNull();
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("예외 케이스: 존재하지 않는 리포트 ID면 REPORT_NOT_FOUND 예외발생")
     void shouldThrowReportNotFoundWhenReportNotFound() {
       // given
-      when(reportCommandRepository.findById(reportId)).thenReturn(Optional.empty());
+      when(reportRepository.findById(reportId)).thenReturn(Optional.empty());
       var request = new ReportResultUpdateRequest(version, REJECTED.name(), null);
 
       // when & then
@@ -162,8 +162,8 @@ class AdminReportServiceTest {
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_NOT_FOUND);
 
-      verify(reportCommandRepository).findById(reportId);
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository).findById(reportId);
+      verify(reportRepository, never()).save(any());
     }
 
     @Test
@@ -171,16 +171,16 @@ class AdminReportServiceTest {
     void shouldThrowNullPointerExceptionWhenRequestIsNull() {
       // given
       report = spy(ReportFixture.builder().id(reportId).version(version).build());
-      when(reportCommandRepository.findById(reportId)).thenReturn(Optional.of(report));
+      when(reportRepository.findById(reportId)).thenReturn(Optional.of(report));
 
       // when & then
       assertThatThrownBy(() -> adminReportService.updateResult(reportId, null, adminId))
           .isInstanceOf(NullPointerException.class);
 
-      verify(reportCommandRepository).findById(reportId);
+      verify(reportRepository).findById(reportId);
       verify(report, never()).hasVersionConflict(anyLong());
       assertThat(report.getResult()).isEqualTo(PENDING);
-      verify(reportCommandRepository, never()).save(any());
+      verify(reportRepository, never()).save(any());
     }
   }
 }

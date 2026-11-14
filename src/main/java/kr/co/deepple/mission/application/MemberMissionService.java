@@ -1,14 +1,15 @@
 package kr.co.deepple.mission.application;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
-import kr.co.deepple.mission.application.port.out.MemberMissionCommandRepository;
-import kr.co.deepple.mission.application.port.out.MissionCommandRepository;
+import kr.co.deepple.mission.application.port.out.MemberMissionRepository;
+import kr.co.deepple.mission.application.port.out.MissionRepository;
 import kr.co.deepple.mission.domain.ActionType;
 import kr.co.deepple.mission.domain.MemberMission;
 import kr.co.deepple.mission.domain.Mission;
@@ -24,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberMissionService implements ExecuteMissionUseCase {
 
-  private final MemberMissionCommandRepository memberMissionCommandRepository;
-  private final MissionCommandRepository missionCommandRepository;
+  private final MemberMissionRepository memberMissionRepository;
+  private final MissionRepository missionRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -40,8 +41,7 @@ public class MemberMissionService implements ExecuteMissionUseCase {
     boolean hasProcessedMission = false;
     for (Mission mission : missions) {
       MemberMission memberMission =
-          memberMissionCommandRepository.findOrCreateForUpdate(
-              memberId, mission.getId(), mission.periodOf(today));
+          findOrCreateForUpdate(memberId, mission.getId(), mission.periodOf(today));
       if (memberMission.isCompleted()) {
         continue;
       }
@@ -62,13 +62,27 @@ public class MemberMissionService implements ExecuteMissionUseCase {
     return hasProcessedMission;
   }
 
+  private MemberMission findOrCreateForUpdate(long memberId, long missionId, String period) {
+    memberMissionRepository.insertIfAbsent(memberId, missionId, period, LocalDateTime.now());
+    return memberMissionRepository
+        .findForUpdate(memberId, missionId, period)
+        .orElseThrow(() ->
+            new IllegalStateException(
+                "회원 미션이 없습니다. memberId="
+                    + memberId
+                    + ", missionId="
+                    + missionId
+                    + ", period="
+                    + period));
+  }
+
   private List<Mission> getMission(String actionType, String targetGender) {
     List<Mission> mission =
-        missionCommandRepository.findByActionTypeAndTargetGender(
+        missionRepository.findByActionTypeAndTargetGender(
             ActionType.from(actionType), TargetGender.from(targetGender));
 
     List<Mission> allGenderMission =
-        missionCommandRepository.findByActionTypeAndTargetGender(
+        missionRepository.findByActionTypeAndTargetGender(
             ActionType.from(actionType), TargetGender.ALL);
 
     return Stream.concat(mission.stream(), allGenderMission.stream()).toList();

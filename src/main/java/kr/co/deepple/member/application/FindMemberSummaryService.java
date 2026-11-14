@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.domain.MemberProfile;
@@ -23,11 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FindMemberSummaryService implements FindMemberSummaryUseCase {
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final MemberRepository memberRepository;
 
   @Override
   public Optional<MemberSummary> findMemberSummary(long memberId) {
-    return memberCommandRepository.findById(memberId).map(FindMemberSummaryService::toSummary);
+    return memberRepository.findById(memberId).map(FindMemberSummaryService::toSummary);
   }
 
   @Override
@@ -39,7 +39,7 @@ public class FindMemberSummaryService implements FindMemberSummaryUseCase {
 
   @Override
   public Map<Long, MemberSummary> findMemberSummaries(Collection<Long> memberIds) {
-    return memberCommandRepository.findAllById(new HashSet<>(memberIds)).stream()
+    return memberRepository.findAllById(new HashSet<>(memberIds)).stream()
         .map(FindMemberSummaryService::toSummary)
         .collect(Collectors.toMap(MemberSummary::memberId, Function.identity()));
   }

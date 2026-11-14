@@ -5,12 +5,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.datingexam.domain.DatingExamSubmitResult;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-public interface DatingExamSubmitResultRepository extends Repository<DatingExamSubmitResult, Long> {
+public interface DatingExamSubmitResultRepository
+    extends JpaRepository<DatingExamSubmitResult, Long> {
   Optional<DatingExamSubmitResult> findByMemberId(long memberId);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -18,6 +19,4 @@ public interface DatingExamSubmitResultRepository extends Repository<DatingExamS
   Optional<DatingExamSubmitResult> findByMemberIdForUpdate(@Param("memberId") long memberId);
 
   List<DatingExamSubmitResult> findByMemberIdIn(Collection<Long> memberIds);
-
-  DatingExamSubmitResult save(DatingExamSubmitResult result);
 }

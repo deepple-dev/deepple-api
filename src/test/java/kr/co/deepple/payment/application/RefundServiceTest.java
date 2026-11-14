@@ -11,9 +11,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
-import kr.co.deepple.payment.application.port.out.RefundCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
+import kr.co.deepple.payment.application.port.out.RefundRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.NotificationType;
 import kr.co.deepple.payment.domain.Order;
@@ -39,11 +39,11 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class RefundServiceTest {
 
-  @Mock private OrderCommandRepository orderCommandRepository;
+  @Mock private OrderRepository orderRepository;
 
-  @Mock private RefundCommandRepository refundCommandRepository;
+  @Mock private RefundRepository refundRepository;
 
-  @Mock private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Mock private HeartPurchaseOptionRepository heartPurchaseOptionRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -76,22 +76,22 @@ class RefundServiceTest {
       HeartPurchaseOption heartPurchaseOption =
           HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.of(order));
-      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+      when(heartPurchaseOptionRepository.findByProductIdAndDeletedAtIsNull(productId))
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
       refundService.processRefund(
           transactionId, productId, quantity, paymentMethod, notificationType);
 
-      verify(orderCommandRepository)
+      verify(orderRepository)
           .findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod);
-      verify(heartPurchaseOptionCommandRepository).findByProductIdAndDeletedAtIsNull(productId);
+      verify(heartPurchaseOptionRepository).findByProductIdAndDeletedAtIsNull(productId);
 
       ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-      verify(refundCommandRepository).save(refundCaptor.capture());
+      verify(refundRepository).save(refundCaptor.capture());
 
       Refund savedRefund = refundCaptor.getValue();
       assertThat(savedRefund.getMemberId()).isEqualTo(memberId);
@@ -134,10 +134,10 @@ class RefundServiceTest {
       HeartPurchaseOption heartPurchaseOption =
           HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.of(order));
-      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+      when(heartPurchaseOptionRepository.findByProductIdAndDeletedAtIsNull(productId))
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
@@ -145,7 +145,7 @@ class RefundServiceTest {
           transactionId, productId, quantity, paymentMethod, notificationType);
 
       ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-      verify(refundCommandRepository).save(refundCaptor.capture());
+      verify(refundRepository).save(refundCaptor.capture());
 
       Refund savedRefund = refundCaptor.getValue();
       assertThat(savedRefund.getRefundAmount()).isEqualTo(150L); // 30 * 5
@@ -172,7 +172,7 @@ class RefundServiceTest {
               .paymentMethod(paymentMethod)
               .status(OrderStatus.REFUNDED)
               .build();
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.of(order));
 
@@ -182,9 +182,8 @@ class RefundServiceTest {
                   transactionId, productId, quantity, paymentMethod, notificationType))
           .doesNotThrowAnyException();
 
-      verify(heartPurchaseOptionCommandRepository, never())
-          .findByProductIdAndDeletedAtIsNull(any());
-      verify(refundCommandRepository, never()).save(any(Refund.class));
+      verify(heartPurchaseOptionRepository, never()).findByProductIdAndDeletedAtIsNull(any());
+      verify(refundRepository, never()).save(any(Refund.class));
       Mockito.verifyNoInteractions(eventPublisher);
     }
   }
@@ -203,7 +202,7 @@ class RefundServiceTest {
       PaymentMethod paymentMethod = PaymentMethod.APP_STORE;
       NotificationType notificationType = NotificationType.REFUND;
 
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.empty());
 
@@ -215,9 +214,8 @@ class RefundServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.ORDER_NOT_FOUND)
           .hasMessageContaining("주문을 찾을 수 없습니다");
 
-      verify(heartPurchaseOptionCommandRepository, never())
-          .findByProductIdAndDeletedAtIsNull(any());
-      verify(refundCommandRepository, never()).save(any(Refund.class));
+      verify(heartPurchaseOptionRepository, never()).findByProductIdAndDeletedAtIsNull(any());
+      verify(refundRepository, never()).save(any(Refund.class));
     }
   }
 
@@ -243,10 +241,10 @@ class RefundServiceTest {
               .paymentMethod(paymentMethod)
               .build();
 
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.of(order));
-      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+      when(heartPurchaseOptionRepository.findByProductIdAndDeletedAtIsNull(productId))
           .thenReturn(Optional.empty());
 
       // when & then
@@ -258,7 +256,7 @@ class RefundServiceTest {
               "errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND)
           .hasMessageContaining("하트 구매 옵션이 존재하지 않습니다");
 
-      verify(refundCommandRepository, never()).save(any(Refund.class));
+      verify(refundRepository, never()).save(any(Refund.class));
     }
   }
 
@@ -289,10 +287,10 @@ class RefundServiceTest {
       HeartPurchaseOption heartPurchaseOption =
           HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.of(order));
-      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+      when(heartPurchaseOptionRepository.findByProductIdAndDeletedAtIsNull(productId))
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then
@@ -300,7 +298,7 @@ class RefundServiceTest {
           transactionId, productId, quantity, paymentMethod, notificationType);
 
       ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
-      verify(refundCommandRepository).save(refundCaptor.capture());
+      verify(refundRepository).save(refundCaptor.capture());
 
       Refund savedRefund = refundCaptor.getValue();
       assertThat(savedRefund.getNotificationType()).isEqualTo(NotificationType.REFUND_DECLINED);
@@ -335,10 +333,10 @@ class RefundServiceTest {
       HeartPurchaseOption heartPurchaseOption =
           HeartPurchaseOptionFixture.builder().productId(productId).amount(heartAmount).build();
 
-      when(orderCommandRepository.findByTransactionIdAndPaymentMethodForUpdate(
+      when(orderRepository.findByTransactionIdAndPaymentMethodForUpdate(
               transactionId, paymentMethod))
           .thenReturn(Optional.of(order));
-      when(heartPurchaseOptionCommandRepository.findByProductIdAndDeletedAtIsNull(productId))
+      when(heartPurchaseOptionRepository.findByProductIdAndDeletedAtIsNull(productId))
           .thenReturn(Optional.of(heartPurchaseOption));
 
       // when & then

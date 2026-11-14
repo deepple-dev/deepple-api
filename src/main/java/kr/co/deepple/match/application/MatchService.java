@@ -24,6 +24,7 @@ import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +71,7 @@ public class MatchService {
         MatchRequestedEvent.of(
             requesterId, requesterName, responderId, matchType.name(), contactType.name()));
     eventPublisher.publishEvent(MatchRequestCompletedEvent.of(requesterId, responderId));
-    matchRepository.save(match);
+    saveMatch(match);
     useHeartUseCase.useHeart(
         new UseHeartCommand(
             requesterId,
@@ -183,6 +184,17 @@ public class MatchService {
     if (!requester.isActive()) {
       throw new DeeppleException(
           MatchErrorCode.MATCH_REQUESTER_INACTIVE, "requesterId=" + requester.memberId());
+    }
+  }
+
+  private void saveMatch(Match match) {
+    try {
+      matchRepository.save(match);
+    } catch (DataIntegrityViolationException e) {
+      throw new DeeppleException(
+          MatchErrorCode.MATCH_ALREADY_EXISTS,
+          "requesterId=" + match.getRequesterId() + ", responderId=" + match.getResponderId(),
+          e);
     }
   }
 }

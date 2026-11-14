@@ -2,7 +2,7 @@ package kr.co.deepple.interview.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.interview.application.dto.InterviewQuestionSaveRequest;
-import kr.co.deepple.interview.application.port.out.InterviewQuestionCommandRepository;
+import kr.co.deepple.interview.application.port.out.InterviewQuestionRepository;
 import kr.co.deepple.interview.domain.InterviewCategory;
 import kr.co.deepple.interview.domain.InterviewErrorCode;
 import kr.co.deepple.interview.domain.InterviewQuestion;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class InterviewQuestionService {
 
-  private final InterviewQuestionCommandRepository interviewQuestionCommandRepository;
+  private final InterviewQuestionRepository interviewQuestionRepository;
 
   @Transactional
   public void createQuestion(InterviewQuestionSaveRequest request) {
@@ -32,7 +32,7 @@ public class InterviewQuestionService {
   }
 
   private void validateQuestionCreation(String questionContent) {
-    if (interviewQuestionCommandRepository.existsByContent(questionContent)) {
+    if (interviewQuestionRepository.existsByContent(questionContent)) {
       throw new DeeppleException(
           InterviewErrorCode.INTERVIEW_QUESTION_ALREADY_EXISTS, "content=" + questionContent);
     }
@@ -42,11 +42,11 @@ public class InterviewQuestionService {
       String questionContent, InterviewCategory interviewCategory, boolean isPublic) {
     InterviewQuestion interviewQuestion =
         InterviewQuestion.of(questionContent, interviewCategory, isPublic);
-    interviewQuestionCommandRepository.save(interviewQuestion);
+    interviewQuestionRepository.save(interviewQuestion);
   }
 
   private InterviewQuestion getInterviewQuestion(long questionId) {
-    return interviewQuestionCommandRepository
+    return interviewQuestionRepository
         .findById(questionId)
         .orElseThrow(() ->
             new DeeppleException(
@@ -57,7 +57,7 @@ public class InterviewQuestionService {
     if (interviewQuestion.getContent().equals(questionContent)) {
       return;
     }
-    if (interviewQuestionCommandRepository.existsByContent(questionContent)) {
+    if (interviewQuestionRepository.existsByContent(questionContent)) {
       throw new DeeppleException(
           InterviewErrorCode.INTERVIEW_QUESTION_ALREADY_EXISTS, "content=" + questionContent);
     }

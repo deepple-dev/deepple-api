@@ -15,6 +15,7 @@ import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +43,7 @@ public class ProfileExchangeService {
     validateProfileExchangeRequest(requesterId, responderId);
     String senderName = getNickNameByMemberId(requesterId);
     ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId);
-    profileExchangeRepository.save(profileExchange);
+    saveProfileExchange(profileExchange);
     useHeartUseCase.useHeart(
         new UseHeartCommand(
             requesterId,
@@ -124,6 +125,20 @@ public class ProfileExchangeService {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED,
           "requesterId=" + requesterId + ", responderId=" + responderId);
+    }
+  }
+
+  private void saveProfileExchange(ProfileExchange profileExchange) {
+    try {
+      profileExchangeRepository.save(profileExchange);
+    } catch (DataIntegrityViolationException e) {
+      throw new DeeppleException(
+          CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS,
+          "requesterId="
+              + profileExchange.getRequesterId()
+              + ", responderId="
+              + profileExchange.getResponderId(),
+          e);
     }
   }
 }

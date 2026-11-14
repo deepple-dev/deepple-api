@@ -1,6 +1,6 @@
 package kr.co.deepple.notification.application;
 
-import kr.co.deepple.notification.application.port.out.NotificationCommandRepository;
+import kr.co.deepple.notification.application.port.out.NotificationRepository;
 import kr.co.deepple.notification.domain.Notification;
 import kr.co.deepple.notification.domain.NotificationStatus;
 import kr.co.deepple.notification.domain.NotificationType;
@@ -13,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationDataWriter {
 
-  private final NotificationCommandRepository notificationCommandRepository;
+  private final NotificationRepository notificationRepository;
 
   @Transactional
   public void save(Notification notification) {
-    notificationCommandRepository.save(notification);
+    notificationRepository.save(notification);
   }
 
   @Transactional
@@ -31,6 +31,6 @@ public class NotificationDataWriter {
       NotificationStatus status) {
     Notification failedNotification =
         Notification.createFailed(senderType, senderId, receiverId, type, title, body, status);
-    notificationCommandRepository.save(failedNotification);
+    notificationRepository.save(failedNotification);
   }
 }

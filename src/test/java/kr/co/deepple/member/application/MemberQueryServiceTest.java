@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.adapter.out.persistence.MemberQueryRepository;
+import kr.co.deepple.member.application.port.out.MemberQueryRepository;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

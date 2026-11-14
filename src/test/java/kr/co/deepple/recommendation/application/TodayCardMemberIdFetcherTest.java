@@ -24,10 +24,10 @@ import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
-import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.IntroductionCacheRepository;
+import kr.co.deepple.recommendation.application.port.out.IntroductionQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -48,11 +48,11 @@ class TodayCardMemberIdFetcherTest {
 
   @Mock private IntroductionQueryRepository introductionQueryRepository;
 
-  @Mock private IntroductionRedisRepository introductionRedisRepository;
+  @Mock private IntroductionCacheRepository introductionCacheRepository;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
-  @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
+  @Mock private MemberIdealRepository memberIdealRepository;
 
   @Mock private SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
 
@@ -87,7 +87,7 @@ class TodayCardMemberIdFetcherTest {
     IntroductionCacheKeyPrefix cacheKeyPrefix = IntroductionCacheKeyPrefix.TODAY_CARD;
     Set<Long> cachedIds = Set.of(2L, 3L, 4L);
     String key = cacheKeyPrefix.getPrefix() + memberId;
-    when(introductionRedisRepository.findIntroductionMemberIds(key)).thenReturn(cachedIds);
+    when(introductionCacheRepository.findIntroductionMemberIds(key)).thenReturn(cachedIds);
 
     // when
     Set<Long> result = todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix);
@@ -102,7 +102,7 @@ class TodayCardMemberIdFetcherTest {
     // given
     long memberId = 1L;
     IntroductionCacheKeyPrefix cacheKeyPrefix = IntroductionCacheKeyPrefix.TODAY_CARD;
-    when(introductionRedisRepository.findIntroductionMemberIds(
+    when(introductionCacheRepository.findIntroductionMemberIds(
             cacheKeyPrefix.getPrefix() + memberId))
         .thenReturn(Set.of());
     when(findMemberSummaryUseCase.getMemberSummary(memberId))
@@ -120,14 +120,14 @@ class TodayCardMemberIdFetcherTest {
     // given
     long memberId = 1L;
     IntroductionCacheKeyPrefix cacheKeyPrefix = IntroductionCacheKeyPrefix.TODAY_CARD;
-    when(introductionRedisRepository.findIntroductionMemberIds(
+    when(introductionCacheRepository.findIntroductionMemberIds(
             cacheKeyPrefix.getPrefix() + memberId))
         .thenReturn(Set.of());
 
     Member member = MemberFixture.builder().id(memberId).build();
     when(findMemberSummaryUseCase.getMemberSummary(memberId))
         .thenReturn(MemberSummaryFixture.from(member));
-    when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
+    when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix))
@@ -141,13 +141,12 @@ class TodayCardMemberIdFetcherTest {
     // given
     long memberId = 1L;
     IntroductionCacheKeyPrefix cacheKeyPrefix = IntroductionCacheKeyPrefix.TODAY_CARD;
-    when(introductionRedisRepository.findIntroductionMemberIds(
+    when(introductionCacheRepository.findIntroductionMemberIds(
             cacheKeyPrefix.getPrefix() + memberId))
         .thenReturn(Set.of());
 
     MemberIdeal memberIdeal = mock(MemberIdeal.class);
-    when(memberIdealCommandRepository.findByMemberId(memberId))
-        .thenReturn(Optional.of(memberIdeal));
+    when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
     when(memberIdeal.isUpdated()).thenReturn(false);
 
     Gender memberGender = Gender.MALE;
@@ -185,13 +184,12 @@ class TodayCardMemberIdFetcherTest {
     // given
     long memberId = 1L;
     IntroductionCacheKeyPrefix cacheKeyPrefix = IntroductionCacheKeyPrefix.TODAY_CARD;
-    when(introductionRedisRepository.findIntroductionMemberIds(
+    when(introductionCacheRepository.findIntroductionMemberIds(
             cacheKeyPrefix.getPrefix() + memberId))
         .thenReturn(Set.of());
 
     MemberIdeal memberIdeal = mock(MemberIdeal.class);
-    when(memberIdealCommandRepository.findByMemberId(memberId))
-        .thenReturn(Optional.of(memberIdeal));
+    when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
     when(memberIdeal.isUpdated()).thenReturn(true);
 
     Gender memberGender = Gender.MALE;

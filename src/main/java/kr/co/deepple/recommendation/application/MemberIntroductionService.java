@@ -8,7 +8,7 @@ import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
@@ -23,7 +23,7 @@ public class MemberIntroductionService {
   private static final String HEART_USAGE_TYPE = "INTRODUCTION";
 
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  private final MemberIntroductionRepository memberIntroductionRepository;
   private final SoulmateFinder soulmateFinder;
   private final CheckBlockUseCase checkBlockUseCase;
   private final UseHeartUseCase useHeartUseCase;
@@ -97,7 +97,7 @@ public class MemberIntroductionService {
     validateIntroduction(memberId, introducedMemberId);
     MemberIntroduction memberIntroduction =
         MemberIntroduction.of(memberId, introducedMemberId, introductionType);
-    memberIntroductionCommandRepository.save(memberIntroduction);
+    memberIntroductionRepository.save(memberIntroduction);
     useHeartUseCase.useHeart(
         new UseHeartCommand(
             memberId,
@@ -126,7 +126,7 @@ public class MemberIntroductionService {
           RecommendationErrorCode.INTRODUCED_MEMBER_BLOCKED,
           "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId);
     }
-    if (memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
+    if (memberIntroductionRepository.existsByMemberIdAndIntroducedMemberId(
         memberId, introducedMemberId)) {
       throw new DeeppleException(
           RecommendationErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS,

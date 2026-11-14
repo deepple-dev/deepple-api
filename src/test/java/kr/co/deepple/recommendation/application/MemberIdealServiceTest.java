@@ -15,10 +15,10 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.ProfileOptions;
 import kr.co.deepple.member.application.port.in.ValidateProfileOptionsUseCase;
 import kr.co.deepple.member.domain.MemberErrorCode;
-import kr.co.deepple.recommendation.adapter.out.persistence.MemberIdealQueryRepository;
 import kr.co.deepple.recommendation.application.dto.MemberIdealUpdateRequest;
 import kr.co.deepple.recommendation.application.dto.MemberIdealView;
-import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealRepository;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
@@ -37,7 +37,7 @@ class MemberIdealServiceTest {
 
   @InjectMocks private MemberIdealService memberIdealService;
 
-  @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
+  @Mock private MemberIdealRepository memberIdealRepository;
 
   @Mock private MemberIdealQueryRepository memberIdealQueryRepository;
 
@@ -94,7 +94,7 @@ class MemberIdealServiceTest {
     void throwExceptionWhenMemberIdealIsNotExists() {
       // given
       long memberId = 1L;
-      when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
+      when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
       // when && then
       assertThatThrownBy(() -> memberIdealService.update(request, memberId))
@@ -107,8 +107,7 @@ class MemberIdealServiceTest {
     void throwExceptionWhenProfileOptionIsInvalid() {
       long memberId = 1L;
       MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
-      when(memberIdealCommandRepository.findByMemberId(memberId))
-          .thenReturn(Optional.of(memberIdeal));
+      when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
       when(validateProfileOptionsUseCase.validate(requestedOptions))
           .thenThrow(new DeeppleException(MemberErrorCode.INVALID_PROFILE_OPTION, "City=seoul"));
 
@@ -124,8 +123,7 @@ class MemberIdealServiceTest {
     void updateMemberIdeal() {
       long memberId = 1L;
       MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
-      when(memberIdealCommandRepository.findByMemberId(memberId))
-          .thenReturn(Optional.of(memberIdeal));
+      when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
       when(validateProfileOptionsUseCase.validate(requestedOptions))
           .thenReturn(
               new ProfileOptions(
@@ -153,13 +151,13 @@ class MemberIdealServiceTest {
     void skipWhenMemberIdealAlreadyExists() {
       // given
       long memberId = 1L;
-      when(memberIdealCommandRepository.existsByMemberId(memberId)).thenReturn(true);
+      when(memberIdealRepository.existsByMemberId(memberId)).thenReturn(true);
 
       // when
       memberIdealService.initIfAbsent(memberId);
 
       // then
-      verify(memberIdealCommandRepository, never()).save(any());
+      verify(memberIdealRepository, never()).save(any());
     }
 
     @Test
@@ -167,7 +165,7 @@ class MemberIdealServiceTest {
     void createMemberIdeal() {
       // given
       long memberId = 1L;
-      when(memberIdealCommandRepository.existsByMemberId(memberId)).thenReturn(false);
+      when(memberIdealRepository.existsByMemberId(memberId)).thenReturn(false);
 
       try (MockedStatic<MemberIdeal> memberIdealMock = mockStatic(MemberIdeal.class)) {
         MemberIdeal memberIdeal = mock(MemberIdeal.class);
@@ -177,7 +175,7 @@ class MemberIdealServiceTest {
         memberIdealService.initIfAbsent(memberId);
 
         // then
-        verify(memberIdealCommandRepository).save(memberIdeal);
+        verify(memberIdealRepository).save(memberIdeal);
       }
     }
   }

@@ -13,8 +13,7 @@ import kr.co.deepple.auth.domain.TokenOwner;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -35,16 +34,14 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private RefreshTokenService refreshTokenService;
 
-  @Autowired private MemberCommandRepository memberCommandRepository;
-
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   private Long memberId;
 
   @AfterEach
   void tearDown() {
     if (memberId != null) {
-      memberCommandJpaRepository.deleteById(memberId);
+      memberRepository.deleteById(memberId);
     }
   }
 
@@ -101,11 +98,11 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
 
   private Long saveMember(ActivityStatus status) {
     Member member = MemberFixture.builder().activityStatus(status).build();
-    return memberCommandRepository.save(member).getId();
+    return memberRepository.save(member).getId();
   }
 
   private ActivityStatus statusOf(long id) {
-    return memberCommandRepository.findById(id).orElseThrow().getActivityStatus();
+    return memberRepository.findById(id).orElseThrow().getActivityStatus();
   }
 
   private MvcTestResult post(String uri) {

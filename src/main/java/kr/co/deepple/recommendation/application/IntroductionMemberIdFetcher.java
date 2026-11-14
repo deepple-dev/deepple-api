@@ -12,10 +12,10 @@ import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.member.application.port.in.SearchIntroducibleMemberIdsUseCase;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
-import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.IntroductionCacheRepository;
+import kr.co.deepple.recommendation.application.port.out.IntroductionQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +28,9 @@ public class IntroductionMemberIdFetcher {
   private static final int FETCH_LIMIT = 10;
 
   private final IntroductionQueryRepository introductionQueryRepository;
-  private final IntroductionRedisRepository introductionRedisRepository;
+  private final IntroductionCacheRepository introductionCacheRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final MemberIdealCommandRepository memberIdealCommandRepository;
+  private final MemberIdealRepository memberIdealRepository;
   private final SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
   private final FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
   private final FindBlockedMemberIdsUseCase findBlockedMemberIdsUseCase;
@@ -41,13 +41,13 @@ public class IntroductionMemberIdFetcher {
       T criteria,
       IntroductionConditionSupplier<T> supplier) {
     String cacheKey = buildKey(cacheKeyPrefix, memberId);
-    Set<Long> cachedIds = introductionRedisRepository.findIntroductionMemberIds(cacheKey);
+    Set<Long> cachedIds = introductionCacheRepository.findIntroductionMemberIds(cacheKey);
     if (!cachedIds.isEmpty()) {
       return cachedIds;
     }
     Set<Long> excludedMemberIds = findExcludedMemberIds(memberId);
     MemberIdeal memberIdeal =
-        memberIdealCommandRepository
+        memberIdealRepository
             .findByMemberId(memberId)
             .orElseThrow(() ->
                 new DeeppleException(
@@ -58,7 +58,7 @@ public class IntroductionMemberIdFetcher {
     Set<Long> introductionMemberIds =
         searchIntroducibleMemberIdsUseCase.searchMemberIds(
             condition.toMemberSearchCondition(), FETCH_LIMIT);
-    introductionRedisRepository.saveIntroductionMemberIds(
+    introductionCacheRepository.saveIntroductionMemberIds(
         cacheKey, introductionMemberIds, getExpireAt());
     return introductionMemberIds;
   }

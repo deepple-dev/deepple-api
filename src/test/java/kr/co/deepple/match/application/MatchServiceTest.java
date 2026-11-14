@@ -45,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class MatchServiceTest {
@@ -183,6 +184,37 @@ class MatchServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED);
       verify(matchRepository, never()).save(any());
       verifyNoInteractions(eventPublisher, useHeartUseCase);
+    }
+
+    @Test
+    @DisplayName("저장할 때 unique 제약에 걸리면 이미 매치가 있다는 예외가 발생한다.")
+    void throwsExceptionWhenSaveViolatesUniqueConstraint() {
+      // Given
+      long requesterId = 1L;
+      long responderId = 2L;
+      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
+      MatchRequestDto requestDto =
+          new MatchRequestDto(responderId, "매칭을 요청합니다!", contactType.name());
+
+      when(introductionTypeFinder.findIntroductionType(requesterId, responderId))
+          .thenReturn(Optional.empty());
+      doAnswer(
+              invocation -> {
+                Runnable runnable = invocation.getArgument(1);
+                runnable.run();
+                return null;
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
+      when(matchRepository.existsActiveMatchBetween(requesterId, responderId)).thenReturn(false);
+      mockMember(requesterId, "testUser");
+      when(matchRepository.save(any())).thenThrow(new DataIntegrityViolationException("중복"));
+
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.request(requesterId, requestDto))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.MATCH_ALREADY_EXISTS);
+      verifyNoInteractions(useHeartUseCase);
     }
   }
 

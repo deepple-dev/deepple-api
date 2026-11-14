@@ -10,7 +10,7 @@ import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.application.dto.LikeLevelRequest;
 import kr.co.deepple.like.application.dto.LikeSendRequest;
-import kr.co.deepple.like.application.port.out.LikeCommandRepository;
+import kr.co.deepple.like.application.port.out.LikeRepository;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeErrorCode;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
@@ -31,7 +31,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class LikeSendServiceTest {
 
-  @Mock LikeCommandRepository likeCommandRepository;
+  @Mock LikeRepository likeRepository;
 
   @Mock FindMemberSummaryUseCase findMemberSummaryUseCase;
 
@@ -52,8 +52,7 @@ class LikeSendServiceTest {
     var likeLevel = LikeLevelRequest.INTERESTED;
     var request = new LikeSendRequest(receiverId, likeLevel);
 
-    when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId))
-        .thenReturn(false);
+    when(likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
     var sender =
         MemberFixture.builder().id(senderId).nickname("nickname").gender(Gender.MALE).build();
@@ -75,7 +74,7 @@ class LikeSendServiceTest {
     boolean hasProcessedMission = likeSendService.send(senderId, request);
 
     // then
-    verify(likeCommandRepository).save(any(Like.class));
+    verify(likeRepository).save(any(Like.class));
     verify(executeMissionUseCase).executeMissionsByAction(senderId, ActionType.LIKE.name());
     assertThat(hasProcessedMission).isEqualTo(expectedMissionProcessed);
   }
@@ -89,8 +88,7 @@ class LikeSendServiceTest {
     var likeLevel = LikeLevelRequest.INTERESTED;
     var request = new LikeSendRequest(receiverId, likeLevel);
 
-    when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId))
-        .thenReturn(true);
+    when(likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(true);
 
     // when & then
     assertThatThrownBy(() -> likeSendService.send(senderId, request))
@@ -107,8 +105,7 @@ class LikeSendServiceTest {
     var likeLevel = LikeLevelRequest.INTERESTED;
     var request = new LikeSendRequest(receiverId, likeLevel);
 
-    when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId))
-        .thenReturn(false);
+    when(likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
     var sender = MemberFixture.builder().id(senderId).build();
     var receiver =
@@ -134,8 +131,7 @@ class LikeSendServiceTest {
     var likeLevel = LikeLevelRequest.INTERESTED;
     var request = new LikeSendRequest(receiverId, likeLevel);
 
-    when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId))
-        .thenReturn(false);
+    when(likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
     var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.MALE).build();
@@ -160,8 +156,7 @@ class LikeSendServiceTest {
     var likeLevel = LikeLevelRequest.INTERESTED;
     var request = new LikeSendRequest(receiverId, likeLevel);
 
-    when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId))
-        .thenReturn(false);
+    when(likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
     var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();
@@ -188,8 +183,7 @@ class LikeSendServiceTest {
     var likeLevel = LikeLevelRequest.INTERESTED;
     var request = new LikeSendRequest(receiverId, likeLevel);
 
-    when(likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId))
-        .thenReturn(false);
+    when(likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)).thenReturn(false);
 
     var sender = MemberFixture.builder().id(senderId).gender(Gender.MALE).build();
     var receiver = MemberFixture.builder().id(receiverId).gender(Gender.FEMALE).build();

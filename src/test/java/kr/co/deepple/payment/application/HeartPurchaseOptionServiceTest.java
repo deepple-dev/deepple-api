@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.application.dto.HeartPurchaseOptionCreateRequest;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import kr.co.deepple.payment.fixture.HeartPurchaseOptionFixture;
@@ -27,7 +27,7 @@ class HeartPurchaseOptionServiceTest {
 
   @InjectMocks private HeartPurchaseOptionService heartPurchaseOptionService;
 
-  @Mock private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Mock private HeartPurchaseOptionRepository heartPurchaseOptionRepository;
 
   @Nested
   @DisplayName("create 메서드 테스트")
@@ -44,8 +44,7 @@ class HeartPurchaseOptionServiceTest {
       // Given
       HeartPurchaseOptionCreateRequest request =
           new HeartPurchaseOptionCreateRequest(heartAmount, price, productId, name);
-      when(heartPurchaseOptionCommandRepository.existsByProductIdAndDeletedAtIsNull(
-              request.productId()))
+      when(heartPurchaseOptionRepository.existsByProductIdAndDeletedAtIsNull(request.productId()))
           .thenReturn(true);
 
       // When & Then
@@ -53,7 +52,7 @@ class HeartPurchaseOptionServiceTest {
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_ALREADY_EXISTS);
-      verify(heartPurchaseOptionCommandRepository, never()).save(any());
+      verify(heartPurchaseOptionRepository, never()).save(any());
     }
 
     @Test
@@ -62,15 +61,14 @@ class HeartPurchaseOptionServiceTest {
       // Given
       HeartPurchaseOptionCreateRequest request =
           new HeartPurchaseOptionCreateRequest(heartAmount, price, productId, name);
-      when(heartPurchaseOptionCommandRepository.existsByProductIdAndDeletedAtIsNull(
-              request.productId()))
+      when(heartPurchaseOptionRepository.existsByProductIdAndDeletedAtIsNull(request.productId()))
           .thenReturn(false);
 
       // When
       heartPurchaseOptionService.create(request);
 
       // Then
-      verify(heartPurchaseOptionCommandRepository)
+      verify(heartPurchaseOptionRepository)
           .save(
               argThat(heartPurchaseOption ->
                   heartPurchaseOption.getHeartAmount() == heartAmount
@@ -91,14 +89,14 @@ class HeartPurchaseOptionServiceTest {
     @DisplayName("존재하지 않는 id로 삭제 요청 시 예외 발생")
     void throwExceptionWhenProductIdNotExists() {
       // Given
-      when(heartPurchaseOptionCommandRepository.findById(id)).thenReturn(Optional.empty());
+      when(heartPurchaseOptionRepository.findById(id)).thenReturn(Optional.empty());
 
       // When & Then
       assertThatThrownBy(() -> heartPurchaseOptionService.delete(id))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND);
-      verify(heartPurchaseOptionCommandRepository, never()).deleteById(any());
+      verify(heartPurchaseOptionRepository, never()).deleteById(any());
     }
 
     @Test
@@ -107,15 +105,14 @@ class HeartPurchaseOptionServiceTest {
       // Given
       HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder().build();
       heartPurchaseOption.delete();
-      when(heartPurchaseOptionCommandRepository.findById(id))
-          .thenReturn(Optional.of(heartPurchaseOption));
+      when(heartPurchaseOptionRepository.findById(id)).thenReturn(Optional.of(heartPurchaseOption));
 
       // When & Then
       assertThatThrownBy(() -> heartPurchaseOptionService.delete(id))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND);
-      verify(heartPurchaseOptionCommandRepository, never()).deleteById(any());
+      verify(heartPurchaseOptionRepository, never()).deleteById(any());
     }
 
     @Test
@@ -123,14 +120,13 @@ class HeartPurchaseOptionServiceTest {
     void deleteHeartPurchaseOption() {
       // Given
       HeartPurchaseOption heartPurchaseOption = HeartPurchaseOptionFixture.builder().build();
-      when(heartPurchaseOptionCommandRepository.findById(id))
-          .thenReturn(Optional.of(heartPurchaseOption));
+      when(heartPurchaseOptionRepository.findById(id)).thenReturn(Optional.of(heartPurchaseOption));
 
       // When
       heartPurchaseOptionService.delete(id);
 
       // Then
-      verify(heartPurchaseOptionCommandRepository).deleteById(id);
+      verify(heartPurchaseOptionRepository).deleteById(id);
     }
   }
 }

@@ -8,12 +8,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongConsumer;
-import kr.co.deepple.admin.application.port.out.ScreeningCommandRepository;
+import kr.co.deepple.admin.application.port.out.ScreeningRepository;
 import kr.co.deepple.admin.domain.Screening;
 import kr.co.deepple.admin.domain.ScreeningStatus;
 import kr.co.deepple.admin.fixture.ScreeningFixture;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.AfterEach;
@@ -29,21 +29,21 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
 
   @Autowired private ScreeningService screeningService;
 
-  @Autowired private ScreeningCommandRepository screeningCommandRepository;
+  @Autowired private ScreeningRepository screeningRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   private Member member;
 
   @BeforeEach
   void setUp() {
-    member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    member = memberRepository.save(MemberFixture.builder().build());
   }
 
   @AfterEach
   void tearDown() {
-    screeningCommandRepository.deleteAll();
-    memberCommandJpaRepository.deleteAll();
+    screeningRepository.deleteAll();
+    memberRepository.deleteAll();
   }
 
   @Test
@@ -54,7 +54,7 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
 
     // then
     assertThat(result.successCount()).isEqualTo(THREAD_COUNT);
-    assertThat(screeningCommandRepository.count()).isEqualTo(1);
+    assertThat(screeningRepository.count()).isEqualTo(1);
   }
 
   @Test
@@ -67,7 +67,7 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
     screeningService.rescreen(member.getId());
 
     // then
-    assertThat(screeningCommandRepository.count()).isEqualTo(1);
+    assertThat(screeningRepository.count()).isEqualTo(1);
   }
 
   @Test
@@ -78,7 +78,7 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
 
     // then
     assertThat(result.successCount()).isEqualTo(THREAD_COUNT);
-    assertThat(screeningCommandRepository.count()).isEqualTo(1);
+    assertThat(screeningRepository.count()).isEqualTo(1);
   }
 
   @Test
@@ -86,7 +86,7 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
   void createPendingScreeningWhenOnlyRejectedScreeningExists() {
     // given
     Screening rejected =
-        screeningCommandRepository.save(
+        screeningRepository.save(
             ScreeningFixture.builder()
                 .memberId(member.getId())
                 .status(ScreeningStatus.REJECTED)
@@ -96,8 +96,8 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
     screeningService.rescreen(member.getId());
 
     // then
-    assertThat(screeningCommandRepository.count()).isEqualTo(2);
-    assertThat(screeningCommandRepository.findById(rejected.getId()).orElseThrow().getStatus())
+    assertThat(screeningRepository.count()).isEqualTo(2);
+    assertThat(screeningRepository.findById(rejected.getId()).orElseThrow().getStatus())
         .isEqualTo(ScreeningStatus.REJECTED);
   }
 

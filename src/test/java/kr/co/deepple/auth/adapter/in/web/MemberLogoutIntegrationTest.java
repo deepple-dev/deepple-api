@@ -8,7 +8,7 @@ import java.time.Instant;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.notification.application.port.out.DeviceRegistrationCommandRepository;
+import kr.co.deepple.notification.application.port.out.DeviceRegistrationRepository;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.fixture.DeviceRegistrationFixture;
 import org.junit.jupiter.api.AfterEach;
@@ -28,11 +28,11 @@ class MemberLogoutIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private TokenProvider tokenProvider;
 
-  @Autowired private DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
+  @Autowired private DeviceRegistrationRepository deviceRegistrationRepository;
 
   @AfterEach
   void tearDown() {
-    deviceRegistrationCommandRepository.deleteAll();
+    deviceRegistrationRepository.deleteAll();
   }
 
   @Test
@@ -44,7 +44,7 @@ class MemberLogoutIntegrationTest extends IntegrationTestSupport {
             .deviceId("device-id")
             .registrationToken("fcm-token")
             .build();
-    deviceRegistrationCommandRepository.save(deviceRegistration);
+    deviceRegistrationRepository.save(deviceRegistration);
     String accessToken = tokenProvider.createAccessToken(MEMBER_ID, Role.MEMBER, Instant.now());
 
     MvcTestResult result =
@@ -58,7 +58,7 @@ class MemberLogoutIntegrationTest extends IntegrationTestSupport {
     await()
         .atMost(Duration.ofSeconds(5))
         .untilAsserted(() ->
-            assertThat(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(MEMBER_ID))
+            assertThat(deviceRegistrationRepository.findByMemberIdAndIsActiveTrue(MEMBER_ID))
                 .isEmpty());
   }
 }

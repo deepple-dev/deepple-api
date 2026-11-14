@@ -4,7 +4,7 @@ import static kr.co.deepple.admin.application.ScreeningMapper.toRejectionReasonT
 
 import kr.co.deepple.admin.application.dto.ScreeningApproveRequest;
 import kr.co.deepple.admin.application.dto.ScreeningRejectRequest;
-import kr.co.deepple.admin.application.port.out.ScreeningCommandRepository;
+import kr.co.deepple.admin.application.port.out.ScreeningRepository;
 import kr.co.deepple.admin.domain.AdminErrorCode;
 import kr.co.deepple.admin.domain.RejectionReasonType;
 import kr.co.deepple.admin.domain.Screening;
@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ScreeningService {
 
-  private final ScreeningCommandRepository screeningCommandRepository;
+  private final ScreeningRepository screeningRepository;
   private final DistributedLockTemplate distributedLockTemplate;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -34,10 +34,10 @@ public class ScreeningService {
     distributedLockTemplate.executeInTransaction(
         lockKey(memberId),
         () -> {
-          if (screeningCommandRepository.existsByMemberId(memberId)) {
+          if (screeningRepository.existsByMemberId(memberId)) {
             return;
           }
-          screeningCommandRepository.save(Screening.from(memberId));
+          screeningRepository.save(Screening.from(memberId));
           eventPublisher.publishEvent(ScreeningCreatedEvent.from(memberId));
         });
   }
@@ -82,11 +82,10 @@ public class ScreeningService {
     distributedLockTemplate.executeInTransaction(
         lockKey(memberId),
         () -> {
-          if (screeningCommandRepository.existsByMemberIdAndStatus(
-              memberId, ScreeningStatus.PENDING)) {
+          if (screeningRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING)) {
             return;
           }
-          screeningCommandRepository.save(Screening.from(memberId));
+          screeningRepository.save(Screening.from(memberId));
           eventPublisher.publishEvent(ScreeningCreatedEvent.from(memberId));
         });
   }
@@ -96,7 +95,7 @@ public class ScreeningService {
   }
 
   private Screening getScreening(long id) {
-    return screeningCommandRepository
+    return screeningRepository
         .findById(id)
         .orElseThrow(
             () -> new DeeppleException(AdminErrorCode.SCREENING_NOT_FOUND, "screeningId=" + id));

@@ -2,7 +2,7 @@ package kr.co.deepple.member.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.dto.AdminMemberSettingUpdateRequest;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Grade;
 import kr.co.deepple.member.domain.Member;
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminMemberService {
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final MemberRepository memberRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -38,7 +38,7 @@ public class AdminMemberService {
   }
 
   private Member getMember(long memberId) {
-    return memberCommandRepository
+    return memberRepository
         .findById(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));

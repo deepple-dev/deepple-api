@@ -7,7 +7,7 @@ import java.util.List;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.member.application.dto.ProfileImageUploadRequest;
-import kr.co.deepple.member.application.port.out.ProfileImageCommandRepository;
+import kr.co.deepple.member.application.port.out.ProfileImageRepository;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +23,7 @@ public class ProfileImageServiceTest {
 
   @InjectMocks private ProfileImageService profileImageService;
 
-  @Mock private ProfileImageCommandRepository profileImageCommandRepository;
+  @Mock private ProfileImageRepository profileImageRepository;
 
   @Mock private S3Uploader s3Uploader;
 
@@ -97,8 +97,8 @@ public class ProfileImageServiceTest {
       profileImageService.save(memberId, request);
 
       // Then
-      verify(profileImageCommandRepository).deleteByMemberId(memberId);
-      verify(profileImageCommandRepository).saveAll(anyList());
+      verify(profileImageRepository).deleteByMemberId(memberId);
+      verify(profileImageRepository).saveAll(anyList());
     }
   }
 }

@@ -5,7 +5,7 @@ import static kr.co.deepple.like.application.LikeMapper.toLikeLevel;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.application.dto.LikeSendRequest;
-import kr.co.deepple.like.application.port.out.LikeCommandRepository;
+import kr.co.deepple.like.application.port.out.LikeRepository;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeErrorCode;
 import kr.co.deepple.like.event.LikeSentEvent;
@@ -24,7 +24,7 @@ public class LikeSendService {
   private static final String LIKE_MISSION_ACTION = "LIKE";
 
   private final ExecuteMissionUseCase executeMissionUseCase;
-  private final LikeCommandRepository likeCommandRepository;
+  private final LikeRepository likeRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final CheckBlockUseCase checkBlockUseCase;
   private final ApplicationEventPublisher eventPublisher;
@@ -33,7 +33,7 @@ public class LikeSendService {
   public boolean send(long senderId, LikeSendRequest request) {
     long receiverId = request.receiverId();
 
-    if (likeCommandRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
+    if (likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
       throw new DeeppleException(
           LikeErrorCode.LIKE_ALREADY_EXISTS, "senderId=" + senderId + ", receiverId=" + receiverId);
     }
@@ -43,7 +43,7 @@ public class LikeSendService {
     validateMember(sender, receiver);
 
     Like like = Like.of(senderId, receiverId, toLikeLevel(request.likeLevel()));
-    likeCommandRepository.save(like);
+    likeRepository.save(like);
 
     boolean hasProcessedMission =
         executeMissionUseCase.executeMissionsByAction(senderId, LIKE_MISSION_ACTION);

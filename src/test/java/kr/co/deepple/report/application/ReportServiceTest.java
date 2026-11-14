@@ -12,7 +12,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.report.application.dto.ReportCreateRequest;
-import kr.co.deepple.report.application.port.out.ReportCommandRepository;
+import kr.co.deepple.report.application.port.out.ReportRepository;
 import kr.co.deepple.report.domain.ReportErrorCode;
 import kr.co.deepple.report.domain.ReportReasonType;
 import kr.co.deepple.report.event.ReportCreatedEvent;
@@ -32,7 +32,7 @@ class ReportServiceTest {
 
   @InjectMocks private ReportService reportService;
 
-  @Mock private ReportCommandRepository reportCommandRepository;
+  @Mock private ReportRepository reportRepository;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
@@ -54,7 +54,7 @@ class ReportServiceTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
 
-    verify(reportCommandRepository, never()).save(any());
+    verify(reportRepository, never()).save(any());
   }
 
   @Test
@@ -67,15 +67,14 @@ class ReportServiceTest {
     ReportCreateRequest request =
         new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
 
-    when(reportCommandRepository.existsByReporterIdAndReporteeId(reporterId, reporteeId))
-        .thenReturn(true);
+    when(reportRepository.existsByReporterIdAndReporteeId(reporterId, reporteeId)).thenReturn(true);
 
     // when, then
     assertThatThrownBy(() -> reportService.report(request, reporterId))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_EXISTS);
 
-    verify(reportCommandRepository, never()).save(any());
+    verify(reportRepository, never()).save(any());
   }
 
   @Test
@@ -92,11 +91,11 @@ class ReportServiceTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.INVALID_REPORT_REASON_TYPE);
 
-    verify(reportCommandRepository, never()).save(any());
+    verify(reportRepository, never()).save(any());
   }
 
   @Test
-  @DisplayName("report 메서드가 정상적으로 호출되면 reportCommandRepository의 save 메서드가 호출된다.")
+  @DisplayName("report 메서드가 정상적으로 호출되면 reportRepository의 save 메서드가 호출된다.")
   void savesReportWhenReporteeExists() {
     // given
     long reporteeId = 1L;
@@ -110,7 +109,7 @@ class ReportServiceTest {
 
     // then
     Mockito.verify(eventPublisher).publishEvent(Mockito.any(ReportCreatedEvent.class));
-    verify(reportCommandRepository, times(1))
+    verify(reportRepository, times(1))
         .save(
             argThat(reportCommand ->
                 reportCommand.getReporterId() == reporterId

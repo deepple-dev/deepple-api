@@ -4,7 +4,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.community.application.dto.SelfIntroductionWriteRequest;
-import kr.co.deepple.community.application.port.out.SelfIntroductionCommandRepository;
+import kr.co.deepple.community.application.port.out.SelfIntroductionRepository;
 import kr.co.deepple.community.domain.CommunityErrorCode;
 import kr.co.deepple.community.domain.SelfIntroduction;
 import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
@@ -20,7 +20,7 @@ public class SelfIntroductionService {
 
   private static final String IMAGE_PATH_PREFIX = "self-introduction";
 
-  private final SelfIntroductionCommandRepository selfIntroductionCommandRepository;
+  private final SelfIntroductionRepository selfIntroductionRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final S3Uploader s3Uploader;
   private final ApplicationEventPublisher eventPublisher;
@@ -31,7 +31,7 @@ public class SelfIntroductionService {
     boolean isFirstSelfIntroduction = isFirstSelfIntroduction(memberId);
     SelfIntroduction selfIntroduction =
         SelfIntroduction.write(memberId, request.title(), request.content(), request.imageUrl());
-    selfIntroductionCommandRepository.save(selfIntroduction);
+    selfIntroductionRepository.save(selfIntroduction);
     if (isFirstSelfIntroduction) {
       eventPublisher.publishEvent(SelfIntroductionFirstWrittenEvent.from(memberId));
     }
@@ -39,7 +39,7 @@ public class SelfIntroductionService {
   }
 
   private boolean isFirstSelfIntroduction(long memberId) {
-    return !selfIntroductionCommandRepository.existsByMemberId(memberId);
+    return !selfIntroductionRepository.existsByMemberId(memberId);
   }
 
   @Transactional
@@ -55,7 +55,7 @@ public class SelfIntroductionService {
   public void delete(long id, long memberId) {
     validateMemberId(memberId);
     validateSelfIntroductionAuthor(getSelfIntroductionById(id).getMemberId(), memberId);
-    selfIntroductionCommandRepository.deleteById(id);
+    selfIntroductionRepository.deleteById(id);
   }
 
   public PresignedUrlResponse getPresignedUrl(String fileName, long memberId) {
@@ -82,7 +82,7 @@ public class SelfIntroductionService {
   }
 
   private SelfIntroduction getSelfIntroductionById(long id) {
-    return selfIntroductionCommandRepository
+    return selfIntroductionRepository
         .findById(id)
         .orElseThrow(() ->
             new DeeppleException(

@@ -2,12 +2,10 @@ package kr.co.deepple.block.application.port.out;
 
 import java.util.Set;
 import kr.co.deepple.block.domain.Block;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
 
-public interface BlockRepository extends Repository<Block, Long> {
-  Block save(Block block);
-
+public interface BlockRepository extends JpaRepository<Block, Long> {
   boolean existsByBlockerIdAndBlockedId(long blockerId, long blockedId);
 
   @Query("SELECT b.blockedId FROM Block b WHERE b.blockerId = :blockerId")

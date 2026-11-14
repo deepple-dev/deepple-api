@@ -7,7 +7,7 @@ import kr.co.deepple.member.application.port.in.ChangeMemberActivityStatusUseCas
 import kr.co.deepple.member.application.port.in.ChangeMemberScreeningStatusUseCase;
 import kr.co.deepple.member.application.port.in.MarkDatingExamSubmittedUseCase;
 import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
@@ -30,7 +30,7 @@ public class MemberProfileService
         ChangeMemberActivityStatusUseCase,
         MarkDatingExamSubmittedUseCase {
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final MemberRepository memberRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -157,7 +157,7 @@ public class MemberProfileService
   }
 
   private Member getMemberById(long memberId) {
-    return memberCommandRepository
+    return memberRepository
         .findById(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));

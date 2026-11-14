@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.co.deepple.notification.application.dto.DeviceRegisterRequest;
-import kr.co.deepple.notification.application.port.out.DeviceRegistrationCommandRepository;
+import kr.co.deepple.notification.application.port.out.DeviceRegistrationRepository;
 import kr.co.deepple.notification.fixture.DeviceRegistrationFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DeviceRegistrationServiceTest {
 
-  @Mock DeviceRegistrationCommandRepository repository;
+  @Mock DeviceRegistrationRepository repository;
 
   @InjectMocks DeviceRegistrationService service;
 

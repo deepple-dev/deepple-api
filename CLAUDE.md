@@ -68,7 +68,7 @@ domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤
   - 실패한 기록은 1분마다 다시 보내진다(`FailedEventResubmitter`, 시도 10번까지). 핸들러는 같은 이벤트로 여러 번 실행돼도 결과가 같게 만든다
   - 이벤트에 칸을 추가하면 이전 버전 코드는 그 기록을 읽지 못한다(`fail-on-unknown-properties`). 칸을 지우거나 이름을 바꿀 때도 미완료 기록을 먼저 확인한다
 - 동시성 처리는 막을 대상에 맞게 고른다.
-  - 이미 있는 행의 값 변경: 비관적 락(`@Lock(PESSIMISTIC_WRITE)`, 예: `MemberCommandRepository.findByIdForUpdate`). 락 대기는 3초(`innodb_lock_wait_timeout`)
+  - 이미 있는 행의 값 변경: 비관적 락(`@Lock(PESSIMISTIC_WRITE)`, 예: `MemberRepository.findByIdForUpdate`). 락 대기는 3초(`innodb_lock_wait_timeout`)
   - 아직 없는 행의 중복 생성: unique 제약. 제약으로 표현할 수 없는 규칙이거나 저장 전 작업까지 줄 세워야 하면 `DistributedLockTemplate.executeInTransaction`(Redisson)을 함께 쓴다. 락을 잡는 메서드에는 `@Transactional`을 붙이지 않는다(락 → 트랜잭션 → 커밋 → 해제 순서).
 - 엔티티는 `BaseEntity` 또는 `SoftDeleteBaseEntity`를 상속한다.
 - 스키마 변경은 Flyway 마이그레이션으로만 한다. 엔티티와 마이그레이션이 일치해야 한다.
@@ -100,6 +100,7 @@ domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤
 | `logging.md` | 로그 레벨·형식, 자동 문맥(MDC), 남기지 않는 값 | `src/main` Java 파일 |
 | `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `adapter`, `common/infra`, `common/config` |
 | `db.md` | 마이그레이션, 컬럼 타입 | 마이그레이션, 엔티티(`domain`) |
+| `repository.md` | 저장소 구조·이름 | `application`, `adapter` |
 | `test.md` | 테스트 종류별 작성 방식 | `src/test` |
 | `build.md` | 의존성 버전 관리 | `build.gradle`, `gradle/` |
 | `claude-config.md` | Claude Code 설정 작성 기준 | `CLAUDE.md`, `.claude/` |

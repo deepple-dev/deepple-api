@@ -5,7 +5,7 @@ import static kr.co.deepple.admin.application.SuspensionMapper.toSuspensionStatu
 import java.time.Instant;
 import java.util.Optional;
 import kr.co.deepple.admin.application.dto.SuspendRequest;
-import kr.co.deepple.admin.application.port.out.SuspensionCommandRepository;
+import kr.co.deepple.admin.application.port.out.SuspensionRepository;
 import kr.co.deepple.admin.domain.Suspension;
 import kr.co.deepple.admin.domain.SuspensionPolicy;
 import kr.co.deepple.admin.domain.SuspensionStatus;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SuspensionService {
 
-  private final SuspensionCommandRepository suspensionCommandRepository;
+  private final SuspensionRepository suspensionRepository;
   private final SuspensionPolicy suspensionPolicy;
   private final TaskScheduler taskScheduler;
   private final ApplicationEventPublisher eventPublisher;
@@ -42,20 +42,20 @@ public class SuspensionService {
 
   @Transactional
   public void delete(long memberId) {
-    suspensionCommandRepository.deleteByMemberId(memberId);
+    suspensionRepository.deleteByMemberId(memberId);
     eventPublisher.publishEvent(MemberUnsuspendedEvent.from(memberId));
     log.atInfo().addKeyValue("memberId", memberId).log("회원 정지 해제");
   }
 
   private void createOrUpdateSuspension(long adminId, long memberId, SuspensionStatus status) {
-    Optional<Suspension> existingSuspension = suspensionCommandRepository.findByMemberId(memberId);
+    Optional<Suspension> existingSuspension = suspensionRepository.findByMemberId(memberId);
 
     if (status == SuspensionStatus.TEMPORARY) {
       if (existingSuspension.isPresent()) {
         return;
       }
       Suspension newSuspension = Suspension.createTemporary(adminId, memberId);
-      suspensionCommandRepository.save(newSuspension);
+      suspensionRepository.save(newSuspension);
       publishSuspendedEvent(memberId, status);
 
       registerTemporaryScheduler(newSuspension.getMemberId(), newSuspension.getExpireAt());
@@ -71,7 +71,7 @@ public class SuspensionService {
           },
           () -> {
             Suspension newSuspension = Suspension.createPermanent(adminId, memberId);
-            suspensionCommandRepository.save(newSuspension);
+            suspensionRepository.save(newSuspension);
             publishSuspendedEvent(memberId, status);
           });
       logSuspension(memberId, status);
@@ -96,12 +96,12 @@ public class SuspensionService {
 
     taskScheduler.schedule(
         () -> {
-          Optional<Suspension> suspension = suspensionCommandRepository.findByMemberId(memberId);
+          Optional<Suspension> suspension = suspensionRepository.findByMemberId(memberId);
           if (suspension.isEmpty() || suspension.get().getStatus() == SuspensionStatus.PERMANENT) {
             return;
           }
 
-          suspensionCommandRepository.deleteByMemberId(memberId);
+          suspensionRepository.deleteByMemberId(memberId);
           eventPublisher.publishEvent(MemberUnsuspendedEvent.from(memberId));
         },
         expireAt);

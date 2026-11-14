@@ -3,7 +3,7 @@ package kr.co.deepple.payment.application;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.adapter.out.store.GooglePlayClient;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.GooglePlayReceiptVerifiedEvent;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import kr.co.deepple.payment.domain.PaymentMethod;
@@ -20,7 +20,7 @@ public class GooglePlayPaymentService {
   private static final int CONSUMPTION_STATE_CONSUMED = 1;
 
   private final GooglePlayClient googlePlayClient;
-  private final OrderCommandRepository orderCommandRepository;
+  private final OrderRepository orderRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   public void verifyReceipt(String productId, String purchaseToken, long memberId) {
@@ -40,7 +40,7 @@ public class GooglePlayPaymentService {
 
   private void verifyAlreadyProcessed(String orderId, long memberId) {
     boolean processed =
-        orderCommandRepository
+        orderRepository
             .findByTransactionIdAndPaymentMethod(orderId, PaymentMethod.GOOGLE_PLAY)
             .filter(order -> order.isOrderedBy(memberId))
             .isPresent();

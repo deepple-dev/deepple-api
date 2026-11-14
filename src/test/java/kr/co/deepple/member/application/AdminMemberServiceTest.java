@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.dto.AdminMemberSettingUpdateRequest;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Grade;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
@@ -29,7 +29,7 @@ class AdminMemberServiceTest {
 
   @InjectMocks AdminMemberService adminMemberService;
 
-  @Mock MemberCommandRepository memberCommandRepository;
+  @Mock MemberRepository memberRepository;
 
   @Mock ApplicationEventPublisher eventPublisher;
 
@@ -41,7 +41,7 @@ class AdminMemberServiceTest {
     AdminMemberSettingUpdateRequest request =
         new AdminMemberSettingUpdateRequest(Grade.SILVER.name(), true, true);
     Member member = mock(Member.class);
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
     // when
     adminMemberService.updateMemberSetting(memberId, request);
@@ -64,7 +64,7 @@ class AdminMemberServiceTest {
     long memberId = 1L;
     AdminMemberSettingUpdateRequest request =
         new AdminMemberSettingUpdateRequest(Grade.SILVER.name(), true, true);
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+    when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> adminMemberService.updateMemberSetting(memberId, request))

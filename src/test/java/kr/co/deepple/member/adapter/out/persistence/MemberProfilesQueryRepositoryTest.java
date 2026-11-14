@@ -22,7 +22,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 class MemberProfilesQueryRepositoryTest extends RepositoryTestSupport {
 
-  @Autowired private MemberQueryRepository memberQueryRepository;
+  @Autowired private MemberQueryRepositoryImpl memberQueryRepository;
 
   @Autowired private TestEntityManager entityManager;
 

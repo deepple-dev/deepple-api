@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.dto.MemberProfileUpdateRequest;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.City;
 import kr.co.deepple.member.domain.Gender;
@@ -38,7 +38,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class MemberProfileServiceTest {
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private MemberRepository memberRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -51,7 +51,7 @@ class MemberProfileServiceTest {
     Long memberId = 1L;
 
     // When
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+    when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
     // Then
     assertThatThrownBy(() -> memberProfileService.updateMember(memberId, null))
@@ -84,7 +84,7 @@ class MemberProfileServiceTest {
     Member existingMember =
         MemberFixture.builder().activityStatus(ActivityStatus.INITIAL).noProfile().build();
 
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
     // When & Then
     assertThatThrownBy(() -> memberProfileService.updateMember(memberId, invalidRequest))
@@ -122,7 +122,7 @@ class MemberProfileServiceTest {
             .noProfile()
             .build();
 
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
     // When
     memberProfileService.updateMember(memberId, request);
@@ -166,7 +166,7 @@ class MemberProfileServiceTest {
             .noProfile()
             .build();
 
-    when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
     // When
     memberProfileService.updateMember(memberId, request);
@@ -190,7 +190,7 @@ class MemberProfileServiceTest {
     void throwsExceptionWhenMemberNotFound() {
       // Given
       long memberId = 1L;
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When
       assertThatThrownBy(() -> memberProfileService.changeProfilePublishStatus(memberId, true))
@@ -204,7 +204,7 @@ class MemberProfileServiceTest {
       // Given
       long memberId = 1L;
       Member member = MemberFixture.builder().id(memberId).profilePublic(false).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.changeProfilePublishStatus(memberId, true);
@@ -223,7 +223,7 @@ class MemberProfileServiceTest {
     void throwsExceptionWhenMemberNotFound() {
       // Given
       long memberId = 1L;
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When
       assertThatThrownBy(
@@ -239,7 +239,7 @@ class MemberProfileServiceTest {
       long memberId = 1L;
       String activityStatus = "TEMPORARY";
       Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.changeMemberActivityStatus(memberId, activityStatus);
@@ -260,7 +260,7 @@ class MemberProfileServiceTest {
       // Given
       Long memberId = 1L;
       String contactType = "PHONE_NUMBER";
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When & Then
       assertThatThrownBy(
@@ -276,7 +276,7 @@ class MemberProfileServiceTest {
       Long memberId = 1L;
       String contactType = null;
       Member member = MemberFixture.builder().id(memberId).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.validateContactTypeSetting(memberId, contactType);
@@ -292,7 +292,7 @@ class MemberProfileServiceTest {
       Long memberId = 1L;
       List<String> contactTypes = List.of("PHONE_NUMBER", "KAKAO");
       Member member = Mockito.mock(Member.class);
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
       when(member.getPhoneNumber()).thenReturn(null);
       when(member.getKakaoId()).thenReturn(null);
 
@@ -317,7 +317,7 @@ class MemberProfileServiceTest {
       long memberId = 1L;
       Member member =
           MemberFixture.builder().id(memberId).activityStatus(ActivityStatus.ACTIVE).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.deactivate(memberId);
@@ -334,7 +334,7 @@ class MemberProfileServiceTest {
       long memberId = 1L;
       Member member =
           MemberFixture.builder().id(memberId).activityStatus(ActivityStatus.DORMANT).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.reactivate(memberId);
@@ -351,7 +351,7 @@ class MemberProfileServiceTest {
       long memberId = 1L;
       Member member =
           MemberFixture.builder().id(memberId).activityStatus(ActivityStatus.INITIAL).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.approveScreening(memberId);
@@ -372,7 +372,7 @@ class MemberProfileServiceTest {
       // Given
       long memberId = 1L;
       Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.changeReject(memberId);
@@ -388,7 +388,7 @@ class MemberProfileServiceTest {
       // Given
       long memberId = 1L;
       Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.changeWaiting(memberId);
@@ -409,7 +409,7 @@ class MemberProfileServiceTest {
               .activityStatus(ActivityStatus.WAITING_SCREENING)
               .profilePublic(false)
               .build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.approveScreening(memberId);
@@ -424,7 +424,7 @@ class MemberProfileServiceTest {
     void throwsExceptionWhenMemberNotFound() {
       // Given
       long memberId = 1L;
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When & Then
       assertThatThrownBy(() -> memberProfileService.changeWaiting(memberId))
@@ -443,7 +443,7 @@ class MemberProfileServiceTest {
       // Given
       long memberId = 1L;
       Member member = MemberFixture.builder().id(memberId).build();
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 
       // When
       memberProfileService.markDatingExamSubmitted(memberId);
@@ -458,7 +458,7 @@ class MemberProfileServiceTest {
     void throwsExceptionWhenMemberNotFound() {
       // Given
       long memberId = 1L;
-      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+      when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 
       // When & Then
       assertThatThrownBy(() -> memberProfileService.markDatingExamSubmitted(memberId))

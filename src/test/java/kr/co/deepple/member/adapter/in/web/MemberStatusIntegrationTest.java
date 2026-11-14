@@ -6,7 +6,7 @@ import java.time.Instant;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.common.enums.Role;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -25,14 +25,14 @@ class MemberStatusIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private TokenProvider tokenProvider;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   private Member member;
 
   @AfterEach
   void tearDown() {
     if (member != null) {
-      memberCommandJpaRepository.delete(member);
+      memberRepository.delete(member);
     }
   }
 
@@ -40,7 +40,7 @@ class MemberStatusIntegrationTest extends IntegrationTestSupport {
   @DisplayName("프로필을 작성하지 않은 회원은 프로필 작성이 필요하다고 응답한다.")
   void respondProfileSettingNeededForMemberWithoutProfile() {
     member =
-        memberCommandJpaRepository.save(
+        memberRepository.save(
             MemberFixture.builder().activityStatus(ActivityStatus.INITIAL).noProfile().build());
 
     MvcTestResult result = getStatus();
@@ -54,7 +54,7 @@ class MemberStatusIntegrationTest extends IntegrationTestSupport {
   @DisplayName("프로필을 작성한 심사 대기 회원은 활동 상태와 함께 프로필 작성이 필요 없다고 응답한다.")
   void respondActivityStatusForMemberWithProfile() {
     member =
-        memberCommandJpaRepository.save(
+        memberRepository.save(
             MemberFixture.builder().activityStatus(ActivityStatus.WAITING_SCREENING).build());
 
     MvcTestResult result = getStatus();

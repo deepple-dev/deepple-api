@@ -16,7 +16,7 @@ import kr.co.deepple.auth.application.dto.AdminLoginRequest;
 import kr.co.deepple.auth.application.dto.AdminLoginResponse;
 import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
-import kr.co.deepple.auth.application.port.out.AdminCommandRepository;
+import kr.co.deepple.auth.application.port.out.AdminRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.auth.domain.Admin;
 import kr.co.deepple.auth.domain.AdminRole;
@@ -41,7 +41,7 @@ class AdminAuthServiceTest {
 
   private static final String HASHED_PASSWORD = "hashed-password123^^";
 
-  @Mock private AdminCommandRepository adminCommandRepository;
+  @Mock private AdminRepository adminRepository;
 
   @Mock private PasswordHasher passwordHasher;
 
@@ -63,9 +63,9 @@ class AdminAuthServiceTest {
       String rawPassword = "password123^^";
       AdminSignupRequest request = new AdminSignupRequest(email, rawPassword, "홍길동", "01012345678");
 
-      when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
+      when(adminRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
       when(passwordHasher.hash(rawPassword)).thenReturn("hashed-password123^^");
-      when(adminCommandRepository.save(any(Admin.class)))
+      when(adminRepository.save(any(Admin.class)))
           .thenAnswer(invocation -> {
             Admin admin = invocation.getArgument(0, Admin.class);
             setField(admin, "id", 1L);
@@ -80,9 +80,9 @@ class AdminAuthServiceTest {
       assertThat(response.id()).isEqualTo(1L);
       assertThat(response.email()).isEqualTo(email);
 
-      verify(adminCommandRepository).findByEmail(Email.from(email));
+      verify(adminRepository).findByEmail(Email.from(email));
       verify(passwordHasher).hash(rawPassword);
-      verify(adminCommandRepository).save(any(Admin.class));
+      verify(adminRepository).save(any(Admin.class));
     }
 
     @Test
@@ -93,7 +93,7 @@ class AdminAuthServiceTest {
       AdminSignupRequest request =
           new AdminSignupRequest(email, "password123^^", "홍길동", "01012345678");
 
-      when(adminCommandRepository.findByEmail(Email.from(email)))
+      when(adminRepository.findByEmail(Email.from(email)))
           .thenReturn(Optional.of(AdminFixture.builder().build()));
 
       // when & then
@@ -101,7 +101,7 @@ class AdminAuthServiceTest {
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.ADMIN_EMAIL_ALREADY_EXISTS);
 
-      verify(adminCommandRepository, never()).save(any(Admin.class));
+      verify(adminRepository, never()).save(any(Admin.class));
       verify(passwordHasher, never()).hash(anyString());
     }
 
@@ -114,16 +114,16 @@ class AdminAuthServiceTest {
       AdminSignupRequest request =
           new AdminSignupRequest(email, invalidPassword, "홍길동", "01012345678");
 
-      when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
+      when(adminRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> adminAuthService.signup(request))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_PASSWORD);
 
-      verify(adminCommandRepository).findByEmail(Email.from(email));
+      verify(adminRepository).findByEmail(Email.from(email));
       verify(passwordHasher, never()).hash(anyString());
-      verify(adminCommandRepository, never()).save(any(Admin.class));
+      verify(adminRepository, never()).save(any(Admin.class));
     }
   }
 
@@ -148,7 +148,7 @@ class AdminAuthServiceTest {
               .role(AdminRole.ADMIN)
               .approvalStatus(ApprovalStatus.APPROVED)
               .build();
-      when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+      when(adminRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
       when(passwordHasher.matches(requestPassword, HASHED_PASSWORD)).thenReturn(true);
 
       String newAccessToken = "accessToken";
@@ -174,7 +174,7 @@ class AdminAuthServiceTest {
       String requestPassword = "password123^^";
       AdminLoginRequest request = new AdminLoginRequest(email, requestPassword);
 
-      when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
+      when(adminRepository.findByEmail(Email.from(email))).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> adminAuthService.login(request))
@@ -190,7 +190,7 @@ class AdminAuthServiceTest {
       AdminLoginRequest request = new AdminLoginRequest(email, "password123^^");
       Admin admin = AdminFixture.builder().email(email).build();
       admin.delete();
-      when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+      when(adminRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
 
       // when & then
       assertThatThrownBy(() -> adminAuthService.login(request))
@@ -212,7 +212,7 @@ class AdminAuthServiceTest {
               .hashedPassword(HASHED_PASSWORD)
               .approvalStatus(ApprovalStatus.PENDING)
               .build();
-      when(adminCommandRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
+      when(adminRepository.findByEmail(Email.from(email))).thenReturn(Optional.of(admin));
       when(passwordHasher.matches(requestPassword, HASHED_PASSWORD)).thenReturn(true);
 
       // when & then
@@ -240,7 +240,7 @@ class AdminAuthServiceTest {
               .role(AdminRole.SUPER_ADMIN)
               .approvalStatus(ApprovalStatus.APPROVED)
               .build();
-      when(adminCommandRepository.findById(1L)).thenReturn(Optional.of(admin));
+      when(adminRepository.findById(1L)).thenReturn(Optional.of(admin));
       when(tokenProvider.createAccessToken(eq(1L), eq(Role.SUPER_ADMIN), any(Instant.class)))
           .thenReturn("accessToken");
       when(refreshTokenService.issue(new TokenOwner(1L, Role.SUPER_ADMIN)))
@@ -261,7 +261,7 @@ class AdminAuthServiceTest {
       TokenOwner owner = new TokenOwner(1L, Role.ADMIN);
       when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(owner);
       Admin admin = AdminFixture.builder().id(1L).approvalStatus(ApprovalStatus.PENDING).build();
-      when(adminCommandRepository.findById(1L)).thenReturn(Optional.of(admin));
+      when(adminRepository.findById(1L)).thenReturn(Optional.of(admin));
 
       // when & then
       assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
@@ -281,7 +281,7 @@ class AdminAuthServiceTest {
       assertThatThrownBy(() -> adminAuthService.refresh(REFRESH_TOKEN))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_REFRESH_TOKEN);
-      verify(adminCommandRepository, never()).findById(any());
+      verify(adminRepository, never()).findById(any());
     }
   }
 }

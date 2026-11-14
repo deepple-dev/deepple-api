@@ -4,7 +4,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import kr.co.deepple.notification.application.dto.NotificationDeleteRequest;
-import kr.co.deepple.notification.application.port.out.NotificationCommandRepository;
+import kr.co.deepple.notification.application.port.out.NotificationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NotificationDeleteServiceTest {
 
-  @Mock NotificationCommandRepository repository;
+  @Mock NotificationRepository repository;
 
   @InjectMocks NotificationDeleteService service;
 

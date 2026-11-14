@@ -7,7 +7,7 @@ import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.member.application.dto.ProfileImageUploadRequest;
 import kr.co.deepple.member.application.dto.ProfileImageUploadResponse;
-import kr.co.deepple.member.application.port.out.ProfileImageCommandRepository;
+import kr.co.deepple.member.application.port.out.ProfileImageRepository;
 import kr.co.deepple.member.domain.ImageUrl;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.domain.ProfileImage;
@@ -21,7 +21,7 @@ public class ProfileImageService {
 
   private static final List<String> ALLOWED_IMAGE_EXTENSIONS =
       List.of("jpg", "jpeg", "png", "webp", "heic");
-  private final ProfileImageCommandRepository profileImageCommandRepository;
+  private final ProfileImageRepository profileImageRepository;
   private final S3Uploader s3Uploader;
 
   @Transactional
@@ -33,7 +33,7 @@ public class ProfileImageService {
 
     validateRequestSize(requests);
 
-    profileImageCommandRepository.deleteByMemberId(memberId);
+    profileImageRepository.deleteByMemberId(memberId);
 
     List<ProfileImage> profileImages = new ArrayList<>();
     int order = 1;
@@ -51,7 +51,7 @@ public class ProfileImageService {
       order++;
     }
 
-    profileImageCommandRepository.saveAll(profileImages);
+    profileImageRepository.saveAll(profileImages);
     return ProfileImageMapper.toList(profileImages);
   }
 

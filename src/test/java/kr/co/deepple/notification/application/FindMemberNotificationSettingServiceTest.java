@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import java.util.Optional;
-import kr.co.deepple.notification.adapter.out.persistence.NotificationPreferenceQueryRepository;
 import kr.co.deepple.notification.application.port.in.MemberNotificationSetting;
+import kr.co.deepple.notification.application.port.out.NotificationPreferenceQueryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

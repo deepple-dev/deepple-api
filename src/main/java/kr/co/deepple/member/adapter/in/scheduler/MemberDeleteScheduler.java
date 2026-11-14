@@ -1,7 +1,7 @@
 package kr.co.deepple.member.adapter.in.scheduler;
 
 import java.time.LocalDateTime;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberDeleteScheduler {
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final MemberRepository memberRepository;
 
   @Transactional
   @Scheduled(cron = "${scheduler.cron}")
   public void delete() {
     LocalDateTime now = LocalDateTime.now();
-    memberCommandRepository.deleteBefore(now.minusMonths(3));
+    memberRepository.deleteBefore(now.minusMonths(3));
   }
 }

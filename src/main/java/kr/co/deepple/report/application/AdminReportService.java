@@ -3,7 +3,7 @@ package kr.co.deepple.report.application;
 import jakarta.transaction.Transactional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.report.application.dto.ReportResultUpdateRequest;
-import kr.co.deepple.report.application.port.out.ReportCommandRepository;
+import kr.co.deepple.report.application.port.out.ReportRepository;
 import kr.co.deepple.report.domain.Report;
 import kr.co.deepple.report.domain.ReportErrorCode;
 import kr.co.deepple.report.domain.ReportResult;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AdminReportService {
 
-  private final ReportCommandRepository reportCommandRepository;
+  private final ReportRepository reportRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -28,7 +28,7 @@ public class AdminReportService {
   }
 
   private Report getReport(long id) {
-    return reportCommandRepository
+    return reportRepository
         .findById(id)
         .orElseThrow(
             () -> new DeeppleException(ReportErrorCode.REPORT_NOT_FOUND, "reportId=" + id));

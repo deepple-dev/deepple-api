@@ -8,13 +8,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.community.adapter.out.persistence.ProfileExchangeJpaRepository;
+import kr.co.deepple.community.application.port.out.ProfileExchangeRepository;
 import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.AfterEach;
@@ -30,9 +30,9 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
 
   @Autowired private ProfileExchangeService profileExchangeService;
 
-  @Autowired private ProfileExchangeJpaRepository profileExchangeJpaRepository;
+  @Autowired private ProfileExchangeRepository profileExchangeRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private HeartTransactionRepository heartTransactionRepository;
 
@@ -42,20 +42,20 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
 
   @AfterEach
   void tearDown() {
-    profileExchangeJpaRepository.deleteAll();
+    profileExchangeRepository.deleteAll();
     heartTransactionRepository.deleteAll();
     memberHeartBalanceRepository.deleteAll();
     heartMemberRepository.deleteAll();
-    memberCommandJpaRepository.deleteAll();
+    memberRepository.deleteAll();
   }
 
   @Test
   @DisplayName("두 회원이 서로에게 동시에 프로필 교환을 요청해도 프로필 교환은 하나만 생성된다")
   void createOnlyOneProfileExchangeWhenRequestedConcurrently() throws InterruptedException {
     // given
-    Member memberA = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    Member memberA = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(memberA.getId());
-    Member memberB = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    Member memberB = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(memberB.getId());
     long memberAId = memberA.getId();
     long memberBId = memberB.getId();
@@ -89,7 +89,7 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
     // then
     assertThat(successCount.get() + failureCount.get()).isEqualTo(THREAD_COUNT);
     assertThat(successCount.get()).isEqualTo(1);
-    assertThat(profileExchangeJpaRepository.count()).isEqualTo(1L);
+    assertThat(profileExchangeRepository.count()).isEqualTo(1L);
     assertThat(heartTransactionRepository.count()).isEqualTo(1L);
   }
 

@@ -1,9 +1,9 @@
 package kr.co.deepple.member.application;
 
 import java.util.Set;
-import kr.co.deepple.member.adapter.out.persistence.MemberQueryRepository;
 import kr.co.deepple.member.application.port.in.MemberIdSearchCondition;
 import kr.co.deepple.member.application.port.in.SearchMemberIdsUseCase;
+import kr.co.deepple.member.application.port.out.MemberQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -2,9 +2,9 @@ package kr.co.deepple.notification.application;
 
 import java.util.Optional;
 import kr.co.deepple.notification.application.dto.NotificationTemplateInfo;
-import kr.co.deepple.notification.application.port.out.DeviceRegistrationCommandRepository;
-import kr.co.deepple.notification.application.port.out.NotificationPreferenceCommandRepository;
-import kr.co.deepple.notification.application.port.out.NotificationTemplateCommandRepository;
+import kr.co.deepple.notification.application.port.out.DeviceRegistrationRepository;
+import kr.co.deepple.notification.application.port.out.NotificationPreferenceRepository;
+import kr.co.deepple.notification.application.port.out.NotificationTemplateRepository;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.domain.NotificationPreference;
 import kr.co.deepple.notification.domain.NotificationType;
@@ -19,9 +19,9 @@ public class NotificationDataReader {
 
   public static final String TEMPLATE_CACHE = "notificationTemplate";
 
-  private final NotificationTemplateCommandRepository notificationTemplateRepository;
-  private final NotificationPreferenceCommandRepository notificationPreferenceRepository;
-  private final DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
+  private final NotificationTemplateRepository notificationTemplateRepository;
+  private final NotificationPreferenceRepository notificationPreferenceRepository;
+  private final DeviceRegistrationRepository deviceRegistrationRepository;
 
   @Cacheable(value = TEMPLATE_CACHE, key = "#type", unless = "#result == null")
   @Transactional(readOnly = true)
@@ -36,6 +36,6 @@ public class NotificationDataReader {
 
   @Transactional(readOnly = true)
   public Optional<DeviceRegistration> findActiveDevice(long memberId) {
-    return deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(memberId);
+    return deviceRegistrationRepository.findByMemberIdAndIsActiveTrue(memberId);
   }
 }

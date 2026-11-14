@@ -1,9 +1,9 @@
 package kr.co.deepple.member.application;
 
-import kr.co.deepple.member.adapter.out.persistence.MemberQueryRepository;
 import kr.co.deepple.member.application.port.in.FindMemberPageUseCase;
 import kr.co.deepple.member.application.port.in.MemberPageItem;
 import kr.co.deepple.member.application.port.in.MemberPageSearchCondition;
+import kr.co.deepple.member.application.port.out.MemberQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

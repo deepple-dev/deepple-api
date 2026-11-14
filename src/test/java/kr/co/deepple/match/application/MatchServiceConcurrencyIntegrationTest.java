@@ -13,10 +13,10 @@ import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import kr.co.deepple.match.adapter.out.persistence.MatchJpaRepository;
 import kr.co.deepple.match.application.dto.MatchRequestDto;
+import kr.co.deepple.match.application.port.out.MatchRepository;
 import kr.co.deepple.match.domain.MatchContactType;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.AfterEach;
@@ -32,9 +32,9 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private MatchService matchService;
 
-  @Autowired private MatchJpaRepository matchJpaRepository;
+  @Autowired private MatchRepository matchRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private HeartTransactionRepository heartTransactionRepository;
 
@@ -44,20 +44,20 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
   @AfterEach
   void tearDown() {
-    matchJpaRepository.deleteAll();
+    matchRepository.deleteAll();
     heartTransactionRepository.deleteAll();
     memberHeartBalanceRepository.deleteAll();
     heartMemberRepository.deleteAll();
-    memberCommandJpaRepository.deleteAll();
+    memberRepository.deleteAll();
   }
 
   @Test
   @DisplayName("두 회원이 서로에게 동시에 매칭을 요청해도 매칭은 하나만 생성된다")
   void createOnlyOneMatchWhenRequestedConcurrently() throws InterruptedException {
     // given
-    Member memberA = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    Member memberA = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(memberA.getId());
-    Member memberB = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    Member memberB = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(memberB.getId());
     long memberAId = memberA.getId();
     long memberBId = memberB.getId();
@@ -93,7 +93,7 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(successCount.get() + failureCount.get()).isEqualTo(THREAD_COUNT);
     assertThat(successCount.get()).isEqualTo(1);
-    assertThat(matchJpaRepository.count()).isEqualTo(1);
+    assertThat(matchRepository.count()).isEqualTo(1);
     assertThat(heartTransactionRepository.count()).isEqualTo(1L);
   }
 

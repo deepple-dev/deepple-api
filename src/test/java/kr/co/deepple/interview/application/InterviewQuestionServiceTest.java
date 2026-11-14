@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.interview.application.dto.InterviewQuestionSaveRequest;
-import kr.co.deepple.interview.application.port.out.InterviewQuestionCommandRepository;
+import kr.co.deepple.interview.application.port.out.InterviewQuestionRepository;
 import kr.co.deepple.interview.domain.InterviewCategory;
 import kr.co.deepple.interview.domain.InterviewErrorCode;
 import kr.co.deepple.interview.domain.InterviewQuestion;
@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class InterviewQuestionServiceTest {
 
-  @Mock private InterviewQuestionCommandRepository interviewQuestionCommandRepository;
+  @Mock private InterviewQuestionRepository interviewQuestionRepository;
 
   @InjectMocks private InterviewQuestionService interviewQuestionService;
 
@@ -43,7 +43,7 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(content, category, isPublic);
 
-      when(interviewQuestionCommandRepository.existsByContent(content)).thenReturn(true);
+      when(interviewQuestionRepository.existsByContent(content)).thenReturn(true);
 
       // when & then
       assertThatThrownBy(() -> interviewQuestionService.createQuestion(request))
@@ -62,7 +62,7 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(content, category, isPublic);
 
-      when(interviewQuestionCommandRepository.existsByContent(content)).thenReturn(false);
+      when(interviewQuestionRepository.existsByContent(content)).thenReturn(false);
 
       // when & then
       assertThatThrownBy(() -> interviewQuestionService.createQuestion(request))
@@ -80,13 +80,13 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(content, category, isPublic);
 
-      when(interviewQuestionCommandRepository.existsByContent(content)).thenReturn(false);
+      when(interviewQuestionRepository.existsByContent(content)).thenReturn(false);
 
       // when
       interviewQuestionService.createQuestion(request);
 
       // then
-      verify(interviewQuestionCommandRepository).save(any(InterviewQuestion.class));
+      verify(interviewQuestionRepository).save(any(InterviewQuestion.class));
     }
   }
 
@@ -105,7 +105,7 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(content, category, isPublic);
 
-      when(interviewQuestionCommandRepository.findById(questionId)).thenReturn(Optional.empty());
+      when(interviewQuestionRepository.findById(questionId)).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> interviewQuestionService.updateQuestion(questionId, request))
@@ -128,7 +128,7 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
 
-      when(interviewQuestionCommandRepository.findById(questionId))
+      when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
 
       // when & then
@@ -152,9 +152,9 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
 
-      when(interviewQuestionCommandRepository.findById(questionId))
+      when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
-      when(interviewQuestionCommandRepository.existsByContent(updatedContent)).thenReturn(true);
+      when(interviewQuestionRepository.existsByContent(updatedContent)).thenReturn(true);
 
       // when & then
       assertThatThrownBy(() -> interviewQuestionService.updateQuestion(questionId, request))
@@ -178,9 +178,9 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
 
-      when(interviewQuestionCommandRepository.findById(questionId))
+      when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
-      when(interviewQuestionCommandRepository.existsByContent(updatedContent)).thenReturn(false);
+      when(interviewQuestionRepository.existsByContent(updatedContent)).thenReturn(false);
 
       // when
       interviewQuestionService.updateQuestion(questionId, request);
@@ -206,7 +206,7 @@ class InterviewQuestionServiceTest {
       InterviewQuestionSaveRequest request =
           new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
 
-      when(interviewQuestionCommandRepository.findById(questionId))
+      when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
 
       // when

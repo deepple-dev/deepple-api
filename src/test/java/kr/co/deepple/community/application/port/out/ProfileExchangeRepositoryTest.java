@@ -3,9 +3,7 @@ package kr.co.deepple.community.application.port.out;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.community.domain.CommunityErrorCode;
 import kr.co.deepple.community.domain.ProfileExchange;
 import kr.co.deepple.community.domain.ProfileExchangeStatus;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
@@ -14,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class ProfileExchangeRepositoryTest extends RepositoryTestSupport {
 
@@ -39,9 +38,7 @@ class ProfileExchangeRepositoryTest extends RepositoryTestSupport {
                     .requesterId(anotherMemberId)
                     .responderId(memberId)
                     .build()))
-        .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue(
-            "errorCode", CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS);
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @ParameterizedTest

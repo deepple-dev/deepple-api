@@ -19,10 +19,10 @@ import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
 import kr.co.deepple.datingexam.application.port.in.ValidatePersonalityTypeUseCase;
 import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
 import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenStatusView;
+import kr.co.deepple.recommendation.application.port.out.IntroductionQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.PersonalityIntroductionOpenStateRepository;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,13 +49,14 @@ class PersonalityIntroductionQueryServiceTest {
 
   @Mock private FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
 
-  @Mock private PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
+  @Mock
+  private PersonalityIntroductionOpenStateRepository personalityIntroductionOpenStateRepository;
 
   @Test
   @DisplayName("같은 유형이 이미 열려 있으면 후보를 재계산하지 않고 고정된 목록을 반환한다.")
   void returnsFrozenListWhenSameTypeOpened() {
     long memberId = 1L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
@@ -66,7 +67,7 @@ class PersonalityIntroductionQueryServiceTest {
     verify(introductionQueryService)
         .findMemberIntroductionProfileViews(eq(memberId), eq(Set.of(2L, 3L, 4L)));
     verify(personalityTypeMemberFinder, never()).findMemberIdsByDominantType(anyLong(), any());
-    verify(personalityIntroductionRedisRepository, never()).saveOpenState(anyLong(), any());
+    verify(personalityIntroductionOpenStateRepository, never()).saveOpenState(anyLong(), any());
   }
 
   @Test
@@ -83,14 +84,14 @@ class PersonalityIntroductionQueryServiceTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_PERSONALITY_TYPE);
 
-    verify(personalityIntroductionRedisRepository, never()).findOpenState(anyLong());
+    verify(personalityIntroductionOpenStateRepository, never()).findOpenState(anyLong());
   }
 
   @Test
   @DisplayName("다른 유형이 이미 열려 있으면 예외를 던진다.")
   void throwsWhenDifferentTypeOpened() {
     long memberId = 1L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
@@ -106,7 +107,7 @@ class PersonalityIntroductionQueryServiceTest {
   @DisplayName("오픈되지 않은 상태에서 후보가 있으면 최신순 최대 3명을 저장하고 반환한다.")
   void savesAndReturnsWhenNotOpened() {
     long memberId = 1L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(Optional.empty());
     when(personalityTypeMemberFinder.findMemberIdsByDominantType(memberId, TYPE))
         .thenReturn(List.of(10L, 9L, 8L, 7L));
@@ -116,7 +117,7 @@ class PersonalityIntroductionQueryServiceTest {
 
     ArgumentCaptor<PersonalityIntroductionOpenState> stateCaptor =
         ArgumentCaptor.forClass(PersonalityIntroductionOpenState.class);
-    verify(personalityIntroductionRedisRepository)
+    verify(personalityIntroductionOpenStateRepository)
         .saveOpenState(eq(memberId), stateCaptor.capture());
     assertThat(stateCaptor.getValue().type()).isEqualTo(TYPE);
     assertThat(stateCaptor.getValue().memberIds()).isEqualTo(List.of(10L, 9L, 8L));
@@ -129,7 +130,7 @@ class PersonalityIntroductionQueryServiceTest {
   @DisplayName("후보가 0명이면 오픈을 소진하지 않고(저장 X) 빈 목록을 반환한다.")
   void emptyDoesNotConsumeOpen() {
     long memberId = 1L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(Optional.empty());
     when(personalityTypeMemberFinder.findMemberIdsByDominantType(memberId, TYPE))
         .thenReturn(List.of());
@@ -137,7 +138,7 @@ class PersonalityIntroductionQueryServiceTest {
 
     assertThat(personalityIntroductionQueryService.open(memberId, TYPE)).isEmpty();
 
-    verify(personalityIntroductionRedisRepository, never()).saveOpenState(anyLong(), any());
+    verify(personalityIntroductionOpenStateRepository, never()).saveOpenState(anyLong(), any());
     verify(introductionQueryService, never()).findMemberIntroductionProfileViews(anyLong(), any());
   }
 
@@ -145,7 +146,7 @@ class PersonalityIntroductionQueryServiceTest {
   @DisplayName("이미 소개/매칭된 상대는 제외한 뒤 최대 3명을 선별한다.")
   void excludesAlreadyIntroduced() {
     long memberId = 1L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(Optional.empty());
     when(personalityTypeMemberFinder.findMemberIdsByDominantType(memberId, TYPE))
         .thenReturn(List.of(10L, 9L, 8L, 7L));
@@ -156,7 +157,7 @@ class PersonalityIntroductionQueryServiceTest {
 
     ArgumentCaptor<PersonalityIntroductionOpenState> stateCaptor =
         ArgumentCaptor.forClass(PersonalityIntroductionOpenState.class);
-    verify(personalityIntroductionRedisRepository)
+    verify(personalityIntroductionOpenStateRepository)
         .saveOpenState(eq(memberId), stateCaptor.capture());
     assertThat(stateCaptor.getValue().type()).isEqualTo(TYPE);
     assertThat(stateCaptor.getValue().memberIds()).isEqualTo(List.of(10L, 7L));
@@ -167,7 +168,7 @@ class PersonalityIntroductionQueryServiceTest {
   void returnsOpenStatusWhenOpened() {
     long memberId = 1L;
     LocalDateTime openedAt = LocalDateTime.of(2026, 8, 8, 12, 0);
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), openedAt)));
 
@@ -181,7 +182,7 @@ class PersonalityIntroductionQueryServiceTest {
   @DisplayName("오픈 이력이 없으면 유형과 오픈 시각이 빈 값을 반환한다.")
   void returnsEmptyOpenStatusWhenNotOpened() {
     long memberId = 1L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(Optional.empty());
 
     PersonalityIntroductionOpenStatusView openStatus =
