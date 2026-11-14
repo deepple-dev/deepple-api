@@ -2,15 +2,12 @@ package kr.co.deepple.admin.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDate;
-import kr.co.deepple.admin.application.dto.ScreeningSearchCondition;
-import kr.co.deepple.admin.application.dto.ScreeningView;
+import java.util.Set;
+import kr.co.deepple.admin.application.dto.RawScreeningView;
 import kr.co.deepple.admin.domain.Screening;
+import kr.co.deepple.admin.domain.ScreeningStatus;
 import kr.co.deepple.admin.fixture.ScreeningFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +17,9 @@ import org.springframework.data.domain.PageRequest;
 
 class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
 
+  private static final long MEMBER1_ID = 101L;
+  private static final long MEMBER2_ID = 102L;
+
   @Autowired private TestEntityManager em;
 
   @Autowired private ScreeningQueryRepository screeningQueryRepository;
@@ -28,228 +28,126 @@ class ScreeningQueryRepositoryTest extends RepositoryTestSupport {
   @DisplayName("조건 없이 전체 심사를 조회합니다.")
   void findAllScreenings() {
     // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    Member member3 = createMember("member3", "01033333333");
-    em.persist(member1);
-    em.persist(member2);
-    em.persist(member3);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
+    Screening screening1 = em.persist(ScreeningFixture.builder().memberId(MEMBER1_ID).build());
+    Screening screening2 = em.persist(ScreeningFixture.builder().memberId(MEMBER2_ID).build());
     em.flush();
     em.clear();
 
-    ScreeningSearchCondition condition = new ScreeningSearchCondition(null, null, null, null, null);
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
     // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
+    Page<RawScreeningView> screenings =
+        screeningQueryRepository.findScreenings(null, null, PageRequest.of(0, 10));
 
     // then
-    assertThat(screeningMembers.getTotalElements()).isEqualTo(2);
-    assertThat(screeningMembers.getContent())
-        .extracting("nickname")
-        .containsExactlyInAnyOrder("member1", "member2");
+    assertThat(screenings.getTotalElements()).isEqualTo(2);
+    assertThat(screenings.getContent())
+        .containsExactlyInAnyOrder(
+            new RawScreeningView(screening1.getId(), MEMBER1_ID, "PENDING", null),
+            new RawScreeningView(screening2.getId(), MEMBER2_ID, "PENDING", null));
+  }
+
+  @Test
+  @DisplayName("최근에 만들어진 심사부터 페이지 크기만큼 조회하고 전체 개수는 조건에 맞는 전체를 셉니다.")
+  void findScreeningsWithPaging() throws InterruptedException {
+    // given
+    Screening oldest = em.persistAndFlush(ScreeningFixture.builder().memberId(MEMBER1_ID).build());
+    Thread.sleep(5);
+    Screening middle = em.persistAndFlush(ScreeningFixture.builder().memberId(MEMBER2_ID).build());
+    Thread.sleep(5);
+    Screening newest = em.persistAndFlush(ScreeningFixture.builder().memberId(103L).build());
+    em.clear();
+
+    // when
+    Page<RawScreeningView> firstPage =
+        screeningQueryRepository.findScreenings(null, null, PageRequest.of(0, 2));
+    Page<RawScreeningView> secondPage =
+        screeningQueryRepository.findScreenings(null, null, PageRequest.of(1, 2));
+
+    // then
+    assertThat(firstPage.getTotalElements()).isEqualTo(3);
+    assertThat(firstPage.getContent())
+        .extracting(RawScreeningView::screeningId)
+        .containsExactly(newest.getId(), middle.getId());
+    assertThat(secondPage.getContent())
+        .extracting(RawScreeningView::screeningId)
+        .containsExactly(oldest.getId());
   }
 
   @Test
   @DisplayName("대기 중인 심사를 조회합니다.")
   void findPendingScreenings() {
     // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    em.persist(member1);
-    em.persist(member2);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
+    em.persist(ScreeningFixture.builder().memberId(MEMBER1_ID).build());
+    em.persist(ScreeningFixture.builder().memberId(MEMBER2_ID).build());
     em.flush();
     em.clear();
 
-    ScreeningSearchCondition condition =
-        new ScreeningSearchCondition("PENDING", null, null, null, null);
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
     // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
+    Page<RawScreeningView> screenings =
+        screeningQueryRepository.findScreenings("PENDING", null, PageRequest.of(0, 10));
 
     // then
-    assertThat(screeningMembers.getTotalElements()).isEqualTo(2);
-    assertThat(screeningMembers.getContent())
-        .extracting("nickname")
-        .containsExactlyInAnyOrder("member1", "member2");
+    assertThat(screenings.getTotalElements()).isEqualTo(2);
+    assertThat(screenings.getContent())
+        .extracting(RawScreeningView::memberId)
+        .containsExactlyInAnyOrder(MEMBER1_ID, MEMBER2_ID);
   }
 
   @Test
   @DisplayName("승인된 심사를 조회합니다.")
   void findApprovedScreenings() {
     // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    em.persist(member1);
-    em.persist(member2);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
+    em.persist(ScreeningFixture.builder().memberId(MEMBER1_ID).build());
+    em.persist(ScreeningFixture.builder().memberId(MEMBER2_ID).build());
     em.flush();
     em.clear();
 
-    ScreeningSearchCondition condition =
-        new ScreeningSearchCondition("APPROVED", null, null, null, null);
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
     // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
+    Page<RawScreeningView> screenings =
+        screeningQueryRepository.findScreenings("APPROVED", null, PageRequest.of(0, 10));
 
     // then
-    assertThat(screeningMembers.getTotalElements()).isZero();
+    assertThat(screenings.getTotalElements()).isZero();
   }
 
   @Test
-  @DisplayName("닉네임으로 심사를 조회합니다.")
-  void findScreeningsByNickname() {
+  @DisplayName("회원 번호 조건을 주면 그 회원의 심사만 조회합니다.")
+  void findScreeningsByMemberIds() {
     // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    em.persist(member1);
-    em.persist(member2);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
+    Screening screening1 = em.persist(ScreeningFixture.builder().memberId(MEMBER1_ID).build());
+    em.persist(ScreeningFixture.builder().memberId(MEMBER2_ID).build());
     em.flush();
     em.clear();
 
-    ScreeningSearchCondition condition =
-        new ScreeningSearchCondition(null, "member1", null, null, null);
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
     // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
+    Page<RawScreeningView> screenings =
+        screeningQueryRepository.findScreenings(null, Set.of(MEMBER1_ID), PageRequest.of(0, 10));
 
     // then
-    assertThat(screeningMembers.getTotalElements()).isEqualTo(1);
-    assertThat(screeningMembers.getContent().getFirst().nickname()).isEqualTo("member1");
+    assertThat(screenings.getTotalElements()).isEqualTo(1);
+    assertThat(screenings.getContent().getFirst().screeningId()).isEqualTo(screening1.getId());
+    assertThat(screenings.getContent().getFirst().memberId()).isEqualTo(MEMBER1_ID);
   }
 
   @Test
-  @DisplayName("전화번호로 심사를 조회합니다.")
-  void findScreeningsByPhoneNumber() {
-    // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    em.persist(member1);
-    em.persist(member2);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
-    em.flush();
-    em.clear();
-
-    ScreeningSearchCondition condition =
-        new ScreeningSearchCondition(null, null, "01011111111", null, null);
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
-    // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
-
-    // then
-    assertThat(screeningMembers.getTotalElements()).isEqualTo(1);
-    assertThat(screeningMembers.getContent().getFirst().nickname()).isEqualTo("member1");
-  }
-
-  @Test
-  @DisplayName("시작일과 종료일을 설정해 심사를 조회합니다.")
-  void findScreeningsByStartDateAndEndDate() {
-    // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    em.persist(member1);
-    em.persist(member2);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
-    em.flush();
-    em.clear();
-
-    ScreeningSearchCondition condition =
-        new ScreeningSearchCondition(
-            null, null, null, LocalDate.EPOCH, LocalDate.now().plusDays(1));
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
-    // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
-
-    // then
-    assertThat(screeningMembers.getTotalElements()).isEqualTo(2);
-    assertThat(screeningMembers.getContent())
-        .extracting("nickname")
-        .containsExactlyInAnyOrder("member1", "member2");
-  }
-
-  @Test
-  @DisplayName("모든 조건을 설정해 심사를 조회합니다.")
+  @DisplayName("심사 상태와 회원 번호 조건을 함께 설정해 심사를 조회합니다.")
   void findScreenings() {
     // given
-    Member member1 = createMember("member1", "01011111111");
-    Member member2 = createMember("member2", "01022222222");
-    em.persist(member1);
-    em.persist(member2);
-
-    Screening screening1 = ScreeningFixture.builder().memberId(member1.getId()).build();
-    Screening screening2 = ScreeningFixture.builder().memberId(member2.getId()).build();
-    em.persist(screening1);
-    em.persist(screening2);
-
+    em.persist(ScreeningFixture.builder().memberId(MEMBER1_ID).build());
+    em.persist(
+        ScreeningFixture.builder().memberId(MEMBER1_ID).status(ScreeningStatus.APPROVED).build());
+    em.persist(ScreeningFixture.builder().memberId(MEMBER2_ID).build());
     em.flush();
     em.clear();
 
-    ScreeningSearchCondition condition =
-        new ScreeningSearchCondition(
-            "PENDING", "member1", "01011111111", LocalDate.EPOCH, LocalDate.now().plusDays(1));
-    PageRequest pageRequest = PageRequest.of(0, 10);
-
     // when
-    Page<ScreeningView> screeningMembers =
-        screeningQueryRepository.findScreenings(condition, pageRequest);
+    Page<RawScreeningView> screenings =
+        screeningQueryRepository.findScreenings(
+            "PENDING", Set.of(MEMBER1_ID), PageRequest.of(0, 10));
 
     // then
-    assertThat(screeningMembers.getTotalElements()).isEqualTo(1);
-    assertThat(screeningMembers.getContent().getFirst().screeningStatus()).isEqualTo("PENDING");
-    assertThat(screeningMembers.getContent().getFirst().nickname()).isEqualTo("member1");
-    assertThat(screeningMembers.getContent().getFirst().gender()).isEqualTo("MALE");
-    assertThat(screeningMembers.getContent().getFirst().rejectionReason()).isNull();
-  }
-
-  private Member createMember(String nickname, String phoneNumber) {
-    return MemberFixture.builder()
-        .phoneNumber(phoneNumber)
-        .nickname(nickname)
-        .gender(Gender.MALE)
-        .build();
+    assertThat(screenings.getTotalElements()).isEqualTo(1);
+    assertThat(screenings.getContent().getFirst().screeningStatus()).isEqualTo("PENDING");
+    assertThat(screenings.getContent().getFirst().memberId()).isEqualTo(MEMBER1_ID);
+    assertThat(screenings.getContent().getFirst().rejectionReason()).isNull();
   }
 }

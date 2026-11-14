@@ -35,7 +35,9 @@ import kr.co.deepple.member.application.dto.OtherMemberProfileView;
 import kr.co.deepple.member.application.dto.ProfileAccessView;
 import kr.co.deepple.member.application.dto.ProfileInfo;
 import kr.co.deepple.member.application.dto.StatusInfo;
+import kr.co.deepple.member.application.port.in.MemberIdSearchCondition;
 import kr.co.deepple.member.application.port.in.MemberPreview;
+import kr.co.deepple.member.application.port.in.MemberScreeningProfile;
 import kr.co.deepple.member.application.port.in.MemberSearchCondition;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.AgeConverter;
@@ -1065,6 +1067,106 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
           .containsExactly(second.getId());
       assertThat(memberQueryRepository.findIdsByNicknameAndPhoneNumber("검색대상1", "01088880002"))
           .isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("관리자 검색 조건으로 회원 번호 찾기 테스트")
+  class SearchIdsQueryTest {
+
+    @Test
+    @DisplayName("닉네임과 전화번호는 일치 여부로 찾고 두 조건을 함께 주면 모두 만족하는 회원만 찾는다.")
+    void searchIdsByNicknameAndPhoneNumber() {
+      Member first =
+          entityManager.persist(
+              MemberFixture.builder().nickname("검색대상1").phoneNumber("01088880001").build());
+      Member second =
+          entityManager.persist(
+              MemberFixture.builder().nickname("검색대상2").phoneNumber("01088880002").build());
+      entityManager.flush();
+
+      assertThat(searchIds("검색대상", null, null, null)).isEmpty();
+      assertThat(searchIds("검색대상1", null, null, null)).containsExactly(first.getId());
+      assertThat(searchIds(null, "01088880002", null, null)).containsExactly(second.getId());
+      assertThat(searchIds("검색대상1", "01088880002", null, null)).isEmpty();
+      assertThat(searchIds("검색대상2", "01088880002", null, null)).containsExactly(second.getId());
+    }
+
+    @Test
+    @DisplayName("가입 시각이 시작 시각과 끝 시각 사이(양 끝 포함)인 회원만 찾는다.")
+    void searchIdsByJoinedAt() {
+      Member joined =
+          entityManager.persist(MemberFixture.builder().phoneNumber("01088880003").build());
+      entityManager.flush();
+      LocalDateTime joinedAt = joined.getCreatedAt();
+
+      assertThat(searchIds(null, "01088880003", joinedAt, joinedAt))
+          .containsExactly(joined.getId());
+      assertThat(searchIds(null, "01088880003", joinedAt.minusDays(1), null))
+          .containsExactly(joined.getId());
+      assertThat(searchIds(null, "01088880003", null, joinedAt.plusDays(1)))
+          .containsExactly(joined.getId());
+      assertThat(searchIds(null, "01088880003", joinedAt.plusSeconds(1), null)).isEmpty();
+      assertThat(searchIds(null, "01088880003", null, joinedAt.minusSeconds(1))).isEmpty();
+      assertThat(searchIds(null, null, joinedAt.minusDays(1), joinedAt.plusDays(1)))
+          .contains(joined.getId());
+    }
+
+    private Set<Long> searchIds(
+        String nickname, String phoneNumber, LocalDateTime joinedFrom, LocalDateTime joinedTo) {
+      return memberQueryRepository.searchIds(
+          new MemberIdSearchCondition(nickname, phoneNumber, joinedFrom, joinedTo));
+    }
+  }
+
+  @Nested
+  @DisplayName("심사용 회원 프로필 조회 테스트")
+  class FindScreeningProfilesQueryTest {
+
+    @Test
+    @DisplayName("요청한 회원의 닉네임·출생 연도·성별·가입 시각을 돌려주고 없는 회원은 빠진다.")
+    void findScreeningProfilesByMemberIds() {
+      int yearOfBirth = Calendar.getInstance().get(Calendar.YEAR) - 25;
+      Member target =
+          entityManager.persist(
+              MemberFixture.builder()
+                  .nickname("심사대상")
+                  .yearOfBirth(yearOfBirth)
+                  .gender(Gender.FEMALE)
+                  .build());
+      Member other = entityManager.persist(MemberFixture.builder().build());
+      entityManager.flush();
+      entityManager.clear();
+
+      List<MemberScreeningProfile> profiles =
+          memberQueryRepository.findScreeningProfilesByMemberIds(List.of(target.getId(), -1L));
+
+      assertThat(profiles).hasSize(1);
+      MemberScreeningProfile profile = profiles.getFirst();
+      assertThat(profile.memberId()).isEqualTo(target.getId());
+      assertThat(profile.nickname()).isEqualTo("심사대상");
+      assertThat(profile.yearOfBirth()).isEqualTo(yearOfBirth);
+      assertThat(profile.gender()).isEqualTo("FEMALE");
+      assertThat(profile.joinedAt()).isNotNull();
+      assertThat(profiles)
+          .extracting(MemberScreeningProfile::memberId)
+          .doesNotContain(other.getId());
+    }
+
+    @Test
+    @DisplayName("프로필을 입력하지 않은 회원은 프로필 값이 비어 있다.")
+    void findScreeningProfileWithoutProfile() {
+      Member member = entityManager.persist(MemberFixture.builder().noProfile().build());
+      entityManager.flush();
+      entityManager.clear();
+
+      List<MemberScreeningProfile> profiles =
+          memberQueryRepository.findScreeningProfilesByMemberIds(List.of(member.getId()));
+
+      assertThat(profiles).hasSize(1);
+      assertThat(profiles.getFirst().nickname()).isNull();
+      assertThat(profiles.getFirst().yearOfBirth()).isNull();
+      assertThat(profiles.getFirst().gender()).isNull();
     }
   }
 
