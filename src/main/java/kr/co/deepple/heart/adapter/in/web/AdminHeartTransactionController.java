@@ -3,6 +3,7 @@ package kr.co.deepple.heart.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentAdminId;
 import kr.co.deepple.heart.application.dto.AdminHeartGrantRequest;
 import kr.co.deepple.heart.application.dto.AdminHeartTransactionSearchCondition;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "어드민 하트 트랜잭션 관리 API")
+@Tag(name = ApiTags.HEART)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/heart-transactions")

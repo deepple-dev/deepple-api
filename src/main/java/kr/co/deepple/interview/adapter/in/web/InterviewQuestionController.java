@@ -3,6 +3,7 @@ package kr.co.deepple.interview.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.interview.adapter.out.persistence.InterviewQuestionQueryRepository;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "인터뷰 질문 조회 API")
+@Tag(name = ApiTags.INTERVIEW)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/interview/question")

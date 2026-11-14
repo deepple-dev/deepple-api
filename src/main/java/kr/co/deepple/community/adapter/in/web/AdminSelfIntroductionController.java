@@ -2,6 +2,7 @@ package kr.co.deepple.community.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.community.application.SelfIntroductionQueryService;
 import kr.co.deepple.community.application.SelfIntroductionService;
 import kr.co.deepple.community.application.dto.AdminSelfIntroductionSearchCondition;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "어드민 셀프 소개 관리 API")
+@Tag(name = ApiTags.COMMUNITY)
 @RestController
 @RequestMapping("/admin/selfintroduction")
 @RequiredArgsConstructor

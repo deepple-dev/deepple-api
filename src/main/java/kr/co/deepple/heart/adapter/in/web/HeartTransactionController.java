@@ -2,6 +2,7 @@ package kr.co.deepple.heart.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.heart.application.dto.HeartTransactionSearchCondition;
 import kr.co.deepple.heart.application.dto.HeartTransactionViews;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "하트 내역 API")
+@Tag(name = ApiTags.HEART)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/heart-transactions")

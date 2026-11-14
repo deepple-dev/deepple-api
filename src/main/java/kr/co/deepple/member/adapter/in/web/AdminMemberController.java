@@ -3,6 +3,7 @@ package kr.co.deepple.member.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.member.application.AdminMemberService;
 import kr.co.deepple.member.application.dto.AdminMemberSettingUpdateRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "관리자 페이지 멤버 관리 API")
+@Tag(name = ApiTags.MEMBER)
 @RestController
 @RequestMapping("/admin/members")
 @RequiredArgsConstructor

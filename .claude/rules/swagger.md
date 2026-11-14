@@ -10,9 +10,9 @@ FE가 Swagger UI만 보고 API를 쓸 수 있게 하고, enum 허용값이 문�
 
 ## 컨트롤러
 
-- 클래스에 `@Tag(name = "...")`, 메서드에 `@Operation(summary = "...")`를 붙인다.
-- 이름과 요약에는 Figma(화면 기획)에서 쓰는 용어를 쓴다(예: `@Tag(name = "어드민 인터뷰 질문 관리 API")`, `@Operation(summary = "어드민 인터뷰 질문 생성 API")`).
-
+- 클래스에 `@Tag(name = ApiTags.도메인)`, 메서드에 `@Operation(summary = "...")`를 붙인다.
+- 태그는 도메인당 하나다. 이름과 설명은 `common/config/ApiTags`에 두고, 컨트롤러마다 새 태그를 만들지 않는다. 도메인을 추가하면 `ApiTags`에 상수와 설명을 함께 추가한다.
+- 문서는 앱과 관리자 두 개로 나뉜다(`SwaggerConfig`). 경로가 `/admin/**`이면 관리자 문서에, 나머지는 앱 문서에 들어간다. 관리자 API의 요약에는 "어드민"·"관리자 페이지" 같은 접두어를 붙이지 않는다.
 ## enum을 문자열로 주고받는 필드
 
 요청·응답·검색 조건 record에서 enum을 `String`으로 다루면 `@Schema(implementation = Enum클래스.class)`로 허용값을 노출한다.

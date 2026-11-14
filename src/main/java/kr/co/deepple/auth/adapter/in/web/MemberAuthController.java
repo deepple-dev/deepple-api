@@ -13,6 +13,7 @@ import kr.co.deepple.auth.application.port.in.LogoutMemberUseCase;
 import kr.co.deepple.auth.application.port.in.RefreshMemberTokenUseCase;
 import kr.co.deepple.auth.application.port.in.SendAuthCodeUseCase;
 import kr.co.deepple.auth.application.port.in.WithdrawMemberUseCase;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.common.security.RefreshTokenCookies;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "멤버 인증 API")
+@Tag(name = ApiTags.AUTH)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/member")

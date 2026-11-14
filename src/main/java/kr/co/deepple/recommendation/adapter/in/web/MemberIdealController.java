@@ -3,6 +3,7 @@ package kr.co.deepple.recommendation.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.recommendation.application.MemberIdealService;
 import kr.co.deepple.recommendation.application.dto.MemberIdealUpdateRequest;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "멤버 이상형 관리 API")
+@Tag(name = ApiTags.RECOMMENDATION)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/member/ideal")

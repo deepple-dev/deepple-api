@@ -3,6 +3,7 @@ package kr.co.deepple.payment.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.payment.adapter.out.persistence.HeartPurchaseOptionQueryRepository;
 import kr.co.deepple.payment.application.HeartPurchaseOptionService;
 import kr.co.deepple.payment.application.dto.HeartPurchaseOptionCreateRequest;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "어드민 하트 구매 옵션 관리 API")
+@Tag(name = ApiTags.PAYMENT)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/heart-purchase-options")

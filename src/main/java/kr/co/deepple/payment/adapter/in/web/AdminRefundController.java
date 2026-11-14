@@ -2,6 +2,7 @@ package kr.co.deepple.payment.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.payment.adapter.out.persistence.RefundQueryRepository;
 import kr.co.deepple.payment.application.dto.RefundSearchCondition;
 import kr.co.deepple.payment.application.dto.RefundView;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "어드민 환불 관리 API")
+@Tag(name = ApiTags.PAYMENT)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/refunds")

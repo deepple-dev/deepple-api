@@ -2,6 +2,7 @@ package kr.co.deepple.notification.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.notification.application.NotificationDeleteService;
 import kr.co.deepple.notification.application.NotificationQueryService;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "알림 API")
+@Tag(name = ApiTags.NOTIFICATION)
 @RestController
 @RequestMapping("/notifications")
 @RequiredArgsConstructor

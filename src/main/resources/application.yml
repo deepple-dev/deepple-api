@@ -89,6 +89,9 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    urls-primary-name: 앱
 
 sentry:
   environment: ${spring.profiles.active}

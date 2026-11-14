@@ -3,6 +3,7 @@ package kr.co.deepple.report.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.report.application.ReportService;
 import kr.co.deepple.report.application.dto.ReportCreateRequest;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "신고 API")
+@Tag(name = ApiTags.REPORT)
 @RestController
 @RequestMapping("/reports")
 @RequiredArgsConstructor

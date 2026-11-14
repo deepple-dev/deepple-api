@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.block.application.dto.BlockCreateRequest;
 import kr.co.deepple.block.application.port.in.BlockCommander;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "차단 API")
+@Tag(name = ApiTags.BLOCK)
 @RestController
 @RequestMapping("/blocks")
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
