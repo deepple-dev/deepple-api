@@ -1,17 +1,9 @@
 package kr.co.deepple.recommendation.application.dto;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import kr.co.deepple.member.domain.ActivityStatus;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Grade;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import lombok.Getter;
@@ -21,6 +13,7 @@ import lombok.NonNull;
 public class IntroductionSearchCondition {
 
   private static final Integer TODAY_CARD_AGE_DEFAULT_RANGE = 3;
+  private static final String ACTIVE = "ACTIVE";
 
   private final Set<Long> excludedMemberIds;
   private final Integer minAge;
@@ -33,30 +26,31 @@ public class IntroductionSearchCondition {
   private final String memberGrade;
   private final String gender;
   private final LocalDateTime joinedAfter;
-  private final String activityStatus = ActivityStatus.ACTIVE.name();
+  private final String activityStatus = ACTIVE;
 
   private IntroductionSearchCondition(
       Set<Long> excludedMemberIds,
       AgeRange ageRange,
-      Set<Hobby> hobbies,
-      Set<City> cities,
-      Religion religion,
-      SmokingStatus smokingStatus,
-      DrinkingStatus drinkingStatus,
-      Grade memberGrade,
-      @NonNull Gender gender,
+      Set<String> hobbies,
+      Set<String> cities,
+      String religion,
+      String smokingStatus,
+      String drinkingStatus,
+      String memberGrade,
+      @NonNull String gender,
       LocalDateTime joinedAfter) {
-    this.excludedMemberIds = excludedMemberIds;
-    this.minAge = (ageRange != null) ? ageRange.getMinAge() : null;
-    this.maxAge = (ageRange != null) ? ageRange.getMaxAge() : null;
-    this.hobbies = hobbies.stream().map(Hobby::name).collect(Collectors.toSet());
-    this.cities = cities.stream().map(City::name).collect(Collectors.toSet());
-    this.religion = (religion != null) ? religion.name() : null;
-    this.smokingStatus = (smokingStatus != null) ? smokingStatus.name() : null;
-    this.drinkingStatus = (drinkingStatus != null) ? drinkingStatus.name() : null;
-    this.memberGrade = (memberGrade != null) ? memberGrade.name() : null;
-    this.gender = gender.name();
-    this.joinedAfter = joinedAfter;
+    this(
+        excludedMemberIds,
+        (ageRange != null) ? ageRange.getMinAge() : null,
+        (ageRange != null) ? ageRange.getMaxAge() : null,
+        new HashSet<>(hobbies),
+        new HashSet<>(cities),
+        religion,
+        smokingStatus,
+        drinkingStatus,
+        memberGrade,
+        gender,
+        joinedAfter);
   }
 
   private IntroductionSearchCondition(
@@ -85,7 +79,7 @@ public class IntroductionSearchCondition {
   }
 
   public static IntroductionSearchCondition ofGrade(
-      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, Gender gender, Grade grade) {
+      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, String gender, String grade) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
         memberIdeal.getAgeRange(),
@@ -100,7 +94,7 @@ public class IntroductionSearchCondition {
   }
 
   public static IntroductionSearchCondition ofHobbies(
-      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, Gender gender, Set<Hobby> hobbies) {
+      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, String gender, Set<String> hobbies) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
         memberIdeal.getAgeRange(),
@@ -115,7 +109,7 @@ public class IntroductionSearchCondition {
   }
 
   public static IntroductionSearchCondition ofReligion(
-      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, Gender gender, Religion religion) {
+      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, String gender, String religion) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
         memberIdeal.getAgeRange(),
@@ -130,7 +124,7 @@ public class IntroductionSearchCondition {
   }
 
   public static IntroductionSearchCondition ofCity(
-      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, Gender gender, City city) {
+      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, String gender, String city) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
         memberIdeal.getAgeRange(),
@@ -147,7 +141,7 @@ public class IntroductionSearchCondition {
   public static IntroductionSearchCondition ofJoinDate(
       Set<Long> excludedMemberIds,
       MemberIdeal memberIdeal,
-      Gender gender,
+      String gender,
       LocalDateTime joinedAfter) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
@@ -163,7 +157,7 @@ public class IntroductionSearchCondition {
   }
 
   public static IntroductionSearchCondition ofIdeal(
-      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, Gender gender) {
+      Set<Long> excludedMemberIds, MemberIdeal memberIdeal, String gender) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
         memberIdeal.getAgeRange(),
@@ -178,17 +172,16 @@ public class IntroductionSearchCondition {
   }
 
   public static IntroductionSearchCondition ofTodayCardDefault(
-      Set<Long> excludedMemberIds, Gender gender, Member member) {
+      Set<Long> excludedMemberIds, String gender, MemberSummary member) {
     return new IntroductionSearchCondition(
         excludedMemberIds,
-        AgeRange.ofRange(
-            member.getProfile().getYearOfBirth().getAge(), TODAY_CARD_AGE_DEFAULT_RANGE),
+        AgeRange.ofRange(member.age(), TODAY_CARD_AGE_DEFAULT_RANGE),
         Set.of(),
-        Set.of(member.getProfile().getRegion().getCity()),
+        Set.of(member.city()),
         null,
         null,
         null,
-        member.getGrade(),
+        member.grade(),
         gender,
         null);
   }

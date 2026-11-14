@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.domain.MemberErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,6 +54,6 @@ class MemberIntroductionTest {
     // when & then
     assertThatThrownBy(() -> MemberIntroduction.of(memberId, introducedMemberId, type))
         .isInstanceOf(DeeppleException.class)
-        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.SELF_MEMBER_INTRODUCTION);
+        .hasFieldOrPropertyWithValue("errorCode", RecommendationErrorCode.SELF_MEMBER_INTRODUCTION);
   }
 }

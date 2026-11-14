@@ -6,11 +6,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
 
 public record MemberIdealUpdateRequest(
     @NotNull(message = "최소 나이를 입력해주세요.")
@@ -21,10 +16,14 @@ public record MemberIdealUpdateRequest(
         @Min(value = 20, message = "최대 나이는 20보다 작을 수 없습니다.")
         @Max(value = 46, message = "최대 나이는 46보다 작을 수 없습니다.")
         Integer maxAge,
-    @ArraySchema(schema = @Schema(implementation = City.class)) @NotNull(message = "지역을 입력해주세요.")
+    @ArraySchema(schema = @Schema(description = "지역. 값은 회원 프로필의 city와 같다", example = "SEOUL"))
+        @NotNull(message = "지역을 입력해주세요.")
         Set<String> cities,
-    @Schema(implementation = Religion.class) String religion,
-    @Schema(implementation = SmokingStatus.class) String smokingStatus,
-    @Schema(implementation = DrinkingStatus.class) String drinkingStatus,
-    @ArraySchema(schema = @Schema(implementation = Hobby.class)) @NotNull(message = "취미를 입력해주세요.")
+    @Schema(description = "종교. 값은 회원 프로필의 religion과 같다", example = "NONE") String religion,
+    @Schema(description = "흡연 여부. 값은 회원 프로필의 smokingStatus와 같다", example = "NONE")
+        String smokingStatus,
+    @Schema(description = "음주 여부. 값은 회원 프로필의 drinkingStatus와 같다", example = "SOCIAL")
+        String drinkingStatus,
+    @ArraySchema(schema = @Schema(description = "취미. 값은 회원 프로필의 hobbies와 같다", example = "TRAVEL"))
+        @NotNull(message = "취미를 입력해주세요.")
         Set<String> hobbies) {}

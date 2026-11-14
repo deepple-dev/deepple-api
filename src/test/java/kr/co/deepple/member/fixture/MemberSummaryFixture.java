@@ -24,6 +24,7 @@ public class MemberSummaryFixture {
         region == null || region.getDistrict() == null ? null : region.getDistrict().name(),
         member.getGrade() == null ? null : member.getGrade().name(),
         member.getActivityStatus() == null ? null : member.getActivityStatus().name(),
-        member.isVip());
+        member.isVip(),
+        member.hasSubmittedDatingExam());
   }
 }

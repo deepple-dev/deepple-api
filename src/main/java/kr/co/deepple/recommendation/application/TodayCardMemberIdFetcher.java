@@ -8,15 +8,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
 import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +26,11 @@ public class TodayCardMemberIdFetcher {
   private static final int COMBINATION_NONE_SELECTABLE_SIZE = 2;
   private static final long MALE_LIMIT = 3L;
   private static final long FEMALE_LIMIT = 4L;
+  private static final String MALE = "MALE";
 
   private final IntroductionQueryRepository introductionQueryRepository;
   private final IntroductionRedisRepository introductionRedisRepository;
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIdealCommandRepository memberIdealCommandRepository;
 
   public Set<Long> fetch(long memberId, IntroductionCacheKeyPrefix cacheKeyPrefix) {
@@ -39,11 +39,7 @@ public class TodayCardMemberIdFetcher {
     if (!cachedIds.isEmpty()) {
       return cachedIds;
     }
-    Member member =
-        memberCommandRepository
-            .findById(memberId)
-            .orElseThrow(() ->
-                new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
+    MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);
     List<IntroductionSearchCondition> conditions = getConditions(member);
     Set<Long> introductionMemberIds = findAllIntroductionMemberId(conditions, member);
     introductionRedisRepository.saveIntroductionMemberIds(
@@ -51,15 +47,16 @@ public class TodayCardMemberIdFetcher {
     return introductionMemberIds;
   }
 
-  private List<IntroductionSearchCondition> getConditions(Member member) {
+  private List<IntroductionSearchCondition> getConditions(MemberSummary member) {
     MemberIdeal memberIdeal =
         memberIdealCommandRepository
-            .findByMemberId(member.getId())
+            .findByMemberId(member.memberId())
             .orElseThrow(() ->
                 new DeeppleException(
-                    MemberErrorCode.MEMBER_IDEAL_NOT_FOUND, "memberId=" + member.getId()));
-    Set<Long> excludedMemberIds = findExcludedMemberIds(member.getId());
-    Gender oppositeGender = member.getGender().getOpposite();
+                    RecommendationErrorCode.MEMBER_IDEAL_NOT_FOUND,
+                    "memberId=" + member.memberId()));
+    Set<Long> excludedMemberIds = findExcludedMemberIds(member.memberId());
+    String oppositeGender = member.oppositeGender();
     if (!memberIdeal.isUpdated()) {
       return List.of(
           IntroductionSearchCondition.ofTodayCardDefault(
@@ -83,7 +80,7 @@ public class TodayCardMemberIdFetcher {
   }
 
   private Set<Long> findAllIntroductionMemberId(
-      List<IntroductionSearchCondition> conditions, Member member) {
+      List<IntroductionSearchCondition> conditions, MemberSummary member) {
     Set<Long> introductionMemberIds = new HashSet<>();
     long limit = getLimit(member);
     for (IntroductionSearchCondition condition : conditions) {
@@ -97,8 +94,8 @@ public class TodayCardMemberIdFetcher {
     return introductionMemberIds;
   }
 
-  private long getLimit(Member member) {
-    return member.getGender().equals(Gender.MALE) ? MALE_LIMIT : FEMALE_LIMIT;
+  private long getLimit(MemberSummary member) {
+    return MALE.equals(member.requireGender()) ? MALE_LIMIT : FEMALE_LIMIT;
   }
 
   private Date getExpireAt() {

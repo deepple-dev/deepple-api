@@ -6,14 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.stream.Collectors;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Grade;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import org.junit.jupiter.api.DisplayName;
@@ -23,12 +15,12 @@ class IntroductionSearchConditionTest {
 
   private final Set<Long> excludedIds = Set.of(1L, 2L);
   private final AgeRange ageRange = AgeRange.of(20, 30);
-  private final Set<Hobby> hobbies = Set.of(Hobby.CAMPING, Hobby.ANIMATION);
-  private final Set<City> cities = Set.of(City.SEOUL);
-  private final Religion religion = Religion.CHRISTIAN;
-  private final SmokingStatus smokingStatus = SmokingStatus.NONE;
-  private final DrinkingStatus drinkingStatus = DrinkingStatus.NONE;
-  private final Gender gender = Gender.MALE;
+  private final Set<String> hobbies = Set.of("CAMPING", "ANIMATION");
+  private final Set<String> cities = Set.of("SEOUL");
+  private final String religion = "CHRISTIAN";
+  private final String smokingStatus = "NONE";
+  private final String drinkingStatus = "NONE";
+  private final String gender = "MALE";
 
   MemberIdeal getMockedMemberIdeal() {
     MemberIdeal ideal = mock(MemberIdeal.class);
@@ -45,9 +37,9 @@ class IntroductionSearchConditionTest {
     assertThat(condition.getExcludedMemberIds()).isEqualTo(excludedIds);
     assertThat(condition.getMinAge()).isEqualTo(ageRange.getMinAge());
     assertThat(condition.getMaxAge()).isEqualTo(ageRange.getMaxAge());
-    assertThat(condition.getSmokingStatus()).isEqualTo(smokingStatus.name());
-    assertThat(condition.getDrinkingStatus()).isEqualTo(drinkingStatus.name());
-    assertThat(condition.getGender()).isEqualTo(gender.name());
+    assertThat(condition.getSmokingStatus()).isEqualTo(smokingStatus);
+    assertThat(condition.getDrinkingStatus()).isEqualTo(drinkingStatus);
+    assertThat(condition.getGender()).isEqualTo(gender);
   }
 
   @Test
@@ -55,7 +47,7 @@ class IntroductionSearchConditionTest {
   void ofGradeTest() {
     // given
     MemberIdeal ideal = getMockedMemberIdeal();
-    Grade grade = Grade.DIAMOND;
+    String grade = "DIAMOND";
 
     // when
     IntroductionSearchCondition condition =
@@ -63,12 +55,10 @@ class IntroductionSearchConditionTest {
 
     // then
     assertCommonFields(condition);
-    assertThat(condition.getHobbies())
-        .isEqualTo(hobbies.stream().map(Hobby::name).collect(Collectors.toSet()));
-    assertThat(condition.getCities())
-        .isEqualTo(cities.stream().map(City::name).collect(Collectors.toSet()));
-    assertThat(condition.getReligion()).isEqualTo(religion.name());
-    assertThat(condition.getMemberGrade()).isEqualTo(grade.name());
+    assertThat(condition.getHobbies()).isEqualTo(hobbies);
+    assertThat(condition.getCities()).isEqualTo(cities);
+    assertThat(condition.getReligion()).isEqualTo(religion);
+    assertThat(condition.getMemberGrade()).isEqualTo(grade);
     assertThat(condition.getJoinedAfter()).isNull();
   }
 
@@ -77,7 +67,7 @@ class IntroductionSearchConditionTest {
   void ofHobbiesTest() {
     // given
     MemberIdeal ideal = getMockedMemberIdeal();
-    Set<Hobby> memberHobbies = Set.of(Hobby.CAMPING, Hobby.ANIMATION);
+    Set<String> memberHobbies = Set.of("CAMPING", "ANIMATION");
 
     // when
     IntroductionSearchCondition condition =
@@ -85,11 +75,9 @@ class IntroductionSearchConditionTest {
 
     // then
     assertCommonFields(condition);
-    assertThat(condition.getHobbies())
-        .isEqualTo(memberHobbies.stream().map(Hobby::name).collect(Collectors.toSet()));
-    assertThat(condition.getCities())
-        .isEqualTo(cities.stream().map(City::name).collect(Collectors.toSet()));
-    assertThat(condition.getReligion()).isEqualTo(religion.name());
+    assertThat(condition.getHobbies()).isEqualTo(memberHobbies);
+    assertThat(condition.getCities()).isEqualTo(cities);
+    assertThat(condition.getReligion()).isEqualTo(religion);
     assertThat(condition.getMemberGrade()).isNull();
     assertThat(condition.getJoinedAfter()).isNull();
   }
@@ -99,7 +87,7 @@ class IntroductionSearchConditionTest {
   void ofReligionTest() {
     // given
     MemberIdeal ideal = getMockedMemberIdeal();
-    Religion memberReligion = Religion.NONE;
+    String memberReligion = "NONE";
 
     // when
     IntroductionSearchCondition condition =
@@ -107,11 +95,9 @@ class IntroductionSearchConditionTest {
 
     // then
     assertCommonFields(condition);
-    assertThat(condition.getHobbies())
-        .isEqualTo(hobbies.stream().map(Hobby::name).collect(Collectors.toSet()));
-    assertThat(condition.getCities())
-        .isEqualTo(cities.stream().map(City::name).collect(Collectors.toSet()));
-    assertThat(condition.getReligion()).isEqualTo(memberReligion.name());
+    assertThat(condition.getHobbies()).isEqualTo(hobbies);
+    assertThat(condition.getCities()).isEqualTo(cities);
+    assertThat(condition.getReligion()).isEqualTo(memberReligion);
     assertThat(condition.getMemberGrade()).isNull();
     assertThat(condition.getJoinedAfter()).isNull();
   }
@@ -121,7 +107,7 @@ class IntroductionSearchConditionTest {
   void ofCityTest() {
     // given
     MemberIdeal ideal = getMockedMemberIdeal();
-    City memberCity = City.DAEJEON;
+    String memberCity = "DAEJEON";
 
     // when
     IntroductionSearchCondition condition =
@@ -129,10 +115,9 @@ class IntroductionSearchConditionTest {
 
     // then
     assertCommonFields(condition);
-    assertThat(condition.getHobbies())
-        .isEqualTo(hobbies.stream().map(Hobby::name).collect(Collectors.toSet()));
-    assertThat(condition.getCities()).isEqualTo(Set.of(memberCity.name()));
-    assertThat(condition.getReligion()).isEqualTo(religion.name());
+    assertThat(condition.getHobbies()).isEqualTo(hobbies);
+    assertThat(condition.getCities()).isEqualTo(Set.of(memberCity));
+    assertThat(condition.getReligion()).isEqualTo(religion);
     assertThat(condition.getMemberGrade()).isNull();
     assertThat(condition.getJoinedAfter()).isNull();
   }
@@ -150,11 +135,9 @@ class IntroductionSearchConditionTest {
 
     // then
     assertCommonFields(condition);
-    assertThat(condition.getHobbies())
-        .isEqualTo(hobbies.stream().map(Hobby::name).collect(Collectors.toSet()));
-    assertThat(condition.getCities())
-        .isEqualTo(cities.stream().map(City::name).collect(Collectors.toSet()));
-    assertThat(condition.getReligion()).isEqualTo(religion.name());
+    assertThat(condition.getHobbies()).isEqualTo(hobbies);
+    assertThat(condition.getCities()).isEqualTo(cities);
+    assertThat(condition.getReligion()).isEqualTo(religion);
     assertThat(condition.getMemberGrade()).isNull();
     assertThat(condition.getJoinedAfter()).isEqualTo(joinedAfter);
   }

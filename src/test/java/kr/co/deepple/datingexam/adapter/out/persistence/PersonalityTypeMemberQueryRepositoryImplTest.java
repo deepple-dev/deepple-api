@@ -74,7 +74,8 @@ class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport
     em.clear();
 
     // when
-    List<Long> result = repository.findMemberIdsByDominantType(requester.getId(), TARGET_TYPE);
+    List<Long> result =
+        repository.findMemberIdsByDominantType(requester.getId(), TARGET_TYPE.name());
 
     // then: 최신 가입순(id desc) → 나중에 가입한 includedB가 먼저
     assertThat(result).containsExactly(includedB.getId(), includedA.getId());

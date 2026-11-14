@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,12 +16,13 @@ import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.datingexam.application.port.in.ValidatePersonalityTypeUseCase;
+import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenStatusView;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +34,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PersonalityIntroductionQueryServiceTest {
 
-  private static final AnswerPersonalityType TYPE = AnswerPersonalityType.STIMULATING_ADVENTURER;
+  private static final String TYPE = "STIMULATING_ADVENTURER";
 
   @InjectMocks private PersonalityIntroductionQueryService personalityIntroductionQueryService;
 
   @Mock private PersonalityTypeMemberFinder personalityTypeMemberFinder;
+
+  @Mock private ValidatePersonalityTypeUseCase validatePersonalityTypeUseCase;
 
   @Mock private IntroductionQueryService introductionQueryService;
 
@@ -63,6 +67,23 @@ class PersonalityIntroductionQueryServiceTest {
   }
 
   @Test
+  @DisplayName("유형 값이 잘못되면 오픈 상태를 확인하기 전에 예외를 던진다.")
+  void throwsWhenTypeIsInvalid() {
+    long memberId = 1L;
+    doThrow(
+            new DeeppleException(
+                DatingExamErrorCode.INVALID_PERSONALITY_TYPE, "personalityType=UNKNOWN"))
+        .when(validatePersonalityTypeUseCase)
+        .validate("UNKNOWN");
+
+    assertThatThrownBy(() -> personalityIntroductionQueryService.open(memberId, "UNKNOWN"))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_PERSONALITY_TYPE);
+
+    verify(personalityIntroductionRedisRepository, never()).findOpenState(anyLong());
+  }
+
+  @Test
   @DisplayName("다른 유형이 이미 열려 있으면 예외를 던진다.")
   void throwsWhenDifferentTypeOpened() {
     long memberId = 1L;
@@ -70,14 +91,12 @@ class PersonalityIntroductionQueryServiceTest {
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
-                    AnswerPersonalityType.RATIONAL_REALIST,
-                    List.of(2L, 3L, 4L),
-                    LocalDateTime.now())));
+                    "RATIONAL_REALIST", List.of(2L, 3L, 4L), LocalDateTime.now())));
 
     assertThatThrownBy(() -> personalityIntroductionQueryService.open(memberId, TYPE))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue(
-            "errorCode", MemberErrorCode.PERSONALITY_INTRODUCTION_ALREADY_OPENED);
+            "errorCode", RecommendationErrorCode.PERSONALITY_INTRODUCTION_ALREADY_OPENED);
   }
 
   @Test
@@ -150,23 +169,23 @@ class PersonalityIntroductionQueryServiceTest {
         .thenReturn(
             Optional.of(new PersonalityIntroductionOpenState(TYPE, List.of(2L, 3L, 4L), openedAt)));
 
-    Optional<PersonalityIntroductionOpenStatusView> openStatus =
-        personalityIntroductionQueryService.findOpenStatus(memberId);
+    PersonalityIntroductionOpenStatusView openStatus =
+        personalityIntroductionQueryService.getOpenStatus(memberId);
 
-    assertThat(openStatus).contains(new PersonalityIntroductionOpenStatusView(TYPE, openedAt));
+    assertThat(openStatus).isEqualTo(new PersonalityIntroductionOpenStatusView(TYPE, openedAt));
   }
 
   @Test
-  @DisplayName("오픈 이력이 없으면 빈 값을 반환한다.")
+  @DisplayName("오픈 이력이 없으면 유형과 오픈 시각이 빈 값을 반환한다.")
   void returnsEmptyOpenStatusWhenNotOpened() {
     long memberId = 1L;
     when(personalityIntroductionRedisRepository.findOpenState(memberId))
         .thenReturn(Optional.empty());
 
-    Optional<PersonalityIntroductionOpenStatusView> openStatus =
-        personalityIntroductionQueryService.findOpenStatus(memberId);
+    PersonalityIntroductionOpenStatusView openStatus =
+        personalityIntroductionQueryService.getOpenStatus(memberId);
 
-    assertThat(openStatus).isEmpty();
+    assertThat(openStatus).isEqualTo(new PersonalityIntroductionOpenStatusView(null, null));
   }
 
   private void givenNoExclusions(long memberId) {

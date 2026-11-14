@@ -4,11 +4,6 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.HashSet;
 import java.util.Set;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.DrinkingStatus;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Religion;
-import kr.co.deepple.member.domain.SmokingStatus;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import lombok.AccessLevel;
@@ -25,11 +20,11 @@ public class MemberIdealFixture {
   private long memberId = 1L;
   private Integer minAge = 20;
   private Integer maxAge = 46;
-  private Set<Hobby> hobbies = new HashSet<>();
-  private Set<City> cities = new HashSet<>();
-  private Religion religion;
-  private SmokingStatus smokingStatus;
-  private DrinkingStatus drinkingStatus;
+  private Set<String> hobbies = new HashSet<>();
+  private Set<String> cities = new HashSet<>();
+  private String religion;
+  private String smokingStatus;
+  private String drinkingStatus;
 
   public static MemberIdealFixture builder() {
     return new MemberIdealFixture();

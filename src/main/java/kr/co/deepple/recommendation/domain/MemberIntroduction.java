@@ -10,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.co.deepple.common.entity.BaseEntity;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.domain.MemberErrorCode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +36,8 @@ public class MemberIntroduction extends BaseEntity {
   private MemberIntroduction(
       long memberId, long introducedMemberId, @NonNull IntroductionType type) {
     if (memberId == introducedMemberId) {
-      throw new DeeppleException(MemberErrorCode.SELF_MEMBER_INTRODUCTION, "memberId=" + memberId);
+      throw new DeeppleException(
+          RecommendationErrorCode.SELF_MEMBER_INTRODUCTION, "memberId=" + memberId);
     }
     this.memberId = memberId;
     this.introducedMemberId = introducedMemberId;

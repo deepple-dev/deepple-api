@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import kr.co.deepple.member.domain.Grade;
+import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
+import kr.co.deepple.member.application.port.in.FindMemberProfilesUseCase;
+import kr.co.deepple.member.application.port.in.MemberProfileSummary;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
@@ -16,8 +18,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class IntroductionQueryService {
 
+  private static final String DIAMOND_GRADE = "DIAMOND";
+
   private final IntroductionMemberIdFetcher introductionMemberIdFetcher;
   private final IntroductionQueryRepository introductionQueryRepository;
+  private final FindMemberProfilesUseCase findMemberProfilesUseCase;
+  private final SoulmateFinder soulmateFinder;
 
   public List<MemberIntroductionProfileView> findDiamondGradeIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getDiamondGradeIntroductionMemberIds(memberId);
@@ -73,6 +79,10 @@ public class IntroductionQueryService {
         memberIntroductionProfileQueryResults);
   }
 
+  public List<MemberIntroductionProfileView> findSoulmateIntroductions(long memberId) {
+    return findMemberIntroductionProfileViews(memberId, soulmateFinder.findSoulmateIds(memberId));
+  }
+
   public List<MemberIntroductionProfileView> findIdealIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getIdealIntroductionMemberIds(memberId);
     List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
@@ -86,10 +96,9 @@ public class IntroductionQueryService {
     return introductionMemberIdFetcher.fetch(
         memberId,
         IntroductionCacheKeyPrefix.DIAMOND,
-        Grade.DIAMOND,
+        DIAMOND_GRADE,
         (excluded, ideal, member, grade) ->
-            IntroductionSearchCondition.ofGrade(
-                excluded, ideal, member.getGender().getOpposite(), grade));
+            IntroductionSearchCondition.ofGrade(excluded, ideal, member.oppositeGender(), grade));
   }
 
   private Set<Long> getSameHobbyIntroductionMemberIds(long memberId) {
@@ -99,10 +108,7 @@ public class IntroductionQueryService {
         null,
         (excluded, ideal, member, unused) ->
             IntroductionSearchCondition.ofHobbies(
-                excluded,
-                ideal,
-                member.getGender().getOpposite(),
-                member.getProfile().getHobbies()));
+                excluded, ideal, member.oppositeGender(), getProfile(member.memberId()).hobbies()));
   }
 
   private Set<Long> getSameReligionIntroductionMemberIds(long memberId) {
@@ -114,8 +120,8 @@ public class IntroductionQueryService {
             IntroductionSearchCondition.ofReligion(
                 excluded,
                 ideal,
-                member.getGender().getOpposite(),
-                member.getProfile().getReligion()));
+                member.oppositeGender(),
+                getProfile(member.memberId()).religion()));
   }
 
   private Set<Long> getSameCityIntroductionMemberIds(long memberId) {
@@ -125,10 +131,7 @@ public class IntroductionQueryService {
         null,
         (excluded, ideal, member, unused) ->
             IntroductionSearchCondition.ofCity(
-                excluded,
-                ideal,
-                member.getGender().getOpposite(),
-                member.getProfile().getRegion().getCity()));
+                excluded, ideal, member.oppositeGender(), member.city()));
   }
 
   private Set<Long> getRecentlyJoinedIntroductionMemberIds(long memberId) {
@@ -138,7 +141,7 @@ public class IntroductionQueryService {
         null,
         (excluded, ideal, member, unused) ->
             IntroductionSearchCondition.ofJoinDate(
-                excluded, ideal, member.getGender().getOpposite(), getRecentlyJoinedCutoffDate()));
+                excluded, ideal, member.oppositeGender(), getRecentlyJoinedCutoffDate()));
   }
 
   private Set<Long> getIdealIntroductionMemberIds(long memberId) {
@@ -147,7 +150,16 @@ public class IntroductionQueryService {
         IntroductionCacheKeyPrefix.IDEAL,
         null,
         (excluded, ideal, member, unused) ->
-            IntroductionSearchCondition.ofIdeal(excluded, ideal, member.getGender().getOpposite()));
+            IntroductionSearchCondition.ofIdeal(excluded, ideal, member.oppositeGender()));
+  }
+
+  private MemberProfileSummary getProfile(long memberId) {
+    MemberProfileSummary profile =
+        findMemberProfilesUseCase.findMemberProfiles(List.of(memberId)).get(memberId);
+    if (profile == null) {
+      throw new IllegalStateException("프로필을 찾을 수 없는 회원입니다. memberId=" + memberId);
+    }
+    return profile;
   }
 
   private LocalDateTime getRecentlyJoinedCutoffDate() {

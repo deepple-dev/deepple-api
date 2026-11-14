@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
@@ -35,5 +36,39 @@ class MemberIntroductionControllerIntegrationTest extends IntegrationTestSupport
     assertThat(result).hasStatusOk();
     assertThat(result).bodyJson().extractingPath("$.type").isNull();
     assertThat(result).bodyJson().extractingPath("$.openedAt").isNull();
+  }
+
+  @Test
+  @DisplayName("유형별 이상형 조회에서 유형 값이 잘못되면 400으로 응답한다.")
+  void respondBadRequestWhenPersonalityTypeIsInvalid() {
+    MvcTestResult result =
+        mockMvc
+            .get()
+            .uri("/member/introduction/UNKNOWN_TYPE")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer "
+                    + tokenProvider.createAccessToken(Long.MAX_VALUE, Role.MEMBER, Instant.now()))
+            .exchange();
+
+    assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+    assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("INVALID_PERSONALITY_TYPE");
+  }
+
+  @Test
+  @DisplayName("유형별 이상형 언락에서 유형 값이 잘못되면 400으로 응답한다.")
+  void respondBadRequestWhenUnlockPersonalityTypeIsInvalid() {
+    MvcTestResult result =
+        mockMvc
+            .post()
+            .uri("/member/introduction/UNKNOWN_TYPE/2")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer "
+                    + tokenProvider.createAccessToken(Long.MAX_VALUE, Role.MEMBER, Instant.now()))
+            .exchange();
+
+    assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+    assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("INVALID_PERSONALITY_TYPE");
   }
 }

@@ -6,12 +6,12 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
+import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +22,7 @@ public class MemberIntroductionService {
 
   private static final String HEART_USAGE_TYPE = "INTRODUCTION";
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
   private final SoulmateFinder soulmateFinder;
   private final CheckBlockUseCase checkBlockUseCase;
@@ -71,14 +71,15 @@ public class MemberIntroductionService {
   }
 
   private void validateSoulmateIntroduction(long memberId, long introducedMemberId) {
-    Member member = getMember(memberId);
-    if (member.hasSubmittedDatingExam() == false) {
-      throw new DeeppleException(MemberErrorCode.DATING_EXAM_NOT_SUBMITTED, "memberId=" + memberId);
+    MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);
+    if (!member.datingExamSubmitted()) {
+      throw new DeeppleException(
+          RecommendationErrorCode.DATING_EXAM_NOT_SUBMITTED, "memberId=" + memberId);
     }
     Set<Long> soulmateIds = soulmateFinder.findSoulmateIds(memberId);
     if (!soulmateIds.contains(introducedMemberId)) {
       throw new DeeppleException(
-          MemberErrorCode.NOT_SOULMATE, "introducedMemberId=" + introducedMemberId);
+          RecommendationErrorCode.NOT_SOULMATE, "introducedMemberId=" + introducedMemberId);
     }
   }
 
@@ -86,15 +87,9 @@ public class MemberIntroductionService {
     Set<Long> soulmateIds = soulmateFinder.findSoulmateIds(memberId);
     if (!soulmateIds.contains(introducedMemberId)) {
       throw new DeeppleException(
-          MemberErrorCode.NOT_SAME_ANSWER_MEMBER, "introducedMemberId=" + introducedMemberId);
+          RecommendationErrorCode.NOT_SAME_ANSWER_MEMBER,
+          "introducedMemberId=" + introducedMemberId);
     }
-  }
-
-  private Member getMember(long memberId) {
-    return memberCommandRepository
-        .findById(memberId)
-        .orElseThrow(
-            () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
   }
 
   private void createIntroduction(
@@ -113,31 +108,28 @@ public class MemberIntroductionService {
   }
 
   private void validateIntroduction(long memberId, long introducedMemberId) {
-    Member introductionMember =
-        memberCommandRepository
-            .findById(introducedMemberId)
-            .orElseThrow(() ->
-                new DeeppleException(
-                    MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + introducedMemberId));
+    MemberSummary introductionMember =
+        findMemberSummaryUseCase.getMemberSummary(introducedMemberId);
 
     if (!introductionMember.isActive()) {
       throw new DeeppleException(
-          MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE, "introducedMemberId=" + introducedMemberId);
+          RecommendationErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE,
+          "introducedMemberId=" + introducedMemberId);
     }
     if (checkBlockUseCase.isBlocked(memberId, introducedMemberId)) {
       throw new DeeppleException(
-          MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
+          RecommendationErrorCode.INTRODUCED_MEMBER_BLOCKED,
           "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId);
     }
     if (checkBlockUseCase.isBlocked(introducedMemberId, memberId)) {
       throw new DeeppleException(
-          MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
+          RecommendationErrorCode.INTRODUCED_MEMBER_BLOCKED,
           "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId);
     }
     if (memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
         memberId, introducedMemberId)) {
       throw new DeeppleException(
-          MemberErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS,
+          RecommendationErrorCode.MEMBER_INTRODUCTION_ALREADY_EXISTS,
           "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId);
     }
   }

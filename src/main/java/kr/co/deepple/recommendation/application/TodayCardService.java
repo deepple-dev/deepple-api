@@ -5,8 +5,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.Member;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
@@ -20,7 +20,7 @@ public class TodayCardService {
 
   private static final String HEART_USAGE_TYPE = "INTRODUCTION";
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
   private final UseHeartUseCase useHeartUseCase;
 
@@ -51,12 +51,12 @@ public class TodayCardService {
       return introductionTargetMemberIds;
     }
 
-    List<Member> introductionTargetMembers =
-        memberCommandRepository.findAllById(introductionTargetMemberIds);
-
-    return introductionTargetMembers.stream()
-        .filter(Member::isActive)
-        .map(Member::getId)
+    return findMemberSummaryUseCase
+        .findMemberSummaries(introductionTargetMemberIds)
+        .values()
+        .stream()
+        .filter(MemberSummary::isActive)
+        .map(MemberSummary::memberId)
         .collect(Collectors.toSet());
   }
 

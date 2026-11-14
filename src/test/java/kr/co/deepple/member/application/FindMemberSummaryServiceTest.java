@@ -49,6 +49,25 @@ class FindMemberSummaryServiceTest {
   }
 
   @Test
+  @DisplayName("반대 성별과 연애고사 제출 여부를 돌려준다.")
+  void findOppositeGenderAndDatingExamSubmission() {
+    Member female =
+        MemberFixture.builder().id(1L).gender(Gender.FEMALE).datingExamSubmitted(true).build();
+    Member male =
+        MemberFixture.builder().id(2L).gender(Gender.MALE).datingExamSubmitted(false).build();
+    when(memberCommandRepository.findById(1L)).thenReturn(Optional.of(female));
+    when(memberCommandRepository.findById(2L)).thenReturn(Optional.of(male));
+
+    MemberSummary femaleSummary = findMemberSummaryService.getMemberSummary(1L);
+    MemberSummary maleSummary = findMemberSummaryService.getMemberSummary(2L);
+
+    assertThat(femaleSummary.oppositeGender()).isEqualTo("MALE");
+    assertThat(femaleSummary.datingExamSubmitted()).isTrue();
+    assertThat(maleSummary.oppositeGender()).isEqualTo("FEMALE");
+    assertThat(maleSummary.datingExamSubmitted()).isFalse();
+  }
+
+  @Test
   @DisplayName("프로필을 작성하지 않은 회원은 프로필에서 오는 값이 비어 있다.")
   void findSummaryOfMemberWithoutProfile() {
     Member member =
@@ -64,6 +83,7 @@ class FindMemberSummaryServiceTest {
     assertThat(summary.isActive()).isFalse();
     assertThatThrownBy(summary::requireNickname).isInstanceOf(IllegalStateException.class);
     assertThatThrownBy(summary::requireGender).isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(summary::oppositeGender).isInstanceOf(IllegalStateException.class);
   }
 
   @Test
