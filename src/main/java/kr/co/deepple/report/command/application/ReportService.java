@@ -2,8 +2,7 @@ package kr.co.deepple.report.command.application;
 
 import jakarta.transaction.Transactional;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
-import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.report.command.domain.Report;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class ReportService {
 
   private final ReportCommandRepository reportCommandRepository;
-  private final MemberCommandRepository memberCommandRepository;
+  private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -33,10 +32,7 @@ public class ReportService {
   }
 
   private void validateRequest(ReportCreateRequest request, long reporterId) {
-    if (!memberCommandRepository.existsById(request.reporteeId())) {
-      throw new DeeppleException(
-          MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + request.reporteeId());
-    }
+    findMemberSummaryUseCase.getMemberSummary(request.reporteeId());
     if (reportCommandRepository.existsByReporterIdAndReporteeId(reporterId, request.reporteeId())) {
       throw new DeeppleException(
           ReportErrorCode.REPORT_ALREADY_EXISTS,

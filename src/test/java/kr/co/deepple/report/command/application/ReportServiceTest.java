@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.report.command.domain.ReportCommandRepository;
 import kr.co.deepple.report.command.domain.ReportErrorCode;
@@ -34,7 +34,7 @@ class ReportServiceTest {
 
   @Mock private ReportCommandRepository reportCommandRepository;
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
   @Test
   @DisplayName("reportee가 존재하지 않으면 예외를 던진다.")
@@ -45,6 +45,9 @@ class ReportServiceTest {
     ReportReasonType reportReasonType = ReportReasonType.ETC;
     ReportCreateRequest request =
         new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
+
+    when(findMemberSummaryUseCase.getMemberSummary(reporteeId))
+        .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
 
     // when, then
     assertThatThrownBy(() -> reportService.report(request, reporterId))
@@ -64,7 +67,6 @@ class ReportServiceTest {
     ReportCreateRequest request =
         new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
 
-    when(memberCommandRepository.existsById(reporteeId)).thenReturn(true);
     when(reportCommandRepository.existsByReporterIdAndReporteeId(reporterId, reporteeId))
         .thenReturn(true);
 
@@ -85,8 +87,6 @@ class ReportServiceTest {
     String invalidReason = "INVALID_REASON";
     ReportCreateRequest request = new ReportCreateRequest(reporteeId, invalidReason, "content");
 
-    when(memberCommandRepository.existsById(reporteeId)).thenReturn(true);
-
     // when, then
     assertThatThrownBy(() -> reportService.report(request, reporterId))
         .isInstanceOf(DeeppleException.class)
@@ -104,8 +104,6 @@ class ReportServiceTest {
     ReportReasonType reportReasonType = ReportReasonType.ETC;
     ReportCreateRequest request =
         new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
-
-    when(memberCommandRepository.existsById(reporteeId)).thenReturn(true);
 
     // when
     reportService.report(request, reporterId);
