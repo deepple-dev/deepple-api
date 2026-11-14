@@ -3,6 +3,7 @@ package kr.co.deepple.report.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentAdminId;
 import kr.co.deepple.report.application.AdminReportService;
 import kr.co.deepple.report.application.ReportQueryService;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "어드민 신고 관리 API")
+@Tag(name = ApiTags.REPORT)
 @RestController
 @RequestMapping("/admin/reports")
 @RequiredArgsConstructor

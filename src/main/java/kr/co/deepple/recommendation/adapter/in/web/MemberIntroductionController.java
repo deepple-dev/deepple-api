@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.recommendation.application.IntroductionQueryService;
 import kr.co.deepple.recommendation.application.MemberIntroductionService;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "소개받고 싶은 이성 API")
+@Tag(name = ApiTags.RECOMMENDATION)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/member/introduction")

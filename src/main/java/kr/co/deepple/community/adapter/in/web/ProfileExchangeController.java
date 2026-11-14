@@ -3,6 +3,7 @@ package kr.co.deepple.community.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.community.application.ProfileExchangeService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "프로필 교환 요청 및 응답 API")
+@Tag(name = ApiTags.COMMUNITY)
 @RestController
 @RequestMapping("/profile-exchange")
 @RequiredArgsConstructor

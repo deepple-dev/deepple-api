@@ -2,6 +2,7 @@ package kr.co.deepple.match.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.match.application.MatchQueryService;
 import kr.co.deepple.match.application.MatchService;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "메시지(매칭) 관리 API")
+@Tag(name = ApiTags.MATCH)
 @RestController
 @RequestMapping("/match")
 @RequiredArgsConstructor

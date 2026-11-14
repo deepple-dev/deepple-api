@@ -9,6 +9,7 @@ import kr.co.deepple.auth.application.dto.AdminLoginResponse;
 import kr.co.deepple.auth.application.dto.AdminRefreshResponse;
 import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.RefreshTokenCookies;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "관리자 인증 API")
+@Tag(name = ApiTags.AUTH)
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor

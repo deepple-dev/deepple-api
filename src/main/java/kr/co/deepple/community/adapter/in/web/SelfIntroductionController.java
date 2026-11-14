@@ -3,6 +3,7 @@ package kr.co.deepple.community.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.community.application.SelfIntroductionQueryService;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "셀프 소개 API")
+@Tag(name = ApiTags.COMMUNITY)
 @RestController
 @RequestMapping("/self-introduction")
 @RequiredArgsConstructor

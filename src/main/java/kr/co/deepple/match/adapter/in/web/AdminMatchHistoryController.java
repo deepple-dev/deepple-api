@@ -3,6 +3,7 @@ package kr.co.deepple.match.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.match.application.MatchHistoryQueryService;
 import kr.co.deepple.match.application.dto.MatchHistorySearchCondition;
 import kr.co.deepple.match.application.dto.MatchHistoryView;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "관리자 페이지 매치 내역 관리 API")
+@Tag(name = ApiTags.MATCH)
 @RestController
 @RequestMapping("/admin/matches")
 @RequiredArgsConstructor

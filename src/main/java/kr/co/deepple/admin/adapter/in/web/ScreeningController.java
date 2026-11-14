@@ -10,6 +10,7 @@ import kr.co.deepple.admin.application.dto.ScreeningDetailView;
 import kr.co.deepple.admin.application.dto.ScreeningRejectRequest;
 import kr.co.deepple.admin.application.dto.ScreeningSearchCondition;
 import kr.co.deepple.admin.application.dto.ScreeningView;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentAdminId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "관리자 페이지 심사 관리 API")
+@Tag(name = ApiTags.SCREENING)
 @RestController
 @RequestMapping("/admin/screenings")
 @RequiredArgsConstructor

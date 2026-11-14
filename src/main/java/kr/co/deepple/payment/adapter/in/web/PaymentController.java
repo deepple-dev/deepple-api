@@ -3,6 +3,7 @@ package kr.co.deepple.payment.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.payment.application.AppStoreNotificationService;
 import kr.co.deepple.payment.application.AppStorePaymentService;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@Tag(name = "결제 영수증 인증 API")
+@Tag(name = ApiTags.PAYMENT)
 @RestController
 @RequestMapping("/payment")
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)

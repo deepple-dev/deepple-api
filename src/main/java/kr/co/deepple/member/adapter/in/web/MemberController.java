@@ -3,6 +3,7 @@ package kr.co.deepple.member.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.deepple.auth.application.port.in.LogoutMemberUseCase;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.common.security.RefreshTokenCookies;
 import kr.co.deepple.member.application.MemberContactService;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "회원 정보 조회 및 변경 API")
+@Tag(name = ApiTags.MEMBER)
 @RestController
 @RequestMapping("/member")
 @RequiredArgsConstructor

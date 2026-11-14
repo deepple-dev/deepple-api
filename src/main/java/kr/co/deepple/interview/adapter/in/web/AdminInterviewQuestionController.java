@@ -3,6 +3,7 @@ package kr.co.deepple.interview.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.interview.adapter.out.persistence.AdminInterviewQuestionQueryRepository;
 import kr.co.deepple.interview.application.InterviewQuestionService;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "어드민 인터뷰 질문 관리 API")
+@Tag(name = ApiTags.INTERVIEW)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/interview/question")
@@ -31,7 +32,7 @@ public class AdminInterviewQuestionController {
   private final InterviewQuestionService interviewQuestionService;
   private final AdminInterviewQuestionQueryRepository adminInterviewQuestionQueryRepository;
 
-  @Operation(summary = "어드민 인터뷰 질문 생성 API")
+  @Operation(summary = "인터뷰 질문 생성 API")
   @PostMapping
   public ResponseEntity<Void> createQuestion(
       @Valid @RequestBody InterviewQuestionSaveRequest request) {
@@ -39,7 +40,7 @@ public class AdminInterviewQuestionController {
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "어드민 인터뷰 질문 수정 API")
+  @Operation(summary = "인터뷰 질문 수정 API")
   @PatchMapping("/{id}")
   public ResponseEntity<Void> updateQuestion(
       @PathVariable long id, @Valid @RequestBody InterviewQuestionSaveRequest request) {
@@ -47,7 +48,7 @@ public class AdminInterviewQuestionController {
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "어드민 인터뷰 목록 조회 API")
+  @Operation(summary = "인터뷰 목록 조회 API")
   @GetMapping
   public ResponseEntity<Page<AdminInterviewQuestionView>> getQuestionPage(
       @PageableDefault(size = 100) Pageable pageable) {
@@ -56,7 +57,7 @@ public class AdminInterviewQuestionController {
     return ResponseEntity.ok(views);
   }
 
-  @Operation(summary = "어드민 인터뷰 상세 조회 API")
+  @Operation(summary = "인터뷰 상세 조회 API")
   @GetMapping("/{id}")
   public ResponseEntity<AdminInterviewQuestionView> getQuestionById(@PathVariable long id) {
     AdminInterviewQuestionView view =
