@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
+import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.application.port.out.MemberCommandRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
@@ -39,7 +39,7 @@ class MemberIntroductionServiceTest {
 
   @Mock private MemberCommandRepository memberCommandRepository;
 
-  @Mock private SoulmateQueryRepository soulmateQueryRepository;
+  @Mock private SoulmateFinder soulmateFinder;
 
   @Mock private CheckBlockUseCase checkBlockUseCase;
 
@@ -201,7 +201,7 @@ class MemberIntroductionServiceTest {
 
     Member member = MemberFixture.builder().id(memberId).datingExamSubmitted(true).build();
     when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
-    when(soulmateQueryRepository.findSameAnswerMemberIds(memberId)).thenReturn(Set.of(3L, 4L, 5L));
+    when(soulmateFinder.findSoulmateIds(memberId)).thenReturn(Set.of(3L, 4L, 5L));
 
     // when & then
     assertThatThrownBy(() ->
@@ -217,7 +217,7 @@ class MemberIntroductionServiceTest {
     long memberId = 1L;
     long introducedMemberId = 2L;
 
-    when(soulmateQueryRepository.findSameAnswerMemberIds(memberId)).thenReturn(Set.of(3L, 4L, 5L));
+    when(soulmateFinder.findSoulmateIds(memberId)).thenReturn(Set.of(3L, 4L, 5L));
 
     // when & then
     assertThatThrownBy(() ->

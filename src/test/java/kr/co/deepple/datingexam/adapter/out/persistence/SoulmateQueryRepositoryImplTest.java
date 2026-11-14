@@ -4,16 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Set;
+import kr.co.deepple.block.application.CheckBlockService;
 import kr.co.deepple.block.domain.Block;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.RepositoryTestSupport;
+import kr.co.deepple.datingexam.application.IntroducibleMemberFilter;
+import kr.co.deepple.datingexam.application.SoulmateQueryService;
 import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
 import kr.co.deepple.datingexam.domain.DatingExamSubject;
 import kr.co.deepple.datingexam.domain.DatingExamSubmit;
 import kr.co.deepple.datingexam.domain.SubjectType;
 import kr.co.deepple.datingexam.fixture.DatingExamSubjectFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitFixture;
+import kr.co.deepple.member.application.FilterIntroducibleMemberIdsService;
+import kr.co.deepple.member.application.FindMemberSummaryService;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
@@ -23,12 +28,20 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.context.annotation.Import;
 
+@Import({
+  SoulmateQueryService.class,
+  IntroducibleMemberFilter.class,
+  CheckBlockService.class,
+  FindMemberSummaryService.class,
+  FilterIntroducibleMemberIdsService.class
+})
 class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
 
   @Autowired private TestEntityManager em;
 
-  @Autowired private SoulmateQueryRepositoryImpl soulmateQueryRepository;
+  @Autowired private SoulmateQueryService soulmateQueryService;
 
   @Nested
   @DisplayName("소울 메이트 아이디 목록을 조회할 때,")
@@ -154,7 +167,7 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
               requiredSubject.getId());
 
       // when
-      Set<Long> soulmateIds = soulmateQueryRepository.findSameAnswerMemberIds(requester.getId());
+      Set<Long> soulmateIds = soulmateQueryService.findSoulmateIds(requester.getId());
 
       // then
       assertThat(soulmateIds).containsOnly(soulmateMember.getId());
@@ -204,7 +217,7 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
       createBlock(requester.getId(), blockedMember.getId());
 
       // when
-      Set<Long> soulmateIds = soulmateQueryRepository.findSameAnswerMemberIds(requester.getId());
+      Set<Long> soulmateIds = soulmateQueryService.findSoulmateIds(requester.getId());
 
       // then
       assertThat(soulmateIds).containsOnly(soulmateMember.getId());
@@ -254,7 +267,7 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
       createBlock(blockerMember.getId(), requester.getId());
 
       // when
-      Set<Long> soulmateIds = soulmateQueryRepository.findSameAnswerMemberIds(requester.getId());
+      Set<Long> soulmateIds = soulmateQueryService.findSoulmateIds(requester.getId());
 
       // then
       assertThat(soulmateIds).containsOnly(soulmateMember.getId());
@@ -296,7 +309,7 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
       createSubmit(optionalSubject.getId(), soulmateMember.getId(), "differentAnswer");
 
       // when
-      Set<Long> soulmateIds = soulmateQueryRepository.findSameAnswerMemberIds(requester.getId());
+      Set<Long> soulmateIds = soulmateQueryService.findSoulmateIds(requester.getId());
 
       // then
       assertThat(soulmateIds).containsOnly(soulmateMember.getId());
@@ -312,7 +325,7 @@ class SoulmateQueryRepositoryImplTest extends RepositoryTestSupport {
 
       // when & then
       Long memberId = member.getId();
-      assertThatThrownBy(() -> soulmateQueryRepository.findSameAnswerMemberIds(memberId))
+      assertThatThrownBy(() -> soulmateQueryService.findSoulmateIds(memberId))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", DatingExamErrorCode.DATING_EXAM_RESULT_NOT_FOUND);

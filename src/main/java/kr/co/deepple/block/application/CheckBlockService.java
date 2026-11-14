@@ -1,5 +1,6 @@
 package kr.co.deepple.block.application;
 
+import java.util.HashSet;
 import java.util.Set;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.block.application.port.in.FindBlockedMemberIdsUseCase;
@@ -24,5 +25,13 @@ public class CheckBlockService implements CheckBlockUseCase, FindBlockedMemberId
   @Transactional(readOnly = true)
   public Set<Long> findBlockedMemberIds(long blockerId) {
     return blockRepository.findBlockedIdsByBlockerId(blockerId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<Long> findBlockRelatedMemberIds(long memberId) {
+    Set<Long> memberIds = new HashSet<>(blockRepository.findBlockedIdsByBlockerId(memberId));
+    memberIds.addAll(blockRepository.findBlockerIdsByBlockedId(memberId));
+    return memberIds;
   }
 }

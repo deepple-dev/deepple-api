@@ -16,10 +16,12 @@ import org.springframework.validation.annotation.Validated;
 public class PersonalityTypeMemberQueryService implements PersonalityTypeMemberFinder {
 
   private final PersonalityTypeMemberQueryRepository personalityTypeMemberQueryRepository;
+  private final IntroducibleMemberFilter introducibleMemberFilter;
 
   @Override
   @Transactional(readOnly = true)
   public List<Long> findMemberIdsByDominantType(long memberId, AnswerPersonalityType type) {
-    return personalityTypeMemberQueryRepository.findMemberIdsByDominantType(memberId, type);
+    return introducibleMemberFilter.filter(
+        memberId, personalityTypeMemberQueryRepository.findMemberIdsByDominantType(type));
   }
 }
