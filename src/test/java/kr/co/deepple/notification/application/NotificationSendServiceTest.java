@@ -1,0 +1,217 @@
+package kr.co.deepple.notification.application;
+
+import static kr.co.deepple.notification.domain.ChannelType.PUSH;
+import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_DEVICE_NOT_FOUND;
+import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_EXCEPTION;
+import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_PREFERENCE_NOT_FOUND;
+import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_TEMPLATE_NOT_FOUND;
+import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_UNSUPPORTED_CHANNEL;
+import static kr.co.deepple.notification.domain.NotificationStatus.REJECTED_BY_PREFERENCE;
+import static kr.co.deepple.notification.domain.NotificationStatus.SENT;
+import static kr.co.deepple.notification.domain.NotificationType.LIKE;
+import static kr.co.deepple.notification.domain.SenderType.SYSTEM;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Map;
+import java.util.Optional;
+import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.dto.NotificationTemplateInfo;
+import kr.co.deepple.notification.domain.DeviceRegistration;
+import kr.co.deepple.notification.domain.Notification;
+import kr.co.deepple.notification.domain.NotificationErrorCode;
+import kr.co.deepple.notification.domain.NotificationSender;
+import kr.co.deepple.notification.fixture.DeviceRegistrationFixture;
+import kr.co.deepple.notification.fixture.NotificationPreferenceFixture;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class NotificationSendServiceTest {
+
+  @Mock NotificationDataReader reader;
+
+  @Mock NotificationDataWriter writer;
+
+  @Mock NotificationSenderResolver notificationSenderResolver;
+
+  @InjectMocks NotificationSendService service;
+
+  @Test
+  @DisplayName("send(): 템플릿 없으면 FAILED_TEMPLATE_NOT_FOUND 상태로 저장")
+  void sendSavesFailedTemplate() {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 1L, 2L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE)).thenReturn(Optional.empty());
+
+    // when
+    service.send(req);
+
+    // then
+    verify(writer)
+        .saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(2L), eq(LIKE), any(), any(), eq(FAILED_TEMPLATE_NOT_FOUND));
+  }
+
+  @Test
+  @DisplayName("send(): 수신 설정 없으면 FAILED_PREFERENCE_NOT_FOUND 상태로 저장")
+  void sendSavesFailedPreference() {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 1L, 99L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE))
+        .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
+    when(reader.findPreference(99L)).thenReturn(Optional.empty());
+
+    // when
+    service.send(req);
+
+    // then
+    verify(writer)
+        .saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(99L), eq(LIKE), any(), any(), eq(FAILED_PREFERENCE_NOT_FOUND));
+  }
+
+  @Test
+  @DisplayName("send(): 수신 거부 시 REJECTED_BY_PREFERENCE 상태로 저장")
+  void sendSavesRejectedNotification() {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 1L, 1L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE))
+        .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
+
+    var pref = NotificationPreferenceFixture.builder().memberId(1L).enabledGlobally(false).build();
+    when(reader.findPreference(1L)).thenReturn(Optional.of(pref));
+
+    // when
+    service.send(req);
+
+    // then
+    verify(writer)
+        .saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(1L), eq(LIKE), any(), any(), eq(REJECTED_BY_PREFERENCE));
+  }
+
+  @Test
+  @DisplayName("send(): 정상 전송 시 SENT 상태로 저장")
+  void sendSavesSentNotification() throws Exception {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 10L, 20L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE))
+        .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
+    when(reader.findPreference(20L))
+        .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(20L).build()));
+    when(reader.findActiveDevice(20L))
+        .thenReturn(
+            Optional.of(
+                DeviceRegistrationFixture.builder()
+                    .memberId(20L)
+                    .deviceId("device")
+                    .registrationToken("token")
+                    .build()));
+
+    var sender = mock(NotificationSender.class);
+    when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));
+
+    // when
+    service.send(req);
+
+    // then
+    verify(sender).send(any(Notification.class), any(DeviceRegistration.class));
+    verify(writer).save(argThat(n -> n.getStatus() == SENT));
+  }
+
+  @Test
+  @DisplayName("send(): 디바이스 없으면 FAILED_DEVICE_NOT_FOUND 상태로 저장")
+  void sendSavesFailedDevice() {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 1L, 30L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE))
+        .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "", "")));
+    when(reader.findPreference(30L))
+        .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(30L).build()));
+    when(reader.findActiveDevice(30L)).thenReturn(Optional.empty());
+
+    // when
+    service.send(req);
+
+    // then
+    verify(writer)
+        .saveFailedNotification(
+            eq(SYSTEM), eq(1L), eq(30L), eq(LIKE), any(), any(), eq(FAILED_DEVICE_NOT_FOUND));
+  }
+
+  @Test
+  @DisplayName("send(): 지원하지 않는 채널 시 FAILED_UNSUPPORTED_CHANNEL 상태로 저장")
+  void sendSavesUnsupportedChannel() {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 10L, 20L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE))
+        .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
+    when(reader.findPreference(20L))
+        .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(20L).build()));
+    when(reader.findActiveDevice(20L))
+        .thenReturn(
+            Optional.of(
+                DeviceRegistrationFixture.builder()
+                    .memberId(20L)
+                    .deviceId("device")
+                    .registrationToken("token")
+                    .build()));
+    when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.empty());
+
+    // when
+    service.send(req);
+
+    // then
+    verify(writer)
+        .saveFailedNotification(
+            eq(SYSTEM), eq(10L), eq(20L), eq(LIKE), any(), any(), eq(FAILED_UNSUPPORTED_CHANNEL));
+  }
+
+  @Test
+  @DisplayName("send(): 전송 중 예외 발생 시 FAILED_EXCEPTION 상태로 저장")
+  void sendSavesFailedException() throws Exception {
+    // given
+    var req = new NotificationSendRequest(SYSTEM, 10L, 20L, LIKE, Map.of(), PUSH);
+    when(reader.findTemplate(LIKE))
+        .thenReturn(Optional.of(new NotificationTemplateInfo(1L, LIKE, "t", "b")));
+    when(reader.findPreference(20L))
+        .thenReturn(Optional.of(NotificationPreferenceFixture.builder().memberId(20L).build()));
+    when(reader.findActiveDevice(20L))
+        .thenReturn(
+            Optional.of(
+                DeviceRegistrationFixture.builder()
+                    .memberId(20L)
+                    .deviceId("device")
+                    .registrationToken("token")
+                    .build()));
+
+    var sender = mock(NotificationSender.class);
+    when(notificationSenderResolver.resolve(PUSH)).thenReturn(Optional.of(sender));
+    doThrow(
+            new DeeppleException(
+                NotificationErrorCode.NOTIFICATION_SEND_FAILED,
+                "receiverId=20",
+                new RuntimeException("FCM 전송 실패")))
+        .when(sender)
+        .send(any(Notification.class), any(DeviceRegistration.class));
+
+    // when
+    service.send(req);
+
+    // then
+    verify(writer)
+        .saveFailedNotification(
+            eq(SYSTEM), eq(10L), eq(20L), eq(LIKE), any(), any(), eq(FAILED_EXCEPTION));
+  }
+}

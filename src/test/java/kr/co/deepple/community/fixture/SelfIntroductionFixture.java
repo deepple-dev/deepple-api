@@ -2,7 +2,7 @@ package kr.co.deepple.community.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.community.command.domain.selfintroduction.SelfIntroduction;
+import kr.co.deepple.community.domain.SelfIntroduction;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

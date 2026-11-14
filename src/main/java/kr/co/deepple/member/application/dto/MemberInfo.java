@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import kr.co.deepple.like.command.domain.LikeLevel;
+import kr.co.deepple.like.domain.LikeLevel;
 import kr.co.deepple.member.domain.City;
 import kr.co.deepple.member.domain.District;
 import kr.co.deepple.member.domain.DrinkingStatus;

@@ -1,0 +1,44 @@
+package kr.co.deepple.like.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import kr.co.deepple.common.entity.BaseEntity;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+
+@Entity
+@Table(name = "likes")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Like extends BaseEntity {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  private long senderId;
+
+  private long receiverId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(columnDefinition = "varchar(50)")
+  private LikeLevel level;
+
+  private Like(long senderId, long receiverId, @NonNull LikeLevel level) {
+    this.senderId = senderId;
+    this.receiverId = receiverId;
+    this.level = level;
+  }
+
+  public static Like of(long senderId, long receiverId, LikeLevel level) {
+    return new Like(senderId, receiverId, level);
+  }
+}

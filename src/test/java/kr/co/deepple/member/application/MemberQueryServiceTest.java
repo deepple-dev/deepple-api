@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
+import kr.co.deepple.community.domain.ProfileExchangeStatus;
 import kr.co.deepple.member.adapter.out.persistence.MemberQueryRepository;
 import kr.co.deepple.member.adapter.out.persistence.ProfileImageQueryRepository;
 import kr.co.deepple.member.application.dto.BasicMemberInfo;

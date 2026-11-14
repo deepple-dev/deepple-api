@@ -5,8 +5,8 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.HashSet;
 import java.util.Set;
-import kr.co.deepple.admin.command.domain.warning.Warning;
-import kr.co.deepple.admin.command.domain.warning.WarningReasonType;
+import kr.co.deepple.admin.domain.Warning;
+import kr.co.deepple.admin.domain.WarningReasonType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

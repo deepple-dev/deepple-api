@@ -3,9 +3,9 @@ package kr.co.deepple.admin.fixture;
 import static org.springframework.beans.BeanUtils.instantiateClass;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.admin.command.domain.screening.RejectionReasonType;
-import kr.co.deepple.admin.command.domain.screening.Screening;
-import kr.co.deepple.admin.command.domain.screening.ScreeningStatus;
+import kr.co.deepple.admin.domain.RejectionReasonType;
+import kr.co.deepple.admin.domain.Screening;
+import kr.co.deepple.admin.domain.ScreeningStatus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

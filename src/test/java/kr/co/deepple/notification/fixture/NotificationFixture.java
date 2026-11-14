@@ -3,10 +3,10 @@ package kr.co.deepple.notification.fixture;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
-import kr.co.deepple.notification.command.domain.Notification;
-import kr.co.deepple.notification.command.domain.NotificationStatus;
-import kr.co.deepple.notification.command.domain.NotificationType;
-import kr.co.deepple.notification.command.domain.SenderType;
+import kr.co.deepple.notification.domain.Notification;
+import kr.co.deepple.notification.domain.NotificationStatus;
+import kr.co.deepple.notification.domain.NotificationType;
+import kr.co.deepple.notification.domain.SenderType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,8 +1,8 @@
 package kr.co.deepple.member.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.deepple.match.command.domain.match.MatchContactType;
-import kr.co.deepple.match.command.domain.match.MatchStatus;
+import kr.co.deepple.match.domain.MatchContactType;
+import kr.co.deepple.match.domain.MatchStatus;
 
 public record MatchInfo(
     Long matchId,

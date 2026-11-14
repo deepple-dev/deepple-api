@@ -3,8 +3,8 @@ package kr.co.deepple.community.fixture;
 import static org.springframework.beans.BeanUtils.instantiateClass;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.community.command.domain.profileexchange.ProfileExchange;
-import kr.co.deepple.community.command.domain.profileexchange.ProfileExchangeStatus;
+import kr.co.deepple.community.domain.ProfileExchange;
+import kr.co.deepple.community.domain.ProfileExchangeStatus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

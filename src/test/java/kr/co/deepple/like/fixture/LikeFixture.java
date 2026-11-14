@@ -2,8 +2,8 @@ package kr.co.deepple.like.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.like.command.domain.Like;
-import kr.co.deepple.like.command.domain.LikeLevel;
+import kr.co.deepple.like.domain.Like;
+import kr.co.deepple.like.domain.LikeLevel;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

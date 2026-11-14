@@ -4,12 +4,12 @@ import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.set;
 import static com.querydsl.core.types.dsl.Expressions.constant;
 import static com.querydsl.core.types.dsl.Expressions.enumPath;
-import static kr.co.deepple.admin.command.domain.warning.QWarning.warning;
-import static kr.co.deepple.interview.command.domain.answer.QInterviewAnswer.interviewAnswer;
-import static kr.co.deepple.interview.command.domain.question.QInterviewQuestion.interviewQuestion;
+import static kr.co.deepple.admin.domain.QWarning.warning;
+import static kr.co.deepple.interview.domain.QInterviewAnswer.interviewAnswer;
+import static kr.co.deepple.interview.domain.QInterviewQuestion.interviewQuestion;
 import static kr.co.deepple.member.domain.QMember.member;
 import static kr.co.deepple.member.domain.QProfileImage.profileImage;
-import static kr.co.deepple.notification.command.domain.QNotificationPreference.notificationPreference;
+import static kr.co.deepple.notification.domain.QNotificationPreference.notificationPreference;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;

@@ -1,13 +1,13 @@
 ---
 paths:
-  - "src/main/java/**/infra/**/*.java"
+  - "src/main/java/**/common/infra/**/*.java"
   - "src/main/java/**/adapter/**/*.java"
   - "src/main/java/**/common/config/**/*.java"
 ---
 
 # 외부 API 연동 (Resilience)
 
-외부 시스템 장애가 내부로 번지지 않게 한다(예시: `notification/command/infra/FcmResilienceConfig.java`).
+외부 시스템 장애가 내부로 번지지 않게 한다(예시: `notification/adapter/out/fcm/FcmResilienceConfig.java`).
 
 ## 필수
 

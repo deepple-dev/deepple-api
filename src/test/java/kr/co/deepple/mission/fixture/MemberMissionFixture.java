@@ -2,7 +2,7 @@ package kr.co.deepple.mission.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.mission.command.domain.memberMission.MemberMission;
+import kr.co.deepple.mission.domain.MemberMission;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
