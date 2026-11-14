@@ -3,6 +3,7 @@ package kr.co.deepple.member.presentation.member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.deepple.auth.adapter.in.web.RefreshTokenCookies;
+import kr.co.deepple.auth.application.port.in.LogoutMemberUseCase;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.member.command.application.member.MemberAuthService;
 import kr.co.deepple.member.command.application.member.MemberContactService;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +39,7 @@ public class MemberController {
   private final MemberProfileService memberProfileService;
   private final MemberQueryService memberQueryService;
   private final MemberAuthService memberAuthService;
+  private final LogoutMemberUseCase logoutMemberUseCase;
   private final RefreshTokenCookies refreshTokenCookies;
 
   @Operation(summary = "프로필 정보 업데이트 API")
@@ -67,13 +70,25 @@ public class MemberController {
     return ResponseEntity.ok(memberQueryService.getMemberProfile(memberId, otherMemberId));
   }
 
+  @Operation(summary = "멤버 탈퇴")
+  @DeleteMapping
+  public ResponseEntity<Void> delete(@CurrentMemberId long memberId) {
+    memberAuthService.delete(memberId);
+
+    HttpHeaders headers = new HttpHeaders();
+    ResponseCookie deleteCookie = refreshTokenCookies.expire();
+    headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+    return ResponseEntity.noContent().headers(headers).build();
+  }
+
   @Operation(summary = "휴면 계정 전환 API")
   @PostMapping("/profile/dormant")
   public ResponseEntity<Void> deactivate(
       @CurrentMemberId long memberId,
       @CookieValue(value = "refresh_token", required = false) String refreshToken) {
     memberProfileService.deactivate(memberId);
-    memberAuthService.logout(memberId, refreshToken);
+    logoutMemberUseCase.logout(memberId, refreshToken);
 
     HttpHeaders headers = new HttpHeaders();
     ResponseCookie deleteCookie = refreshTokenCookies.expire();

@@ -1,9 +1,9 @@
 package kr.co.deepple.common.support;
 
+import kr.co.deepple.auth.application.port.out.AuthMessageRepository;
 import kr.co.deepple.auth.application.port.out.RefreshTokenRepository;
 import kr.co.deepple.common.config.MySqlContainerConfig;
 import kr.co.deepple.common.config.QueryDslConfig;
-import kr.co.deepple.member.command.infra.member.AuthMessageRedisRepository;
 import kr.co.deepple.member.query.introduction.intra.IntroductionRedisRepository;
 import kr.co.deepple.member.query.introduction.intra.PersonalityIntroductionRedisRepository;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
             type = FilterType.ASSIGNABLE_TYPE,
             classes = {
               RefreshTokenRepository.class,
-              AuthMessageRedisRepository.class,
+              AuthMessageRepository.class,
               IntroductionRedisRepository.class,
               PersonalityIntroductionRedisRepository.class
             }))

@@ -24,10 +24,10 @@ class MemberTest {
     String phoneNumber = "01012345678";
 
     // When
-    Member member = Member.fromPhoneNumber(phoneNumber);
+    Member member = Member.register(1L, phoneNumber);
 
     // Then
-    Assertions.assertThat(member).isNotNull();
+    Assertions.assertThat(member.getId()).isEqualTo(1L);
     Assertions.assertThat(member.isProfileSettingNeeded()).isTrue();
     Assertions.assertThat(member.getPhoneNumber()).isEqualTo(phoneNumber);
     Assertions.assertThat(member.getPrimaryContactType()).isEqualTo(PrimaryContactType.NONE);

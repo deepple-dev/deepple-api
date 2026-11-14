@@ -8,6 +8,8 @@ import java.util.Set;
 public interface MemberCommandRepository {
   Member save(Member member);
 
+  Member saveAndFlush(Member member);
+
   Optional<Member> findById(long id);
 
   Optional<Member> findByIdForUpdate(long id);

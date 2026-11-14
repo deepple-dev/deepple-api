@@ -28,6 +28,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberFixture {
 
+  private static final AtomicLong ID_SEQUENCE = new AtomicLong(1_000_000L);
   private static final AtomicLong PHONE_NUMBER_SEQUENCE = new AtomicLong();
 
   private Long id;
@@ -122,7 +123,7 @@ public class MemberFixture {
 
   public Member build() {
     return Member.builder()
-        .id(id)
+        .id(id == null ? ID_SEQUENCE.incrementAndGet() : id)
         .phoneNumber(PhoneNumber.from(phoneNumber == null ? nextPhoneNumber() : phoneNumber))
         .kakaoId(kakaoId == null ? null : KakaoId.from(kakaoId))
         .profile(withoutProfile ? null : profile.build())

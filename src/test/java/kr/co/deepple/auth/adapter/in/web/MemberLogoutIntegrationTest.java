@@ -1,0 +1,64 @@
+package kr.co.deepple.auth.adapter.in.web;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+import java.time.Duration;
+import java.time.Instant;
+import kr.co.deepple.auth.application.port.out.TokenProvider;
+import kr.co.deepple.common.enums.Role;
+import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.notification.command.domain.DeviceRegistration;
+import kr.co.deepple.notification.command.domain.DeviceRegistrationCommandRepository;
+import kr.co.deepple.notification.fixture.DeviceRegistrationFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
+
+class MemberLogoutIntegrationTest extends IntegrationTestSupport {
+
+  private static final long MEMBER_ID = 9001L;
+
+  @Autowired private MockMvcTester mockMvc;
+
+  @Autowired private TokenProvider tokenProvider;
+
+  @Autowired private DeviceRegistrationCommandRepository deviceRegistrationCommandRepository;
+
+  @AfterEach
+  void tearDown() {
+    deviceRegistrationCommandRepository.deleteAll();
+  }
+
+  @Test
+  @DisplayName("로그아웃하면 회원의 기기 등록이 비활성화된다.")
+  void deactivateDeviceRegistrationOnLogout() {
+    DeviceRegistration deviceRegistration =
+        DeviceRegistrationFixture.builder()
+            .memberId(MEMBER_ID)
+            .deviceId("device-id")
+            .registrationToken("fcm-token")
+            .build();
+    deviceRegistrationCommandRepository.save(deviceRegistration);
+    String accessToken = tokenProvider.createAccessToken(MEMBER_ID, Role.MEMBER, Instant.now());
+
+    MvcTestResult result =
+        mockMvc
+            .get()
+            .uri("/member/logout")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .exchange();
+
+    assertThat(result).hasStatus(HttpStatus.NO_CONTENT);
+    await()
+        .atMost(Duration.ofSeconds(5))
+        .untilAsserted(() ->
+            assertThat(deviceRegistrationCommandRepository.findByMemberIdAndIsActiveTrue(MEMBER_ID))
+                .isEmpty());
+  }
+}
