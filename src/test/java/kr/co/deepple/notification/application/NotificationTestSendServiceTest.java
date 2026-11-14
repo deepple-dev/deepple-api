@@ -1,0 +1,70 @@
+package kr.co.deepple.notification.application;
+
+import static kr.co.deepple.notification.domain.NotificationType.LIKE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+
+import java.util.Map;
+import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.dto.NotificationTestSendRequest;
+import kr.co.deepple.notification.domain.ChannelType;
+import kr.co.deepple.notification.domain.SenderType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class NotificationTestSendServiceTest {
+
+  @Mock private NotificationSendService notificationSendService;
+
+  @InjectMocks private NotificationTestSendService notificationTestSendService;
+
+  @Test
+  @DisplayName("send(): 생략한 값은 본인·MEMBER·빈 파라미터로 발송")
+  void sendWithDefaults() {
+    // given
+    long memberId = 1L;
+    var request = new NotificationTestSendRequest(LIKE, null, null, null, null);
+
+    // when
+    notificationTestSendService.send(memberId, request);
+
+    // then
+    var sent = captureSentRequest();
+    assertThat(sent.senderType()).isEqualTo(SenderType.MEMBER);
+    assertThat(sent.senderId()).isEqualTo(memberId);
+    assertThat(sent.receiverId()).isEqualTo(memberId);
+    assertThat(sent.notificationType()).isEqualTo(LIKE);
+    assertThat(sent.params()).isEmpty();
+    assertThat(sent.channelType()).isEqualTo(ChannelType.PUSH);
+  }
+
+  @Test
+  @DisplayName("send(): 지정한 값으로 발송")
+  void sendWithGivenValues() {
+    // given
+    var params = Map.of("senderName", "테스트");
+    var request = new NotificationTestSendRequest(LIKE, 2L, SenderType.ADMIN, 3L, params);
+
+    // when
+    notificationTestSendService.send(1L, request);
+
+    // then
+    var sent = captureSentRequest();
+    assertThat(sent.senderType()).isEqualTo(SenderType.ADMIN);
+    assertThat(sent.senderId()).isEqualTo(3L);
+    assertThat(sent.receiverId()).isEqualTo(2L);
+    assertThat(sent.params()).isEqualTo(params);
+  }
+
+  private NotificationSendRequest captureSentRequest() {
+    var captor = ArgumentCaptor.forClass(NotificationSendRequest.class);
+    verify(notificationSendService).send(captor.capture());
+    return captor.getValue();
+  }
+}

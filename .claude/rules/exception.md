@@ -17,7 +17,7 @@ paths:
 
 ## ErrorCode
 
-- 도메인마다 `XxxErrorCode` enum이 `ErrorCode`를 구현한다. CQRS 도메인은 `command/domain`, 헥사고날 도메인은 `domain`에 둔다.
+- 도메인마다 `XxxErrorCode` enum이 `ErrorCode`를 구현한다. 도메인의 `domain` 패키지에 둔다.
 - enum 이름이 응답 `code`다. 클라이언트가 분기에 쓰는 API 계약이므로 이미 있는 이름은 바꾸지 않는다.
 - `ErrorType`은 `google.rpc.Code`의 의미대로 고른다(예: 잘못된 입력 `INVALID_ARGUMENT`, 상태가 맞지 않음 `FAILED_PRECONDITION`, 중복 `ALREADY_EXISTS`, 권한 없음 `PERMISSION_DENIED`, 외부 연동 실패 `UNAVAILABLE`). HTTP 상태는 `GlobalExceptionHandler`가 매핑하므로 도메인에서 HTTP를 다루지 않는다.
 - message는 클라이언트에 그대로 나가는 고정 문구다. ID 같은 요청별 값은 넣지 않는다.

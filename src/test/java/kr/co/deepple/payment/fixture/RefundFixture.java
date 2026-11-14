@@ -4,10 +4,10 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
-import kr.co.deepple.payment.command.domain.order.PaymentMethod;
-import kr.co.deepple.payment.command.domain.refund.NotificationType;
-import kr.co.deepple.payment.command.domain.refund.Refund;
-import kr.co.deepple.payment.command.domain.refund.RefundDetail;
+import kr.co.deepple.payment.domain.NotificationType;
+import kr.co.deepple.payment.domain.PaymentMethod;
+import kr.co.deepple.payment.domain.Refund;
+import kr.co.deepple.payment.domain.RefundDetail;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -3,7 +3,7 @@ package kr.co.deepple.recommendation.application.dto;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-import kr.co.deepple.like.command.domain.LikeLevel;
+import kr.co.deepple.like.domain.LikeLevel;
 import kr.co.deepple.member.domain.City;
 import kr.co.deepple.member.domain.District;
 import kr.co.deepple.member.domain.Hobby;

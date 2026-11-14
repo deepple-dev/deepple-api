@@ -4,9 +4,9 @@ import static org.springframework.beans.BeanUtils.instantiateClass;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.Instant;
-import kr.co.deepple.admin.command.domain.suspension.Suspension;
-import kr.co.deepple.admin.command.domain.suspension.SuspensionPolicy;
-import kr.co.deepple.admin.command.domain.suspension.SuspensionStatus;
+import kr.co.deepple.admin.domain.Suspension;
+import kr.co.deepple.admin.domain.SuspensionPolicy;
+import kr.co.deepple.admin.domain.SuspensionStatus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

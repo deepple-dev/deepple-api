@@ -2,8 +2,8 @@ package kr.co.deepple.interview.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.interview.command.domain.question.InterviewCategory;
-import kr.co.deepple.interview.command.domain.question.InterviewQuestion;
+import kr.co.deepple.interview.domain.InterviewCategory;
+import kr.co.deepple.interview.domain.InterviewQuestion;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

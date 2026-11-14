@@ -3,9 +3,9 @@ package kr.co.deepple.report.fixture;
 import static org.springframework.beans.BeanUtils.instantiateClass;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.report.command.domain.Report;
-import kr.co.deepple.report.command.domain.ReportReasonType;
-import kr.co.deepple.report.command.domain.ReportResult;
+import kr.co.deepple.report.domain.Report;
+import kr.co.deepple.report.domain.ReportReasonType;
+import kr.co.deepple.report.domain.ReportResult;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

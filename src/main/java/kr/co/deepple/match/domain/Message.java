@@ -1,0 +1,33 @@
+package kr.co.deepple.match.domain;
+
+import jakarta.persistence.Embeddable;
+import kr.co.deepple.common.exception.DeeppleException;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+
+@Embeddable
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
+public class Message {
+
+  private static final int MAX_LENGTH = 200;
+
+  private String value;
+
+  private Message(@NonNull String value) {
+    if (value.trim().isEmpty()) {
+      throw new DeeppleException(MatchErrorCode.INVALID_MATCH_MESSAGE);
+    }
+    int length = value.codePointCount(0, value.length());
+    if (length > MAX_LENGTH) {
+      throw new DeeppleException(MatchErrorCode.MATCH_MESSAGE_TOO_LONG, "length=" + length);
+    }
+    this.value = value;
+  }
+
+  public static Message from(String message) {
+    return new Message(message);
+  }
+}

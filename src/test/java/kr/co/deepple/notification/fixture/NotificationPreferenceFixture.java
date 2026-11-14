@@ -2,7 +2,7 @@ package kr.co.deepple.notification.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.notification.command.domain.NotificationPreference;
+import kr.co.deepple.notification.domain.NotificationPreference;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

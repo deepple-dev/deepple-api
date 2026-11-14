@@ -4,10 +4,10 @@ import static org.springframework.beans.BeanUtils.instantiateClass;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
-import kr.co.deepple.match.command.domain.match.Match;
-import kr.co.deepple.match.command.domain.match.MatchContactType;
-import kr.co.deepple.match.command.domain.match.MatchStatus;
-import kr.co.deepple.match.command.domain.match.vo.Message;
+import kr.co.deepple.match.domain.Match;
+import kr.co.deepple.match.domain.MatchContactType;
+import kr.co.deepple.match.domain.MatchStatus;
+import kr.co.deepple.match.domain.Message;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

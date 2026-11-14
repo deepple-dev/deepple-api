@@ -2,7 +2,7 @@ package kr.co.deepple.member.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.co.deepple.admin.command.application.screening.ScreeningService;
+import kr.co.deepple.admin.application.ScreeningService;
 import kr.co.deepple.common.security.CurrentMemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -3,9 +3,9 @@ package kr.co.deepple.payment.fixture;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.concurrent.atomic.AtomicLong;
-import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseAmount;
-import kr.co.deepple.payment.command.domain.heartpurchaseoption.HeartPurchaseOption;
-import kr.co.deepple.payment.command.domain.heartpurchaseoption.Price;
+import kr.co.deepple.payment.domain.HeartPurchaseAmount;
+import kr.co.deepple.payment.domain.HeartPurchaseOption;
+import kr.co.deepple.payment.domain.Price;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
