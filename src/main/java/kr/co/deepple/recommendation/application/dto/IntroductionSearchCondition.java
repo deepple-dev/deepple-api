@@ -3,6 +3,7 @@ package kr.co.deepple.recommendation.application.dto;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import kr.co.deepple.member.application.port.in.MemberSearchCondition;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
@@ -13,7 +14,6 @@ import lombok.NonNull;
 public class IntroductionSearchCondition {
 
   private static final Integer TODAY_CARD_AGE_DEFAULT_RANGE = 3;
-  private static final String ACTIVE = "ACTIVE";
 
   private final Set<Long> excludedMemberIds;
   private final Integer minAge;
@@ -26,7 +26,6 @@ public class IntroductionSearchCondition {
   private final String memberGrade;
   private final String gender;
   private final LocalDateTime joinedAfter;
-  private final String activityStatus = ACTIVE;
 
   private IntroductionSearchCondition(
       Set<Long> excludedMemberIds,
@@ -199,6 +198,21 @@ public class IntroductionSearchCondition {
       String gender,
       LocalDateTime joinedAfter) {
     return new IntroductionSearchCondition(
+        excludedMemberIds,
+        minAge,
+        maxAge,
+        hobbies,
+        cities,
+        religion,
+        smokingStatus,
+        drinkingStatus,
+        memberGrade,
+        gender,
+        joinedAfter);
+  }
+
+  public MemberSearchCondition toMemberSearchCondition() {
+    return new MemberSearchCondition(
         excludedMemberIds,
         minAge,
         maxAge,

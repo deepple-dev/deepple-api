@@ -2,6 +2,7 @@ package kr.co.deepple.like.application.port.out;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeLevel;
@@ -36,5 +37,20 @@ class LikeCommandRepositoryTest extends RepositoryTestSupport {
           assertThat(found.getLevel()).isEqualTo(LikeLevel.HIGHLY_INTERESTED);
         });
     assertThat(likeCommandRepository.findBySenderIdAndReceiverId(2L, 1L)).isEmpty();
+  }
+
+  @Test
+  @DisplayName("보낸 회원과 받은 회원 목록으로 좋아요를 찾고, 목록 밖이나 다른 회원이 보낸 좋아요는 찾지 않는다.")
+  void findAllBySenderIdAndReceiverIdIn() {
+    Like first = em.persist(LikeFixture.builder().senderId(1L).receiverId(2L).build());
+    Like second = em.persist(LikeFixture.builder().senderId(1L).receiverId(3L).build());
+    em.persist(LikeFixture.builder().senderId(1L).receiverId(4L).build());
+    em.persist(LikeFixture.builder().senderId(5L).receiverId(2L).build());
+    em.flush();
+    em.clear();
+
+    assertThat(likeCommandRepository.findAllBySenderIdAndReceiverIdIn(1L, List.of(2L, 3L, 9L)))
+        .extracting(Like::getId)
+        .containsExactlyInAnyOrder(first.getId(), second.getId());
   }
 }

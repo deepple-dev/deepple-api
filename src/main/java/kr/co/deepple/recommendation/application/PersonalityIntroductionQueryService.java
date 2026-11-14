@@ -9,6 +9,7 @@ import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
 import kr.co.deepple.datingexam.application.port.in.ValidatePersonalityTypeUseCase;
+import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
@@ -28,6 +29,7 @@ public class PersonalityIntroductionQueryService {
   private final ValidatePersonalityTypeUseCase validatePersonalityTypeUseCase;
   private final IntroductionQueryService introductionQueryService;
   private final IntroductionQueryRepository introductionQueryRepository;
+  private final FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
   private final PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
 
   /**
@@ -78,8 +80,7 @@ public class PersonalityIntroductionQueryService {
 
   private Set<Long> findExcludedMemberIds(long memberId) {
     Set<Long> excludedMemberIds = new HashSet<>();
-    excludedMemberIds.addAll(introductionQueryRepository.findAllMatchRequestedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllMatchRequestingMemberId(memberId));
+    excludedMemberIds.addAll(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId));
     excludedMemberIds.addAll(introductionQueryRepository.findAllIntroducedMemberId(memberId));
     return excludedMemberIds;
   }

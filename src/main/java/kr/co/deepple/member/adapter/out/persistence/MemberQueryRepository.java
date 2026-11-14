@@ -18,7 +18,9 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +42,7 @@ import kr.co.deepple.member.application.dto.QOtherMemberProfileView;
 import kr.co.deepple.member.application.dto.QProfileAccessView;
 import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.application.port.in.MemberProfileSummary;
+import kr.co.deepple.member.application.port.in.MemberSearchCondition;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.AgeConverter;
 import kr.co.deepple.member.domain.Gender;
@@ -384,5 +387,105 @@ public class MemberQueryRepository {
             member.id.ne(excludedMemberId))
         .orderBy(member.id.desc())
         .fetch();
+  }
+
+  public Set<Long> searchIntroducibleIds(MemberSearchCondition condition, long limit) {
+    JPAQuery<Long> query =
+        queryFactory
+            .select(member.id)
+            .from(member)
+            .where(
+                idNotIn(condition.excludedMemberIds()),
+                ageBetween(condition.minAge(), condition.maxAge()),
+                cityIn(condition.cities()),
+                religionEq(condition.religion()),
+                smokingStatusEq(condition.smokingStatus()),
+                drinkingStatusEq(condition.drinkingStatus()),
+                gradeEq(condition.grade()),
+                genderEq(condition.gender()),
+                createdAtGoe(condition.joinedAfter()),
+                member.activityStatus.eq(ActivityStatus.ACTIVE),
+                member.isProfilePublic.isTrue())
+            .orderBy(member.id.desc())
+            .limit(limit);
+
+    if (condition.hobbies() != null && !condition.hobbies().isEmpty()) {
+      EnumPath<Hobby> hobby = enumPath(Hobby.class, "hobbyAlias");
+      query
+          .join(member.profile.hobbies, hobby)
+          .where(hobby.stringValue().in(condition.hobbies()))
+          .distinct();
+    }
+    return new HashSet<>(query.fetch());
+  }
+
+  private BooleanExpression idNotIn(Set<Long> memberIds) {
+    if (memberIds == null || memberIds.isEmpty()) {
+      return null;
+    }
+    return member.id.notIn(memberIds);
+  }
+
+  private BooleanExpression ageBetween(Integer minAge, Integer maxAge) {
+    if (minAge == null && maxAge == null) {
+      return null;
+    }
+    if (minAge == null) {
+      return member.profile.yearOfBirth.value.goe(AgeConverter.toYearOfBirth(maxAge));
+    }
+    if (maxAge == null) {
+      return member.profile.yearOfBirth.value.loe(AgeConverter.toYearOfBirth(minAge));
+    }
+    return member.profile.yearOfBirth.value.between(
+        AgeConverter.toYearOfBirth(maxAge), AgeConverter.toYearOfBirth(minAge));
+  }
+
+  private BooleanExpression cityIn(Set<String> cities) {
+    if (cities == null || cities.isEmpty()) {
+      return null;
+    }
+    return member.profile.region.city.stringValue().in(cities);
+  }
+
+  private BooleanExpression religionEq(String religion) {
+    if (religion == null) {
+      return null;
+    }
+    return member.profile.religion.stringValue().eq(religion);
+  }
+
+  private BooleanExpression smokingStatusEq(String smokingStatus) {
+    if (smokingStatus == null) {
+      return null;
+    }
+    return member.profile.smokingStatus.stringValue().eq(smokingStatus);
+  }
+
+  private BooleanExpression drinkingStatusEq(String drinkingStatus) {
+    if (drinkingStatus == null) {
+      return null;
+    }
+    return member.profile.drinkingStatus.stringValue().eq(drinkingStatus);
+  }
+
+  private BooleanExpression gradeEq(String grade) {
+    if (grade == null) {
+      return null;
+    }
+    return member.grade.stringValue().eq(grade);
+  }
+
+  private BooleanExpression genderEq(String gender) {
+    if (gender == null) {
+      return null;
+    }
+    return member.profile.gender.stringValue().eq(gender);
+  }
+
+  private BooleanExpression createdAtGoe(LocalDateTime createdAt) {
+    if (createdAt == null) {
+      return null;
+    }
+    return member.createdAt.goe(createdAt);
   }
 }

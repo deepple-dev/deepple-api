@@ -4,15 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import kr.co.deepple.block.application.port.in.FindBlockedMemberIdsUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.MemberSearchCondition;
 import kr.co.deepple.member.application.port.in.MemberSummary;
+import kr.co.deepple.member.application.port.in.SearchIntroducibleMemberIdsUseCase;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
@@ -48,28 +54,27 @@ class TodayCardMemberIdFetcherTest {
 
   @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
 
+  @Mock private SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
+
+  @Mock private FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
+
+  @Mock private FindBlockedMemberIdsUseCase findBlockedMemberIdsUseCase;
+
   private Set<Long> getExcludedMemberIds(Long memberId) {
-    Set<Long> matchedRequestedMemberIds = Set.of(memberId, 12L);
-    when(introductionQueryRepository.findAllMatchRequestedMemberId(memberId))
-        .thenReturn(matchedRequestedMemberIds);
-    Set<Long> matchedRequestingMemberIds = Set.of(memberId, 12L);
-    when(introductionQueryRepository.findAllMatchRequestingMemberId(memberId))
-        .thenReturn(matchedRequestingMemberIds);
+    Set<Long> matchCounterpartIds = Set.of(memberId, 12L);
+    when(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId))
+        .thenReturn(matchCounterpartIds);
     Set<Long> introducedMemberIds = Set.of(memberId, 13L);
     when(introductionQueryRepository.findAllIntroducedMemberId(memberId))
         .thenReturn(introducedMemberIds);
-    Set<Long> blockedMemberIds = Set.of(memberId, 14L);
-    when(introductionQueryRepository.findAllBlockedMemberId(memberId)).thenReturn(blockedMemberIds);
-    Set<Long> blockingMemberIds = Set.of(memberId, 15L);
-    when(introductionQueryRepository.findAllBlockingMemberId(memberId))
-        .thenReturn(blockingMemberIds);
+    Set<Long> blockRelatedMemberIds = Set.of(memberId, 14L, 15L);
+    when(findBlockedMemberIdsUseCase.findBlockRelatedMemberIds(memberId))
+        .thenReturn(blockRelatedMemberIds);
 
     Set<Long> excludedMemberIds = new HashSet<>(Set.of(memberId));
-    excludedMemberIds.addAll(matchedRequestedMemberIds);
-    excludedMemberIds.addAll(matchedRequestingMemberIds);
+    excludedMemberIds.addAll(matchCounterpartIds);
     excludedMemberIds.addAll(introducedMemberIds);
-    excludedMemberIds.addAll(blockedMemberIds);
-    excludedMemberIds.addAll(blockingMemberIds);
+    excludedMemberIds.addAll(blockRelatedMemberIds);
 
     return excludedMemberIds;
   }
@@ -161,7 +166,9 @@ class TodayCardMemberIdFetcherTest {
               IntroductionSearchCondition.ofTodayCardDefault(excludedMemberIds, "FEMALE", member))
           .thenReturn(condition);
       Set<Long> expectedIntroducedMemberId = Set.of(2L, 3L, 4L);
-      when(introductionQueryRepository.findAllIntroductionMemberId(condition, MALE_LIMIT))
+      MemberSearchCondition memberSearchCondition = memberSearchCondition(1L);
+      when(condition.toMemberSearchCondition()).thenReturn(memberSearchCondition);
+      when(searchIntroducibleMemberIdsUseCase.searchMemberIds(memberSearchCondition, MALE_LIMIT))
           .thenReturn(expectedIntroducedMemberId);
 
       // when
@@ -217,18 +224,37 @@ class TodayCardMemberIdFetcherTest {
           .thenReturn(combinationConditions);
 
       Set<Long> expectedIntroducedMemberId = Set.of(2L, 3L, 4L);
-      when(introductionQueryRepository.findAllIntroductionMemberId(
-              combinationCondition1, MALE_LIMIT))
+      MemberSearchCondition memberSearchCondition1 = memberSearchCondition(1L);
+      MemberSearchCondition memberSearchCondition2 = memberSearchCondition(2L);
+      when(combinationCondition1.toMemberSearchCondition()).thenReturn(memberSearchCondition1);
+      when(combinationCondition2.toMemberSearchCondition()).thenReturn(memberSearchCondition2);
+      when(searchIntroducibleMemberIdsUseCase.searchMemberIds(memberSearchCondition1, MALE_LIMIT))
           .thenReturn(Set.of(2L));
-      when(introductionQueryRepository.findAllIntroductionMemberId(
-              combinationCondition2, MALE_LIMIT - 1))
+      when(searchIntroducibleMemberIdsUseCase.searchMemberIds(
+              memberSearchCondition2, MALE_LIMIT - 1))
           .thenReturn(Set.of(3L, 4L));
 
       // when
       Set<Long> result = todayCardMemberIdFetcher.fetch(memberId, cacheKeyPrefix);
 
       // then
-      assertThat(result).containsAll(expectedIntroducedMemberId);
+      assertThat(result).containsExactlyInAnyOrderElementsOf(expectedIntroducedMemberId);
+      verify(combinationCondition3, never()).toMemberSearchCondition();
     }
+  }
+
+  private MemberSearchCondition memberSearchCondition(long excludedMemberId) {
+    return new MemberSearchCondition(
+        Set.of(excludedMemberId),
+        null,
+        null,
+        Set.of(),
+        Set.of(),
+        null,
+        null,
+        null,
+        null,
+        "FEMALE",
+        null);
   }
 }

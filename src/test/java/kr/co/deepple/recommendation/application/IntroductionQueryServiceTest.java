@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,9 +18,7 @@ import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
-import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
@@ -33,7 +30,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,7 +37,7 @@ class IntroductionQueryServiceTest {
 
   @InjectMocks private IntroductionQueryService introductionQueryService;
 
-  @Mock private IntroductionQueryRepository introductionQueryRepository;
+  @Mock private MemberIntroductionProfileViewAssembler memberIntroductionProfileViewAssembler;
 
   @Mock private IntroductionMemberIdFetcher introductionMemberIdFetcher;
 
@@ -66,24 +62,17 @@ class IntroductionQueryServiceTest {
             ArgumentMatchers
                 .<IntroductionMemberIdFetcher.IntroductionConditionSupplier<String>>any()))
         .thenReturn(introductionMemberIds);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults = List.of();
-    when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds))
-        .thenReturn(memberIntroductionProfileQueryResults);
-    List<MemberIntroductionProfileView> expectedResult = List.of();
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(11L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds))
+        .thenReturn(assembledViews);
 
-    // when && then
-    try (MockedStatic<MemberIntroductionProfileViewMapper> mockedStatic =
-        mockStatic(MemberIntroductionProfileViewMapper.class)) {
-      mockedStatic
-          .when(() ->
-              MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-                  memberIntroductionProfileQueryResults))
-          .thenReturn(expectedResult);
-      List<MemberIntroductionProfileView> result =
-          introductionQueryService.findDiamondGradeIntroductions(memberId);
-      assertThat(result).isEqualTo(expectedResult);
-    }
+    // when
+    List<MemberIntroductionProfileView> result =
+        introductionQueryService.findDiamondGradeIntroductions(memberId);
+
+    // then
+    assertThat(result).isEqualTo(assembledViews);
   }
 
   @Test
@@ -98,24 +87,18 @@ class IntroductionQueryServiceTest {
             isNull(),
             ArgumentMatchers.<IntroductionMemberIdFetcher.IntroductionConditionSupplier<Set>>any()))
         .thenReturn(introductionMemberIds);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults = List.of();
-    when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds))
-        .thenReturn(memberIntroductionProfileQueryResults);
-    List<MemberIntroductionProfileView> expectedResult = List.of();
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(11L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds))
+        .thenReturn(assembledViews);
 
-    // when && then
-    try (MockedStatic<MemberIntroductionProfileViewMapper> mockedStatic =
-        mockStatic(MemberIntroductionProfileViewMapper.class)) {
-      mockedStatic
-          .when(() ->
-              MemberIntroductionProfileViewMapper.mapWithSameHobbyTag(
-                  memberIntroductionProfileQueryResults))
-          .thenReturn(expectedResult);
-      List<MemberIntroductionProfileView> result =
-          introductionQueryService.findSameHobbyIntroductions(memberId);
-      assertThat(result).isEqualTo(expectedResult);
-    }
+    // when
+    List<MemberIntroductionProfileView> result =
+        introductionQueryService.findSameHobbyIntroductions(memberId);
+
+    // then
+    assertThat(result)
+        .isEqualTo(List.of(view(11L, List.of(), "BUDDHIST"), view(2L, List.of(), "NONE")));
   }
 
   @Test
@@ -131,24 +114,18 @@ class IntroductionQueryServiceTest {
             ArgumentMatchers
                 .<IntroductionMemberIdFetcher.IntroductionConditionSupplier<String>>any()))
         .thenReturn(introductionMemberIds);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults = List.of();
-    when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds))
-        .thenReturn(memberIntroductionProfileQueryResults);
-    List<MemberIntroductionProfileView> expectedResult = List.of();
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(11L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds))
+        .thenReturn(assembledViews);
 
-    // when && then
-    try (MockedStatic<MemberIntroductionProfileViewMapper> mockedStatic =
-        mockStatic(MemberIntroductionProfileViewMapper.class)) {
-      mockedStatic
-          .when(() ->
-              MemberIntroductionProfileViewMapper.mapWithSameReligionTag(
-                  memberIntroductionProfileQueryResults))
-          .thenReturn(expectedResult);
-      List<MemberIntroductionProfileView> result =
-          introductionQueryService.findSameReligionIntroductions(memberId);
-      assertThat(result).isEqualTo(expectedResult);
-    }
+    // when
+    List<MemberIntroductionProfileView> result =
+        introductionQueryService.findSameReligionIntroductions(memberId);
+
+    // then
+    assertThat(result)
+        .isEqualTo(List.of(view(11L, List.of("CAMPING"), null), view(2L, List.of("WINE"), null)));
   }
 
   @Test
@@ -164,24 +141,17 @@ class IntroductionQueryServiceTest {
             ArgumentMatchers
                 .<IntroductionMemberIdFetcher.IntroductionConditionSupplier<String>>any()))
         .thenReturn(introductionMemberIds);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults = List.of();
-    when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds))
-        .thenReturn(memberIntroductionProfileQueryResults);
-    List<MemberIntroductionProfileView> expectedResult = List.of();
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(11L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds))
+        .thenReturn(assembledViews);
 
-    // when && then
-    try (MockedStatic<MemberIntroductionProfileViewMapper> mockedStatic =
-        mockStatic(MemberIntroductionProfileViewMapper.class)) {
-      mockedStatic
-          .when(() ->
-              MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-                  memberIntroductionProfileQueryResults))
-          .thenReturn(expectedResult);
-      List<MemberIntroductionProfileView> result =
-          introductionQueryService.findSameCityIntroductions(memberId);
-      assertThat(result).isEqualTo(expectedResult);
-    }
+    // when
+    List<MemberIntroductionProfileView> result =
+        introductionQueryService.findSameCityIntroductions(memberId);
+
+    // then
+    assertThat(result).isEqualTo(assembledViews);
   }
 
   @Test
@@ -197,24 +167,17 @@ class IntroductionQueryServiceTest {
             ArgumentMatchers
                 .<IntroductionMemberIdFetcher.IntroductionConditionSupplier<LocalDateTime>>any()))
         .thenReturn(introductionMemberIds);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults = List.of();
-    when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds))
-        .thenReturn(memberIntroductionProfileQueryResults);
-    List<MemberIntroductionProfileView> expectedResult = List.of();
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(11L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds))
+        .thenReturn(assembledViews);
 
-    // when && then
-    try (MockedStatic<MemberIntroductionProfileViewMapper> mockedStatic =
-        mockStatic(MemberIntroductionProfileViewMapper.class)) {
-      mockedStatic
-          .when(() ->
-              MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-                  memberIntroductionProfileQueryResults))
-          .thenReturn(expectedResult);
-      List<MemberIntroductionProfileView> result =
-          introductionQueryService.findRecentlyJoinedIntroductions(memberId);
-      assertThat(result).isEqualTo(expectedResult);
-    }
+    // when
+    List<MemberIntroductionProfileView> result =
+        introductionQueryService.findRecentlyJoinedIntroductions(memberId);
+
+    // then
+    assertThat(result).isEqualTo(assembledViews);
   }
 
   @Test
@@ -233,7 +196,6 @@ class IntroductionQueryServiceTest {
         supplierCaptor.getValue().get(Set.of(memberId), memberIdeal, member, "DIAMOND");
     assertThat(condition.getGender()).isEqualTo("FEMALE");
     assertThat(condition.getMemberGrade()).isEqualTo("DIAMOND");
-    assertThat(condition.getActivityStatus()).isEqualTo("ACTIVE");
   }
 
   @Test
@@ -310,16 +272,64 @@ class IntroductionQueryServiceTest {
     long memberId = 1L;
     Set<Long> soulmateIds = Set.of(2L, 3L);
     when(soulmateFinder.findSoulmateIds(memberId)).thenReturn(soulmateIds);
-    when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, soulmateIds))
-        .thenReturn(List.of());
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(3L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, soulmateIds))
+        .thenReturn(assembledViews);
 
     List<MemberIntroductionProfileView> result =
         introductionQueryService.findSoulmateIntroductions(memberId);
 
-    assertThat(result).isEmpty();
-    verify(introductionQueryRepository)
-        .findAllMemberIntroductionProfileQueryResultByMemberIds(memberId, soulmateIds);
+    assertThat(result).isEqualTo(assembledViews);
+  }
+
+  @Test
+  @DisplayName("이상형 소개는 이상형 조건으로 찾은 회원의 프로필을 조회한다.")
+  void findIdealIntroductionsTest() {
+    long memberId = 1L;
+    Set<Long> introductionMemberIds = Set.of(2L, 3L);
+    when(introductionMemberIdFetcher.fetch(
+            eq(memberId),
+            eq(IntroductionCacheKeyPrefix.IDEAL),
+            isNull(),
+            ArgumentMatchers
+                .<IntroductionMemberIdFetcher.IntroductionConditionSupplier<Object>>any()))
+        .thenReturn(introductionMemberIds);
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(3L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds))
+        .thenReturn(assembledViews);
+
+    assertThat(introductionQueryService.findIdealIntroductions(memberId)).isEqualTo(assembledViews);
+  }
+
+  @Test
+  @DisplayName("회원 번호 목록으로 소개 프로필을 조회한다.")
+  void findMemberIntroductionProfileViewsTest() {
+    long memberId = 1L;
+    Set<Long> memberIds = Set.of(2L, 3L);
+    List<MemberIntroductionProfileView> assembledViews =
+        List.of(view(3L, List.of("CAMPING"), "BUDDHIST"), view(2L, List.of("WINE"), "NONE"));
+    when(memberIntroductionProfileViewAssembler.assemble(memberId, memberIds))
+        .thenReturn(assembledViews);
+
+    assertThat(introductionQueryService.findMemberIntroductionProfileViews(memberId, memberIds))
+        .isEqualTo(assembledViews);
+  }
+
+  private MemberIntroductionProfileView view(long memberId, List<String> hobbies, String religion) {
+    return new MemberIntroductionProfileView(
+        memberId,
+        "image" + memberId,
+        30,
+        "닉네임" + memberId,
+        "SEOUL",
+        "GANGNAM_GU",
+        hobbies,
+        "ENFP",
+        religion,
+        "INTERESTED",
+        false);
   }
 
   private MemberSummary memberSummary(long memberId) {

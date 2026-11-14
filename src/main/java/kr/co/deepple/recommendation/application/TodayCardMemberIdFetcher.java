@@ -7,9 +7,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import kr.co.deepple.block.application.port.in.FindBlockedMemberIdsUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
+import kr.co.deepple.member.application.port.in.SearchIntroducibleMemberIdsUseCase;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
@@ -32,6 +35,9 @@ public class TodayCardMemberIdFetcher {
   private final IntroductionRedisRepository introductionRedisRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIdealCommandRepository memberIdealCommandRepository;
+  private final SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
+  private final FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
+  private final FindBlockedMemberIdsUseCase findBlockedMemberIdsUseCase;
 
   public Set<Long> fetch(long memberId, IntroductionCacheKeyPrefix cacheKeyPrefix) {
     String cacheKey = buildKey(cacheKeyPrefix, memberId);
@@ -71,11 +77,9 @@ public class TodayCardMemberIdFetcher {
   private Set<Long> findExcludedMemberIds(long memberId) {
     Set<Long> excludedMemberIds = new HashSet<>();
     excludedMemberIds.add(memberId);
-    excludedMemberIds.addAll(introductionQueryRepository.findAllMatchRequestedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllMatchRequestingMemberId(memberId));
+    excludedMemberIds.addAll(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId));
     excludedMemberIds.addAll(introductionQueryRepository.findAllIntroducedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllBlockedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllBlockingMemberId(memberId));
+    excludedMemberIds.addAll(findBlockedMemberIdsUseCase.findBlockRelatedMemberIds(memberId));
     return excludedMemberIds;
   }
 
@@ -86,7 +90,8 @@ public class TodayCardMemberIdFetcher {
     for (IntroductionSearchCondition condition : conditions) {
       long currentLimit = limit - introductionMemberIds.size();
       introductionMemberIds.addAll(
-          introductionQueryRepository.findAllIntroductionMemberId(condition, currentLimit));
+          searchIntroducibleMemberIdsUseCase.searchMemberIds(
+              condition.toMemberSearchCondition(), currentLimit));
       if (introductionMemberIds.size() == limit) {
         break;
       }

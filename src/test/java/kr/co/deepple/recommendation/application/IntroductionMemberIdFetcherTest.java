@@ -13,8 +13,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import kr.co.deepple.block.application.port.in.FindBlockedMemberIdsUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.SearchIntroducibleMemberIdsUseCase;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
@@ -46,28 +49,27 @@ class IntroductionMemberIdFetcherTest {
 
   @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
 
+  @Mock private SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
+
+  @Mock private FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
+
+  @Mock private FindBlockedMemberIdsUseCase findBlockedMemberIdsUseCase;
+
   private Set<Long> getExcludedMemberIds(Long memberId) {
-    Set<Long> matchedRequestedMemberIds = Set.of(memberId, 12L);
-    when(introductionQueryRepository.findAllMatchRequestedMemberId(memberId))
-        .thenReturn(matchedRequestedMemberIds);
-    Set<Long> matchedRequestingMemberIds = Set.of(memberId, 12L);
-    when(introductionQueryRepository.findAllMatchRequestingMemberId(memberId))
-        .thenReturn(matchedRequestingMemberIds);
+    Set<Long> matchCounterpartIds = Set.of(memberId, 12L);
+    when(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId))
+        .thenReturn(matchCounterpartIds);
     Set<Long> introducedMemberIds = Set.of(memberId, 13L);
     when(introductionQueryRepository.findAllIntroducedMemberId(memberId))
         .thenReturn(introducedMemberIds);
-    Set<Long> blockedMemberIds = Set.of(memberId, 14L);
-    when(introductionQueryRepository.findAllBlockedMemberId(memberId)).thenReturn(blockedMemberIds);
-    Set<Long> blockingMemberIds = Set.of(memberId, 15L);
-    when(introductionQueryRepository.findAllBlockingMemberId(memberId))
-        .thenReturn(blockingMemberIds);
+    Set<Long> blockRelatedMemberIds = Set.of(memberId, 14L, 15L);
+    when(findBlockedMemberIdsUseCase.findBlockRelatedMemberIds(memberId))
+        .thenReturn(blockRelatedMemberIds);
 
     Set<Long> excludedMemberIds = new HashSet<>(Set.of(memberId));
-    excludedMemberIds.addAll(matchedRequestedMemberIds);
-    excludedMemberIds.addAll(matchedRequestingMemberIds);
+    excludedMemberIds.addAll(matchCounterpartIds);
     excludedMemberIds.addAll(introducedMemberIds);
-    excludedMemberIds.addAll(blockedMemberIds);
-    excludedMemberIds.addAll(blockingMemberIds);
+    excludedMemberIds.addAll(blockRelatedMemberIds);
 
     return excludedMemberIds;
   }
@@ -118,7 +120,8 @@ class IntroductionMemberIdFetcherTest {
     IntroductionMemberIdFetcher.IntroductionConditionSupplier<String> supplier =
         (excluded, ideal, m, grade) -> dummyCondition;
 
-    when(introductionQueryRepository.findAllIntroductionMemberId(dummyCondition, 10))
+    when(searchIntroducibleMemberIdsUseCase.searchMemberIds(
+            dummyCondition.toMemberSearchCondition(), 10L))
         .thenReturn(savedIds);
 
     doNothing()
@@ -132,6 +135,8 @@ class IntroductionMemberIdFetcherTest {
 
     // then
     assertThat(result).isEqualTo(savedIds);
+    assertThat(dummyCondition.getExcludedMemberIds())
+        .containsExactlyInAnyOrder(memberId, 12L, 13L, 14L, 15L);
     verify(introductionRedisRepository)
         .saveIntroductionMemberIds(eq(key), eq(savedIds), any(Date.class));
   }

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import kr.co.deepple.member.application.port.in.MemberSearchCondition;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import org.junit.jupiter.api.DisplayName;
@@ -140,5 +141,39 @@ class IntroductionSearchConditionTest {
     assertThat(condition.getReligion()).isEqualTo(religion);
     assertThat(condition.getMemberGrade()).isNull();
     assertThat(condition.getJoinedAfter()).isEqualTo(joinedAfter);
+  }
+
+  @Test
+  @DisplayName("회원 검색 조건으로 바꾸면 모든 값이 그대로 옮겨진다.")
+  void toMemberSearchConditionTest() {
+    LocalDateTime joinedAfter = LocalDateTime.of(2026, 1, 1, 0, 0);
+    IntroductionSearchCondition condition =
+        IntroductionSearchCondition.of(
+            excludedIds,
+            20,
+            30,
+            hobbies,
+            cities,
+            religion,
+            smokingStatus,
+            drinkingStatus,
+            "DIAMOND",
+            gender,
+            joinedAfter);
+
+    assertThat(condition.toMemberSearchCondition())
+        .isEqualTo(
+            new MemberSearchCondition(
+                excludedIds,
+                20,
+                30,
+                hobbies,
+                cities,
+                religion,
+                smokingStatus,
+                drinkingStatus,
+                "DIAMOND",
+                gender,
+                joinedAfter));
   }
 }

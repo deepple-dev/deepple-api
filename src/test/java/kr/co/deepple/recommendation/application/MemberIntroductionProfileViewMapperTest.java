@@ -3,114 +3,67 @@ package kr.co.deepple.recommendation.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import java.util.Set;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class MemberIntroductionProfileViewMapperTest {
 
-  private final Long memberId = 1L;
-  private final String profileImageUrl = "imageUrl";
-  private final Integer yearOfBirth = 1997;
-  private final String nickname = "nickname";
-  private final String city = "city";
-  private final String district = "district";
-  private final Set<String> hobbies = Set.of(Hobby.CAMPING.name(), Hobby.WINE.name());
-  private final String religion = "Buddhist";
-  private final String mbti = "INFJ";
-  private final String likeLevel = "INTEREST";
-  private final String interviewAnswer = "Third Answer";
-  private final boolean isIntroduced = false;
+  private final MemberIntroductionProfileView view =
+      new MemberIntroductionProfileView(
+          1L,
+          "imageUrl",
+          30,
+          "nickname",
+          "SEOUL",
+          "GANGNAM_GU",
+          List.of("CAMPING", "WINE"),
+          "INFJ",
+          "BUDDHIST",
+          "INTERESTED",
+          true);
 
   @Test
-  @DisplayName("mapWithDefaultTag 메서드 테스트")
-  void mapWithDefaultTagTest() {
-    // given
-    List<String> expectedHobbies = hobbies.stream().toList();
-    String expectedReligion = religion;
-    String expectedMbti = mbti;
-
-    List<MemberIntroductionProfileQueryResult> profileResults = getProfileQueryResults();
-
-    // when
-    List<MemberIntroductionProfileView> views =
-        MemberIntroductionProfileViewMapper.mapWithDefaultTag(profileResults);
-
-    // then
-    assertProfileView(views, expectedHobbies, expectedReligion, expectedMbti);
-  }
-
-  @Test
-  @DisplayName("mapWithSameHobbyTag 메서드 테스트")
+  @DisplayName("취미가 같은 이성 소개는 취미를 비우고 나머지 값은 그대로 둔다.")
   void mapWithSameHobbyTagTest() {
-    // given
-    List<String> expectedHobbies = List.of();
-    String expectedReligion = religion;
-    String expectedMbti = mbti;
-
-    List<MemberIntroductionProfileQueryResult> profileResults = getProfileQueryResults();
-
-    // when
     List<MemberIntroductionProfileView> views =
-        MemberIntroductionProfileViewMapper.mapWithSameHobbyTag(profileResults);
+        MemberIntroductionProfileViewMapper.mapWithSameHobbyTag(List.of(view));
 
-    // then
-    assertProfileView(views, expectedHobbies, expectedReligion, expectedMbti);
+    assertThat(views)
+        .containsExactly(
+            new MemberIntroductionProfileView(
+                1L,
+                "imageUrl",
+                30,
+                "nickname",
+                "SEOUL",
+                "GANGNAM_GU",
+                List.of(),
+                "INFJ",
+                "BUDDHIST",
+                "INTERESTED",
+                true));
   }
 
   @Test
-  @DisplayName("mapWithSameReligionTag 메서드 테스트")
+  @DisplayName("종교가 같은 이성 소개는 종교를 비우고 나머지 값은 그대로 둔다.")
   void mapWithSameReligionTagTest() {
-    // given
-    List<String> expectedHobbies = hobbies.stream().toList();
-    String expectedReligion = null;
-    String expectedMbti = mbti;
-
-    List<MemberIntroductionProfileQueryResult> profileResults = getProfileQueryResults();
-
-    // when
     List<MemberIntroductionProfileView> views =
-        MemberIntroductionProfileViewMapper.mapWithSameReligionTag(profileResults);
+        MemberIntroductionProfileViewMapper.mapWithSameReligionTag(List.of(view));
 
-    // then
-    assertProfileView(views, expectedHobbies, expectedReligion, expectedMbti);
-  }
-
-  private List<MemberIntroductionProfileQueryResult> getProfileQueryResults() {
-    MemberIntroductionProfileQueryResult profileResult =
-        new MemberIntroductionProfileQueryResult(
-            memberId,
-            profileImageUrl,
-            yearOfBirth,
-            nickname,
-            city,
-            district,
-            hobbies,
-            religion,
-            mbti,
-            likeLevel,
-            isIntroduced);
-
-    return List.of(profileResult);
-  }
-
-  private void assertProfileView(
-      List<MemberIntroductionProfileView> views,
-      List<String> expectedHobbies,
-      String expectedReligion,
-      String expectedMbti) {
-    assertThat(views).hasSize(1);
-    MemberIntroductionProfileView view = views.get(0);
-    assertThat(view.memberId()).isEqualTo(memberId);
-    assertThat(view.profileImageUrl()).isEqualTo(profileImageUrl);
-    assertThat(view.likeLevel()).isEqualTo(likeLevel);
-    assertThat(view.isIntroduced()).isEqualTo(isIntroduced);
-
-    assertThat(view.hobbies()).containsExactlyInAnyOrderElementsOf(expectedHobbies);
-    assertThat(view.religion()).isEqualTo(expectedReligion);
-    assertThat(view.mbti()).isEqualTo(expectedMbti);
+    assertThat(views)
+        .containsExactly(
+            new MemberIntroductionProfileView(
+                1L,
+                "imageUrl",
+                30,
+                "nickname",
+                "SEOUL",
+                "GANGNAM_GU",
+                List.of("CAMPING", "WINE"),
+                "INFJ",
+                null,
+                "INTERESTED",
+                true));
   }
 }

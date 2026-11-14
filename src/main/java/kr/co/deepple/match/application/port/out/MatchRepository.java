@@ -1,6 +1,7 @@
 package kr.co.deepple.match.application.port.out;
 
 import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.match.domain.Match;
 
 public interface MatchRepository {
@@ -13,4 +14,8 @@ public interface MatchRepository {
   Optional<Match> findByIdAndRequesterId(long id, long requesterId);
 
   Optional<Match> findByIdAndResponderId(long id, long responderId);
+
+  Set<Long> findRequesterIdsByResponderId(long responderId);
+
+  Set<Long> findResponderIdsByRequesterId(long requesterId);
 }

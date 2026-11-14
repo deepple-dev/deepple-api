@@ -18,6 +18,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
 import kr.co.deepple.datingexam.application.port.in.ValidatePersonalityTypeUseCase;
 import kr.co.deepple.datingexam.domain.DatingExamErrorCode;
+import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
@@ -45,6 +46,8 @@ class PersonalityIntroductionQueryServiceTest {
   @Mock private IntroductionQueryService introductionQueryService;
 
   @Mock private IntroductionQueryRepository introductionQueryRepository;
+
+  @Mock private FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
 
   @Mock private PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
 
@@ -146,8 +149,7 @@ class PersonalityIntroductionQueryServiceTest {
         .thenReturn(Optional.empty());
     when(personalityTypeMemberFinder.findMemberIdsByDominantType(memberId, TYPE))
         .thenReturn(List.of(10L, 9L, 8L, 7L));
-    when(introductionQueryRepository.findAllMatchRequestedMemberId(memberId)).thenReturn(Set.of());
-    when(introductionQueryRepository.findAllMatchRequestingMemberId(memberId)).thenReturn(Set.of());
+    when(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId)).thenReturn(Set.of(8L));
     when(introductionQueryRepository.findAllIntroducedMemberId(memberId)).thenReturn(Set.of(9L));
 
     personalityIntroductionQueryService.open(memberId, TYPE);
@@ -157,7 +159,7 @@ class PersonalityIntroductionQueryServiceTest {
     verify(personalityIntroductionRedisRepository)
         .saveOpenState(eq(memberId), stateCaptor.capture());
     assertThat(stateCaptor.getValue().type()).isEqualTo(TYPE);
-    assertThat(stateCaptor.getValue().memberIds()).isEqualTo(List.of(10L, 8L, 7L));
+    assertThat(stateCaptor.getValue().memberIds()).isEqualTo(List.of(10L, 7L));
   }
 
   @Test
@@ -189,8 +191,7 @@ class PersonalityIntroductionQueryServiceTest {
   }
 
   private void givenNoExclusions(long memberId) {
-    when(introductionQueryRepository.findAllMatchRequestedMemberId(memberId)).thenReturn(Set.of());
-    when(introductionQueryRepository.findAllMatchRequestingMemberId(memberId)).thenReturn(Set.of());
+    when(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId)).thenReturn(Set.of());
     when(introductionQueryRepository.findAllIntroducedMemberId(memberId)).thenReturn(Set.of());
   }
 }

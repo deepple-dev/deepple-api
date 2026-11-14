@@ -2,8 +2,6 @@ package kr.co.deepple.recommendation.application;
 
 import java.util.List;
 import java.util.Set;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TodayCardQueryService {
 
   private final TodayCardMemberIdFetcher todayCardMemberIdFetcher;
-  private final IntroductionQueryRepository introductionQueryRepository;
+  private final MemberIntroductionProfileViewAssembler memberIntroductionProfileViewAssembler;
 
   @Transactional(readOnly = true)
   public Set<Long> findTodayCardMemberIds(long memberId) {
@@ -24,10 +22,6 @@ public class TodayCardQueryService {
   @Transactional(readOnly = true)
   public List<MemberIntroductionProfileView> findTodayCardIntroductions(
       long memberId, Set<Long> todayCardMemberIds) {
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, todayCardMemberIds);
-    return MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-        memberIntroductionProfileQueryResults);
+    return memberIntroductionProfileViewAssembler.assemble(memberId, todayCardMemberIds);
   }
 }
