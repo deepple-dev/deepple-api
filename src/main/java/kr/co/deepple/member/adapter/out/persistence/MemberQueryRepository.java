@@ -38,6 +38,8 @@ import kr.co.deepple.member.application.dto.QMemberProfileView;
 import kr.co.deepple.member.application.dto.QOtherMemberProfileView;
 import kr.co.deepple.member.application.dto.QProfileAccessView;
 import kr.co.deepple.member.application.port.in.MemberPreview;
+import kr.co.deepple.member.domain.ActivityStatus;
+import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Hobby;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -319,5 +321,20 @@ public class MemberQueryRepository {
                     : null,
                 phoneNumber != null ? member.phoneNumber.value.eq(phoneNumber) : null)
             .fetch());
+  }
+
+  public List<Long> findIntroducibleIds(
+      Collection<Long> candidateIds, Gender gender, long excludedMemberId) {
+    return queryFactory
+        .select(member.id)
+        .from(member)
+        .where(
+            member.id.in(candidateIds),
+            member.profile.gender.eq(gender),
+            member.isProfilePublic.isTrue(),
+            member.activityStatus.eq(ActivityStatus.ACTIVE),
+            member.id.ne(excludedMemberId))
+        .orderBy(member.id.desc())
+        .fetch();
   }
 }

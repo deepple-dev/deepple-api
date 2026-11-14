@@ -12,4 +12,7 @@ public interface BlockRepository extends Repository<Block, Long> {
 
   @Query("SELECT b.blockedId FROM Block b WHERE b.blockerId = :blockerId")
   Set<Long> findBlockedIdsByBlockerId(long blockerId);
+
+  @Query("SELECT b.blockerId FROM Block b WHERE b.blockedId = :blockedId")
+  Set<Long> findBlockerIdsByBlockedId(long blockedId);
 }

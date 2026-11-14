@@ -4,11 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import kr.co.deepple.block.application.CheckBlockService;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
+import kr.co.deepple.datingexam.application.IntroducibleMemberFilter;
+import kr.co.deepple.datingexam.application.PersonalityTypeMemberQueryService;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.datingexam.domain.DatingExamSubmitResult;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
+import kr.co.deepple.member.application.FilterIntroducibleMemberIdsService;
+import kr.co.deepple.member.application.FindMemberSummaryService;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
@@ -17,7 +22,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.context.annotation.Import;
 
+@Import({
+  PersonalityTypeMemberQueryService.class,
+  IntroducibleMemberFilter.class,
+  CheckBlockService.class,
+  FindMemberSummaryService.class,
+  FilterIntroducibleMemberIdsService.class
+})
 class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport {
 
   private static final AnswerPersonalityType TARGET_TYPE =
@@ -25,7 +38,7 @@ class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport
 
   @Autowired private TestEntityManager em;
 
-  @Autowired private PersonalityTypeMemberQueryRepositoryImpl repository;
+  @Autowired private PersonalityTypeMemberQueryService repository;
 
   @Test
   @DisplayName("대표 유형이 일치하는 반대 성별·공개·활성 회원만 최신 가입순으로 조회하고, 다른 유형·동성·비공개·비활성·차단·본인은 제외한다.")

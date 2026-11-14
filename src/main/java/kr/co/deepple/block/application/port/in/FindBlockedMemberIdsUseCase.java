@@ -4,4 +4,6 @@ import java.util.Set;
 
 public interface FindBlockedMemberIdsUseCase {
   Set<Long> findBlockedMemberIds(long blockerId);
+
+  Set<Long> findBlockRelatedMemberIds(long memberId);
 }
