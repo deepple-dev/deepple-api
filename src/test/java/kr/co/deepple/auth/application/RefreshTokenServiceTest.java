@@ -16,6 +16,7 @@ import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.TokenOwner;
 import kr.co.deepple.auth.domain.UsedRefreshToken;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.common.security.RefreshTokenProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

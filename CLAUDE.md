@@ -57,7 +57,8 @@ domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤
 
 - 컨트롤러에는 비즈니스 로직을 두지 않고 서비스에 위임한다. 성공 응답은 감싸지 않고 응답 객체를 그대로 돌려준다(목록은 `MatchViews(matches, hasMore)`처럼 리소스 복수형 필드를 가진 객체로 감싸고, 본문이 없으면 204). 오류 응답은 `GlobalExceptionHandler`가 ProblemDetail로 만든다.
 - 헥사고날 모듈에서는 요청 클래스(`…Request`)를 `Command` 같은 다른 객체로 바꾸지 않고 서비스에 그대로 넘긴다(쓰는 값이 한두 개면 값만 넘겨도 된다). 요청 본문 밖의 값(토큰의 ID, 경로 값)은 메서드 인자로 따로 넘긴다. 이벤트 핸들러나 다른 모듈이 넘기는 입력을 객체로 묶을 때는 `port/in`의 `…Command`로 둔다.
-- 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 도메인 이벤트로 하고, 값을 읽어야 하면 그 도메인이 공개한 포트(`application/port/in`, `@NamedInterface("port-in")`)를 부른다(예: 회원 정보는 `FindMemberSummaryUseCase`). 다른 도메인이 부르는 포트의 입력·출력 객체는 `port/in`에 두고 칸은 문자열과 기본 타입으로 둔다.
+- 다른 도메인의 엔티티·리포지토리를 직접 참조하지 않는다. 도메인 간 협력은 그 도메인이 공개한 포트(`application/port/in`, `@NamedInterface("port-in")`)를 부르거나(예: 회원 정보는 `FindMemberSummaryUseCase`) 그 도메인이 공개한 이벤트(`event`)를 들어서 한다. 다른 도메인이 부르는 포트의 입력·출력 객체는 `port/in`에 두고 칸은 문자열과 기본 타입으로 둔다.
+  - 방향: 두 도메인 사이의 의존은 한쪽으로만 둔다(`ModularityTests`가 순환을 잡는다). 이벤트를 듣는 것도 의존이므로, 다른 도메인의 이벤트는 그 도메인이 내 포트를 부르지 않을 때만 듣는다. 내 포트를 부르는 도메인(위쪽)이 발행한 이벤트에 내가 반응해야 하면, 위쪽이 자기 `adapter/in/event`에서 자기 이벤트를 듣고 내 포트를 부른다(예: admin의 `MemberScreeningStatusEventHandler`가 `ScreeningApprovedEvent`를 듣고 member의 `ChangeMemberScreeningStatusUseCase`를 부른다)
   - 발행: 서비스가 `ApplicationEventPublisher`를 주입받아 `publishEvent(event)`로 발행한다. 엔티티는 이벤트를 만들지 않는다. 이벤트는 `Event`(`common/event`)를 구현한 `record`이고, 다른 도메인이 듣는 이벤트는 `<도메인>/event`에 둔다
   - 처리: 듣는 도메인의 `adapter/in/event`에 핸들러, 보통 `@ApplicationModuleListener`(커밋 후, 비동기, 새 트랜잭션). 외부 호출을 하거나 분산 락을 잡는 등 트랜잭션 밖에서 돌아야 하면 `propagation = Propagation.NOT_SUPPORTED`를 준다
   - 커밋 후 처리되는 이벤트는 발행할 때 `event_publication`에 기록된다(Spring Modulith Event Publication Registry). 읽기 전용 트랜잭션이나 트랜잭션 밖에서 발행하면 기록·처리되지 않으므로 쓰기 트랜잭션 안에서 발행한다

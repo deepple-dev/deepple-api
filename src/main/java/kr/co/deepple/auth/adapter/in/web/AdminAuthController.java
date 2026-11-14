@@ -9,6 +9,7 @@ import kr.co.deepple.auth.application.dto.AdminLoginResponse;
 import kr.co.deepple.auth.application.dto.AdminRefreshResponse;
 import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
+import kr.co.deepple.common.security.RefreshTokenCookies;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;

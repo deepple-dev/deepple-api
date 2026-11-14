@@ -3,6 +3,10 @@ package kr.co.deepple.member.application;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.dto.MemberProfileUpdateRequest;
 import kr.co.deepple.member.application.dto.MemberStatusResponse;
+import kr.co.deepple.member.application.port.in.ChangeMemberActivityStatusUseCase;
+import kr.co.deepple.member.application.port.in.ChangeMemberScreeningStatusUseCase;
+import kr.co.deepple.member.application.port.in.MarkDatingExamSubmittedUseCase;
+import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
 import kr.co.deepple.member.application.port.out.MemberCommandRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
@@ -20,7 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class MemberProfileService {
+public class MemberProfileService
+    implements ValidateContactTypeSettingUseCase,
+        ChangeMemberScreeningStatusUseCase,
+        ChangeMemberActivityStatusUseCase,
+        MarkDatingExamSubmittedUseCase {
 
   private final MemberCommandRepository memberCommandRepository;
   private final ApplicationEventPublisher eventPublisher;
@@ -55,6 +63,7 @@ public class MemberProfileService {
     eventPublisher.publishEvent(MemberBecameActiveEvent.from(memberId));
   }
 
+  @Override
   @Transactional
   public void validateContactTypeSetting(long memberId, String contactType) {
     Member member = getMemberById(memberId);
@@ -70,6 +79,7 @@ public class MemberProfileService {
     }
   }
 
+  @Override
   @Transactional
   public void approveScreening(long memberId) {
     Member member = getMemberById(memberId);
@@ -78,6 +88,7 @@ public class MemberProfileService {
     changeProfilePublishStatus(memberId, true);
   }
 
+  @Override
   @Transactional
   public void changeReject(long memberId) {
     Member member = getMemberById(memberId);
@@ -85,6 +96,7 @@ public class MemberProfileService {
     changeProfilePublishStatus(memberId, false);
   }
 
+  @Override
   @Transactional
   public void changeWaiting(long memberId) {
     Member member = getMemberById(memberId);
@@ -102,6 +114,7 @@ public class MemberProfileService {
     }
   }
 
+  @Override
   @Transactional
   public void changeMemberActivityStatus(long memberId, String status) {
     Member member = getMemberById(memberId);
@@ -121,6 +134,7 @@ public class MemberProfileService {
     }
   }
 
+  @Override
   @Transactional
   public void markDatingExamSubmitted(long memberId) {
     Member member = getMemberById(memberId);
