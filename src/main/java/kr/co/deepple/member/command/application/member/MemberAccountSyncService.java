@@ -51,6 +51,6 @@ public class MemberAccountSyncService {
 
   @Transactional(propagation = Propagation.MANDATORY)
   public void delete(long memberId) {
-    memberCommandRepository.findById(memberId).ifPresent(Member::delete);
+    memberCommandRepository.findByIdForUpdate(memberId).ifPresent(Member::delete);
   }
 }

@@ -19,5 +19,5 @@ public interface MemberAccountRepository extends JpaRepository<MemberAccount, Lo
 
   @Modifying
   @Query("DELETE FROM MemberAccount a WHERE a.deletedAt < :threshold")
-  void deleteAllDeletedBefore(LocalDateTime threshold);
+  int deleteAllDeletedBefore(LocalDateTime threshold);
 }

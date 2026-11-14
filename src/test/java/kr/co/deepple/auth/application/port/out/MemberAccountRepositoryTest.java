@@ -30,9 +30,10 @@ class MemberAccountRepositoryTest extends RepositoryTestSupport {
     MemberAccount active = entityManager.persist(MemberAccountFixture.builder().build());
     entityManager.flush();
 
-    memberAccountRepository.deleteAllDeletedBefore(threshold);
+    int deletedCount = memberAccountRepository.deleteAllDeletedBefore(threshold);
     entityManager.clear();
 
+    assertThat(deletedCount).isEqualTo(1);
     assertThat(memberAccountRepository.findById(old.getId())).isEmpty();
     assertThat(memberAccountRepository.findById(recent.getId())).isPresent();
     assertThat(memberAccountRepository.findById(active.getId())).isPresent();

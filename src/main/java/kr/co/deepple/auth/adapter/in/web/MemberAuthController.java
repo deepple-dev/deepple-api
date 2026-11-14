@@ -82,7 +82,7 @@ public class MemberAuthController {
 
   @Operation(summary = "멤버 탈퇴")
   @DeleteMapping
-  public ResponseEntity<Void> delete(@CurrentMemberId long memberId) {
+  public ResponseEntity<Void> withdraw(@CurrentMemberId long memberId) {
     withdrawMemberUseCase.withdraw(memberId);
 
     return ResponseEntity.noContent()
