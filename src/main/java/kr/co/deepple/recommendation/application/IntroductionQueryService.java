@@ -7,9 +7,7 @@ import java.util.Set;
 import kr.co.deepple.datingexam.application.port.in.SoulmateFinder;
 import kr.co.deepple.member.application.port.in.FindMemberProfilesUseCase;
 import kr.co.deepple.member.application.port.in.MemberProfileSummary;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
-import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,62 +19,40 @@ public class IntroductionQueryService {
   private static final String DIAMOND_GRADE = "DIAMOND";
 
   private final IntroductionMemberIdFetcher introductionMemberIdFetcher;
-  private final IntroductionQueryRepository introductionQueryRepository;
+  private final MemberIntroductionProfileViewAssembler memberIntroductionProfileViewAssembler;
   private final FindMemberProfilesUseCase findMemberProfilesUseCase;
   private final SoulmateFinder soulmateFinder;
 
   public List<MemberIntroductionProfileView> findDiamondGradeIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getDiamondGradeIntroductionMemberIds(memberId);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds);
-    return MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-        memberIntroductionProfileQueryResults);
+    return memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds);
   }
 
   public List<MemberIntroductionProfileView> findSameHobbyIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getSameHobbyIntroductionMemberIds(memberId);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds);
     return MemberIntroductionProfileViewMapper.mapWithSameHobbyTag(
-        memberIntroductionProfileQueryResults);
+        memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds));
   }
 
   public List<MemberIntroductionProfileView> findSameReligionIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getSameReligionIntroductionMemberIds(memberId);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds);
     return MemberIntroductionProfileViewMapper.mapWithSameReligionTag(
-        memberIntroductionProfileQueryResults);
+        memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds));
   }
 
   public List<MemberIntroductionProfileView> findSameCityIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getSameCityIntroductionMemberIds(memberId);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds);
-    return MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-        memberIntroductionProfileQueryResults);
+    return memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds);
   }
 
   public List<MemberIntroductionProfileView> findRecentlyJoinedIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getRecentlyJoinedIntroductionMemberIds(memberId);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds);
-    return MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-        memberIntroductionProfileQueryResults);
+    return memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds);
   }
 
   public List<MemberIntroductionProfileView> findMemberIntroductionProfileViews(
       long memberId, Set<Long> memberIds) {
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, memberIds);
-    return MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-        memberIntroductionProfileQueryResults);
+    return memberIntroductionProfileViewAssembler.assemble(memberId, memberIds);
   }
 
   public List<MemberIntroductionProfileView> findSoulmateIntroductions(long memberId) {
@@ -85,11 +61,7 @@ public class IntroductionQueryService {
 
   public List<MemberIntroductionProfileView> findIdealIntroductions(long memberId) {
     Set<Long> introductionMemberIds = getIdealIntroductionMemberIds(memberId);
-    List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-        introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-            memberId, introductionMemberIds);
-    return MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-        memberIntroductionProfileQueryResults);
+    return memberIntroductionProfileViewAssembler.assemble(memberId, introductionMemberIds);
   }
 
   private Set<Long> getDiamondGradeIntroductionMemberIds(long memberId) {

@@ -6,9 +6,12 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import kr.co.deepple.block.application.port.in.FindBlockedMemberIdsUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
+import kr.co.deepple.member.application.port.in.SearchIntroducibleMemberIdsUseCase;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
 import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
@@ -28,6 +31,9 @@ public class IntroductionMemberIdFetcher {
   private final IntroductionRedisRepository introductionRedisRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final MemberIdealCommandRepository memberIdealCommandRepository;
+  private final SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
+  private final FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
+  private final FindBlockedMemberIdsUseCase findBlockedMemberIdsUseCase;
 
   public <T> Set<Long> fetch(
       long memberId,
@@ -50,7 +56,8 @@ public class IntroductionMemberIdFetcher {
     IntroductionSearchCondition condition =
         supplier.get(excludedMemberIds, memberIdeal, member, criteria);
     Set<Long> introductionMemberIds =
-        introductionQueryRepository.findAllIntroductionMemberId(condition, FETCH_LIMIT);
+        searchIntroducibleMemberIdsUseCase.searchMemberIds(
+            condition.toMemberSearchCondition(), FETCH_LIMIT);
     introductionRedisRepository.saveIntroductionMemberIds(
         cacheKey, introductionMemberIds, getExpireAt());
     return introductionMemberIds;
@@ -59,11 +66,9 @@ public class IntroductionMemberIdFetcher {
   private Set<Long> findExcludedMemberIds(long memberId) {
     Set<Long> excludedMemberIds = new HashSet<>();
     excludedMemberIds.add(memberId);
-    excludedMemberIds.addAll(introductionQueryRepository.findAllMatchRequestedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllMatchRequestingMemberId(memberId));
+    excludedMemberIds.addAll(findMatchCounterpartIdsUseCase.findMatchCounterpartIds(memberId));
     excludedMemberIds.addAll(introductionQueryRepository.findAllIntroducedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllBlockedMemberId(memberId));
-    excludedMemberIds.addAll(introductionQueryRepository.findAllBlockingMemberId(memberId));
+    excludedMemberIds.addAll(findBlockedMemberIdsUseCase.findBlockRelatedMemberIds(memberId));
     return excludedMemberIds;
   }
 

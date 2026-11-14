@@ -1,6 +1,7 @@
 package kr.co.deepple.match.adapter.out.persistence;
 
 import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.match.domain.Match;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,10 @@ public interface MatchJpaRepository extends JpaRepository<Match, Long> {
   Optional<Match> findByIdAndRequesterId(long id, long requesterId);
 
   Optional<Match> findByIdAndResponderId(long id, long responderId);
+
+  @Query("SELECT m.requesterId FROM Match m WHERE m.responderId = :responderId")
+  Set<Long> findRequesterIdsByResponderId(long responderId);
+
+  @Query("SELECT m.responderId FROM Match m WHERE m.requesterId = :requesterId")
+  Set<Long> findResponderIdsByRequesterId(long requesterId);
 }

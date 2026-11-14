@@ -1,6 +1,7 @@
 package kr.co.deepple.match.adapter.out.persistence;
 
 import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.match.application.port.out.MatchRepository;
 import kr.co.deepple.match.domain.Match;
@@ -45,5 +46,15 @@ public class MatchRepositoryImpl implements MatchRepository {
   @Override
   public Optional<Match> findByIdAndResponderId(long id, long responderId) {
     return matchJpaRepository.findByIdAndResponderId(id, responderId);
+  }
+
+  @Override
+  public Set<Long> findRequesterIdsByResponderId(long responderId) {
+    return matchJpaRepository.findRequesterIdsByResponderId(responderId);
+  }
+
+  @Override
+  public Set<Long> findResponderIdsByRequesterId(long requesterId) {
+    return matchJpaRepository.findResponderIdsByRequesterId(requesterId);
   }
 }

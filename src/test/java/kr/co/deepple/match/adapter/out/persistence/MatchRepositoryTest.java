@@ -168,4 +168,30 @@ class MatchRepositoryTest extends RepositoryTestSupport {
                 MatchFixture.builder().requesterId(memberId).responderId(anotherMemberId).build()))
         .doesNotThrowAnyException();
   }
+
+  @Test
+  @DisplayName("매칭 상태와 관계없이 나에게 요청한 회원과 내가 요청한 회원을 방향별로 찾는다.")
+  void findCounterpartIdsByDirection() {
+    long memberId = 100L;
+    entityManager.persist(MatchFixture.builder().requesterId(101L).responderId(memberId).build());
+    entityManager.persist(
+        MatchFixture.builder()
+            .requesterId(102L)
+            .responderId(memberId)
+            .status(MatchStatus.EXPIRED)
+            .build());
+    entityManager.persist(
+        MatchFixture.builder()
+            .requesterId(memberId)
+            .responderId(103L)
+            .status(MatchStatus.REJECT_CHECKED)
+            .build());
+    entityManager.persist(MatchFixture.builder().requesterId(104L).responderId(105L).build());
+    entityManager.flush();
+
+    Assertions.assertThat(matchRepository.findRequesterIdsByResponderId(memberId))
+        .containsExactlyInAnyOrder(101L, 102L);
+    Assertions.assertThat(matchRepository.findResponderIdsByRequesterId(memberId))
+        .containsExactly(103L);
+  }
 }

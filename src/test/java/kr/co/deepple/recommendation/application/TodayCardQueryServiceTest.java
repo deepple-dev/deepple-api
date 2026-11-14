@@ -2,13 +2,10 @@ package kr.co.deepple.recommendation.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileQueryResult;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,7 +20,7 @@ class TodayCardQueryServiceTest {
 
   @InjectMocks private TodayCardQueryService todayCardQueryService;
 
-  @Mock private IntroductionQueryRepository introductionQueryRepository;
+  @Mock private MemberIntroductionProfileViewAssembler memberIntroductionProfileViewAssembler;
 
   @Mock private TodayCardMemberIdFetcher todayCardMemberIdFetcher;
 
@@ -60,30 +56,17 @@ class TodayCardQueryServiceTest {
       long memberId = 1L;
       Set<Long> todayCardMemberIds = Set.of(2L, 3L, 4L);
 
-      List<MemberIntroductionProfileQueryResult> memberIntroductionProfileQueryResults =
-          List.of(mock(MemberIntroductionProfileQueryResult.class));
-      when(introductionQueryRepository.findAllMemberIntroductionProfileQueryResultByMemberIds(
-              memberId, todayCardMemberIds))
-          .thenReturn(memberIntroductionProfileQueryResults);
+      List<MemberIntroductionProfileView> views =
+          List.of(mock(MemberIntroductionProfileView.class));
+      when(memberIntroductionProfileViewAssembler.assemble(memberId, todayCardMemberIds))
+          .thenReturn(views);
 
-      try (MockedStatic<MemberIntroductionProfileViewMapper> mockedMapper =
-          mockStatic(MemberIntroductionProfileViewMapper.class)) {
-        List<MemberIntroductionProfileView> views =
-            List.of(mock(MemberIntroductionProfileView.class));
-        mockedMapper
-            .when(() ->
-                MemberIntroductionProfileViewMapper.mapWithDefaultTag(
-                    memberIntroductionProfileQueryResults))
-            .thenReturn(views);
+      // When
+      List<MemberIntroductionProfileView> result =
+          todayCardQueryService.findTodayCardIntroductions(memberId, todayCardMemberIds);
 
-        // When
-        List<MemberIntroductionProfileView> result =
-            todayCardQueryService.findTodayCardIntroductions(memberId, todayCardMemberIds);
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactlyElementsOf(views);
-      }
+      // Then
+      assertThat(result).containsExactlyElementsOf(views);
     }
   }
 }

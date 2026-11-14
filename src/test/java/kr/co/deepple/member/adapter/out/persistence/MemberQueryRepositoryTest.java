@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.community.domain.ProfileExchange;
 import kr.co.deepple.community.domain.ProfileExchangeStatus;
@@ -35,10 +36,13 @@ import kr.co.deepple.member.application.dto.ProfileAccessView;
 import kr.co.deepple.member.application.dto.ProfileInfo;
 import kr.co.deepple.member.application.dto.StatusInfo;
 import kr.co.deepple.member.application.port.in.MemberPreview;
+import kr.co.deepple.member.application.port.in.MemberSearchCondition;
+import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.AgeConverter;
 import kr.co.deepple.member.domain.District;
 import kr.co.deepple.member.domain.DrinkingStatus;
 import kr.co.deepple.member.domain.Gender;
+import kr.co.deepple.member.domain.Grade;
 import kr.co.deepple.member.domain.HighestEducation;
 import kr.co.deepple.member.domain.Hobby;
 import kr.co.deepple.member.domain.Job;
@@ -58,6 +62,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
@@ -1059,6 +1065,177 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
           .containsExactly(second.getId());
       assertThat(memberQueryRepository.findIdsByNicknameAndPhoneNumber("검색대상1", "01088880002"))
           .isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("소개 가능한 회원 번호 조건 검색 테스트")
+  class SearchIntroducibleIdsTest {
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+          "excludedIds",
+          "minAge",
+          "maxAge",
+          "hobbies",
+          "religion",
+          "cities",
+          "smokingStatus",
+          "drinkingStatus",
+          "memberGrade",
+          "gender",
+          "joinedAfter",
+          "isProfilePublic",
+          "null"
+        })
+    @DisplayName("조건별로 맞는 회원만 찾고, 비어 있는 조건은 적용하지 않는다.")
+    void searchByEachCondition(String fieldName) {
+      int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+      Member member1 =
+          entityManager.persist(
+              MemberFixture.builder()
+                  .yearOfBirth(currentYear - 19)
+                  .hobbies(Set.of(Hobby.ANIMATION, Hobby.BOARD_GAMES))
+                  .religion(Religion.BUDDHIST)
+                  .district(District.DONG_GU_DAEJEON)
+                  .smokingStatus(SmokingStatus.DAILY)
+                  .drinkingStatus(DrinkingStatus.SOCIAL)
+                  .gender(Gender.MALE)
+                  .profilePublic(true)
+                  .build());
+      Member member2 =
+          entityManager.persist(
+              MemberFixture.builder()
+                  .yearOfBirth(currentYear - 39)
+                  .hobbies(Set.of(Hobby.CAMPING, Hobby.BADMINTON_AND_TENNIS))
+                  .religion(Religion.NONE)
+                  .district(District.GANGNAM_GU)
+                  .smokingStatus(SmokingStatus.NONE)
+                  .drinkingStatus(DrinkingStatus.NONE)
+                  .gender(Gender.FEMALE)
+                  .profilePublic(!fieldName.equals("isProfilePublic"))
+                  .build());
+      entityManager.flush();
+
+      MemberSearchCondition condition =
+          new MemberSearchCondition(
+              fieldName.equals("excludedIds") ? Set.of(member2.getId()) : Set.of(),
+              fieldName.equals("minAge") ? 40 : null,
+              fieldName.equals("maxAge") ? 20 : null,
+              fieldName.equals("hobbies")
+                  ? member1.getProfile().getHobbies().stream()
+                      .map(Hobby::name)
+                      .collect(Collectors.toSet())
+                  : Set.of(),
+              fieldName.equals("cities")
+                  ? Set.of(member1.getProfile().getRegion().getCity().name())
+                  : Set.of(),
+              fieldName.equals("religion") ? Religion.BUDDHIST.name() : null,
+              fieldName.equals("smokingStatus") ? SmokingStatus.DAILY.name() : null,
+              fieldName.equals("drinkingStatus") ? DrinkingStatus.SOCIAL.name() : null,
+              fieldName.equals("memberGrade") ? Grade.DIAMOND.name() : null,
+              fieldName.equals("gender") ? Gender.MALE.name() : null,
+              fieldName.equals("joinedAfter") ? LocalDateTime.now().plusDays(1) : null);
+
+      Set<Long> result = memberQueryRepository.searchIntroducibleIds(condition, 10L);
+
+      switch (fieldName) {
+        case "minAge" -> assertThat(result).containsExactly(member2.getId());
+        case "memberGrade", "joinedAfter" -> assertThat(result).isEmpty();
+        case "null" ->
+            assertThat(result).containsExactlyInAnyOrder(member1.getId(), member2.getId());
+        default -> assertThat(result).containsExactly(member1.getId());
+      }
+    }
+
+    @Test
+    @DisplayName("조건 집합이 null이어도 적용하지 않고 찾는다.")
+    void searchWithNullCollections() {
+      Member target = entityManager.persist(MemberFixture.builder().profilePublic(true).build());
+      entityManager.flush();
+
+      Set<Long> result =
+          memberQueryRepository.searchIntroducibleIds(
+              new MemberSearchCondition(
+                  null, null, null, null, null, null, null, null, null, null, null),
+              10L);
+
+      assertThat(result).containsExactly(target.getId());
+    }
+
+    @Test
+    @DisplayName("최소·최대 나이를 함께 주면 그 사이 나이의 회원만 찾는다.")
+    void searchByAgeRange() {
+      int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+      Member age24 = persistPublicMember(currentYear - 23);
+      Member age25 = persistPublicMember(currentYear - 24);
+      Member age30 = persistPublicMember(currentYear - 29);
+      Member age31 = persistPublicMember(currentYear - 30);
+      entityManager.flush();
+
+      Set<Long> result = memberQueryRepository.searchIntroducibleIds(ageCondition(25, 30), 10L);
+
+      assertThat(result).containsExactlyInAnyOrder(age25.getId(), age30.getId());
+      assertThat(result).doesNotContain(age24.getId(), age31.getId());
+    }
+
+    @Test
+    @DisplayName("활동 중이 아닌 회원은 찾지 않는다.")
+    void excludeInactiveMembers() {
+      Member active = entityManager.persist(MemberFixture.builder().profilePublic(true).build());
+      entityManager.persist(
+          MemberFixture.builder()
+              .profilePublic(true)
+              .activityStatus(ActivityStatus.DORMANT)
+              .build());
+      entityManager.flush();
+
+      Set<Long> result = memberQueryRepository.searchIntroducibleIds(ageCondition(null, null), 10L);
+
+      assertThat(result).containsExactly(active.getId());
+    }
+
+    @Test
+    @DisplayName("회원 번호가 큰 순서로 limit만큼만 찾고, 취미가 여러 개 겹쳐도 회원은 한 번만 센다.")
+    void limitByIdDescWithDistinctHobbies() {
+      Set<Hobby> hobbies = Set.of(Hobby.ANIMATION, Hobby.BOARD_GAMES);
+      entityManager.persist(MemberFixture.builder().profilePublic(true).hobbies(hobbies).build());
+      Member second =
+          entityManager.persist(
+              MemberFixture.builder().profilePublic(true).hobbies(hobbies).build());
+      Member third =
+          entityManager.persist(
+              MemberFixture.builder().profilePublic(true).hobbies(hobbies).build());
+      entityManager.flush();
+
+      Set<Long> result =
+          memberQueryRepository.searchIntroducibleIds(
+              new MemberSearchCondition(
+                  Set.of(),
+                  null,
+                  null,
+                  Set.of(Hobby.ANIMATION.name(), Hobby.BOARD_GAMES.name()),
+                  Set.of(),
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null),
+              2L);
+
+      assertThat(result).containsExactlyInAnyOrder(second.getId(), third.getId());
+    }
+
+    private Member persistPublicMember(int yearOfBirth) {
+      return entityManager.persist(
+          MemberFixture.builder().profilePublic(true).yearOfBirth(yearOfBirth).build());
+    }
+
+    private MemberSearchCondition ageCondition(Integer minAge, Integer maxAge) {
+      return new MemberSearchCondition(
+          Set.of(), minAge, maxAge, Set.of(), Set.of(), null, null, null, null, null, null);
     }
   }
 }
