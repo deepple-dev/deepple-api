@@ -7,6 +7,7 @@ import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.match.application.dto.MatchRequestDto;
 import kr.co.deepple.match.application.dto.MatchResponseDto;
 import kr.co.deepple.match.application.port.out.MatchRepository;
+import kr.co.deepple.match.application.port.out.spi.IntroductionTypeFinder;
 import kr.co.deepple.match.domain.Match;
 import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchErrorCode;
@@ -21,7 +22,6 @@ import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
-import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class MatchService {
 
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final ValidateContactTypeSettingUseCase validateContactTypeSettingUseCase;
-  private final FindIntroductionTypeUseCase findIntroductionTypeUseCase;
+  private final IntroductionTypeFinder introductionTypeFinder;
   private final MatchRepository matchRepository;
   private final DistributedLockTemplate distributedLockTemplate;
   private final UseHeartUseCase useHeartUseCase;
@@ -81,7 +81,7 @@ public class MatchService {
   }
 
   private MatchType getMatchType(long requesterId, long responderId) {
-    return findIntroductionTypeUseCase
+    return introductionTypeFinder
         .findIntroductionType(requesterId, responderId)
         .filter(SOULMATE_INTRODUCTION_TYPE::equals)
         .map(type -> MatchType.SOULMATE)
