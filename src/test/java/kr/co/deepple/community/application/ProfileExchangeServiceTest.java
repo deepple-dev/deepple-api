@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileExchangeServiceTest {
@@ -203,6 +204,42 @@ class ProfileExchangeServiceTest {
       // Then
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeRequestedEvent.class));
       Mockito.verify(profileExchangeRepository).save(Mockito.any(ProfileExchange.class));
+    }
+
+    @DisplayName("저장할 때 unique 제약에 걸리면 이미 프로필 교환이 있다는 예외가 발생한다.")
+    @Test
+    void throwsExceptionWhenSaveViolatesUniqueConstraint() {
+      // Given
+      long requesterId = 1L;
+      long responderId = 2L;
+      Member requester = MemberFixture.builder().id(requesterId).build();
+      Member responder = MemberFixture.builder().id(responderId).build();
+
+      when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
+          .thenReturn(false);
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(requester));
+      when(checkBlockUseCase.isBlocked(requesterId, responderId)).thenReturn(false);
+      when(checkBlockUseCase.isBlocked(responderId, requesterId)).thenReturn(false);
+      when(profileExchangeRepository.save(any()))
+          .thenThrow(new DataIntegrityViolationException("중복"));
+      Mockito.doAnswer(
+              invocation -> {
+                Runnable runnable = invocation.getArgument(1);
+                runnable.run();
+                return null;
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
+
+      // When & Then
+      assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue(
+              "errorCode", CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS);
+      Mockito.verifyNoInteractions(useHeartUseCase, eventPublisher);
     }
   }
 

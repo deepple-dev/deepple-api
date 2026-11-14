@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import java.util.List;
-import kr.co.deepple.interview.adapter.out.persistence.InterviewAnswerQueryRepository;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswer;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswerDetail;
+import kr.co.deepple.interview.application.port.out.InterviewAnswerQueryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

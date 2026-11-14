@@ -10,11 +10,11 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.in.PersonalityTypeMemberFinder;
 import kr.co.deepple.datingexam.application.port.in.ValidatePersonalityTypeUseCase;
 import kr.co.deepple.match.application.port.in.FindMatchCounterpartIdsUseCase;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.MemberIntroductionProfileView;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenStatusView;
+import kr.co.deepple.recommendation.application.port.out.IntroductionQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.PersonalityIntroductionOpenStateRepository;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,8 @@ public class PersonalityIntroductionQueryService {
   private final IntroductionQueryService introductionQueryService;
   private final IntroductionQueryRepository introductionQueryRepository;
   private final FindMatchCounterpartIdsUseCase findMatchCounterpartIdsUseCase;
-  private final PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
+  private final PersonalityIntroductionOpenStateRepository
+      personalityIntroductionOpenStateRepository;
 
   /**
    * 유형별 이상형을 오픈하고 목록(최대 3명)을 조회한다. 같은 유형이 이미 열려 있으면 24시간 고정된 목록을 그대로 반환하고, 다른 유형이 열려 있으면 예외를 던진다.
@@ -39,7 +40,7 @@ public class PersonalityIntroductionQueryService {
   public List<MemberIntroductionProfileView> open(long memberId, String type) {
     validatePersonalityTypeUseCase.validate(type);
     Optional<PersonalityIntroductionOpenState> openState =
-        personalityIntroductionRedisRepository.findOpenState(memberId);
+        personalityIntroductionOpenStateRepository.findOpenState(memberId);
     if (openState.isPresent()) {
       PersonalityIntroductionOpenState state = openState.get();
       if (!state.type().equals(type)) {
@@ -54,7 +55,7 @@ public class PersonalityIntroductionQueryService {
     if (candidateMemberIds.isEmpty()) {
       return List.of();
     }
-    personalityIntroductionRedisRepository.saveOpenState(
+    personalityIntroductionOpenStateRepository.saveOpenState(
         memberId,
         new PersonalityIntroductionOpenState(type, candidateMemberIds, LocalDateTime.now()));
     return toProfileViews(memberId, candidateMemberIds);
@@ -62,7 +63,7 @@ public class PersonalityIntroductionQueryService {
 
   /** 현재 오픈되어 있는 유형과 오픈 시각을 조회한다. 오픈 이력이 없으면 유형과 오픈 시각이 비어 있다. */
   public PersonalityIntroductionOpenStatusView getOpenStatus(long memberId) {
-    return personalityIntroductionRedisRepository
+    return personalityIntroductionOpenStateRepository
         .findOpenState(memberId)
         .map(state -> new PersonalityIntroductionOpenStatusView(state.type(), state.openedAt()))
         .orElseGet(() -> new PersonalityIntroductionOpenStatusView(null, null));

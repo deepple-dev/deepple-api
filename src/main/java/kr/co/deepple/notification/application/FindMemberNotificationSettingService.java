@@ -1,9 +1,9 @@
 package kr.co.deepple.notification.application;
 
 import java.util.Optional;
-import kr.co.deepple.notification.adapter.out.persistence.NotificationPreferenceQueryRepository;
 import kr.co.deepple.notification.application.port.in.FindMemberNotificationSettingUseCase;
 import kr.co.deepple.notification.application.port.in.MemberNotificationSetting;
+import kr.co.deepple.notification.application.port.out.NotificationPreferenceQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

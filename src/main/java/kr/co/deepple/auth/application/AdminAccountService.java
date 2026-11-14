@@ -1,6 +1,6 @@
 package kr.co.deepple.auth.application;
 
-import kr.co.deepple.auth.application.port.out.AdminCommandRepository;
+import kr.co.deepple.auth.application.port.out.AdminRepository;
 import kr.co.deepple.auth.domain.Admin;
 import kr.co.deepple.auth.domain.AdminRole;
 import kr.co.deepple.auth.domain.ApprovalStatus;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminAccountService {
 
-  private final AdminCommandRepository adminCommandRepository;
+  private final AdminRepository adminRepository;
 
   @Transactional
   public void approve(long adminId, String role) {
@@ -32,12 +32,12 @@ public class AdminAccountService {
   @Transactional
   public void reject(long adminId) {
     Admin admin = getPendingAdmin(adminId);
-    adminCommandRepository.delete(admin);
+    adminRepository.delete(admin);
     log.atInfo().addKeyValue("targetAdminId", adminId).log("관리자 가입 거절");
   }
 
   private Admin getPendingAdmin(long adminId) {
-    return adminCommandRepository
+    return adminRepository
         .findByIdAndApprovalStatus(adminId, ApprovalStatus.PENDING)
         .orElseThrow(() ->
             new DeeppleException(AuthErrorCode.PENDING_ADMIN_NOT_FOUND, "adminId=" + adminId));

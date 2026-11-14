@@ -4,7 +4,7 @@ import static kr.co.deepple.admin.application.WarningMapper.toWarningReasonTypes
 
 import java.util.Set;
 import kr.co.deepple.admin.application.dto.WarningCreateRequest;
-import kr.co.deepple.admin.application.port.out.WarningCommandRepository;
+import kr.co.deepple.admin.application.port.out.WarningRepository;
 import kr.co.deepple.admin.domain.Warning;
 import kr.co.deepple.admin.domain.WarningReasonType;
 import kr.co.deepple.admin.event.WarningIssuedEvent;
@@ -19,19 +19,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class WarningService {
 
-  private final WarningCommandRepository warningCommandRepository;
+  private final WarningRepository warningRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void issue(long adminId, WarningCreateRequest request) {
     long memberId = request.memberId();
     String idempotencyKey = request.idempotencyKey();
-    if (idempotencyKey != null && warningCommandRepository.existsByIdempotencyKey(idempotencyKey)) {
+    if (idempotencyKey != null && warningRepository.existsByIdempotencyKey(idempotencyKey)) {
       log.atInfo().addKeyValue("memberId", memberId).log("이미 처리된 경고 요청");
       return;
     }
 
-    long currentWarningCount = warningCommandRepository.countByMemberIdAndIsCriticalTrue(memberId);
+    long currentWarningCount = warningRepository.countByMemberIdAndIsCriticalTrue(memberId);
     if (request.isCritical()) {
       currentWarningCount += 1;
     }
@@ -39,7 +39,7 @@ public class WarningService {
     Warning warning =
         Warning.issue(adminId, memberId, reasonTypes, request.isCritical(), idempotencyKey);
 
-    warningCommandRepository.save(warning);
+    warningRepository.save(warning);
     for (WarningReasonType reasonType : reasonTypes) {
       eventPublisher.publishEvent(
           WarningIssuedEvent.of(

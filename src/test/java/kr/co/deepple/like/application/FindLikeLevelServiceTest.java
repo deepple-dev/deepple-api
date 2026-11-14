@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import kr.co.deepple.like.application.port.out.LikeCommandRepository;
+import kr.co.deepple.like.application.port.out.LikeRepository;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeLevel;
 import kr.co.deepple.like.fixture.LikeFixture;
@@ -22,14 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class FindLikeLevelServiceTest {
 
-  @Mock private LikeCommandRepository likeCommandRepository;
+  @Mock private LikeRepository likeRepository;
 
   @InjectMocks private FindLikeLevelService findLikeLevelService;
 
   @Test
   @DisplayName("보낸 좋아요가 있으면 좋아요 단계 이름을 돌려준다.")
   void findLikeLevel() {
-    given(likeCommandRepository.findBySenderIdAndReceiverId(1L, 2L))
+    given(likeRepository.findBySenderIdAndReceiverId(1L, 2L))
         .willReturn(
             Optional.of(
                 LikeFixture.builder()
@@ -44,7 +44,7 @@ class FindLikeLevelServiceTest {
   @Test
   @DisplayName("보낸 좋아요가 없으면 빈 값을 돌려준다.")
   void returnEmptyWhenNoLike() {
-    given(likeCommandRepository.findBySenderIdAndReceiverId(1L, 2L)).willReturn(Optional.empty());
+    given(likeRepository.findBySenderIdAndReceiverId(1L, 2L)).willReturn(Optional.empty());
 
     assertThat(findLikeLevelService.findLikeLevel(1L, 2L)).isEmpty();
   }
@@ -54,7 +54,7 @@ class FindLikeLevelServiceTest {
   void findLikeLevels() {
     Like withoutLevel = mock(Like.class);
     given(withoutLevel.getLevel()).willReturn(null);
-    given(likeCommandRepository.findAllBySenderIdAndReceiverIdIn(1L, List.of(2L, 3L, 4L)))
+    given(likeRepository.findAllBySenderIdAndReceiverIdIn(1L, List.of(2L, 3L, 4L)))
         .willReturn(
             List.of(
                 LikeFixture.builder()
@@ -72,6 +72,6 @@ class FindLikeLevelServiceTest {
   @DisplayName("받은 회원 목록이 비어 있으면 조회하지 않고 빈 결과를 돌려준다.")
   void returnEmptyWhenNoReceiverIds() {
     assertThat(findLikeLevelService.findLikeLevels(1L, List.of())).isEmpty();
-    verifyNoInteractions(likeCommandRepository);
+    verifyNoInteractions(likeRepository);
   }
 }

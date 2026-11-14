@@ -16,8 +16,8 @@ import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.interview.application.dto.InterviewAnswerSaveRequest;
 import kr.co.deepple.interview.application.dto.InterviewAnswerUpdateRequest;
-import kr.co.deepple.interview.application.port.out.InterviewAnswerCommandRepository;
-import kr.co.deepple.interview.application.port.out.InterviewQuestionCommandRepository;
+import kr.co.deepple.interview.application.port.out.InterviewAnswerRepository;
+import kr.co.deepple.interview.application.port.out.InterviewQuestionRepository;
 import kr.co.deepple.interview.domain.InterviewAnswer;
 import kr.co.deepple.interview.domain.InterviewErrorCode;
 import kr.co.deepple.interview.domain.InterviewQuestion;
@@ -37,9 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class InterviewAnswerServiceTest {
 
-  @Mock private InterviewQuestionCommandRepository interviewQuestionCommandRepository;
+  @Mock private InterviewQuestionRepository interviewQuestionRepository;
 
-  @Mock private InterviewAnswerCommandRepository interviewAnswerCommandRepository;
+  @Mock private InterviewAnswerRepository interviewAnswerRepository;
 
   @Mock private ExecuteMissionUseCase executeMissionUseCase;
 
@@ -59,8 +59,7 @@ class InterviewAnswerServiceTest {
           new InterviewAnswerSaveRequest(interviewQuestionId, answerContent);
       Long memberId = 2L;
 
-      when(interviewQuestionCommandRepository.findById(interviewQuestionId))
-          .thenReturn(Optional.empty());
+      when(interviewQuestionRepository.findById(interviewQuestionId)).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> interviewAnswerService.saveAnswer(request, memberId))
@@ -81,7 +80,7 @@ class InterviewAnswerServiceTest {
 
       InterviewQuestion interviewQuestion =
           InterviewQuestionFixture.builder().id(interviewQuestionId).publicQuestion(false).build();
-      when(interviewQuestionCommandRepository.findById(interviewQuestionId))
+      when(interviewQuestionRepository.findById(interviewQuestionId))
           .thenReturn(Optional.of(interviewQuestion));
 
       // when & then
@@ -103,10 +102,9 @@ class InterviewAnswerServiceTest {
 
       InterviewQuestion interviewQuestion =
           InterviewQuestionFixture.builder().id(interviewQuestionId).publicQuestion(true).build();
-      when(interviewQuestionCommandRepository.findById(interviewQuestionId))
+      when(interviewQuestionRepository.findById(interviewQuestionId))
           .thenReturn(Optional.of(interviewQuestion));
-      when(interviewAnswerCommandRepository.existsByQuestionIdAndMemberId(
-              interviewQuestionId, memberId))
+      when(interviewAnswerRepository.existsByQuestionIdAndMemberId(interviewQuestionId, memberId))
           .thenReturn(true);
 
       // when & then
@@ -128,11 +126,10 @@ class InterviewAnswerServiceTest {
 
       InterviewQuestion interviewQuestion =
           InterviewQuestionFixture.builder().id(interviewQuestionId).publicQuestion(true).build();
-      when(interviewQuestionCommandRepository.findById(interviewQuestionId))
+      when(interviewQuestionRepository.findById(interviewQuestionId))
           .thenReturn(Optional.of(interviewQuestion));
-      when(interviewAnswerCommandRepository.existsByMemberId(memberId)).thenReturn(false);
-      when(interviewAnswerCommandRepository.existsByQuestionIdAndMemberId(
-              interviewQuestionId, memberId))
+      when(interviewAnswerRepository.existsByMemberId(memberId)).thenReturn(false);
+      when(interviewAnswerRepository.existsByQuestionIdAndMemberId(interviewQuestionId, memberId))
           .thenReturn(false);
 
       when(executeMissionUseCase.executeMissionsByAction(memberId, ActionType.INTERVIEW.name()))
@@ -151,7 +148,7 @@ class InterviewAnswerServiceTest {
         // then
         assertThat(result).isTrue();
       }
-      verify(interviewAnswerCommandRepository).save(interviewAnswer);
+      verify(interviewAnswerRepository).save(interviewAnswer);
       verify(executeMissionUseCase).executeMissionsByAction(memberId, ActionType.INTERVIEW.name());
     }
 
@@ -167,11 +164,10 @@ class InterviewAnswerServiceTest {
 
       InterviewQuestion interviewQuestion =
           InterviewQuestionFixture.builder().id(interviewQuestionId).publicQuestion(true).build();
-      when(interviewQuestionCommandRepository.findById(interviewQuestionId))
+      when(interviewQuestionRepository.findById(interviewQuestionId))
           .thenReturn(Optional.of(interviewQuestion));
-      when(interviewAnswerCommandRepository.existsByMemberId(memberId)).thenReturn(true);
-      when(interviewAnswerCommandRepository.existsByQuestionIdAndMemberId(
-              interviewQuestionId, memberId))
+      when(interviewAnswerRepository.existsByMemberId(memberId)).thenReturn(true);
+      when(interviewAnswerRepository.existsByQuestionIdAndMemberId(interviewQuestionId, memberId))
           .thenReturn(false);
 
       InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
@@ -187,7 +183,7 @@ class InterviewAnswerServiceTest {
         // then
         assertThat(result).isFalse();
       }
-      verify(interviewAnswerCommandRepository).save(interviewAnswer);
+      verify(interviewAnswerRepository).save(interviewAnswer);
       verify(executeMissionUseCase, never()).executeMissionsByAction(anyLong(), anyString());
     }
   }
@@ -205,7 +201,7 @@ class InterviewAnswerServiceTest {
       InterviewAnswerUpdateRequest request = new InterviewAnswerUpdateRequest(answerContent);
       Long memberId = 2L;
 
-      when(interviewAnswerCommandRepository.findById(answerId)).thenReturn(Optional.empty());
+      when(interviewAnswerRepository.findById(answerId)).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> interviewAnswerService.updateAnswer(answerId, request, memberId))
@@ -224,8 +220,7 @@ class InterviewAnswerServiceTest {
 
       InterviewAnswer interviewAnswer =
           InterviewAnswerFixture.builder().id(answerId).memberId(3L).build();
-      when(interviewAnswerCommandRepository.findById(answerId))
-          .thenReturn(Optional.of(interviewAnswer));
+      when(interviewAnswerRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
       // when & then
       assertThatThrownBy(() -> interviewAnswerService.updateAnswer(answerId, request, memberId))
@@ -245,8 +240,7 @@ class InterviewAnswerServiceTest {
 
       InterviewAnswer interviewAnswer =
           InterviewAnswerFixture.builder().id(answerId).memberId(memberId).build();
-      when(interviewAnswerCommandRepository.findById(answerId))
-          .thenReturn(Optional.of(interviewAnswer));
+      when(interviewAnswerRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
       // when
       interviewAnswerService.updateAnswer(answerId, request, memberId);
@@ -267,7 +261,7 @@ class InterviewAnswerServiceTest {
       Long answerId = 1L;
       Long memberId = 2L;
 
-      when(interviewAnswerCommandRepository.findById(answerId)).thenReturn(Optional.empty());
+      when(interviewAnswerRepository.findById(answerId)).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> interviewAnswerService.deleteAnswer(answerId, memberId))
@@ -284,8 +278,7 @@ class InterviewAnswerServiceTest {
 
       InterviewAnswer interviewAnswer =
           InterviewAnswerFixture.builder().id(answerId).memberId(3L).build();
-      when(interviewAnswerCommandRepository.findById(answerId))
-          .thenReturn(Optional.of(interviewAnswer));
+      when(interviewAnswerRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
       // when & then
       assertThatThrownBy(() -> interviewAnswerService.deleteAnswer(answerId, memberId))
@@ -303,14 +296,13 @@ class InterviewAnswerServiceTest {
 
       InterviewAnswer interviewAnswer =
           InterviewAnswerFixture.builder().id(answerId).memberId(memberId).build();
-      when(interviewAnswerCommandRepository.findById(answerId))
-          .thenReturn(Optional.of(interviewAnswer));
+      when(interviewAnswerRepository.findById(answerId)).thenReturn(Optional.of(interviewAnswer));
 
       // when
       interviewAnswerService.deleteAnswer(answerId, memberId);
 
       // then
-      verify(interviewAnswerCommandRepository, times(1)).delete(interviewAnswer);
+      verify(interviewAnswerRepository, times(1)).delete(interviewAnswer);
     }
   }
 }

@@ -1,0 +1,51 @@
+package kr.co.deepple.notification.adapter.out.persistence;
+
+import static kr.co.deepple.notification.domain.QNotificationPreference.notificationPreference;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import kr.co.deepple.notification.application.dto.NotificationPreferenceView;
+import kr.co.deepple.notification.application.port.out.NotificationPreferenceQueryRepository;
+import kr.co.deepple.notification.domain.NotificationPreference;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+@Repository
+@RequiredArgsConstructor
+public class NotificationPreferenceQueryRepositoryImpl
+    implements NotificationPreferenceQueryRepository {
+
+  private final JPAQueryFactory queryFactory;
+
+  @Override
+  public Optional<NotificationPreferenceView> findByMemberId(long memberId) {
+    NotificationPreference preference =
+        queryFactory
+            .selectFrom(notificationPreference)
+            .where(notificationPreference.memberId.eq(memberId))
+            .fetchOne();
+
+    return Optional.ofNullable(preference).map(this::toView);
+  }
+
+  @Override
+  public Optional<Boolean> findEnabledGloballyByMemberId(long memberId) {
+    return Optional.ofNullable(
+        queryFactory
+            .select(notificationPreference.isEnabledGlobally)
+            .from(notificationPreference)
+            .where(notificationPreference.memberId.eq(memberId))
+            .orderBy(notificationPreference.id.asc())
+            .fetchFirst());
+  }
+
+  private NotificationPreferenceView toView(NotificationPreference preference) {
+    return new NotificationPreferenceView(
+        preference.getMemberId(),
+        preference.isEnabledGlobally(),
+        preference.getNotificationPreferences().entrySet().stream()
+            .collect(Collectors.toMap(entry -> entry.getKey().name(), Map.Entry::getValue)));
+  }
+}

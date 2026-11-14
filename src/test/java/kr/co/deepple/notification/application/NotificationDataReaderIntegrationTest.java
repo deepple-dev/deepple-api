@@ -7,7 +7,7 @@ import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.notification.application.port.out.NotificationTemplateCommandRepository;
+import kr.co.deepple.notification.application.port.out.NotificationTemplateRepository;
 import kr.co.deepple.notification.domain.NotificationTemplate;
 import kr.co.deepple.notification.fixture.NotificationTemplateFixture;
 import org.junit.jupiter.api.AfterEach;
@@ -24,7 +24,7 @@ class NotificationDataReaderIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private NotificationDataReader notificationDataReader;
 
-  @Autowired private NotificationTemplateCommandRepository notificationTemplateRepository;
+  @Autowired private NotificationTemplateRepository notificationTemplateRepository;
 
   @Autowired private CacheManager cacheManager;
 

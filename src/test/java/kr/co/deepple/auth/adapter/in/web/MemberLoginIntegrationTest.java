@@ -18,7 +18,7 @@ import kr.co.deepple.auth.domain.MemberAccountStatus;
 import kr.co.deepple.auth.domain.PhoneNumber;
 import kr.co.deepple.auth.fixture.MemberAccountFixture;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import org.junit.jupiter.api.AfterEach;
@@ -40,7 +40,7 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private MemberAccountRepository memberAccountRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private AuthMessageRepository authMessageRepository;
 
@@ -49,9 +49,7 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
     memberAccountRepository
         .findByPhoneNumber(PhoneNumber.from(PHONE_NUMBER))
         .ifPresent(account -> {
-          memberCommandJpaRepository
-              .findById(account.getId())
-              .ifPresent(memberCommandJpaRepository::delete);
+          memberRepository.findById(account.getId()).ifPresent(memberRepository::delete);
           memberAccountRepository.delete(account);
         });
   }
@@ -71,7 +69,7 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
 
     MemberAccount account =
         memberAccountRepository.findByPhoneNumber(PhoneNumber.from(PHONE_NUMBER)).orElseThrow();
-    Member member = memberCommandJpaRepository.findById(account.getId()).orElseThrow();
+    Member member = memberRepository.findById(account.getId()).orElseThrow();
     assertThat(member.getPhoneNumber()).isEqualTo(PHONE_NUMBER);
     assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.INITIAL);
   }
@@ -99,9 +97,7 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
     await()
         .atMost(Duration.ofSeconds(5))
         .untilAsserted(() ->
-            assertThat(memberCommandJpaRepository.findById(accountId))
-                .get()
-                .matches(Member::isDeleted));
+            assertThat(memberRepository.findById(accountId)).get().matches(Member::isDeleted));
 
     authMessageRepository.save(PHONE_NUMBER, CODE);
     MvcTestResult result = login();

@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import kr.co.deepple.admin.application.dto.WarningCreateRequest;
-import kr.co.deepple.admin.application.port.out.WarningCommandRepository;
+import kr.co.deepple.admin.application.port.out.WarningRepository;
 import kr.co.deepple.admin.domain.Warning;
 import kr.co.deepple.admin.event.WarningIssuedEvent;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class WarningServiceTest {
 
-  @Mock private WarningCommandRepository warningCommandRepository;
+  @Mock private WarningRepository warningRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -38,15 +38,15 @@ class WarningServiceTest {
     long memberId = 2L;
     var request = new WarningCreateRequest(memberId, Set.of("INAPPROPRIATE_INTERVIEW"), true, null);
 
-    when(warningCommandRepository.countByMemberIdAndIsCriticalTrue(memberId)).thenReturn(1L);
+    when(warningRepository.countByMemberIdAndIsCriticalTrue(memberId)).thenReturn(1L);
 
     // when
     warningService.issue(adminId, request);
 
     // then
     Mockito.verify(eventPublisher).publishEvent(Mockito.any(WarningIssuedEvent.class));
-    verify(warningCommandRepository).countByMemberIdAndIsCriticalTrue(memberId);
-    verify(warningCommandRepository).save(any(Warning.class));
+    verify(warningRepository).countByMemberIdAndIsCriticalTrue(memberId);
+    verify(warningRepository).save(any(Warning.class));
   }
 
   @Test
@@ -55,13 +55,13 @@ class WarningServiceTest {
     // given
     String idempotencyKey = "key-1";
     var request = new WarningCreateRequest(2L, Set.of("REPORT"), true, idempotencyKey);
-    when(warningCommandRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(true);
+    when(warningRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(true);
 
     // when
     warningService.issue(1L, request);
 
     // then
-    verify(warningCommandRepository, never()).save(any(Warning.class));
+    verify(warningRepository, never()).save(any(Warning.class));
     verify(eventPublisher, never()).publishEvent(any(Object.class));
   }
 
@@ -71,14 +71,14 @@ class WarningServiceTest {
     // given
     String idempotencyKey = "key-1";
     var request = new WarningCreateRequest(2L, Set.of("REPORT"), true, idempotencyKey);
-    when(warningCommandRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
+    when(warningRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
 
     // when
     warningService.issue(1L, request);
 
     // then
     ArgumentCaptor<Warning> captor = ArgumentCaptor.forClass(Warning.class);
-    verify(warningCommandRepository).save(captor.capture());
+    verify(warningRepository).save(captor.capture());
     assertThat(captor.getValue().getIdempotencyKey()).isEqualTo(idempotencyKey);
   }
 }

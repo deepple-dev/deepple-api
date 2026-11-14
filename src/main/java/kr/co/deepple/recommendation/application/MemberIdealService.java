@@ -3,10 +3,10 @@ package kr.co.deepple.recommendation.application;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.ProfileOptions;
 import kr.co.deepple.member.application.port.in.ValidateProfileOptionsUseCase;
-import kr.co.deepple.recommendation.adapter.out.persistence.MemberIdealQueryRepository;
 import kr.co.deepple.recommendation.application.dto.MemberIdealUpdateRequest;
 import kr.co.deepple.recommendation.application.dto.MemberIdealView;
-import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealRepository;
 import kr.co.deepple.recommendation.domain.AgeRange;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
@@ -18,17 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberIdealService {
 
-  private final MemberIdealCommandRepository memberIdealCommandRepository;
+  private final MemberIdealRepository memberIdealRepository;
   private final MemberIdealQueryRepository memberIdealQueryRepository;
   private final ValidateProfileOptionsUseCase validateProfileOptionsUseCase;
 
   @Transactional
   public void initIfAbsent(long memberId) {
-    if (memberIdealCommandRepository.existsByMemberId(memberId)) {
+    if (memberIdealRepository.existsByMemberId(memberId)) {
       return;
     }
     MemberIdeal memberIdeal = MemberIdeal.init(memberId);
-    memberIdealCommandRepository.save(memberIdeal);
+    memberIdealRepository.save(memberIdeal);
   }
 
   @Transactional(readOnly = true)
@@ -62,7 +62,7 @@ public class MemberIdealService {
   }
 
   private MemberIdeal getMemberIdealByMemberId(long memberId) {
-    return memberIdealCommandRepository
+    return memberIdealRepository
         .findByMemberId(memberId)
         .orElseThrow(() ->
             new DeeppleException(

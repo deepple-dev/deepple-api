@@ -16,11 +16,11 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import kr.co.deepple.payment.domain.PaymentMethod;
@@ -41,11 +41,11 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private OrderService orderService;
 
-  @Autowired private OrderCommandRepository orderCommandRepository;
+  @Autowired private OrderRepository orderRepository;
 
-  @Autowired private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Autowired private HeartPurchaseOptionRepository heartPurchaseOptionRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
@@ -56,20 +56,20 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
-    member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    member = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(member.getId());
     option =
-        heartPurchaseOptionCommandRepository.save(
+        heartPurchaseOptionRepository.save(
             HeartPurchaseOptionFixture.builder().amount(OPTION_AMOUNT).build());
   }
 
   @AfterEach
   void tearDown() {
     memberHeartBalanceRepository.deleteAll();
-    orderCommandRepository.deleteAll();
+    orderRepository.deleteAll();
     heartTransactionRepository.deleteAll();
-    heartPurchaseOptionCommandRepository.delete(option);
-    memberCommandJpaRepository.deleteAll();
+    heartPurchaseOptionRepository.delete(option);
+    memberRepository.deleteAll();
   }
 
   @Test
@@ -80,7 +80,7 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
     // when & then
     assertThatCode(() -> processReceipt(member.getId())).doesNotThrowAnyException();
-    assertThat(orderCommandRepository.count()).isEqualTo(1);
+    assertThat(orderRepository.count()).isEqualTo(1);
     assertGrantedOnce();
   }
 
@@ -89,7 +89,7 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
   void throwWhenOtherMemberSendsSameReceipt() {
     // given
     processReceipt(member.getId());
-    Member otherMember = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    Member otherMember = memberRepository.save(MemberFixture.builder().build());
 
     // when & then
     assertThatThrownBy(() -> processReceipt(otherMember.getId()))
@@ -131,7 +131,7 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(successCount.get()).isEqualTo(THREAD_COUNT);
     assertThat(failureCount.get()).isZero();
-    assertThat(orderCommandRepository.count()).isEqualTo(1);
+    assertThat(orderRepository.count()).isEqualTo(1);
     assertGrantedOnce();
   }
 

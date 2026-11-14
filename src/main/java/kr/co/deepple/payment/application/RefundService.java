@@ -2,9 +2,9 @@ package kr.co.deepple.payment.application;
 
 import java.time.LocalDateTime;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
-import kr.co.deepple.payment.application.port.out.RefundCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
+import kr.co.deepple.payment.application.port.out.RefundRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.NotificationType;
 import kr.co.deepple.payment.domain.Order;
@@ -24,9 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RefundService {
 
-  private final OrderCommandRepository orderCommandRepository;
-  private final RefundCommandRepository refundCommandRepository;
-  private final HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  private final OrderRepository orderRepository;
+  private final RefundRepository refundRepository;
+  private final HeartPurchaseOptionRepository heartPurchaseOptionRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -55,7 +55,7 @@ public class RefundService {
   }
 
   private Order findOrderForUpdate(String transactionId, PaymentMethod paymentMethod) {
-    return orderCommandRepository
+    return orderRepository
         .findByTransactionIdAndPaymentMethodForUpdate(transactionId, paymentMethod)
         .orElseThrow(() ->
             new DeeppleException(
@@ -69,7 +69,7 @@ public class RefundService {
   }
 
   private HeartPurchaseOption findHeartPurchaseOption(String productId) {
-    return heartPurchaseOptionCommandRepository
+    return heartPurchaseOptionRepository
         .findByProductIdAndDeletedAtIsNull(productId)
         .orElseThrow(() ->
             new DeeppleException(
@@ -93,7 +93,7 @@ public class RefundService {
             order.getPaymentMethod(),
             notificationType,
             LocalDateTime.now());
-    refundCommandRepository.save(refund);
+    refundRepository.save(refund);
   }
 
   private void raiseRefundEvent(Order order, long refundAmount) {

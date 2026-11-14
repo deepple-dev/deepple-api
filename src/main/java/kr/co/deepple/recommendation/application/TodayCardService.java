@@ -7,7 +7,7 @@ import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class TodayCardService {
   private static final String HEART_USAGE_TYPE = "INTRODUCTION";
 
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  private final MemberIntroductionRepository memberIntroductionRepository;
   private final UseHeartUseCase useHeartUseCase;
 
   @Transactional
@@ -36,7 +36,7 @@ public class TodayCardService {
 
   private Set<Long> getIntroductionTargetMemberIds(long memberId, Set<Long> todayCardMemberIds) {
     Set<Long> memberIntroductions =
-        memberIntroductionCommandRepository
+        memberIntroductionRepository
             .findAllByMemberIdAndIntroducedMemberIdIn(memberId, todayCardMemberIds)
             .stream()
             .map(MemberIntroduction::getIntroducedMemberId)
@@ -66,7 +66,7 @@ public class TodayCardService {
             .map(introducedMemberId ->
                 MemberIntroduction.of(memberId, introducedMemberId, IntroductionType.TODAY_CARD))
             .toList();
-    memberIntroductionCommandRepository.saveAll(memberIntroductions);
+    memberIntroductionRepository.saveAll(memberIntroductions);
     memberIntroductions.forEach(memberIntroduction ->
         useHeartUseCase.useHeart(
             new UseHeartCommand(

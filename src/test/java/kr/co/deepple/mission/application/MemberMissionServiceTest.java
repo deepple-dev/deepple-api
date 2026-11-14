@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Gender;
@@ -11,8 +12,8 @@ import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.mission.application.port.out.MemberMissionCommandRepository;
-import kr.co.deepple.mission.application.port.out.MissionCommandRepository;
+import kr.co.deepple.mission.application.port.out.MemberMissionRepository;
+import kr.co.deepple.mission.application.port.out.MissionRepository;
 import kr.co.deepple.mission.domain.ActionType;
 import kr.co.deepple.mission.domain.FrequencyType;
 import kr.co.deepple.mission.domain.MemberMission;
@@ -37,9 +38,9 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 public class MemberMissionServiceTest {
 
-  @Mock private MemberMissionCommandRepository memberMissionCommandRepository;
+  @Mock private MemberMissionRepository memberMissionRepository;
 
-  @Mock private MissionCommandRepository missionCommandRepository;
+  @Mock private MissionRepository missionRepository;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
@@ -162,16 +163,18 @@ public class MemberMissionServiceTest {
               .targetGender(TargetGender.MALE)
               .build();
       givenMissionAndMember(challengeMission);
-      Mockito.when(memberMissionCommandRepository.findOrCreateForUpdate(memberId, missionId, "ALL"))
-          .thenReturn(memberMission);
+      Mockito.when(memberMissionRepository.findForUpdate(memberId, missionId, "ALL"))
+          .thenReturn(Optional.of(memberMission));
 
       // When
       memberMissionService.executeMissionsByAction(
           memberId, challengeMission.getActionType().name());
 
       // Then
-      Mockito.verify(memberMissionCommandRepository)
-          .findOrCreateForUpdate(memberId, missionId, "ALL");
+      Mockito.verify(memberMissionRepository)
+          .insertIfAbsent(
+              Mockito.eq(memberId), Mockito.eq(missionId), Mockito.eq("ALL"), Mockito.any());
+      Mockito.verify(memberMissionRepository).findForUpdate(memberId, missionId, "ALL");
     }
 
     @Test
@@ -201,11 +204,11 @@ public class MemberMissionServiceTest {
 
     private void givenMissionAndMember(Mission mission) {
       Mockito.when(
-              missionCommandRepository.findByActionTypeAndTargetGender(
+              missionRepository.findByActionTypeAndTargetGender(
                   mission.getActionType(), mission.getTargetGender()))
           .thenReturn(List.of(mission));
       Mockito.when(
-              missionCommandRepository.findByActionTypeAndTargetGender(
+              missionRepository.findByActionTypeAndTargetGender(
                   mission.getActionType(), TargetGender.ALL))
           .thenReturn(List.of());
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
@@ -214,9 +217,9 @@ public class MemberMissionServiceTest {
 
     private void givenMemberMission(Mission mission, MemberMission memberMission) {
       Mockito.when(
-              memberMissionCommandRepository.findOrCreateForUpdate(
+              memberMissionRepository.findForUpdate(
                   memberId, missionId, LocalDate.now().toString()))
-          .thenReturn(memberMission);
+          .thenReturn(Optional.of(memberMission));
     }
   }
 }

@@ -8,9 +8,9 @@ import kr.co.deepple.heart.application.port.in.UseHeartCommand;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
-import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
+import kr.co.deepple.recommendation.application.port.out.PersonalityIntroductionOpenStateRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
@@ -26,17 +26,18 @@ public class PersonalityIntroductionUnlockService {
 
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final ValidatePersonalityTypeUseCase validatePersonalityTypeUseCase;
-  private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  private final MemberIntroductionRepository memberIntroductionRepository;
   private final CheckBlockUseCase checkBlockUseCase;
   private final UseHeartUseCase useHeartUseCase;
-  private final PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
+  private final PersonalityIntroductionOpenStateRepository
+      personalityIntroductionOpenStateRepository;
 
   /** 유형별 이상형 프로필 상세를 언락한다. 오픈된 유형의 첫 언락은 무료, 이후 언락은 하트를 차감한다. 이미 언락된 대상은 멱등하게 처리한다. */
   @Transactional
   public void unlock(long memberId, String type, long targetMemberId) {
     validatePersonalityTypeUseCase.validate(type);
     PersonalityIntroductionOpenState openState =
-        personalityIntroductionRedisRepository
+        personalityIntroductionOpenStateRepository
             .findOpenState(memberId)
             .orElseThrow(() ->
                 new DeeppleException(
@@ -49,9 +50,9 @@ public class PersonalityIntroductionUnlockService {
     }
 
     Set<Long> unlockedMemberIds =
-        personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId);
+        personalityIntroductionOpenStateRepository.findUnlockedMemberIds(memberId);
     if (unlockedMemberIds.contains(targetMemberId)
-        || memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
+        || memberIntroductionRepository.existsByMemberIdAndIntroducedMemberId(
             memberId, targetMemberId)) {
       return;
     }
@@ -61,7 +62,7 @@ public class PersonalityIntroductionUnlockService {
     boolean isFirstUnlock = unlockedMemberIds.isEmpty();
     MemberIntroduction memberIntroduction =
         MemberIntroduction.of(memberId, targetMemberId, IntroductionType.PERSONALITY);
-    memberIntroductionCommandRepository.save(memberIntroduction);
+    memberIntroductionRepository.save(memberIntroduction);
     if (!isFirstUnlock) {
       useHeartUseCase.useHeart(
           new UseHeartCommand(
@@ -72,7 +73,7 @@ public class PersonalityIntroductionUnlockService {
               String.valueOf(memberIntroduction.getId())));
     }
 
-    personalityIntroductionRedisRepository.addUnlockedMemberId(memberId, targetMemberId);
+    personalityIntroductionOpenStateRepository.addUnlockedMemberId(memberId, targetMemberId);
   }
 
   private void validateTarget(long memberId, long targetMemberId) {

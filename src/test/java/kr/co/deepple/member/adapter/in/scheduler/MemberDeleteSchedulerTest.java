@@ -1,6 +1,6 @@
 package kr.co.deepple.member.adapter.in.scheduler;
 
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MemberDeleteSchedulerTest {
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private MemberRepository memberRepository;
 
   @InjectMocks private MemberDeleteScheduler memberDeleteScheduler;
 
@@ -23,6 +23,6 @@ class MemberDeleteSchedulerTest {
     memberDeleteScheduler.delete();
 
     // Then
-    Mockito.verify(memberCommandRepository, Mockito.times(1)).deleteBefore(Mockito.any());
+    Mockito.verify(memberRepository, Mockito.times(1)).deleteBefore(Mockito.any());
   }
 }

@@ -1,7 +1,7 @@
 package kr.co.deepple.admin.adapter.in.event;
 
 import java.util.Optional;
-import kr.co.deepple.admin.application.port.out.SuspensionCommandRepository;
+import kr.co.deepple.admin.application.port.out.SuspensionRepository;
 import kr.co.deepple.admin.domain.Suspension;
 import kr.co.deepple.admin.event.MemberSuspendedEvent;
 import kr.co.deepple.admin.event.MemberUnsuspendedEvent;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MemberAccountSuspensionEventHandler {
 
-  private final SuspensionCommandRepository suspensionCommandRepository;
+  private final SuspensionRepository suspensionRepository;
   private final SuspendMemberAccountUseCase suspendMemberAccountUseCase;
   private final UnsuspendMemberAccountUseCase unsuspendMemberAccountUseCase;
 
@@ -30,7 +30,7 @@ public class MemberAccountSuspensionEventHandler {
   }
 
   private void syncAccount(long memberId) {
-    Optional<Suspension> suspension = suspensionCommandRepository.findByMemberId(memberId);
+    Optional<Suspension> suspension = suspensionRepository.findByMemberId(memberId);
     if (suspension.isEmpty()) {
       unsuspendMemberAccountUseCase.unsuspend(memberId);
       return;

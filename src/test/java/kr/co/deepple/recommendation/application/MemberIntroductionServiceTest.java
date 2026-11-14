@@ -17,7 +17,7 @@ import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
@@ -36,7 +36,7 @@ class MemberIntroductionServiceTest {
 
   @InjectMocks private MemberIntroductionService memberIntroductionService;
 
-  @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  @Mock private MemberIntroductionRepository memberIntroductionRepository;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
@@ -139,7 +139,7 @@ class MemberIntroductionServiceTest {
         .thenReturn(MemberSummaryFixture.from(introducedMember));
     when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(false);
-    when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
+    when(memberIntroductionRepository.existsByMemberIdAndIntroducedMemberId(
             memberId, introducedMemberId))
         .thenReturn(true);
 
@@ -163,7 +163,7 @@ class MemberIntroductionServiceTest {
         .thenReturn(MemberSummaryFixture.from(introducedMember));
     when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(false);
-    when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
+    when(memberIntroductionRepository.existsByMemberIdAndIntroducedMemberId(
             memberId, introducedMemberId))
         .thenReturn(false);
 
@@ -178,7 +178,7 @@ class MemberIntroductionServiceTest {
       memberIntroductionService.createGradeIntroduction(memberId, introducedMemberId);
 
       // then
-      verify(memberIntroductionCommandRepository).save(memberIntroduction);
+      verify(memberIntroductionRepository).save(memberIntroduction);
     }
   }
 

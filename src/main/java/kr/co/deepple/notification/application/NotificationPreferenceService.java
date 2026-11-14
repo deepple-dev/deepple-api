@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.notification.application.dto.NotificationPreferenceSetRequest;
 import kr.co.deepple.notification.application.dto.NotificationPreferenceToggleRequest;
-import kr.co.deepple.notification.application.port.out.NotificationPreferenceCommandRepository;
+import kr.co.deepple.notification.application.port.out.NotificationPreferenceRepository;
 import kr.co.deepple.notification.domain.NotificationErrorCode;
 import kr.co.deepple.notification.domain.NotificationPreference;
 import kr.co.deepple.notification.domain.NotificationType;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationPreferenceService {
 
-  private final NotificationPreferenceCommandRepository notificationPreferenceRepository;
+  private final NotificationPreferenceRepository notificationPreferenceRepository;
 
   @Transactional
   public void createIfAbsent(long memberId) {

@@ -3,8 +3,8 @@ package kr.co.deepple.interview.application;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.interview.application.dto.InterviewAnswerSaveRequest;
 import kr.co.deepple.interview.application.dto.InterviewAnswerUpdateRequest;
-import kr.co.deepple.interview.application.port.out.InterviewAnswerCommandRepository;
-import kr.co.deepple.interview.application.port.out.InterviewQuestionCommandRepository;
+import kr.co.deepple.interview.application.port.out.InterviewAnswerRepository;
+import kr.co.deepple.interview.application.port.out.InterviewQuestionRepository;
 import kr.co.deepple.interview.domain.InterviewAnswer;
 import kr.co.deepple.interview.domain.InterviewErrorCode;
 import kr.co.deepple.interview.domain.InterviewQuestion;
@@ -19,8 +19,8 @@ public class InterviewAnswerService {
 
   private static final String INTERVIEW_MISSION_ACTION = "INTERVIEW";
 
-  private final InterviewAnswerCommandRepository interviewAnswerCommandRepository;
-  private final InterviewQuestionCommandRepository interviewQuestionCommandRepository;
+  private final InterviewAnswerRepository interviewAnswerRepository;
+  private final InterviewQuestionRepository interviewQuestionRepository;
   private final ExecuteMissionUseCase executeMissionUseCase;
 
   @Transactional
@@ -47,12 +47,12 @@ public class InterviewAnswerService {
   public void deleteAnswer(long answerId, long memberId) {
     InterviewAnswer interviewAnswer = getInterviewAnswer(answerId);
     validateAnswer(interviewAnswer, memberId);
-    interviewAnswerCommandRepository.delete(interviewAnswer);
+    interviewAnswerRepository.delete(interviewAnswer);
   }
 
   private void validateQuestion(long questionId, long memberId) {
     InterviewQuestion interviewQuestion =
-        interviewQuestionCommandRepository
+        interviewQuestionRepository
             .findById(questionId)
             .orElseThrow(() ->
                 new DeeppleException(
@@ -61,7 +61,7 @@ public class InterviewAnswerService {
       throw new DeeppleException(
           InterviewErrorCode.INTERVIEW_QUESTION_NOT_PUBLIC, "questionId=" + questionId);
     }
-    if (interviewAnswerCommandRepository.existsByQuestionIdAndMemberId(questionId, memberId)) {
+    if (interviewAnswerRepository.existsByQuestionIdAndMemberId(questionId, memberId)) {
       throw new DeeppleException(
           InterviewErrorCode.INTERVIEW_ANSWER_ALREADY_EXISTS,
           "questionId=" + questionId + ", memberId=" + memberId);
@@ -70,15 +70,15 @@ public class InterviewAnswerService {
 
   private InterviewAnswer createInterviewAnswer(long questionId, long memberId, String content) {
     InterviewAnswer interviewAnswer = InterviewAnswer.of(questionId, memberId, content);
-    return interviewAnswerCommandRepository.save(interviewAnswer);
+    return interviewAnswerRepository.save(interviewAnswer);
   }
 
   private boolean isFirstInterviewAnswer(long memberId) {
-    return !interviewAnswerCommandRepository.existsByMemberId(memberId);
+    return !interviewAnswerRepository.existsByMemberId(memberId);
   }
 
   private InterviewAnswer getInterviewAnswer(long id) {
-    return interviewAnswerCommandRepository
+    return interviewAnswerRepository
         .findById(id)
         .orElseThrow(() ->
             new DeeppleException(InterviewErrorCode.INTERVIEW_ANSWER_NOT_FOUND, "answerId=" + id));

@@ -24,9 +24,9 @@ import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.adapter.out.persistence.PersonalityIntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.PersonalityIntroductionOpenState;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
+import kr.co.deepple.recommendation.application.port.out.PersonalityIntroductionOpenStateRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
@@ -51,18 +51,19 @@ class PersonalityIntroductionUnlockServiceTest {
 
   @Mock private ValidatePersonalityTypeUseCase validatePersonalityTypeUseCase;
 
-  @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  @Mock private MemberIntroductionRepository memberIntroductionRepository;
 
   @Mock private CheckBlockUseCase checkBlockUseCase;
 
-  @Mock private PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
+  @Mock
+  private PersonalityIntroductionOpenStateRepository personalityIntroductionOpenStateRepository;
 
   @Test
   @DisplayName("오픈된 상태가 없으면 예외를 던진다.")
   void throwsWhenNotOpened() {
     long memberId = 1L;
     long targetMemberId = 2L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(
@@ -88,7 +89,7 @@ class PersonalityIntroductionUnlockServiceTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", DatingExamErrorCode.INVALID_PERSONALITY_TYPE);
 
-    verify(personalityIntroductionRedisRepository, never()).findOpenState(anyLong());
+    verify(personalityIntroductionOpenStateRepository, never()).findOpenState(anyLong());
   }
 
   @Test
@@ -96,7 +97,7 @@ class PersonalityIntroductionUnlockServiceTest {
   void throwsWhenTargetNotInOpenedList() {
     long memberId = 1L;
     long targetMemberId = 99L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
@@ -114,7 +115,7 @@ class PersonalityIntroductionUnlockServiceTest {
   void throwsWhenTypeMismatch() {
     long memberId = 1L;
     long targetMemberId = 2L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
@@ -132,18 +133,18 @@ class PersonalityIntroductionUnlockServiceTest {
   void idempotentWhenAlreadyUnlocked() {
     long memberId = 1L;
     long targetMemberId = 2L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
                     TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
-    when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId))
+    when(personalityIntroductionOpenStateRepository.findUnlockedMemberIds(memberId))
         .thenReturn(Set.of(2L));
 
     personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
 
-    verify(memberIntroductionCommandRepository, never()).save(any());
-    verify(personalityIntroductionRedisRepository, never())
+    verify(memberIntroductionRepository, never()).save(any());
+    verify(personalityIntroductionOpenStateRepository, never())
         .addUnlockedMemberId(anyLong(), anyLong());
   }
 
@@ -152,20 +153,20 @@ class PersonalityIntroductionUnlockServiceTest {
   void idempotentWhenAlreadyIntroducedInDb() {
     long memberId = 1L;
     long targetMemberId = 2L;
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
                     TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
-    when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId))
+    when(personalityIntroductionOpenStateRepository.findUnlockedMemberIds(memberId))
         .thenReturn(Set.of());
-    when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
+    when(memberIntroductionRepository.existsByMemberIdAndIntroducedMemberId(
             memberId, targetMemberId))
         .thenReturn(true);
 
     personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
 
-    verify(memberIntroductionCommandRepository, never()).save(any());
+    verify(memberIntroductionRepository, never()).save(any());
   }
 
   @Test
@@ -174,12 +175,12 @@ class PersonalityIntroductionUnlockServiceTest {
     long memberId = 1L;
     long targetMemberId = 2L;
     givenValidTarget(memberId, targetMemberId);
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
                     TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
-    when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId))
+    when(personalityIntroductionOpenStateRepository.findUnlockedMemberIds(memberId))
         .thenReturn(Set.of());
 
     try (MockedStatic<MemberIntroduction> mocked = mockStatic(MemberIntroduction.class)) {
@@ -190,9 +191,10 @@ class PersonalityIntroductionUnlockServiceTest {
 
       personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
 
-      verify(memberIntroductionCommandRepository).save(introduction);
+      verify(memberIntroductionRepository).save(introduction);
       verify(useHeartUseCase, never()).useHeart(any());
-      verify(personalityIntroductionRedisRepository).addUnlockedMemberId(memberId, targetMemberId);
+      verify(personalityIntroductionOpenStateRepository)
+          .addUnlockedMemberId(memberId, targetMemberId);
     }
   }
 
@@ -202,12 +204,12 @@ class PersonalityIntroductionUnlockServiceTest {
     long memberId = 1L;
     long targetMemberId = 3L;
     givenValidTarget(memberId, targetMemberId);
-    when(personalityIntroductionRedisRepository.findOpenState(memberId))
+    when(personalityIntroductionOpenStateRepository.findOpenState(memberId))
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
                     TYPE, List.of(2L, 3L, 4L), LocalDateTime.now())));
-    when(personalityIntroductionRedisRepository.findUnlockedMemberIds(memberId))
+    when(personalityIntroductionOpenStateRepository.findUnlockedMemberIds(memberId))
         .thenReturn(Set.of(2L));
 
     try (MockedStatic<MemberIntroduction> mocked = mockStatic(MemberIntroduction.class)) {
@@ -219,7 +221,7 @@ class PersonalityIntroductionUnlockServiceTest {
 
       personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId);
 
-      verify(memberIntroductionCommandRepository).save(introduction);
+      verify(memberIntroductionRepository).save(introduction);
       verify(useHeartUseCase)
           .useHeart(
               new UseHeartCommand(
@@ -228,7 +230,8 @@ class PersonalityIntroductionUnlockServiceTest {
                   "PERSONALITY",
                   IntroductionType.PERSONALITY.getDescription(),
                   "10"));
-      verify(personalityIntroductionRedisRepository).addUnlockedMemberId(memberId, targetMemberId);
+      verify(personalityIntroductionOpenStateRepository)
+          .addUnlockedMemberId(memberId, targetMemberId);
     }
   }
 

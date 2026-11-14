@@ -2,7 +2,7 @@ package kr.co.deepple.auth.adapter.in.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import kr.co.deepple.auth.application.port.out.AdminCommandRepository;
+import kr.co.deepple.auth.application.port.out.AdminRepository;
 import kr.co.deepple.auth.domain.Admin;
 import kr.co.deepple.auth.domain.AdminRole;
 import kr.co.deepple.auth.domain.ApprovalStatus;
@@ -30,7 +30,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private MockMvcTester mockMvc;
 
-  @Autowired private AdminCommandRepository adminCommandRepository;
+  @Autowired private AdminRepository adminRepository;
 
   @Autowired private PasswordHasher passwordHasher;
 
@@ -45,7 +45,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             .role(AdminRole.SUPER_ADMIN)
             .approvalStatus(ApprovalStatus.APPROVED)
             .build();
-    adminCommandRepository.save(superAdmin);
+    adminRepository.save(superAdmin);
   }
 
   @AfterEach
@@ -132,7 +132,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
 
   private long signup() {
     signupResult();
-    return adminCommandRepository.findByEmail(Email.from(APPLICANT_EMAIL)).orElseThrow().getId();
+    return adminRepository.findByEmail(Email.from(APPLICANT_EMAIL)).orElseThrow().getId();
   }
 
   private MvcTestResult signupResult() {
@@ -162,7 +162,7 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
   }
 
   private void deleteAdmin(String email) {
-    adminCommandRepository.findByEmail(Email.from(email)).ifPresent(adminCommandRepository::delete);
+    adminRepository.findByEmail(Email.from(email)).ifPresent(adminRepository::delete);
   }
 
   private String accessToken(MvcTestResult loginResult) {

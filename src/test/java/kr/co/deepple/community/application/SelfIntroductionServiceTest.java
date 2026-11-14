@@ -11,7 +11,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.community.application.dto.SelfIntroductionWriteRequest;
-import kr.co.deepple.community.application.port.out.SelfIntroductionCommandRepository;
+import kr.co.deepple.community.application.port.out.SelfIntroductionRepository;
 import kr.co.deepple.community.domain.CommunityErrorCode;
 import kr.co.deepple.community.domain.SelfIntroduction;
 import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
@@ -35,7 +35,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 public class SelfIntroductionServiceTest {
 
-  @Mock private SelfIntroductionCommandRepository selfIntroductionCommandRepository;
+  @Mock private SelfIntroductionRepository selfIntroductionRepository;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
@@ -84,7 +84,7 @@ public class SelfIntroductionServiceTest {
           new SelfIntroductionWriteRequest(title, content, null), memberId);
 
       // Then
-      verify(selfIntroductionCommandRepository)
+      verify(selfIntroductionRepository)
           .save(
               argThat(selfIntroduction ->
                   selfIntroduction.getMemberId() == memberId
@@ -110,7 +110,7 @@ public class SelfIntroductionServiceTest {
           new SelfIntroductionWriteRequest(title, content, imageUrl), memberId);
 
       // Then
-      verify(selfIntroductionCommandRepository)
+      verify(selfIntroductionRepository)
           .save(argThat(selfIntroduction -> imageUrl.equals(selfIntroduction.getImageUrl())));
     }
 
@@ -124,7 +124,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(false);
+      Mockito.when(selfIntroductionRepository.existsByMemberId(memberId)).thenReturn(false);
 
       // When
       boolean hasProcessedMission =
@@ -150,7 +150,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.existsByMemberId(memberId)).thenReturn(true);
+      Mockito.when(selfIntroductionRepository.existsByMemberId(memberId)).thenReturn(true);
 
       // When
       boolean hasProcessedMission =
@@ -200,7 +200,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.empty());
 
       // When & Then
@@ -232,7 +232,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
       // When & Then
@@ -267,7 +267,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
       // When
@@ -314,7 +314,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.empty());
 
       // When & Then
@@ -336,7 +336,7 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
       // When & Then
@@ -359,14 +359,14 @@ public class SelfIntroductionServiceTest {
 
       Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
           .thenReturn(MemberSummaryFixture.from(MemberFixture.builder().id(memberId).build()));
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
       // When
       selfIntroductionService.delete(selfIntroductionId, memberId);
 
       // Then
-      verify(selfIntroductionCommandRepository).deleteById(selfIntroductionId);
+      verify(selfIntroductionRepository).deleteById(selfIntroductionId);
     }
   }
 
@@ -379,7 +379,7 @@ public class SelfIntroductionServiceTest {
     void throwExceptionWhenSelfIntroductionNotFound() {
       // Given
       Long selfIntroductionId = 1L;
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.empty());
 
       // When & Then
@@ -402,7 +402,7 @@ public class SelfIntroductionServiceTest {
               .opened(false)
               .build();
 
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
       // When
@@ -421,7 +421,7 @@ public class SelfIntroductionServiceTest {
       SelfIntroduction selfIntroduction =
           SelfIntroductionFixture.builder().id(selfIntroductionId).memberId(memberId).build();
 
-      Mockito.when(selfIntroductionCommandRepository.findById(selfIntroductionId))
+      Mockito.when(selfIntroductionRepository.findById(selfIntroductionId))
           .thenReturn(Optional.of(selfIntroduction));
 
       // When

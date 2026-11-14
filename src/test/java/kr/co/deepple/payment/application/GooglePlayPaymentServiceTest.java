@@ -11,7 +11,7 @@ import com.google.api.services.androidpublisher.model.ProductPurchase;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.adapter.out.store.GooglePlayClient;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.GooglePlayReceiptVerifiedEvent;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import kr.co.deepple.payment.domain.PaymentMethod;
@@ -37,7 +37,7 @@ class GooglePlayPaymentServiceTest {
 
   @Mock private GooglePlayClient googlePlayClient;
 
-  @Mock private OrderCommandRepository orderCommandRepository;
+  @Mock private OrderRepository orderRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -113,8 +113,7 @@ class GooglePlayPaymentServiceTest {
     // given
     ProductPurchase purchase = new ProductPurchase().setOrderId(ORDER_ID).setConsumptionState(1);
     when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).thenReturn(purchase);
-    when(orderCommandRepository.findByTransactionIdAndPaymentMethod(
-            ORDER_ID, PaymentMethod.GOOGLE_PLAY))
+    when(orderRepository.findByTransactionIdAndPaymentMethod(ORDER_ID, PaymentMethod.GOOGLE_PLAY))
         .thenReturn(Optional.of(OrderFixture.builder().memberId(MEMBER_ID).build()));
 
     // when & then
@@ -132,8 +131,7 @@ class GooglePlayPaymentServiceTest {
     // given
     ProductPurchase purchase = new ProductPurchase().setOrderId(ORDER_ID).setConsumptionState(1);
     when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).thenReturn(purchase);
-    when(orderCommandRepository.findByTransactionIdAndPaymentMethod(
-            ORDER_ID, PaymentMethod.GOOGLE_PLAY))
+    when(orderRepository.findByTransactionIdAndPaymentMethod(ORDER_ID, PaymentMethod.GOOGLE_PLAY))
         .thenReturn(Optional.of(OrderFixture.builder().memberId(MEMBER_ID + 1).build()));
 
     // when & then

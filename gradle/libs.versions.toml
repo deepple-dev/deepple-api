@@ -18,6 +18,7 @@ sentry = "8.62.0"
 gradle-git-properties = "4.0.1"
 spotless = "8.11.0"
 opentelemetry-logback-appender = "2.28.0-alpha"
+archunit = "1.4.2"
 
 [libraries]
 spring-cloud-aws-bom = { module = "io.awspring.cloud:spring-cloud-aws-dependencies", version.ref = "spring-cloud-aws" }
@@ -27,6 +28,8 @@ spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-b
 spring-modulith-api = { module = "org.springframework.modulith:spring-modulith-api" }
 spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
 spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
+
+archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
 
 querydsl-jpa = { module = "io.github.openfeign.querydsl:querydsl-jpa", version.ref = "querydsl" }
 querydsl-apt = { module = "io.github.openfeign.querydsl:querydsl-apt", version.ref = "querydsl" }

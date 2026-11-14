@@ -5,7 +5,7 @@ import kr.co.deepple.auth.application.dto.AdminLoginRequest;
 import kr.co.deepple.auth.application.dto.AdminLoginResponse;
 import kr.co.deepple.auth.application.dto.AdminSignupRequest;
 import kr.co.deepple.auth.application.dto.AdminSignupResponse;
-import kr.co.deepple.auth.application.port.out.AdminCommandRepository;
+import kr.co.deepple.auth.application.port.out.AdminRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.auth.domain.Admin;
 import kr.co.deepple.auth.domain.AuthErrorCode;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminAuthService {
 
-  private final AdminCommandRepository adminCommandRepository;
+  private final AdminRepository adminRepository;
   private final PasswordHasher passwordHasher;
   private final TokenProvider tokenProvider;
   private final RefreshTokenService refreshTokenService;
@@ -56,7 +56,7 @@ public class AdminAuthService {
     }
 
     Admin admin =
-        adminCommandRepository
+        adminRepository
             .findById(owner.id())
             .filter(found -> !found.isDeleted() && found.isApproved())
             .orElse(null);
@@ -80,7 +80,7 @@ public class AdminAuthService {
   }
 
   private void validateEmailUniqueness(String email) {
-    adminCommandRepository
+    adminRepository
         .findByEmail(Email.from(email))
         .ifPresent(admin -> {
           throw new DeeppleException(AuthErrorCode.ADMIN_EMAIL_ALREADY_EXISTS);
@@ -90,11 +90,11 @@ public class AdminAuthService {
   private Admin createAdmin(AdminSignupRequest request) {
     Password password = Password.fromRaw(request.password(), passwordHasher);
     Admin newAdmin = AdminAuthMapper.toAdmin(request, password);
-    return adminCommandRepository.save(newAdmin);
+    return adminRepository.save(newAdmin);
   }
 
   private Admin findAdminByEmail(String email) {
-    return adminCommandRepository
+    return adminRepository
         .findByEmail(Email.from(email))
         .filter(admin -> !admin.isDeleted())
         .orElseThrow(

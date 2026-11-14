@@ -17,7 +17,7 @@ import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.notification.application.dto.NotificationPreferenceSetRequest;
 import kr.co.deepple.notification.application.dto.NotificationPreferenceToggleRequest;
-import kr.co.deepple.notification.application.port.out.NotificationPreferenceCommandRepository;
+import kr.co.deepple.notification.application.port.out.NotificationPreferenceRepository;
 import kr.co.deepple.notification.domain.NotificationErrorCode;
 import kr.co.deepple.notification.fixture.NotificationPreferenceFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NotificationPreferenceServiceTest {
 
-  @Mock NotificationPreferenceCommandRepository repository;
+  @Mock NotificationPreferenceRepository repository;
 
   @InjectMocks NotificationPreferenceService service;
 

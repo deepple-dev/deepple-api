@@ -3,7 +3,7 @@ package kr.co.deepple.payment.application;
 import jakarta.transaction.Transactional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.application.dto.HeartPurchaseOptionCreateRequest;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseAmount;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class HeartPurchaseOptionService {
 
-  private final HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  private final HeartPurchaseOptionRepository heartPurchaseOptionRepository;
 
   @Transactional
   public void create(HeartPurchaseOptionCreateRequest request) {
@@ -26,12 +26,11 @@ public class HeartPurchaseOptionService {
   @Transactional
   public void delete(long id) {
     validateDeleteRequest(id);
-    heartPurchaseOptionCommandRepository.deleteById(id);
+    heartPurchaseOptionRepository.deleteById(id);
   }
 
   private void validateCreateRequest(HeartPurchaseOptionCreateRequest request) {
-    if (heartPurchaseOptionCommandRepository.existsByProductIdAndDeletedAtIsNull(
-        request.productId())) {
+    if (heartPurchaseOptionRepository.existsByProductIdAndDeletedAtIsNull(request.productId())) {
       throw new DeeppleException(
           PaymentErrorCode.HEART_PURCHASE_OPTION_ALREADY_EXISTS,
           "productId=" + request.productId());
@@ -43,12 +42,12 @@ public class HeartPurchaseOptionService {
     Price price = Price.from(request.price());
     HeartPurchaseOption heartPurchaseOption =
         HeartPurchaseOption.of(heartAmount, price, request.productId(), request.name());
-    heartPurchaseOptionCommandRepository.save(heartPurchaseOption);
+    heartPurchaseOptionRepository.save(heartPurchaseOption);
   }
 
   private void validateDeleteRequest(long id) {
     HeartPurchaseOption heartPurchaseOption =
-        heartPurchaseOptionCommandRepository
+        heartPurchaseOptionRepository
             .findById(id)
             .orElseThrow(() ->
                 new DeeppleException(

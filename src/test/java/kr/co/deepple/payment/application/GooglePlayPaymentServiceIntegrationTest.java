@@ -19,12 +19,12 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.payment.adapter.out.store.GooglePlayClient;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import kr.co.deepple.payment.fixture.HeartPurchaseOptionFixture;
@@ -48,11 +48,11 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
   private final GooglePlayClient googlePlayClient = mock(GooglePlayClient.class);
   private GooglePlayPaymentService googlePlayPaymentService;
 
-  @Autowired private OrderCommandRepository orderCommandRepository;
+  @Autowired private OrderRepository orderRepository;
 
-  @Autowired private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Autowired private HeartPurchaseOptionRepository heartPurchaseOptionRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
@@ -65,23 +65,23 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
-    member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    member = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(member.getId());
     option =
-        heartPurchaseOptionCommandRepository.save(
+        heartPurchaseOptionRepository.save(
             HeartPurchaseOptionFixture.builder().amount(OPTION_AMOUNT).build());
     when(googlePlayClient.resolveQuantity(any())).thenReturn(1);
     googlePlayPaymentService =
-        new GooglePlayPaymentService(googlePlayClient, orderCommandRepository, eventPublisher);
+        new GooglePlayPaymentService(googlePlayClient, orderRepository, eventPublisher);
   }
 
   @AfterEach
   void tearDown() {
     memberHeartBalanceRepository.deleteAll();
-    orderCommandRepository.deleteAll();
+    orderRepository.deleteAll();
     heartTransactionRepository.deleteAll();
-    heartPurchaseOptionCommandRepository.delete(option);
-    memberCommandJpaRepository.deleteAll();
+    heartPurchaseOptionRepository.delete(option);
+    memberRepository.deleteAll();
   }
 
   @Test
@@ -128,7 +128,7 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
     assertThatThrownBy(this::verifyReceipt)
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", PaymentErrorCode.INVALID_GOOGLE_PLAY_RECEIPT);
-    assertThat(orderCommandRepository.count()).isZero();
+    assertThat(orderRepository.count()).isZero();
     verify(googlePlayClient, never()).consumePurchase(any(), any());
   }
 

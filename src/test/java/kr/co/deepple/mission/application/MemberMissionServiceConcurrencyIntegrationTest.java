@@ -16,10 +16,10 @@ import kr.co.deepple.heart.adapter.in.event.HeartMissionEventHandler;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.fixture.MemberFixture;
-import kr.co.deepple.mission.adapter.out.persistence.MemberMissionJpaRepository;
+import kr.co.deepple.mission.application.port.out.MemberMissionRepository;
 import kr.co.deepple.mission.domain.MemberMission;
 import kr.co.deepple.mission.event.MemberMissionCompletedEvent;
 import org.junit.jupiter.api.AfterEach;
@@ -38,9 +38,9 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
 
   @Autowired private HeartMissionEventHandler heartMissionEventHandler;
 
-  @Autowired private MemberMissionJpaRepository memberMissionJpaRepository;
+  @Autowired private MemberMissionRepository memberMissionRepository;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
@@ -48,10 +48,10 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
 
   @AfterEach
   void tearDown() {
-    memberMissionJpaRepository.deleteAll();
+    memberMissionRepository.deleteAll();
     heartTransactionRepository.deleteAll();
     memberHeartBalanceRepository.deleteAll();
-    memberCommandJpaRepository.deleteAll();
+    memberRepository.deleteAll();
   }
 
   @Test
@@ -67,7 +67,7 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
 
     // then
     assertThat(failureCount.get()).isZero();
-    List<MemberMission> memberMissions = memberMissionJpaRepository.findAll();
+    List<MemberMission> memberMissions = memberMissionRepository.findAll();
     assertThat(memberMissions).hasSize(1);
     MemberMission memberMission = memberMissions.getFirst();
     assertThat(memberMission.getPeriod()).isEqualTo(LocalDate.now().toString());
@@ -96,9 +96,7 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
 
   private long saveMaleMemberWithBalance() {
     long memberId =
-        memberCommandJpaRepository
-            .save(MemberFixture.builder().gender(Gender.MALE).build())
-            .getId();
+        memberRepository.save(MemberFixture.builder().gender(Gender.MALE).build()).getId();
     memberHeartBalanceRepository.save(
         MemberHeartBalanceFixture.builder().memberId(memberId).build());
     return memberId;

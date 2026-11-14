@@ -1,10 +1,11 @@
 package kr.co.deepple.member.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.KakaoId;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.domain.PhoneNumber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberContactService {
 
-  private final MemberCommandRepository memberCommandRepository;
+  private final MemberRepository memberRepository;
 
   @Transactional
   public void updateKakaoId(long memberId, String kakaoId) {
@@ -30,20 +31,20 @@ public class MemberContactService {
   }
 
   private void validatePhoneNumber(String phoneNumber, long memberId) {
-    if (memberCommandRepository.existsByPhoneNumberAndIdNot(phoneNumber, memberId)) {
+    if (memberRepository.existsByPhoneNumberAndIdNot(PhoneNumber.from(phoneNumber), memberId)) {
       throw new DeeppleException(
           MemberErrorCode.PHONE_NUMBER_ALREADY_EXISTS, "memberId=" + memberId);
     }
   }
 
   private void validateKakaoId(String kakaoId, long memberId) {
-    if (memberCommandRepository.existsByKakaoIdAndIdNot(kakaoId, memberId)) {
+    if (memberRepository.existsByKakaoIdAndIdNot(KakaoId.from(kakaoId), memberId)) {
       throw new DeeppleException(MemberErrorCode.KAKAO_ID_ALREADY_EXISTS, "memberId=" + memberId);
     }
   }
 
   private Member getMemberById(long memberId) {
-    return memberCommandRepository
+    return memberRepository
         .findById(memberId)
         .orElseThrow(
             () -> new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));

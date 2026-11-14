@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 import kr.co.deepple.admin.application.port.in.CountMemberWarningsUseCase;
-import kr.co.deepple.admin.application.port.out.WarningCommandRepository;
-import kr.co.deepple.admin.application.port.out.WarningCommandRepository.MemberWarningCount;
+import kr.co.deepple.admin.application.port.out.WarningRepository;
+import kr.co.deepple.admin.application.port.out.WarningRepository.MemberWarningCount;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CountMemberWarningsService implements CountMemberWarningsUseCase {
 
-  private final WarningCommandRepository warningCommandRepository;
+  private final WarningRepository warningRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -22,7 +22,7 @@ public class CountMemberWarningsService implements CountMemberWarningsUseCase {
     if (memberIds.isEmpty()) {
       return Map.of();
     }
-    return warningCommandRepository.countByMemberIds(memberIds).stream()
+    return warningRepository.countByMemberIds(memberIds).stream()
         .collect(
             Collectors.toMap(
                 MemberWarningCount::getMemberId,

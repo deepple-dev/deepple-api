@@ -22,10 +22,10 @@ import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionQueryRepository;
-import kr.co.deepple.recommendation.adapter.out.persistence.IntroductionRedisRepository;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
-import kr.co.deepple.recommendation.application.port.out.MemberIdealCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.IntroductionCacheRepository;
+import kr.co.deepple.recommendation.application.port.out.IntroductionQueryRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIdealRepository;
 import kr.co.deepple.recommendation.domain.MemberIdeal;
 import kr.co.deepple.recommendation.domain.RecommendationErrorCode;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
@@ -43,11 +43,11 @@ class IntroductionMemberIdFetcherTest {
 
   @Mock private IntroductionQueryRepository introductionQueryRepository;
 
-  @Mock private IntroductionRedisRepository introductionRedisRepository;
+  @Mock private IntroductionCacheRepository introductionCacheRepository;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
-  @Mock private MemberIdealCommandRepository memberIdealCommandRepository;
+  @Mock private MemberIdealRepository memberIdealRepository;
 
   @Mock private SearchIntroducibleMemberIdsUseCase searchIntroducibleMemberIdsUseCase;
 
@@ -82,7 +82,7 @@ class IntroductionMemberIdFetcherTest {
     IntroductionCacheKeyPrefix introductionCacheKeyPrefix = IntroductionCacheKeyPrefix.DIAMOND;
     Set<Long> cachedIds = Set.of(2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L);
     String key = introductionCacheKeyPrefix.getPrefix() + memberId;
-    when(introductionRedisRepository.findIntroductionMemberIds(key)).thenReturn(cachedIds);
+    when(introductionCacheRepository.findIntroductionMemberIds(key)).thenReturn(cachedIds);
 
     // when
     Set<Long> result =
@@ -104,13 +104,12 @@ class IntroductionMemberIdFetcherTest {
     IntroductionCacheKeyPrefix introductionCacheKeyPrefix = IntroductionCacheKeyPrefix.DIAMOND;
     Set<Long> savedIds = Set.of(2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L);
     String key = introductionCacheKeyPrefix.getPrefix() + memberId;
-    when(introductionRedisRepository.findIntroductionMemberIds(key)).thenReturn(Set.of());
+    when(introductionCacheRepository.findIntroductionMemberIds(key)).thenReturn(Set.of());
 
     Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
     MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
-    when(memberIdealCommandRepository.findByMemberId(memberId))
-        .thenReturn(Optional.of(memberIdeal));
+    when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
     Member member = MemberFixture.builder().id(memberId).build();
     when(findMemberSummaryUseCase.getMemberSummary(memberId))
         .thenReturn(MemberSummaryFixture.from(member));
@@ -125,7 +124,7 @@ class IntroductionMemberIdFetcherTest {
         .thenReturn(savedIds);
 
     doNothing()
-        .when(introductionRedisRepository)
+        .when(introductionCacheRepository)
         .saveIntroductionMemberIds(anyString(), eq(savedIds), any(Date.class));
 
     // when
@@ -137,7 +136,7 @@ class IntroductionMemberIdFetcherTest {
     assertThat(result).isEqualTo(savedIds);
     assertThat(dummyCondition.getExcludedMemberIds())
         .containsExactlyInAnyOrder(memberId, 12L, 13L, 14L, 15L);
-    verify(introductionRedisRepository)
+    verify(introductionCacheRepository)
         .saveIntroductionMemberIds(eq(key), eq(savedIds), any(Date.class));
   }
 
@@ -148,13 +147,12 @@ class IntroductionMemberIdFetcherTest {
     long memberId = 1L;
     IntroductionCacheKeyPrefix introductionCacheKeyPrefix = IntroductionCacheKeyPrefix.DIAMOND;
     String key = introductionCacheKeyPrefix.getPrefix() + memberId;
-    when(introductionRedisRepository.findIntroductionMemberIds(key)).thenReturn(Set.of());
+    when(introductionCacheRepository.findIntroductionMemberIds(key)).thenReturn(Set.of());
 
     Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
     MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
-    when(memberIdealCommandRepository.findByMemberId(memberId))
-        .thenReturn(Optional.of(memberIdeal));
+    when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
     when(findMemberSummaryUseCase.getMemberSummary(memberId))
         .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND, "memberId=" + memberId));
 
@@ -178,11 +176,11 @@ class IntroductionMemberIdFetcherTest {
     long memberId = 1L;
     IntroductionCacheKeyPrefix introductionCacheKeyPrefix = IntroductionCacheKeyPrefix.DIAMOND;
     String key = introductionCacheKeyPrefix.getPrefix() + memberId;
-    when(introductionRedisRepository.findIntroductionMemberIds(key)).thenReturn(Set.of());
+    when(introductionCacheRepository.findIntroductionMemberIds(key)).thenReturn(Set.of());
 
     Set<Long> excludedMemberIds = getExcludedMemberIds(memberId);
 
-    when(memberIdealCommandRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
+    when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.empty());
 
     MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
     IntroductionSearchCondition dummyCondition =

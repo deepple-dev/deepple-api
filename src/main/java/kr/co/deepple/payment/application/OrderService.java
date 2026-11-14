@@ -3,8 +3,8 @@ package kr.co.deepple.payment.application;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.Order;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderService {
 
-  private final OrderCommandRepository orderCommandRepository;
-  private final HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  private final OrderRepository orderRepository;
+  private final HeartPurchaseOptionRepository heartPurchaseOptionRepository;
   private final DistributedLockTemplate distributedLockTemplate;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -43,7 +43,7 @@ public class OrderService {
       int quantity,
       PaymentMethod paymentMethod) {
     Optional<Order> existingOrder =
-        orderCommandRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod);
+        orderRepository.findByTransactionIdAndPaymentMethod(transactionId, paymentMethod);
     if (existingOrder.isPresent()) {
       verifyOrderedBy(existingOrder.get(), memberId);
       log.atInfo()
@@ -53,7 +53,7 @@ public class OrderService {
       return;
     }
 
-    Order order = orderCommandRepository.save(Order.of(memberId, transactionId, paymentMethod));
+    Order order = orderRepository.save(Order.of(memberId, transactionId, paymentMethod));
     purchaseHeart(memberId, order.getId(), productId, quantity);
     log.atInfo()
         .addKeyValue("transactionId", transactionId)
@@ -81,7 +81,7 @@ public class OrderService {
   private void purchaseHeart(long memberId, long orderId, String productId, int quantity) {
     String normalizedProductId = productId.toUpperCase();
     HeartPurchaseOption heartPurchaseOption =
-        heartPurchaseOptionCommandRepository
+        heartPurchaseOptionRepository
             .findByProductIdAndDeletedAtIsNull(normalizedProductId)
             .orElseThrow(() ->
                 new DeeppleException(

@@ -2,7 +2,7 @@ package kr.co.deepple.member.application;
 
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.member.application.port.out.MemberCommandRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.domain.PrimaryContactType;
@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class MemberContactServiceTest {
 
-  @Mock private MemberCommandRepository memberCommandRepository;
+  @Mock private MemberRepository memberRepository;
 
   @InjectMocks private MemberContactService memberContactService;
 
@@ -40,9 +40,7 @@ public class MemberContactServiceTest {
         // Given
         String updatePhoneNumber = anotherMember.getPhoneNumber();
 
-        Mockito.when(
-                memberCommandRepository.existsByPhoneNumberAndIdNot(
-                    Mockito.any(), Mockito.anyLong()))
+        Mockito.when(memberRepository.existsByPhoneNumberAndIdNot(Mockito.any(), Mockito.anyLong()))
             .thenReturn(true);
 
         // When & Then
@@ -58,12 +56,9 @@ public class MemberContactServiceTest {
         // Given
         String updatedPhoneNumber = "01099999999";
 
-        Mockito.when(
-                memberCommandRepository.existsByPhoneNumberAndIdNot(
-                    Mockito.any(), Mockito.anyLong()))
+        Mockito.when(memberRepository.existsByPhoneNumberAndIdNot(Mockito.any(), Mockito.anyLong()))
             .thenReturn(false);
-        Mockito.when(memberCommandRepository.findById(member.getId()))
-            .thenReturn(Optional.of(member));
+        Mockito.when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
 
         // When
         memberContactService.updatePhoneNumber(member.getId(), updatedPhoneNumber);
@@ -78,12 +73,9 @@ public class MemberContactServiceTest {
         // Given
         String updatedPhoneNumber = member.getPhoneNumber();
 
-        Mockito.when(
-                memberCommandRepository.existsByPhoneNumberAndIdNot(
-                    Mockito.any(), Mockito.anyLong()))
+        Mockito.when(memberRepository.existsByPhoneNumberAndIdNot(Mockito.any(), Mockito.anyLong()))
             .thenReturn(false);
-        Mockito.when(memberCommandRepository.findById(member.getId()))
-            .thenReturn(Optional.of(member));
+        Mockito.when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
 
         // When
         memberContactService.updatePhoneNumber(member.getId(), updatedPhoneNumber);
@@ -105,8 +97,7 @@ public class MemberContactServiceTest {
         // Given
         String kakaoId = "kakaoId";
 
-        Mockito.when(
-                memberCommandRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.anyLong()))
+        Mockito.when(memberRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.anyLong()))
             .thenReturn(true);
 
         // When & Then
@@ -122,11 +113,9 @@ public class MemberContactServiceTest {
         // Given
         String kakaoId = "kakaoId";
 
-        Mockito.when(
-                memberCommandRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.anyLong()))
+        Mockito.when(memberRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.anyLong()))
             .thenReturn(false);
-        Mockito.when(memberCommandRepository.findById(member.getId()))
-            .thenReturn(Optional.of(member));
+        Mockito.when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
 
         // When
         memberContactService.updateKakaoId(member.getId(), kakaoId);
@@ -148,11 +137,9 @@ public class MemberContactServiceTest {
                 .primaryContactType(PrimaryContactType.KAKAO)
                 .build();
 
-        Mockito.when(
-                memberCommandRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.anyLong()))
+        Mockito.when(memberRepository.existsByKakaoIdAndIdNot(Mockito.any(), Mockito.anyLong()))
             .thenReturn(false);
-        Mockito.when(memberCommandRepository.findById(member.getId()))
-            .thenReturn(Optional.of(member));
+        Mockito.when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
 
         // When
         memberContactService.updateKakaoId(member.getId(), kakaoId);

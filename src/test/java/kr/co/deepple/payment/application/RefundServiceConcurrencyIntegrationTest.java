@@ -12,12 +12,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import kr.co.deepple.member.adapter.out.persistence.MemberCommandJpaRepository;
+import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionCommandRepository;
-import kr.co.deepple.payment.application.port.out.OrderCommandRepository;
-import kr.co.deepple.payment.application.port.out.RefundCommandRepository;
+import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
+import kr.co.deepple.payment.application.port.out.OrderRepository;
+import kr.co.deepple.payment.application.port.out.RefundRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.NotificationType;
 import kr.co.deepple.payment.domain.Order;
@@ -38,38 +38,37 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private RefundService refundService;
 
-  @Autowired private MemberCommandJpaRepository memberCommandJpaRepository;
+  @Autowired private MemberRepository memberRepository;
 
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
-  @Autowired private OrderCommandRepository orderCommandRepository;
+  @Autowired private OrderRepository orderRepository;
 
-  @Autowired private RefundCommandRepository refundCommandRepository;
+  @Autowired private RefundRepository refundRepository;
 
-  @Autowired private HeartPurchaseOptionCommandRepository heartPurchaseOptionCommandRepository;
+  @Autowired private HeartPurchaseOptionRepository heartPurchaseOptionRepository;
 
   private HeartPurchaseOption option;
 
   @AfterEach
   void tearDown() {
     memberHeartBalanceRepository.deleteAll();
-    refundCommandRepository.deleteAll();
-    orderCommandRepository.deleteAll();
-    heartPurchaseOptionCommandRepository.delete(option);
-    memberCommandJpaRepository.deleteAll();
+    refundRepository.deleteAll();
+    orderRepository.deleteAll();
+    heartPurchaseOptionRepository.delete(option);
+    memberRepository.deleteAll();
   }
 
   @Test
   @DisplayName("같은 환불 알림이 동시에 와도 모두 정상 종료하고 환불은 하나, 하트는 한 번만 회수된다")
   void refundOnceWithoutExceptionWhenNotifiedConcurrently() throws InterruptedException {
     // given
-    Member member = memberCommandJpaRepository.save(MemberFixture.builder().build());
+    Member member = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(member.getId());
     option =
-        heartPurchaseOptionCommandRepository.save(
+        heartPurchaseOptionRepository.save(
             HeartPurchaseOptionFixture.builder().amount(OPTION_AMOUNT).build());
-    Order order =
-        orderCommandRepository.save(OrderFixture.builder().memberId(member.getId()).build());
+    Order order = orderRepository.save(OrderFixture.builder().memberId(member.getId()).build());
     String transactionId = order.getTransactionId();
     String productId = option.getProductId();
 
@@ -101,7 +100,7 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(successCount.get()).isEqualTo(THREAD_COUNT);
     assertThat(failureCount.get()).isZero();
-    assertThat(refundCommandRepository.count()).isEqualTo(1);
+    assertThat(refundRepository.count()).isEqualTo(1);
     await()
         .atMost(Duration.ofSeconds(5))
         .untilAsserted(() ->

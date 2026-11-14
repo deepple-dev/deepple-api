@@ -6,7 +6,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
 import kr.co.deepple.admin.application.dto.SuspendRequest;
-import kr.co.deepple.admin.application.port.out.SuspensionCommandRepository;
+import kr.co.deepple.admin.application.port.out.SuspensionRepository;
 import kr.co.deepple.admin.domain.Suspension;
 import kr.co.deepple.admin.domain.SuspensionPolicy;
 import kr.co.deepple.admin.domain.SuspensionStatus;
@@ -26,7 +26,7 @@ import org.springframework.scheduling.TaskScheduler;
 @ExtendWith(MockitoExtension.class)
 class SuspensionServiceTest {
 
-  @Mock SuspensionCommandRepository suspensionCommandRepository;
+  @Mock SuspensionRepository suspensionRepository;
 
   @Mock SuspensionPolicy suspensionPolicy;
 
@@ -43,7 +43,7 @@ class SuspensionServiceTest {
     var adminId = 10L;
     var memberId = 20L;
     var request = new SuspendRequest("PERMANENT");
-    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.empty());
 
     // when
     suspensionService.suspendByAdmin(adminId, memberId, request);
@@ -51,7 +51,7 @@ class SuspensionServiceTest {
     // then
     Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     var captor = ArgumentCaptor.forClass(Suspension.class);
-    verify(suspensionCommandRepository).save(captor.capture());
+    verify(suspensionRepository).save(captor.capture());
     var saved = captor.getValue();
     assertThat(saved.getAdminId()).isEqualTo(adminId);
     assertThat(saved.getMemberId()).isEqualTo(memberId);
@@ -71,7 +71,7 @@ class SuspensionServiceTest {
             .status(SuspensionStatus.TEMPORARY)
             .build();
     var request = new SuspendRequest("PERMANENT");
-    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
+    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
 
     // when
     suspensionService.suspendByAdmin(adminId, memberId, request);
@@ -91,7 +91,7 @@ class SuspensionServiceTest {
     var memberId = 22L;
     var warningCount = 2L;
     given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.TEMPORARY);
-    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.empty());
 
     // when
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
@@ -99,7 +99,7 @@ class SuspensionServiceTest {
     // then
     Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     var captor = ArgumentCaptor.forClass(Suspension.class);
-    verify(suspensionCommandRepository).save(captor.capture());
+    verify(suspensionRepository).save(captor.capture());
     var saved = captor.getValue();
     assertThat(saved.getAdminId()).isEqualTo(adminId);
     assertThat(saved.getMemberId()).isEqualTo(memberId);
@@ -115,7 +115,7 @@ class SuspensionServiceTest {
     var memberId = 22L;
     var warningCount = 2L;
     given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.PERMANENT);
-    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.empty());
 
     // when
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
@@ -123,7 +123,7 @@ class SuspensionServiceTest {
     // then
     Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSuspendedEvent.class));
     var captor = ArgumentCaptor.forClass(Suspension.class);
-    verify(suspensionCommandRepository).save(captor.capture());
+    verify(suspensionRepository).save(captor.capture());
     var saved = captor.getValue();
     assertThat(saved.getAdminId()).isEqualTo(adminId);
     assertThat(saved.getMemberId()).isEqualTo(memberId);
@@ -146,7 +146,7 @@ class SuspensionServiceTest {
             .status(SuspensionStatus.TEMPORARY)
             .build();
     given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.PERMANENT);
-    given(suspensionCommandRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
+    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
 
     // when
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);

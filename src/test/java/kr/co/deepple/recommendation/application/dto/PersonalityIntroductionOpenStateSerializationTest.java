@@ -11,7 +11,7 @@ import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * PersonalityIntroductionRedisRepository가 주입받는 ObjectMapper는 Spring Boot 자동 구성 빈이다. Boot
+ * PersonalityIntroductionOpenStateRepositoryImpl이 주입받는 ObjectMapper는 Spring Boot 자동 구성 빈이다. Boot
  * 설정(use-jackson2-defaults)과 같게 구성해 LocalDateTime(openedAt)이 실제로 직렬화/역직렬화되는지 검증한다.
  */
 class PersonalityIntroductionOpenStateSerializationTest {

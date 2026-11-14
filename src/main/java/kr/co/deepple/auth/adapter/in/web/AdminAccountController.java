@@ -6,7 +6,7 @@ import jakarta.validation.Valid;
 import kr.co.deepple.auth.application.AdminAccountService;
 import kr.co.deepple.auth.application.dto.AdminApproveRequest;
 import kr.co.deepple.auth.application.dto.PendingAdminViews;
-import kr.co.deepple.auth.application.port.out.AdminAccountQueryRepository;
+import kr.co.deepple.auth.application.port.out.AdminQueryRepository;
 import kr.co.deepple.common.config.ApiTags;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminAccountController {
 
   private final AdminAccountService adminAccountService;
-  private final AdminAccountQueryRepository adminAccountQueryRepository;
+  private final AdminQueryRepository adminQueryRepository;
 
   @Operation(summary = "승인 대기 관리자 목록 조회")
   @GetMapping
   public ResponseEntity<PendingAdminViews> getPendingAdmins() {
-    return ResponseEntity.ok(
-        new PendingAdminViews(adminAccountQueryRepository.findPendingAdmins()));
+    return ResponseEntity.ok(new PendingAdminViews(adminQueryRepository.findPendingAdmins()));
   }
 
   @Operation(summary = "관리자 승인")

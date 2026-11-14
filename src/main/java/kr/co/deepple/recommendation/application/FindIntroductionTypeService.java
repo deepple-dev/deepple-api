@@ -2,7 +2,7 @@ package kr.co.deepple.recommendation.application;
 
 import java.util.Optional;
 import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FindIntroductionTypeService implements FindIntroductionTypeUseCase {
 
-  private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  private final MemberIntroductionRepository memberIntroductionRepository;
 
   @Override
   @Transactional(readOnly = true)
   public Optional<String> findIntroductionType(long memberId, long introducedMemberId) {
-    return memberIntroductionCommandRepository
+    return memberIntroductionRepository
         .findByMemberIdAndIntroducedMemberId(memberId, introducedMemberId)
         .map(MemberIntroduction::getType)
         .map(IntroductionType::name);

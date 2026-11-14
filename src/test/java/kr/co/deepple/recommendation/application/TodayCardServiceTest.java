@@ -17,7 +17,7 @@ import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
 import kr.co.deepple.recommendation.domain.IntroductionType;
 import kr.co.deepple.recommendation.domain.MemberIntroduction;
 import kr.co.deepple.recommendation.fixture.MemberIntroductionFixture;
@@ -38,7 +38,7 @@ class TodayCardServiceTest {
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
 
-  @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
+  @Mock private MemberIntroductionRepository memberIntroductionRepository;
 
   @Test
   @DisplayName("오늘의 카드 멤버 id가 모두 이미 소개된 멤버라면 소개를 생성하지 않는다")
@@ -52,7 +52,7 @@ class TodayCardServiceTest {
     MemberIntroduction memberIntroduction2 =
         MemberIntroductionFixture.builder().memberId(memberId).introducedMemberId(3L).build();
 
-    when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
+    when(memberIntroductionRepository.findAllByMemberIdAndIntroducedMemberIdIn(
             memberId, todayCardMemberIds))
         .thenReturn(List.of(memberIntroduction1, memberIntroduction2));
 
@@ -61,7 +61,7 @@ class TodayCardServiceTest {
 
     // then
     verify(findMemberSummaryUseCase, never()).findMemberSummaries(any());
-    verify(memberIntroductionCommandRepository, never()).saveAll(any());
+    verify(memberIntroductionRepository, never()).saveAll(any());
   }
 
   @Test
@@ -71,7 +71,7 @@ class TodayCardServiceTest {
     long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L);
 
-    when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
+    when(memberIntroductionRepository.findAllByMemberIdAndIntroducedMemberIdIn(
             memberId, todayCardMemberIds))
         .thenReturn(List.of());
     when(findMemberSummaryUseCase.findMemberSummaries(todayCardMemberIds)).thenReturn(Map.of());
@@ -80,7 +80,7 @@ class TodayCardServiceTest {
     todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
 
     // then
-    verify(memberIntroductionCommandRepository, never()).saveAll(any());
+    verify(memberIntroductionRepository, never()).saveAll(any());
   }
 
   @Test
@@ -90,7 +90,7 @@ class TodayCardServiceTest {
     long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L, 4L);
 
-    when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
+    when(memberIntroductionRepository.findAllByMemberIdAndIntroducedMemberIdIn(
             memberId, todayCardMemberIds))
         .thenReturn(List.of());
 
@@ -104,7 +104,7 @@ class TodayCardServiceTest {
     todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
 
     // then
-    verify(memberIntroductionCommandRepository, never()).saveAll(any());
+    verify(memberIntroductionRepository, never()).saveAll(any());
   }
 
   @Test
@@ -114,7 +114,7 @@ class TodayCardServiceTest {
     long memberId = 1L;
     Set<Long> todayCardMemberIds = Set.of(2L, 3L);
 
-    when(memberIntroductionCommandRepository.findAllByMemberIdAndIntroducedMemberIdIn(
+    when(memberIntroductionRepository.findAllByMemberIdAndIntroducedMemberIdIn(
             memberId, todayCardMemberIds))
         .thenReturn(List.of());
 
@@ -134,7 +134,7 @@ class TodayCardServiceTest {
       todayCardService.createTodayCardIntroductions(memberId, todayCardMemberIds);
 
       // then
-      verify(memberIntroductionCommandRepository, times(1)).saveAll(List.of(memberIntroduction));
+      verify(memberIntroductionRepository, times(1)).saveAll(List.of(memberIntroduction));
     }
   }
 }

@@ -7,8 +7,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import kr.co.deepple.member.adapter.out.persistence.MemberQueryRepository;
 import kr.co.deepple.member.application.port.in.MemberIdSearchCondition;
+import kr.co.deepple.member.application.port.out.MemberQueryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

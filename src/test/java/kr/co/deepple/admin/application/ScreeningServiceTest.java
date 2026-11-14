@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import kr.co.deepple.admin.application.dto.ScreeningApproveRequest;
 import kr.co.deepple.admin.application.dto.ScreeningRejectRequest;
-import kr.co.deepple.admin.application.port.out.ScreeningCommandRepository;
+import kr.co.deepple.admin.application.port.out.ScreeningRepository;
 import kr.co.deepple.admin.domain.AdminErrorCode;
 import kr.co.deepple.admin.domain.RejectionReasonType;
 import kr.co.deepple.admin.domain.Screening;
@@ -38,7 +38,7 @@ import org.springframework.context.ApplicationEventPublisher;
 @ExtendWith(MockitoExtension.class)
 class ScreeningServiceTest {
 
-  @Mock private ScreeningCommandRepository screeningCommandRepository;
+  @Mock private ScreeningRepository screeningRepository;
 
   @Mock private DistributedLockTemplate distributedLockTemplate;
 
@@ -66,7 +66,7 @@ class ScreeningServiceTest {
     void createNewMemberScreening() {
       // given
       long memberId = 100L;
-      when(screeningCommandRepository.existsByMemberId(memberId)).thenReturn(false);
+      when(screeningRepository.existsByMemberId(memberId)).thenReturn(false);
 
       // when
       screeningService.createIfAbsent(memberId);
@@ -75,7 +75,7 @@ class ScreeningServiceTest {
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(ScreeningCreatedEvent.class));
       verify(distributedLockTemplate)
           .executeInTransaction(eq("screening:" + memberId), any(Runnable.class));
-      verify(screeningCommandRepository).save(any(Screening.class));
+      verify(screeningRepository).save(any(Screening.class));
     }
 
     @Test
@@ -83,14 +83,14 @@ class ScreeningServiceTest {
     void skipWhenScreeningExists() {
       // given
       long memberId = 100L;
-      when(screeningCommandRepository.existsByMemberId(memberId)).thenReturn(true);
+      when(screeningRepository.existsByMemberId(memberId)).thenReturn(true);
 
       // when
       screeningService.createIfAbsent(memberId);
 
       // then
       Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
-      verify(screeningCommandRepository, never()).save(any(Screening.class));
+      verify(screeningRepository, never()).save(any(Screening.class));
     }
   }
 
@@ -103,7 +103,7 @@ class ScreeningServiceTest {
     void rescreenCreatesNewScreening() {
       // given
       long memberId = 100L;
-      when(screeningCommandRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING))
+      when(screeningRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING))
           .thenReturn(false);
 
       // when
@@ -113,7 +113,7 @@ class ScreeningServiceTest {
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(ScreeningCreatedEvent.class));
       verify(distributedLockTemplate)
           .executeInTransaction(eq("screening:" + memberId), any(Runnable.class));
-      verify(screeningCommandRepository).save(any(Screening.class));
+      verify(screeningRepository).save(any(Screening.class));
     }
 
     @Test
@@ -121,7 +121,7 @@ class ScreeningServiceTest {
     void skipWhenPendingScreeningExists() {
       // given
       long memberId = 100L;
-      when(screeningCommandRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING))
+      when(screeningRepository.existsByMemberIdAndStatus(memberId, ScreeningStatus.PENDING))
           .thenReturn(true);
 
       // when
@@ -129,7 +129,7 @@ class ScreeningServiceTest {
 
       // then
       Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
-      verify(screeningCommandRepository, never()).save(any(Screening.class));
+      verify(screeningRepository, never()).save(any(Screening.class));
     }
   }
 
@@ -145,7 +145,7 @@ class ScreeningServiceTest {
       long adminId = 999L;
 
       Screening screening = ScreeningFixture.builder().id(screeningId).version(1L).build();
-      when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.of(screening));
+      when(screeningRepository.findById(screeningId)).thenReturn(Optional.of(screening));
 
       // when
       screeningService.approve(screeningId, new ScreeningApproveRequest(1L), adminId);
@@ -161,7 +161,7 @@ class ScreeningServiceTest {
     void throwExceptionWhenScreeningDoesNotExist() {
       // given
       long screeningId = 1L;
-      when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.empty());
+      when(screeningRepository.findById(screeningId)).thenReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(
@@ -183,7 +183,7 @@ class ScreeningServiceTest {
       long adminId = 999L;
 
       Screening screening = ScreeningFixture.builder().id(screeningId).version(1L).build();
-      when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.of(screening));
+      when(screeningRepository.findById(screeningId)).thenReturn(Optional.of(screening));
 
       String rejectionReason = "STOLEN_IMAGE";
       ScreeningRejectRequest request = new ScreeningRejectRequest(rejectionReason, 1L);
@@ -203,7 +203,7 @@ class ScreeningServiceTest {
     void throwExceptionWhenRejectingNonExistentScreening() {
       // given
       long screeningId = 1L;
-      when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.empty());
+      when(screeningRepository.findById(screeningId)).thenReturn(Optional.empty());
 
       ScreeningRejectRequest request = new ScreeningRejectRequest("STOLEN_IMAGE", 1L);
 
@@ -219,7 +219,7 @@ class ScreeningServiceTest {
       // given
       long screeningId = 1L;
       Screening screening = ScreeningFixture.builder().id(screeningId).version(1L).build();
-      when(screeningCommandRepository.findById(screeningId)).thenReturn(Optional.of(screening));
+      when(screeningRepository.findById(screeningId)).thenReturn(Optional.of(screening));
 
       ScreeningRejectRequest request = new ScreeningRejectRequest("NON_EXISTING_REASON", 1L);
 
