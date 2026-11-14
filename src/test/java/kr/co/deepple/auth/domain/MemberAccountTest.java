@@ -79,4 +79,39 @@ class MemberAccountTest {
 
     assertThatCode(() -> account.validateLoginAllowed(NOW)).doesNotThrowAnyException();
   }
+
+  @Test
+  @DisplayName("일시 정지하면 해제 시각과 함께 일시 정지 상태가 되고, 해제하면 정상 상태로 돌아온다.")
+  void suspendTemporarilyAndUnsuspend() {
+    MemberAccount account = MemberAccountFixture.builder().build();
+    Instant suspendedUntil = NOW.plus(3, ChronoUnit.DAYS);
+
+    account.suspendTemporarily(suspendedUntil);
+
+    assertThat(account.getStatus()).isEqualTo(MemberAccountStatus.SUSPENDED_TEMPORARILY);
+    assertThat(account.getSuspendedUntil()).isEqualTo(suspendedUntil);
+
+    account.unsuspend();
+
+    assertThat(account.getStatus()).isEqualTo(MemberAccountStatus.ACTIVE);
+    assertThat(account.getSuspendedUntil()).isNull();
+  }
+
+  @Test
+  @DisplayName("일시 정지를 영구 정지로 바꾸면 해제 시각이 사라진다.")
+  void changeTemporarySuspensionToPermanent() {
+    MemberAccount account =
+        MemberAccountFixture.builder()
+            .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
+            .suspendedUntil(NOW.plus(3, ChronoUnit.DAYS))
+            .build();
+
+    account.suspendPermanently();
+
+    assertThat(account.getStatus()).isEqualTo(MemberAccountStatus.SUSPENDED_PERMANENTLY);
+    assertThat(account.getSuspendedUntil()).isNull();
+    assertThatThrownBy(() -> account.validateLoginAllowed(NOW))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MEMBER_PERMANENTLY_SUSPENDED);
+  }
 }

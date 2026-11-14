@@ -48,4 +48,9 @@ public class MemberAccountSyncService {
     memberCommandRepository.updateLastAccessedAt(
         memberId, LocalDateTime.ofInstant(accessedAt, ZoneId.systemDefault()));
   }
+
+  @Transactional(propagation = Propagation.MANDATORY)
+  public void delete(long memberId) {
+    memberCommandRepository.findByIdForUpdate(memberId).ifPresent(Member::delete);
+  }
 }

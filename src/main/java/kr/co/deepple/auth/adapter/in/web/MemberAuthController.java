@@ -12,11 +12,13 @@ import kr.co.deepple.auth.application.port.in.LoginMemberUseCase;
 import kr.co.deepple.auth.application.port.in.LogoutMemberUseCase;
 import kr.co.deepple.auth.application.port.in.RefreshMemberTokenUseCase;
 import kr.co.deepple.auth.application.port.in.SendAuthCodeUseCase;
+import kr.co.deepple.auth.application.port.in.WithdrawMemberUseCase;
 import kr.co.deepple.common.security.CurrentMemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +36,7 @@ public class MemberAuthController {
   private final LoginMemberUseCase loginMemberUseCase;
   private final RefreshMemberTokenUseCase refreshMemberTokenUseCase;
   private final LogoutMemberUseCase logoutMemberUseCase;
+  private final WithdrawMemberUseCase withdrawMemberUseCase;
 
   @Operation(summary = "휴대폰 번호 인증 코드 발송")
   @PostMapping("/code")
@@ -71,6 +74,16 @@ public class MemberAuthController {
       @CurrentMemberId long memberId,
       @CookieValue(value = "refresh_token", required = false) String refreshToken) {
     logoutMemberUseCase.logout(memberId, refreshToken);
+
+    return ResponseEntity.noContent()
+        .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.expire().toString())
+        .build();
+  }
+
+  @Operation(summary = "멤버 탈퇴")
+  @DeleteMapping
+  public ResponseEntity<Void> withdraw(@CurrentMemberId long memberId) {
+    withdrawMemberUseCase.withdraw(memberId);
 
     return ResponseEntity.noContent()
         .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.expire().toString())

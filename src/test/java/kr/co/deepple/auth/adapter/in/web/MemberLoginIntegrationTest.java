@@ -1,7 +1,12 @@
 package kr.co.deepple.auth.adapter.in.web;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
+import com.jayway.jsonpath.JsonPath;
+import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -69,6 +74,40 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
     Member member = memberCommandJpaRepository.findById(account.getId()).orElseThrow();
     assertThat(member.getPhoneNumber()).isEqualTo(PHONE_NUMBER);
     assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.INITIAL);
+  }
+
+  @Test
+  @DisplayName("탈퇴하면 회원이 삭제 처리되고, 같은 번호로 다시 로그인하면 403과 MEMBER_DELETED를 응답한다.")
+  void rejectLoginAfterWithdrawal() throws UnsupportedEncodingException {
+    authMessageRepository.save(PHONE_NUMBER, CODE);
+    String accessToken =
+        JsonPath.read(login().getResponse().getContentAsString(UTF_8), "$.accessToken");
+    long accountId =
+        memberAccountRepository
+            .findByPhoneNumber(PhoneNumber.from(PHONE_NUMBER))
+            .orElseThrow()
+            .getId();
+
+    MvcTestResult withdrawal =
+        mockMvc
+            .delete()
+            .uri("/member")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .exchange();
+
+    assertThat(withdrawal).hasStatus(HttpStatus.NO_CONTENT);
+    await()
+        .atMost(Duration.ofSeconds(5))
+        .untilAsserted(() ->
+            assertThat(memberCommandJpaRepository.findById(accountId))
+                .get()
+                .matches(Member::isDeleted));
+
+    authMessageRepository.save(PHONE_NUMBER, CODE);
+    MvcTestResult result = login();
+
+    assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
+    assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("MEMBER_DELETED");
   }
 
   @Test
