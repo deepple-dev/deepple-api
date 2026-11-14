@@ -8,5 +8,7 @@ public interface ProfileExchangeRepository {
 
   boolean existsProfileExchangeBetween(long memberId, long anotherMemberId);
 
+  Optional<ProfileExchange> findProfileExchangeBetween(long memberId, long anotherMemberId);
+
   Optional<ProfileExchange> findById(long id);
 }

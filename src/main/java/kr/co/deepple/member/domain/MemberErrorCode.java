@@ -19,7 +19,6 @@ public enum MemberErrorCode implements ErrorCode {
   INVALID_YEAR_OF_BIRTH(ErrorType.INVALID_ARGUMENT, "20세 이상 46세 이하만 가입할 수 있습니다."),
   INVALID_PROFILE_OPTION(ErrorType.INVALID_ARGUMENT, "유효하지 않은 프로필 선택 값입니다."),
   INVALID_GRADE(ErrorType.INVALID_ARGUMENT, "유효하지 않은 회원 등급입니다."),
-  PROFILE_ACCESS_DENIED(ErrorType.PERMISSION_DENIED, "프로필에 접근할 권한이 없습니다."),
   PROFILE_IMAGE_COUNT_EXCEEDED(ErrorType.INVALID_ARGUMENT, "프로필 이미지는 6개까지 등록할 수 있습니다."),
   INVALID_PROFILE_IMAGE_EXTENSION(ErrorType.INVALID_ARGUMENT, "지원하지 않는 이미지 확장자입니다."),
   INVALID_PROFILE_IMAGE_ORDER(ErrorType.INVALID_ARGUMENT, "유효하지 않은 프로필 이미지 순서입니다."),

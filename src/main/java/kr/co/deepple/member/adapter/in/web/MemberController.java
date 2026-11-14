@@ -10,9 +10,7 @@ import kr.co.deepple.member.application.MemberMapper;
 import kr.co.deepple.member.application.MemberProfileService;
 import kr.co.deepple.member.application.MemberQueryService;
 import kr.co.deepple.member.application.dto.MemberContactView;
-import kr.co.deepple.member.application.dto.MemberInfoView;
 import kr.co.deepple.member.application.dto.MemberMyProfileResponse;
-import kr.co.deepple.member.application.dto.MemberProfileResponse;
 import kr.co.deepple.member.application.dto.MemberProfileUpdateRequest;
 import kr.co.deepple.member.application.dto.MemberStatusResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,24 +52,11 @@ public class MemberController {
     return ResponseEntity.ok(memberProfileService.getStatus(memberId));
   }
 
-  @Operation(summary = "회원(자기 자신) 정보 캐싱용 API")
-  @GetMapping("/cache")
-  public ResponseEntity<MemberInfoView> getMyInfoCache(@CurrentMemberId long memberId) {
-    return ResponseEntity.ok(memberQueryService.getInfoCache(memberId));
-  }
-
   @Operation(summary = "회원(자기 자신) 프로필 정보 조회 API")
   @GetMapping("/profile")
   public ResponseEntity<MemberMyProfileResponse> getMyProfile(@CurrentMemberId long memberId) {
     return ResponseEntity.ok(
         MemberMapper.toMemberMyProfileResponse(memberQueryService.getProfile(memberId)));
-  }
-
-  @Operation(summary = "상대방 프로필 조회 API")
-  @GetMapping("/{memberId}")
-  public ResponseEntity<MemberProfileResponse> getOtherProfile(
-      @CurrentMemberId long memberId, @PathVariable("memberId") long otherMemberId) {
-    return ResponseEntity.ok(memberQueryService.getMemberProfile(memberId, otherMemberId));
   }
 
   @Operation(summary = "휴면 계정 전환 API")

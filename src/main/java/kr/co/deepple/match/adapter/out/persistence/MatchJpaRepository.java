@@ -19,6 +19,28 @@ public interface MatchJpaRepository extends JpaRepository<Match, Long> {
           """)
   boolean existsActiveMatchBetween(long memberId, long anotherMemberId);
 
+  @Query(
+      value =
+          """
+          SELECT m
+          FROM Match m
+          WHERE ((m.requesterId = :memberId AND m.responderId = :anotherMemberId)
+          OR (m.requesterId = :anotherMemberId AND m.responderId = :memberId))
+          AND m.status <> 'EXPIRED' AND m.status <> 'REJECT_CHECKED'
+          """)
+  Optional<Match> findActiveMatchBetween(long memberId, long anotherMemberId);
+
+  @Query(
+      value =
+          """
+          SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false
+          END
+          FROM Match m
+          WHERE m.requesterId = :requesterId AND m.responderId = :responderId
+          AND m.status <> 'REJECT_CHECKED' AND m.status <> 'REJECTED'
+          """)
+  boolean existsReceivedMatchRequest(long responderId, long requesterId);
+
   Optional<Match> findByIdAndRequesterId(long id, long requesterId);
 
   Optional<Match> findByIdAndResponderId(long id, long responderId);

@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import java.util.List;
 import kr.co.deepple.interview.adapter.out.persistence.InterviewAnswerQueryRepository;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswer;
+import kr.co.deepple.interview.application.port.in.MemberInterviewAnswerDetail;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,5 +30,19 @@ class FindMemberInterviewAnswersServiceTest {
 
     assertThat(findMemberInterviewAnswersService.findPublicInterviewAnswers(7L))
         .containsExactly(answer);
+  }
+
+  @Test
+  @DisplayName("회원이 남긴 모든 답변을 돌려준다.")
+  void findAllInterviewAnswers() {
+    MemberInterviewAnswerDetail publicAnswer =
+        new MemberInterviewAnswerDetail(10L, 1L, "질문", true, "답변");
+    MemberInterviewAnswerDetail privateAnswer =
+        new MemberInterviewAnswerDetail(11L, 2L, "비공개 질문", false, "답변2");
+    given(interviewAnswerQueryRepository.findAllAnswersByMemberId(7L))
+        .willReturn(List.of(publicAnswer, privateAnswer));
+
+    assertThat(findMemberInterviewAnswersService.findAllInterviewAnswers(7L))
+        .containsExactly(publicAnswer, privateAnswer);
   }
 }
