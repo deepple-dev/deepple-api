@@ -10,9 +10,9 @@ import java.util.Optional;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import kr.co.deepple.report.application.dto.ReportDetailView;
+import kr.co.deepple.report.application.dto.RawReportDetailView;
+import kr.co.deepple.report.application.dto.RawReportView;
 import kr.co.deepple.report.application.dto.ReportSearchCondition;
-import kr.co.deepple.report.application.dto.ReportView;
 import kr.co.deepple.report.domain.Report;
 import kr.co.deepple.report.domain.ReportReasonType;
 import kr.co.deepple.report.domain.ReportResult;
@@ -68,17 +68,15 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
       ReportSearchCondition condition = new ReportSearchCondition(null, null, null);
 
       // when
-      Page<ReportView> page = reportQueryRepository.getPage(condition, PageRequest.of(0, 10));
-      List<ReportView> content = page.getContent();
+      Page<RawReportView> page = reportQueryRepository.getPage(condition, PageRequest.of(0, 10));
+      List<RawReportView> content = page.getContent();
 
       // then
       assertThat(content).hasSize(1);
-      ReportView view = content.get(0);
+      RawReportView view = content.get(0);
       assertThat(view.id()).isEqualTo(report.getId());
       assertThat(view.reporterId()).isEqualTo(reporter.getId());
-      assertThat(view.reporterNickname()).isEqualTo(reporter.getProfile().getNickname().getValue());
       assertThat(view.reporteeId()).isEqualTo(reportee.getId());
-      assertThat(view.reporteeNickname()).isEqualTo(reportee.getProfile().getNickname().getValue());
       assertThat(view.reason()).isEqualTo(report.getReason().name());
       assertThat(view.result()).isEqualTo(report.getResult().name());
       assertThat(view.createdAt()).isCloseTo(report.getCreatedAt(), within(1, ChronoUnit.MICROS));
@@ -98,12 +96,12 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
           new ReportSearchCondition(ReportResult.PENDING.name(), null, null);
 
       // when
-      Page<ReportView> page = reportQueryRepository.getPage(condition, PageRequest.of(0, 10));
+      Page<RawReportView> page = reportQueryRepository.getPage(condition, PageRequest.of(0, 10));
 
       // then
       assertThat(page.getTotalElements()).isEqualTo(1);
       assertThat(page.getContent())
-          .extracting(ReportView::result)
+          .extracting(RawReportView::result)
           .allMatch(res -> res.equals(ReportResult.PENDING.name()));
     }
 
@@ -120,7 +118,7 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
       ReportSearchCondition condition = new ReportSearchCondition(null, null, null);
 
       // when
-      Page<ReportView> page = reportQueryRepository.getPage(condition, PageRequest.of(0, 10));
+      Page<RawReportView> page = reportQueryRepository.getPage(condition, PageRequest.of(0, 10));
 
       // then
       assertThat(page.getTotalElements()).isEqualTo(2);
@@ -143,8 +141,8 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
           new ReportSearchCondition(null, reportDate.plusDays(1), null);
 
       // when
-      Page<ReportView> pageSame = reportQueryRepository.getPage(condSame, PageRequest.of(0, 10));
-      Page<ReportView> pageNext = reportQueryRepository.getPage(condNext, PageRequest.of(0, 10));
+      Page<RawReportView> pageSame = reportQueryRepository.getPage(condSame, PageRequest.of(0, 10));
+      Page<RawReportView> pageNext = reportQueryRepository.getPage(condNext, PageRequest.of(0, 10));
 
       // then
       assertThat(pageSame.getTotalElements()).isEqualTo(1);
@@ -169,8 +167,8 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
           new ReportSearchCondition(null, null, reportDate.minusDays(1));
 
       // when
-      Page<ReportView> pageSame = reportQueryRepository.getPage(condSame, PageRequest.of(0, 10));
-      Page<ReportView> pagePrev = reportQueryRepository.getPage(condPrev, PageRequest.of(0, 10));
+      Page<RawReportView> pageSame = reportQueryRepository.getPage(condSame, PageRequest.of(0, 10));
+      Page<RawReportView> pagePrev = reportQueryRepository.getPage(condPrev, PageRequest.of(0, 10));
 
       // then
       assertThat(pageSame.getTotalElements()).isEqualTo(1);
@@ -192,19 +190,17 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
       entityManager.flush();
 
       // when
-      Optional<ReportDetailView> optionalView =
+      Optional<RawReportDetailView> optionalView =
           reportQueryRepository.findReportDetailView(report.getId());
 
       // then
       assertThat(optionalView).isPresent();
 
-      ReportDetailView view = optionalView.get();
+      RawReportDetailView view = optionalView.get();
       assertThat(view.id()).isEqualTo(report.getId());
       assertThat(view.version()).isEqualTo(report.getVersion());
       assertThat(view.reporterId()).isEqualTo(reporter.getId());
-      assertThat(view.reporterNickname()).isEqualTo(reporter.getProfile().getNickname().getValue());
       assertThat(view.reporteeId()).isEqualTo(reportee.getId());
-      assertThat(view.reporteeNickname()).isEqualTo(reportee.getProfile().getNickname().getValue());
       assertThat(view.reason()).isEqualTo(report.getReason().name());
       assertThat(view.result()).isEqualTo(report.getResult().name());
       assertThat(view.content()).isEqualTo(report.getContent());
@@ -218,7 +214,7 @@ class ReportQueryRepositoryTest extends RepositoryTestSupport {
       long nonExistentId = 999L;
 
       // when
-      Optional<ReportDetailView> optionalView =
+      Optional<RawReportDetailView> optionalView =
           reportQueryRepository.findReportDetailView(nonExistentId);
 
       // then
