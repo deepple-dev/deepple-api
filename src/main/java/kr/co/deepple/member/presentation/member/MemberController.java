@@ -10,6 +10,7 @@ import kr.co.deepple.member.command.application.member.MemberProfileService;
 import kr.co.deepple.member.presentation.member.dto.MemberMyProfileResponse;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileResponse;
 import kr.co.deepple.member.presentation.member.dto.MemberProfileUpdateRequest;
+import kr.co.deepple.member.presentation.member.dto.MemberStatusResponse;
 import kr.co.deepple.member.query.member.application.MemberQueryService;
 import kr.co.deepple.member.query.member.view.MemberContactView;
 import kr.co.deepple.member.query.member.view.MemberInfoView;
@@ -45,6 +46,12 @@ public class MemberController {
       @RequestBody MemberProfileUpdateRequest request, @CurrentMemberId long memberId) {
     memberProfileService.updateMember(memberId, request);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "회원(자기 자신) 상태 조회 API")
+  @GetMapping("/status")
+  public ResponseEntity<MemberStatusResponse> getMyStatus(@CurrentMemberId long memberId) {
+    return ResponseEntity.ok(memberProfileService.getStatus(memberId));
   }
 
   @Operation(summary = "회원(자기 자신) 정보 캐싱용 API")
