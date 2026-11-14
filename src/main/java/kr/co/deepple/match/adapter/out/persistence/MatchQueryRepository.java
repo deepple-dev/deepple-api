@@ -1,9 +1,6 @@
 package kr.co.deepple.match.adapter.out.persistence;
 
-import static kr.co.deepple.block.domain.QBlock.block;
 import static kr.co.deepple.match.domain.QMatch.match;
-import static kr.co.deepple.member.domain.QMember.member;
-import static kr.co.deepple.member.domain.QProfileImage.profileImage;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -11,9 +8,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import kr.co.deepple.match.application.dto.MatchView;
-import kr.co.deepple.match.application.dto.QMatchView;
+import kr.co.deepple.match.application.dto.QRawMatchView;
+import kr.co.deepple.match.application.dto.RawMatchView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -25,12 +21,10 @@ public class MatchQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   /** 자신이 보낸 메시지 내역 (요청자로 보낸 메시지 + 응답자로 응답한 메시지). */
-  public List<MatchView> findSentMatches(long userId, Long lastMatchId) {
-    Set<Long> blockedIds = getBlockedIds(userId);
-
+  public List<RawMatchView> findSentMatches(long userId, Long lastMatchId, Set<Long> blockedIds) {
     return queryFactory
         .select(
-            new QMatchView(
+            new QRawMatchView(
                 match.id,
                 // 상대방 ID: requester면 responderId, responder면 requesterId
                 Expressions.cases()
@@ -42,9 +36,6 @@ public class MatchQueryRepository {
                     .when(match.requesterId.eq(userId))
                     .then(match.responseMessage.value)
                     .otherwise(match.requestMessage.value),
-                member.profile.nickname.value,
-                profileImage.imageUrl.value,
-                member.profile.region.city.stringValue(),
                 // 내 메시지: requester면 requestMessage, responder면 responseMessage
                 Expressions.cases()
                     .when(match.requesterId.eq(userId))
@@ -58,15 +49,6 @@ public class MatchQueryRepository {
                     .then(match.readByResponderAt)
                     .otherwise(Expressions.nullExpression(LocalDateTime.class))))
         .from(match)
-        .join(member)
-        .on(
-            match
-                .requesterId
-                .eq(userId)
-                .and(member.id.eq(match.responderId))
-                .or(match.responderId.eq(userId).and(member.id.eq(match.requesterId))))
-        .leftJoin(profileImage)
-        .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .where(
             match
                 .requesterId
@@ -81,12 +63,11 @@ public class MatchQueryRepository {
   }
 
   /** 자신이 받은 메시지 내역 (응답자로 받은 메시지 + 요청자로 보냈는데 상대방이 응답한 메시지). */
-  public List<MatchView> findReceiveMatches(long userId, Long lastMatchId) {
-    Set<Long> blockedIds = getBlockedIds(userId);
-
+  public List<RawMatchView> findReceiveMatches(
+      long userId, Long lastMatchId, Set<Long> blockedIds) {
     return queryFactory
         .select(
-            new QMatchView(
+            new QRawMatchView(
                 match.id,
                 // 상대방 ID: responder면 requesterId, requester면 responderId
                 Expressions.cases()
@@ -98,9 +79,6 @@ public class MatchQueryRepository {
                     .when(match.responderId.eq(userId))
                     .then(match.requestMessage.value)
                     .otherwise(match.responseMessage.value),
-                member.profile.nickname.value,
-                profileImage.imageUrl.value,
-                member.profile.region.city.stringValue(),
                 // 내 메시지: responder면 responseMessage, requester면 requestMessage
                 Expressions.cases()
                     .when(match.responderId.eq(userId))
@@ -110,15 +88,6 @@ public class MatchQueryRepository {
                 match.createdAt,
                 Expressions.nullExpression(LocalDateTime.class)))
         .from(match)
-        .join(member)
-        .on(
-            match
-                .responderId
-                .eq(userId)
-                .and(member.id.eq(match.requesterId))
-                .or(match.requesterId.eq(userId).and(member.id.eq(match.responderId))))
-        .leftJoin(profileImage)
-        .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .where(
             match
                 .responderId
@@ -130,16 +99,6 @@ public class MatchQueryRepository {
         .orderBy(match.id.desc())
         .limit(PAGE_SIZE)
         .fetch();
-  }
-
-  private Set<Long> getBlockedIds(long blockerId) {
-    return queryFactory
-        .select(block.blockedId)
-        .from(block)
-        .where(block.blockerId.eq(blockerId))
-        .fetch()
-        .stream()
-        .collect(Collectors.toSet());
   }
 
   private BooleanExpression ltMatchId(Long lastMatchId) {
