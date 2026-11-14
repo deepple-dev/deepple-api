@@ -1,7 +1,6 @@
-package kr.co.deepple.auth.adapter.in.web;
+package kr.co.deepple.common.security;
 
 import java.time.Duration;
-import kr.co.deepple.auth.application.RefreshTokenProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;

@@ -20,6 +20,7 @@ import kr.co.deepple.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
+import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
 import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,6 +37,7 @@ public class MatchService {
   private static final String REQUEST_HEART_USAGE_TYPE = "MESSAGE";
 
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
+  private final ValidateContactTypeSettingUseCase validateContactTypeSettingUseCase;
   private final FindIntroductionTypeUseCase findIntroductionTypeUseCase;
   private final MatchRepository matchRepository;
   private final DistributedLockTemplate distributedLockTemplate;
@@ -63,6 +65,7 @@ public class MatchService {
     String requesterName = findNickname(requesterId);
     MatchType matchType = getMatchType(requesterId, responderId);
     Match match = Match.request(requesterId, responderId, message, contactType);
+    validateContactTypeSettingUseCase.validateContactTypeSetting(requesterId, contactType.name());
     eventPublisher.publishEvent(
         MatchRequestedEvent.of(
             requesterId, requesterName, responderId, matchType.name(), contactType.name()));
@@ -92,6 +95,7 @@ public class MatchService {
     String responderName = findNickname(responderId);
     MatchContactType contactType = MatchContactType.from(respondDto.contactType());
     match.approve(Message.from(respondDto.responseMessage()), contactType);
+    validateContactTypeSettingUseCase.validateContactTypeSetting(responderId, contactType.name());
     eventPublisher.publishEvent(
         MatchRespondedEvent.of(
             match.getRequesterId(), responderId, match.getStatus().name(), contactType.name()));

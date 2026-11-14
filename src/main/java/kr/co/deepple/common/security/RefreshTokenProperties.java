@@ -1,4 +1,4 @@
-package kr.co.deepple.auth.application;
+package kr.co.deepple.common.security;
 
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;

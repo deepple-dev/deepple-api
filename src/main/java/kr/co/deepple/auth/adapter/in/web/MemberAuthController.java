@@ -14,6 +14,7 @@ import kr.co.deepple.auth.application.port.in.RefreshMemberTokenUseCase;
 import kr.co.deepple.auth.application.port.in.SendAuthCodeUseCase;
 import kr.co.deepple.auth.application.port.in.WithdrawMemberUseCase;
 import kr.co.deepple.common.security.CurrentMemberId;
+import kr.co.deepple.common.security.RefreshTokenCookies;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;

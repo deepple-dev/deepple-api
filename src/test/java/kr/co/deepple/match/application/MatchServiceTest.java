@@ -3,6 +3,9 @@ package kr.co.deepple.match.application;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -25,7 +28,9 @@ import kr.co.deepple.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.fixture.MatchFixture;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
+import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
 import kr.co.deepple.member.domain.Member;
+import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
@@ -34,6 +39,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -48,6 +54,8 @@ class MatchServiceTest {
   @Mock private DistributedLockTemplate distributedLockTemplate;
 
   @Mock private FindMemberSummaryUseCase findMemberSummaryUseCase;
+
+  @Mock private ValidateContactTypeSettingUseCase validateContactTypeSettingUseCase;
 
   @Mock private FindIntroductionTypeUseCase findIntroductionTypeUseCase;
 
@@ -129,7 +137,11 @@ class MatchServiceTest {
       matchService.request(requesterId, requestDto);
 
       // Then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestedEvent.class));
+      InOrder inOrder = inOrder(validateContactTypeSettingUseCase, eventPublisher);
+      inOrder
+          .verify(validateContactTypeSettingUseCase)
+          .validateContactTypeSetting(requesterId, contactType.name());
+      inOrder.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestedEvent.class));
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestCompletedEvent.class));
       verify(matchRepository)
           .save(
@@ -137,6 +149,40 @@ class MatchServiceTest {
                   match.getRequesterId() == requesterId
                       && match.getResponderId() == responderId
                       && match.getRequestMessage().getValue().equals(requestMessage)));
+    }
+
+    @Test
+    @DisplayName("요청자가 고른 연락 수단을 설정하지 않았으면 예외가 발생하고 매치를 만들지 않는다.")
+    void throwsExceptionWhenRequesterContactTypeIsNotSet() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      MatchContactType contactType = MatchContactType.KAKAO;
+      MatchRequestDto requestDto =
+          new MatchRequestDto(responderId, "매칭을 요청합니다!", contactType.name());
+
+      when(findIntroductionTypeUseCase.findIntroductionType(requesterId, responderId))
+          .thenReturn(Optional.empty());
+      doAnswer(
+              invocation -> {
+                Runnable runnable = invocation.getArgument(1);
+                runnable.run();
+                return null;
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
+      when(matchRepository.existsActiveMatchBetween(requesterId, responderId)).thenReturn(false);
+      mockMember(requesterId, "testUser");
+      doThrow(new DeeppleException(MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED))
+          .when(validateContactTypeSettingUseCase)
+          .validateContactTypeSetting(requesterId, contactType.name());
+
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.request(requesterId, requestDto))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED);
+      verify(matchRepository, never()).save(any());
+      verifyNoInteractions(eventPublisher, useHeartUseCase);
     }
   }
 
@@ -217,11 +263,44 @@ class MatchServiceTest {
       matchService.approve(matchId, responderId, responseDto);
 
       // Then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
+      InOrder inOrder = inOrder(validateContactTypeSettingUseCase, eventPublisher);
+      inOrder
+          .verify(validateContactTypeSettingUseCase)
+          .validateContactTypeSetting(responderId, contactType.name());
+      inOrder.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchAcceptedEvent.class));
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
       Assertions.assertThat(match.getResponseMessage().getValue()).isEqualTo(responseMessage);
       verifyNoInteractions(useHeartUseCase);
+    }
+
+    @DisplayName("응답자가 고른 연락 수단을 설정하지 않았으면 예외가 발생하고 이벤트를 발행하지 않는다.")
+    @Test
+    void throwsExceptionWhenResponderContactTypeIsNotSet() {
+      // Given
+      Long requesterId = 1L;
+      Long responderId = 2L;
+      Long matchId = 3L;
+      MatchContactType contactType = MatchContactType.KAKAO;
+      Match match =
+          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
+      MatchResponseDto responseDto = new MatchResponseDto("매치 수락할게요", contactType.name());
+
+      when(matchRepository.findByIdAndResponderId(matchId, responderId))
+          .thenReturn(Optional.of(match));
+      Member requester = MemberFixture.builder().id(requesterId).build();
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(requester));
+      mockMember(responderId, "responder");
+      doThrow(new DeeppleException(MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED))
+          .when(validateContactTypeSettingUseCase)
+          .validateContactTypeSetting(responderId, contactType.name());
+
+      // When & Then
+      Assertions.assertThatThrownBy(() -> matchService.approve(matchId, responderId, responseDto))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.CONTACT_TYPE_SETTING_NEEDED);
+      verifyNoInteractions(eventPublisher);
     }
   }
 
@@ -299,6 +378,7 @@ class MatchServiceTest {
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRejectedEvent.class));
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECTED);
+      verifyNoInteractions(validateContactTypeSettingUseCase);
     }
   }
 

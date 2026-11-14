@@ -361,4 +361,109 @@ class MemberProfileServiceTest {
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameActiveEvent.class));
     }
   }
+
+  @Nested
+  @DisplayName("심사 상태 변경 테스트")
+  class ChangeScreeningStatusTest {
+
+    @Test
+    @DisplayName("심사가 반려되면 심사 거절 상태로 바꾸고 프로필을 비공개로 변경합니다.")
+    void changeToRejectedAndNonPublishProfile() {
+      // Given
+      long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.changeReject(memberId);
+
+      // Then
+      assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.REJECTED_SCREENING);
+      assertThat(member.isProfilePublic()).isFalse();
+    }
+
+    @Test
+    @DisplayName("심사가 생성되면 심사 대기 상태로 바꾸고 프로필을 비공개로 변경합니다.")
+    void changeToWaitingAndNonPublishProfile() {
+      // Given
+      long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).profilePublic(true).build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.changeWaiting(memberId);
+
+      // Then
+      assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.WAITING_SCREENING);
+      assertThat(member.isProfilePublic()).isFalse();
+    }
+
+    @Test
+    @DisplayName("심사가 승인되면 프로필을 공개로 변경합니다.")
+    void publishProfileWhenScreeningApproved() {
+      // Given
+      long memberId = 1L;
+      Member member =
+          MemberFixture.builder()
+              .id(memberId)
+              .activityStatus(ActivityStatus.WAITING_SCREENING)
+              .profilePublic(false)
+              .build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.approveScreening(memberId);
+
+      // Then
+      assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.ACTIVE);
+      assertThat(member.isProfilePublic()).isTrue();
+    }
+
+    @Test
+    @DisplayName("멤버가 존재하지 않으면 예외를 던집니다.")
+    void throwsExceptionWhenMemberNotFound() {
+      // Given
+      long memberId = 1L;
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> memberProfileService.changeWaiting(memberId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
+    }
+  }
+
+  @Nested
+  @DisplayName("markDatingExamSubmitted 메서드 테스트")
+  class MarkDatingExamSubmittedTest {
+
+    @Test
+    @DisplayName("연애고사 제출 여부를 표시하고, 다시 호출해도 결과가 같습니다.")
+    void markDatingExamSubmitted() {
+      // Given
+      long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).build();
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.markDatingExamSubmitted(memberId);
+      memberProfileService.markDatingExamSubmitted(memberId);
+
+      // Then
+      assertThat(member.hasSubmittedDatingExam()).isTrue();
+    }
+
+    @Test
+    @DisplayName("멤버가 존재하지 않으면 예외를 던집니다.")
+    void throwsExceptionWhenMemberNotFound() {
+      // Given
+      long memberId = 1L;
+      when(memberCommandRepository.findById(memberId)).thenReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> memberProfileService.markDatingExamSubmitted(memberId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
+    }
+  }
 }

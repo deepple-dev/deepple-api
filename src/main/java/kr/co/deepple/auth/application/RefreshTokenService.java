@@ -12,6 +12,7 @@ import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.TokenOwner;
 import kr.co.deepple.auth.domain.UsedRefreshToken;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.common.security.RefreshTokenProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
