@@ -1,15 +1,11 @@
 package kr.co.deepple.like.adapter.out.persistence;
 
-import static kr.co.deepple.block.domain.QBlock.block;
 import static kr.co.deepple.like.domain.QLike.like;
-import static kr.co.deepple.member.domain.QMember.member;
-import static kr.co.deepple.member.domain.QProfileImage.profileImage;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import kr.co.deepple.like.application.dto.QRawLikeView;
 import kr.co.deepple.like.application.dto.RawLikeView;
 import kr.co.deepple.like.domain.QLike;
@@ -23,27 +19,12 @@ public class LikeQueryRepository {
   private static final int PAGE_SIZE = 13;
   private final JPAQueryFactory queryFactory;
 
-  public List<RawLikeView> findSentLikes(long senderId, Long lastLikeId) {
+  public List<RawLikeView> findSentLikes(long senderId, Long lastLikeId, Set<Long> blockedIds) {
     QLike mutual = new QLike("mutual");
 
-    Set<Long> blockedIds = getBlockedIds(senderId);
-
     return queryFactory
-        .select(
-            new QRawLikeView(
-                like.id,
-                like.receiverId,
-                profileImage.imageUrl.value,
-                member.profile.nickname.value,
-                member.profile.region.city.stringValue(),
-                member.profile.yearOfBirth.value,
-                mutual.id.isNotNull(),
-                like.createdAt))
+        .select(new QRawLikeView(like.id, like.receiverId, mutual.id.isNotNull(), like.createdAt))
         .from(like)
-        .join(member)
-        .on(member.id.eq(like.receiverId))
-        .leftJoin(profileImage)
-        .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .leftJoin(mutual)
         .on(mutual.senderId.eq(like.receiverId).and(mutual.receiverId.eq(senderId)))
         .where(eqSender(senderId), ltLikeId(lastLikeId), receiverIdNotIn(blockedIds))
@@ -52,27 +33,13 @@ public class LikeQueryRepository {
         .fetch();
   }
 
-  public List<RawLikeView> findReceivedLikes(long receiverId, Long lastLikeId) {
+  public List<RawLikeView> findReceivedLikes(
+      long receiverId, Long lastLikeId, Set<Long> blockedIds) {
     QLike mutual = new QLike("mutual");
 
-    Set<Long> blockedIds = getBlockedIds(receiverId);
-
     return queryFactory
-        .select(
-            new QRawLikeView(
-                like.id,
-                like.senderId,
-                profileImage.imageUrl.value,
-                member.profile.nickname.value,
-                member.profile.region.city.stringValue(),
-                member.profile.yearOfBirth.value,
-                mutual.id.isNotNull(),
-                like.createdAt))
+        .select(new QRawLikeView(like.id, like.senderId, mutual.id.isNotNull(), like.createdAt))
         .from(like)
-        .join(member)
-        .on(member.id.eq(like.senderId))
-        .leftJoin(profileImage)
-        .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .leftJoin(mutual)
         .on(mutual.senderId.eq(receiverId).and(mutual.receiverId.eq(like.senderId)))
         .where(eqReceiver(receiverId), ltLikeId(lastLikeId), senderIdNotIn(blockedIds))
@@ -91,16 +58,6 @@ public class LikeQueryRepository {
 
   private BooleanExpression ltLikeId(Long lastLikeId) {
     return lastLikeId != null ? like.id.lt(lastLikeId) : null;
-  }
-
-  private Set<Long> getBlockedIds(long blockerId) {
-    return queryFactory
-        .select(block.blockedId)
-        .from(block)
-        .where(block.blockerId.eq(blockerId))
-        .fetch()
-        .stream()
-        .collect(Collectors.toSet());
   }
 
   private BooleanExpression senderIdNotIn(Set<Long> ids) {

@@ -34,6 +34,7 @@ import kr.co.deepple.member.application.dto.OtherMemberProfileView;
 import kr.co.deepple.member.application.dto.ProfileAccessView;
 import kr.co.deepple.member.application.dto.ProfileInfo;
 import kr.co.deepple.member.application.dto.StatusInfo;
+import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.domain.District;
 import kr.co.deepple.member.domain.DrinkingStatus;
 import kr.co.deepple.member.domain.Gender;
@@ -977,5 +978,59 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
         .memberId(memberId)
         .content(content)
         .build();
+  }
+
+  @Nested
+  @DisplayName("회원 미리보기 조회 테스트")
+  class PreviewQueryTest {
+
+    @Test
+    @DisplayName("닉네임·대표 사진·지역·출생연도를 회원 번호별로 조회하고, 대표가 아닌 사진과 다른 회원은 포함하지 않는다.")
+    void findPreviewsOfMembers() {
+      Member withImage = entityManager.persist(MemberFixture.builder().nickname("사진있음").build());
+      Member withoutImage = entityManager.persist(MemberFixture.builder().build());
+      Member other = entityManager.persist(MemberFixture.builder().build());
+      entityManager.persist(
+          ProfileImageFixture.builder()
+              .memberId(withImage.getId())
+              .imageUrl("https://example.com/primary.jpg")
+              .primary(true)
+              .build());
+      entityManager.persist(
+          ProfileImageFixture.builder()
+              .memberId(withImage.getId())
+              .imageUrl("https://example.com/second.jpg")
+              .order(2)
+              .primary(false)
+              .build());
+      entityManager.flush();
+      entityManager.clear();
+
+      List<MemberPreview> previews =
+          memberQueryRepository.findPreviewsByMemberIds(
+              List.of(withImage.getId(), withoutImage.getId()));
+
+      assertThat(previews)
+          .extracting(MemberPreview::memberId)
+          .containsExactlyInAnyOrder(withImage.getId(), withoutImage.getId())
+          .doesNotContain(other.getId());
+      MemberPreview preview =
+          previews.stream()
+              .filter(p -> p.memberId() == withImage.getId())
+              .findFirst()
+              .orElseThrow();
+      assertThat(preview.nickname()).isEqualTo("사진있음");
+      assertThat(preview.profileImageUrl()).isEqualTo("https://example.com/primary.jpg");
+      assertThat(preview.city()).isEqualTo(withImage.getProfile().getRegion().getCity().name());
+      assertThat(preview.yearOfBirth())
+          .isEqualTo(withImage.getProfile().getYearOfBirth().getValue());
+      assertThat(
+              previews.stream()
+                  .filter(p -> p.memberId() == withoutImage.getId())
+                  .findFirst()
+                  .orElseThrow()
+                  .profileImageUrl())
+          .isNull();
+    }
   }
 }

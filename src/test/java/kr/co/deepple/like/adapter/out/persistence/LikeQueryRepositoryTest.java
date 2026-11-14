@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 import kr.co.deepple.block.domain.Block;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
@@ -68,14 +68,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
             .limit(PAGE_SIZE)
             .toList();
 
-    var profileImageUrlMap =
-        receiverProfileImages.stream()
-            .collect(Collectors.toMap(ProfileImage::getMemberId, ProfileImage::getUrl));
-    var receiverProfileMap =
-        receivers.stream().collect(Collectors.toMap(Member::getId, Member::getProfile));
-
     // when
-    var firstPage = likeQueryRepository.findSentLikes(senderId, null);
+    var firstPage = likeQueryRepository.findSentLikes(senderId, null, Set.of());
 
     // then
     assertThat(firstPage).hasSize(expectedLikes.size());
@@ -86,14 +80,6 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
 
       assertThat(likeView.likeId()).isEqualTo(expectedLike.getId());
       assertThat(likeView.opponentId()).isEqualTo(expectedLike.getReceiverId());
-
-      var expectedUrl = profileImageUrlMap.get(expectedLike.getReceiverId());
-      assertThat(likeView.profileImageUrl()).isEqualTo(expectedUrl);
-
-      var receiverProfile = receiverProfileMap.get(expectedLike.getReceiverId());
-      assertThat(likeView.nickname()).isEqualTo(receiverProfile.getNickname().getValue());
-      assertThat(likeView.city()).isEqualTo(receiverProfile.getRegion().getCity().toString());
-      assertThat(likeView.yearOfBirth()).isEqualTo(receiverProfile.getYearOfBirth().getValue());
 
       boolean expectedMutual = expectedLike.getSenderId() % 2 != 0;
       assertThat(likeView.isMutualLike()).isEqualTo(expectedMutual);
@@ -112,14 +98,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
             .limit(PAGE_SIZE)
             .toList();
 
-    var profileImageUrlMap =
-        senderProfileImages.stream()
-            .collect(Collectors.toMap(ProfileImage::getMemberId, ProfileImage::getUrl));
-    var senderProfileMap =
-        senders.stream().collect(Collectors.toMap(Member::getId, Member::getProfile));
-
     // when
-    var firstPage = likeQueryRepository.findReceivedLikes(receiverId, null);
+    var firstPage = likeQueryRepository.findReceivedLikes(receiverId, null, Set.of());
 
     // then
     assertThat(firstPage).hasSize(expectedLikes.size());
@@ -130,14 +110,6 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
 
       assertThat(likeView.likeId()).isEqualTo(expectedLike.getId());
       assertThat(likeView.opponentId()).isEqualTo(expectedLike.getSenderId());
-
-      var expectedUrl = profileImageUrlMap.get(expectedLike.getSenderId());
-      assertThat(likeView.profileImageUrl()).isEqualTo(expectedUrl);
-
-      var senderProfile = senderProfileMap.get(expectedLike.getSenderId());
-      assertThat(likeView.nickname()).isEqualTo(senderProfile.getNickname().getValue());
-      assertThat(likeView.city()).isEqualTo(senderProfile.getRegion().getCity().toString());
-      assertThat(likeView.yearOfBirth()).isEqualTo(senderProfile.getYearOfBirth().getValue());
 
       boolean expectedMutual = expectedLike.getSenderId() % 2 != 0;
       assertThat(likeView.isMutualLike()).isEqualTo(expectedMutual);
@@ -165,7 +137,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
             .toList();
 
     // when
-    var firstPage = likeQueryRepository.findSentLikes(senderId, null);
+    var firstPage = likeQueryRepository.findSentLikes(senderId, null, Set.of(blockedMemberId));
 
     // then
     assertThat(firstPage).hasSize(expectedLikes.size());
@@ -195,7 +167,8 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
             .toList();
 
     // when
-    var firstPage = likeQueryRepository.findReceivedLikes(receiverId, null);
+    var firstPage =
+        likeQueryRepository.findReceivedLikes(receiverId, null, Set.of(blockedMemberId));
 
     // then
     assertThat(firstPage).hasSize(expectedLikes.size());
@@ -220,7 +193,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     // when
     Long lastLikeId = null;
     while (true) {
-      var page = likeQueryRepository.findSentLikes(senderId, lastLikeId);
+      var page = likeQueryRepository.findSentLikes(senderId, lastLikeId, Set.of());
       if (page.isEmpty()) {
         break;
       }
@@ -252,7 +225,7 @@ class LikeQueryRepositoryTest extends RepositoryTestSupport {
     // when
     Long lastLikeId = null;
     while (true) {
-      var page = likeQueryRepository.findReceivedLikes(receiverId, lastLikeId);
+      var page = likeQueryRepository.findReceivedLikes(receiverId, lastLikeId, Set.of());
       if (page.isEmpty()) {
         break;
       }
