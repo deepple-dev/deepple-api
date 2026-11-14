@@ -19,8 +19,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.match.domain.MatchStatus;
 import kr.co.deepple.member.application.dto.InterviewResultView;
 import kr.co.deepple.member.application.dto.MemberContactView;
@@ -304,5 +306,18 @@ public class MemberQueryRepository {
         .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .where(member.id.in(memberIds))
         .fetch();
+  }
+
+  public Set<Long> findIdsByNicknameAndPhoneNumber(String nicknameKeyword, String phoneNumber) {
+    return new HashSet<>(
+        queryFactory
+            .select(member.id)
+            .from(member)
+            .where(
+                nicknameKeyword != null
+                    ? member.profile.nickname.value.contains(nicknameKeyword)
+                    : null,
+                phoneNumber != null ? member.phoneNumber.value.eq(phoneNumber) : null)
+            .fetch());
   }
 }
