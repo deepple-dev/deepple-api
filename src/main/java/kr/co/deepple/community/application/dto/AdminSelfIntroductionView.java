@@ -1,42 +1,32 @@
 package kr.co.deepple.community.application.dto;
 
-import com.querydsl.core.annotations.QueryProjection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import kr.co.deepple.member.domain.Gender;
 
 public record AdminSelfIntroductionView(
     long selfIntroductionId,
     String nickname,
-    @Schema(implementation = Gender.class) String gender,
+    @Schema(description = "성별. 값은 회원 프로필의 gender와 같다", example = "MALE") String gender,
     boolean isOpened,
     String content,
     String imageUrl,
     String createdDate,
     String updatedDate,
     String deletedDate) {
-  @QueryProjection
-  public AdminSelfIntroductionView(
-      long selfIntroductionId,
-      String nickname,
-      String gender,
-      boolean isOpened,
-      String content,
-      String imageUrl,
-      LocalDateTime createdAt,
-      LocalDateTime updatedAt,
-      LocalDateTime deletedAt) {
-    this(
-        selfIntroductionId,
+
+  public static AdminSelfIntroductionView of(
+      RawAdminSelfIntroductionView raw, String nickname, String gender) {
+    return new AdminSelfIntroductionView(
+        raw.id(),
         nickname,
         gender,
-        isOpened,
-        content,
-        imageUrl,
-        formatDate(createdAt),
-        formatDate(updatedAt),
-        formatDate(deletedAt));
+        raw.isOpened(),
+        raw.content(),
+        raw.imageUrl(),
+        formatDate(raw.createdAt()),
+        formatDate(raw.updatedAt()),
+        formatDate(raw.deletedAt()));
   }
 
   private static String formatDate(LocalDateTime dateTime) {

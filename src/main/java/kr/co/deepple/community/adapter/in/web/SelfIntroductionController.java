@@ -3,22 +3,16 @@ package kr.co.deepple.community.adapter.in.web;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
-import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.common.security.CurrentMemberId;
-import kr.co.deepple.community.adapter.out.persistence.SelfIntroductionQueryRepository;
-import kr.co.deepple.community.application.SelfIntroductionMapper;
+import kr.co.deepple.community.application.SelfIntroductionQueryService;
 import kr.co.deepple.community.application.SelfIntroductionService;
-import kr.co.deepple.community.application.dto.SelfIntroductionSearchCondition;
+import kr.co.deepple.community.application.dto.SelfIntroductionImagePresignedUrlRequest;
 import kr.co.deepple.community.application.dto.SelfIntroductionSearchRequest;
-import kr.co.deepple.community.application.dto.SelfIntroductionSummaryView;
 import kr.co.deepple.community.application.dto.SelfIntroductionSummaryViews;
 import kr.co.deepple.community.application.dto.SelfIntroductionView;
 import kr.co.deepple.community.application.dto.SelfIntroductionWriteRequest;
 import kr.co.deepple.community.application.dto.SelfIntroductionWriteResponse;
-import kr.co.deepple.community.domain.CommunityErrorCode;
-import kr.co.deepple.member.application.dto.PresignedUrlPostRequest;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SelfIntroductionController {
 
   private final SelfIntroductionService selfIntroductionService;
-  private final SelfIntroductionQueryRepository selfIntroductionQueryRepository;
+  private final SelfIntroductionQueryService selfIntroductionQueryService;
 
   @Operation(summary = "셀프 소개 작성 API")
   @PostMapping
@@ -53,7 +47,8 @@ public class SelfIntroductionController {
   @Operation(summary = "셀프 소개 이미지 업로드용 preSignedUrl 생성")
   @PostMapping("/presigned-url")
   public ResponseEntity<PresignedUrlResponse> getPresignedUrl(
-      @RequestBody @Valid PresignedUrlPostRequest request, @CurrentMemberId long memberId) {
+      @RequestBody @Valid SelfIntroductionImagePresignedUrlRequest request,
+      @CurrentMemberId long memberId) {
     return ResponseEntity.ok(selfIntroductionService.getPresignedUrl(request.fileName(), memberId));
   }
 
@@ -78,34 +73,23 @@ public class SelfIntroductionController {
   @GetMapping
   public ResponseEntity<SelfIntroductionSummaryViews> getIntroductions(
       @CurrentMemberId long memberId,
-      @ParameterObject @ModelAttribute SelfIntroductionSearchRequest searchRequest) {
-    SelfIntroductionSearchCondition searchCondition =
-        SelfIntroductionMapper.toSelfIntroductionSearchCondition(searchRequest);
-    List<SelfIntroductionSummaryView> views =
-        selfIntroductionQueryRepository.findSelfIntroductions(
-            searchCondition, searchRequest.lastId(), memberId);
-    return ResponseEntity.ok(new SelfIntroductionSummaryViews(views));
+      @ParameterObject @Valid @ModelAttribute SelfIntroductionSearchRequest searchRequest) {
+    return ResponseEntity.ok(
+        selfIntroductionQueryService.findSelfIntroductions(memberId, searchRequest));
   }
 
   @Operation(summary = "자신의 셀프 소개 목록 조회 API")
   @GetMapping("/my")
   public ResponseEntity<SelfIntroductionSummaryViews> getMyIntroductions(
       @CurrentMemberId long memberId, @RequestParam(required = false) Long lastId) {
-    List<SelfIntroductionSummaryView> views =
-        selfIntroductionQueryRepository.findMySelfIntroductions(lastId, memberId);
-    return ResponseEntity.ok(new SelfIntroductionSummaryViews(views));
+    return ResponseEntity.ok(
+        selfIntroductionQueryService.findMySelfIntroductions(memberId, lastId));
   }
 
   @Operation(summary = "셀프 소개 상세 조회 API")
   @GetMapping("/{id}")
   public ResponseEntity<SelfIntroductionView> getIntroduction(
       @PathVariable long id, @CurrentMemberId long memberId) {
-    SelfIntroductionView view =
-        selfIntroductionQueryRepository
-            .findSelfIntroductionByIdWithMemberId(id, memberId)
-            .orElseThrow(() ->
-                new DeeppleException(
-                    CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND, "selfIntroductionId=" + id));
-    return ResponseEntity.ok(view);
+    return ResponseEntity.ok(selfIntroductionQueryService.getSelfIntroduction(id, memberId));
   }
 }

@@ -3,32 +3,15 @@ package kr.co.deepple.community.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import kr.co.deepple.common.support.RepositoryTestSupport;
-import kr.co.deepple.community.application.dto.SelfIntroductionSearchCondition;
-import kr.co.deepple.community.application.dto.SelfIntroductionSummaryView;
-import kr.co.deepple.community.application.dto.SelfIntroductionView;
-import kr.co.deepple.community.domain.ProfileExchange;
+import kr.co.deepple.community.application.dto.RawSelfIntroductionView;
 import kr.co.deepple.community.domain.ProfileExchangeStatus;
 import kr.co.deepple.community.domain.SelfIntroduction;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
 import kr.co.deepple.community.fixture.SelfIntroductionFixture;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
-import kr.co.deepple.datingexam.domain.DatingExamSubmitResult;
-import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
-import kr.co.deepple.like.domain.Like;
-import kr.co.deepple.like.domain.LikeLevel;
-import kr.co.deepple.like.fixture.LikeFixture;
-import kr.co.deepple.member.domain.AgeConverter;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.District;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Mbti;
-import kr.co.deepple.member.domain.Member;
-import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,419 +19,254 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
-public class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
+class SelfIntroductionQueryRepositoryTest extends RepositoryTestSupport {
+
+  private static final long MEMBER_ID = 1L;
+  private static final long OTHER_MEMBER_ID = 2L;
+  private static final int LIMIT = 50;
 
   @Autowired private SelfIntroductionQueryRepository selfIntroductionQueryRepository;
 
   @Autowired private TestEntityManager entityManager;
 
   @Nested
-  @DisplayName("셀프 소개 페이지네이션 테스트")
-  class selfIntroductionPaginationTest {
-
-    Member maleMember;
-
-    Member femaleMember;
+  @DisplayName("셀프 소개 목록 조회 테스트")
+  class SelfIntroductionListTest {
 
     List<SelfIntroduction> selfIntroductions = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
-      maleMember =
-          MemberFixture.builder()
-              .phoneNumber("01012345678")
-              .gender(Gender.MALE)
-              .district(District.GANGBUK_GU)
-              .yearOfBirth(AgeConverter.toYearOfBirth(25))
-              .nickname("male")
-              .build();
-      femaleMember =
-          MemberFixture.builder()
-              .phoneNumber("01012345679")
-              .gender(Gender.FEMALE)
-              .district(District.DONG_GU_DAEJEON)
-              .yearOfBirth(AgeConverter.toYearOfBirth(35))
-              .nickname("female")
-              .build();
-      entityManager.persist(maleMember);
-      entityManager.persist(femaleMember);
-      entityManager.flush();
-
-      // 셀프 소개 글 작성.
-      // 남자 6개, 여자 6개
       for (int i = 0; i < 6; i++) {
-        SelfIntroduction maleSelfIntroduction =
-            SelfIntroductionFixture.builder()
-                .memberId(maleMember.getId())
-                .title("제목" + i)
-                .content("내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i)
-                .opened(i % 2 == 0)
-                .build();
-        SelfIntroduction femaleSelfIntroduction =
-            SelfIntroductionFixture.builder()
-                .memberId(femaleMember.getId())
-                .title("제목" + i)
-                .content("내용은 30자 이상 이어야 합니다. 30자 채우기용 30자 채우기용 " + i)
-                .opened(i % 2 == 0)
-                .build();
-
-        selfIntroductions.add(maleSelfIntroduction);
-        selfIntroductions.add(femaleSelfIntroduction);
-
-        entityManager.persist(maleSelfIntroduction);
-        entityManager.persist(femaleSelfIntroduction);
+        selfIntroductions.add(persist(MEMBER_ID, "제목" + i, i % 2 == 0));
+        selfIntroductions.add(persist(OTHER_MEMBER_ID, "제목" + i, i % 2 == 0));
       }
       entityManager.flush();
-
-      selfIntroductions.sort((s1, s2) -> (int) (s2.getId() - s1.getId()));
+      selfIntroductions.sort(Comparator.comparing(SelfIntroduction::getId).reversed());
     }
 
     @Test
-    @DisplayName("검색 조건이 없는 경우, 자신의 글 또는 공개된 모든 글을 불러온다.")
-    void getAllSelfIntroductions() {
-      // Given
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(null, null, null, null);
-
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage1 =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, maleMember.getId());
-      List<SelfIntroductionSummaryView> selfIntroductionPage2 =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, selfIntroductionPage1.getLast().id(), maleMember.getId());
-
-      // Then
-      assertThat(selfIntroductionPage1).isNotNull();
-      assertThat(selfIntroductionPage2).isNotNull();
-
-      List<SelfIntroduction> expectedResult =
+    @DisplayName("자신의 글 또는 공개된 글을 최신순으로 불러온다.")
+    void findOpenedOrMine() {
+      // given
+      List<Long> expectedIds =
           selfIntroductions.stream()
-              .filter(s -> s.isOpened() || s.getMemberId() == maleMember.getId())
+              .filter(s -> s.isOpened() || s.getMemberId() == MEMBER_ID)
+              .map(SelfIntroduction::getId)
               .toList();
 
-      assertThat(selfIntroductionPage1.size() + selfIntroductionPage2.size())
-          .isEqualTo(expectedResult.size());
+      // when
+      List<RawSelfIntroductionView> views =
+          selfIntroductionQueryRepository.findSelfIntroductions(MEMBER_ID, null, Set.of(), LIMIT);
+
+      // then
+      assertThat(views)
+          .extracting(RawSelfIntroductionView::id)
+          .containsExactlyElementsOf(expectedIds);
+      RawSelfIntroductionView first = views.getFirst();
+      SelfIntroduction expected =
+          selfIntroductions.stream()
+              .filter(s -> s.getId().equals(first.id()))
+              .findFirst()
+              .orElseThrow();
+      assertThat(first.memberId()).isEqualTo(expected.getMemberId());
+      assertThat(first.title()).isEqualTo(expected.getTitle());
+      assertThat(first.content()).isEqualTo(expected.getContent());
+      assertThat(first.imageUrl()).isEqualTo(expected.getImageUrl());
+      assertThat(first.createdAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("검색 조건 중 성별에 남성을 명시한 경우, 공개된 남성의 글을 불러온다.")
-    void getSelfIntroductionsByGender() {
-      // Given
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(null, null, null, Gender.MALE);
-      List<SelfIntroduction> maleSelfIntroduction =
+    @DisplayName("다른 회원의 비공개 글은 불러오지 않는다.")
+    void excludeClosedOfOthers() {
+      // when
+      List<RawSelfIntroductionView> views =
+          selfIntroductionQueryRepository.findSelfIntroductions(999L, null, Set.of(), LIMIT);
+
+      // then
+      assertThat(views)
+          .extracting(RawSelfIntroductionView::id)
+          .containsExactlyElementsOf(
+              selfIntroductions.stream()
+                  .filter(SelfIntroduction::isOpened)
+                  .map(SelfIntroduction::getId)
+                  .toList());
+    }
+
+    @Test
+    @DisplayName("lastId보다 작은 id의 글을 limit만큼 불러온다.")
+    void findWithCursorAndLimit() {
+      // given
+      List<Long> visibleIds =
           selfIntroductions.stream()
-              .filter(s -> s.getMemberId() == maleMember.getId() && s.isOpened())
+              .filter(s -> s.isOpened() || s.getMemberId() == MEMBER_ID)
+              .map(SelfIntroduction::getId)
               .toList();
 
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage =
+      // when
+      List<RawSelfIntroductionView> page1 =
+          selfIntroductionQueryRepository.findSelfIntroductions(MEMBER_ID, null, Set.of(), 4);
+      List<RawSelfIntroductionView> page2 =
           selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, femaleMember.getId());
+              MEMBER_ID, page1.getLast().id(), Set.of(), LIMIT);
 
-      // Then
-      assertThat(selfIntroductionPage).isNotNull().hasSameSizeAs(maleSelfIntroduction);
-
-      for (int i = 0; i < selfIntroductionPage.size(); i++) {
-        SelfIntroductionSummaryView view = selfIntroductionPage.get(i);
-        SelfIntroduction selfIntroduction = maleSelfIntroduction.get(i);
-
-        assertThat(view.id()).isEqualTo(selfIntroduction.getId());
-        assertThat(view.title()).isEqualTo(selfIntroduction.getTitle());
-        assertThat(view.nickname()).isEqualTo(maleMember.getProfile().getNickname().getValue());
-        assertThat(view.yearOfBirth())
-            .isEqualTo(maleMember.getProfile().getYearOfBirth().getValue());
-      }
+      // then
+      assertThat(page1)
+          .extracting(RawSelfIntroductionView::id)
+          .containsExactlyElementsOf(visibleIds.subList(0, 4));
+      assertThat(page2)
+          .extracting(RawSelfIntroductionView::id)
+          .containsExactlyElementsOf(visibleIds.subList(4, visibleIds.size()));
     }
 
     @Test
-    @DisplayName("연애가치관 테스트를 완료한 멤버의 글은 유형 정보를 포함하고, 완료하지 않은 멤버의 글은 유형 정보가 없다.")
-    void getSelfIntroductionsWithPersonalityType() {
-      // Given
-      DatingExamSubmitResult maleResult =
-          DatingExamSubmitResultFixture.builder()
-              .memberId(maleMember.getId())
-              .counts(Map.of(AnswerPersonalityType.STIMULATING_ADVENTURER, 5))
-              .build();
-      entityManager.persist(maleResult);
+    @DisplayName("차단한 회원의 글은 불러오지 않는다.")
+    void excludeBlockedMembers() {
+      // when
+      List<RawSelfIntroductionView> views =
+          selfIntroductionQueryRepository.findSelfIntroductions(
+              MEMBER_ID, null, Set.of(OTHER_MEMBER_ID), LIMIT);
+
+      // then
+      assertThat(views).isNotEmpty().allMatch(view -> view.memberId() == MEMBER_ID);
+    }
+
+    @Test
+    @DisplayName("삭제된 글은 불러오지 않는다.")
+    void excludeDeleted() {
+      // given
+      SelfIntroduction deleted = selfIntroductions.getFirst();
+      entityManager.find(SelfIntroduction.class, deleted.getId()).delete();
       entityManager.flush();
 
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(null, null, null, Gender.MALE);
-
-      // When
-      List<SelfIntroductionSummaryView> maleIntroductions =
+      // when
+      List<RawSelfIntroductionView> views =
           selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, femaleMember.getId());
-      List<SelfIntroductionSummaryView> femaleIntroductions =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              new SelfIntroductionSearchCondition(null, null, null, Gender.FEMALE),
-              null,
-              maleMember.getId());
+              deleted.getMemberId(), null, Set.of(), LIMIT);
+      List<RawSelfIntroductionView> myViews =
+          selfIntroductionQueryRepository.findMySelfIntroductions(
+              deleted.getMemberId(), null, LIMIT);
 
-      // Then
-      assertThat(maleIntroductions).isNotEmpty();
-      for (SelfIntroductionSummaryView view : maleIntroductions) {
-        assertThat(view.personalityType())
-            .isEqualTo(AnswerPersonalityType.STIMULATING_ADVENTURER.name());
-      }
-
-      assertThat(femaleIntroductions).isNotEmpty();
-      for (SelfIntroductionSummaryView view : femaleIntroductions) {
-        assertThat(view.personalityType()).isNull();
-      }
+      // then
+      assertThat(views).extracting(RawSelfIntroductionView::id).doesNotContain(deleted.getId());
+      assertThat(myViews).extracting(RawSelfIntroductionView::id).doesNotContain(deleted.getId());
     }
 
     @Test
-    @DisplayName("검색 조건 중 최대 연도를 명시한 경우, 해당 연도 이하의 멤버가 작성한 공개된 글을 불러온다.")
-    void getSelfIntroductionsByStartAgeCondition() {
-      // Given
-      int toYearOfBirth = maleMember.getProfile().getYearOfBirth().getValue() + 1;
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(null, null, toYearOfBirth, null);
+    @DisplayName("자신의 글만 공개 여부와 상관없이 최신순으로 불러온다.")
+    void findMine() {
+      // given
+      List<Long> myIds =
+          selfIntroductions.stream()
+              .filter(s -> s.getMemberId() == MEMBER_ID)
+              .map(SelfIntroduction::getId)
+              .toList();
 
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, maleMember.getId());
+      // when
+      List<RawSelfIntroductionView> page1 =
+          selfIntroductionQueryRepository.findMySelfIntroductions(MEMBER_ID, null, 4);
+      List<RawSelfIntroductionView> page2 =
+          selfIntroductionQueryRepository.findMySelfIntroductions(
+              MEMBER_ID, page1.getLast().id(), 4);
 
-      // Then
-      assertThat(selfIntroductionPage).isNotNull();
-      for (SelfIntroductionSummaryView view : selfIntroductionPage) {
-        assertThat(view.yearOfBirth()).isLessThanOrEqualTo(toYearOfBirth);
-      }
-    }
-
-    @Test
-    @DisplayName("검색 조건 중 최소 연도를 명시한 경우, 해당 연도 이상의 멤버가 작성한 공개된 글을 불러온다.")
-    void getSelfIntroductionsByEndAgeCondition() {
-      // Given
-      int fromYearOfBirth = femaleMember.getProfile().getYearOfBirth().getValue() - 1;
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(null, fromYearOfBirth, null, null);
-
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, maleMember.getId());
-
-      // Then
-      assertThat(selfIntroductionPage).isNotNull();
-      for (SelfIntroductionSummaryView view : selfIntroductionPage) {
-        assertThat(view.yearOfBirth()).isGreaterThanOrEqualTo(fromYearOfBirth);
-      }
-    }
-
-    @Test
-    @DisplayName("검색 조건 중 최소/최대 연도를 명시한 경우, 해당 연도 사이의 멤버가 작성한 공개된 글을 불러온다.")
-    void getSelfIntroductionsByYearRangeCondition() {
-      // Given
-      int toYearOfBirth = maleMember.getProfile().getYearOfBirth().getValue();
-      int fromYearOfBirth = femaleMember.getProfile().getYearOfBirth().getValue();
-
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(null, fromYearOfBirth, toYearOfBirth, null);
-
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, maleMember.getId());
-
-      // Then
-      assertThat(selfIntroductionPage).isNotNull();
-      for (SelfIntroductionSummaryView view : selfIntroductionPage) {
-        assertThat(view.yearOfBirth()).isBetween(fromYearOfBirth, toYearOfBirth);
-      }
-    }
-
-    @Test
-    @DisplayName("검색 조건 중 지역을 명시한 경우, 해당 지역 출신의 멤벅 작성한 공개된 글을 불러온다.")
-    void getSelfIntroductionByRegionCondition() {
-      // Given
-      City city = maleMember.getProfile().getRegion().getCity();
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(List.of(city.name()), null, null, null);
-
-      List<SelfIntroduction> maleSelfIntroduction =
-          selfIntroductions.stream().filter(s -> s.getMemberId() == maleMember.getId()).toList();
-
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, maleMember.getId());
-
-      // Then
-      assertThat(selfIntroductionPage).isNotNull();
-      for (int i = 0; i < selfIntroductionPage.size(); i++) {
-        SelfIntroductionSummaryView view = selfIntroductionPage.get(i);
-        SelfIntroduction selfIntroduction = maleSelfIntroduction.get(i);
-
-        assertThat(view.id()).isEqualTo(selfIntroduction.getId());
-      }
-    }
-
-    @Test
-    @DisplayName("모든 조건을 설정해 글을 조회합니다.")
-    void findSelfIntroductions() {
-      // Given
-      SelfIntroductionSearchCondition searchCondition =
-          new SelfIntroductionSearchCondition(
-              List.of(City.DAEJEON.name(), City.SEOUL.name()),
-                  femaleMember.getProfile().getYearOfBirth().getValue(),
-              maleMember.getProfile().getYearOfBirth().getValue(),
-                  maleMember.getProfile().getGender());
-      List<SelfIntroduction> maleSelfIntroduction =
-          selfIntroductions.stream().filter(s -> s.getMemberId() == maleMember.getId()).toList();
-
-      // When
-      List<SelfIntroductionSummaryView> selfIntroductionPage =
-          selfIntroductionQueryRepository.findSelfIntroductions(
-              searchCondition, null, maleMember.getId());
-
-      // Then
-      assertThat(selfIntroductionPage).isNotNull();
-      for (int i = 0; i < selfIntroductionPage.size(); i++) {
-        SelfIntroductionSummaryView view = selfIntroductionPage.get(i);
-        SelfIntroduction selfIntroduction = maleSelfIntroduction.get(i);
-
-        assertThat(view.id()).isEqualTo(selfIntroduction.getId());
-      }
+      // then
+      assertThat(page1)
+          .extracting(RawSelfIntroductionView::id)
+          .containsExactlyElementsOf(myIds.subList(0, 4));
+      assertThat(page2)
+          .extracting(RawSelfIntroductionView::id)
+          .containsExactlyElementsOf(myIds.subList(4, myIds.size()));
     }
   }
 
   @Nested
   @DisplayName("셀프 소개 상세 조회 테스트")
-  class selfIntroductionFindTest {
-
-    Member member;
-    Member targetMember;
-    Like like;
-    Set<Hobby> hobbies;
-    SelfIntroduction selfIntroduction;
-
-    @BeforeEach
-    void setUp() {
-      // 취미 데이터 생성.
-      Hobby hobby = Hobby.ANIMATION;
-      Hobby hobby2 = Hobby.BOARD_GAMES;
-      hobbies = Set.of(hobby, hobby2);
-
-      // 멤버 데이터 생성.
-      member = MemberFixture.builder().phoneNumber("01012345678").build();
-      targetMember =
-          MemberFixture.builder()
-              .phoneNumber("01056781234")
-              .mbti(Mbti.ENFJ)
-              .district(District.GANGBUK_GU)
-              .nickname("닉네임")
-              .yearOfBirth(AgeConverter.toYearOfBirth(25))
-              .hobbies(Set.of(hobby, hobby2))
-              .build();
-      entityManager.persist(member);
-      entityManager.persist(targetMember);
-
-      entityManager.flush();
-
-      // 좋아요 데이터 생성
-      like =
-          LikeFixture.builder()
-              .senderId(member.getId())
-              .receiverId(targetMember.getId())
-              .level(LikeLevel.HIGHLY_INTERESTED)
-              .build();
-      entityManager.persist(like);
-
-      // 셀프 소개 데이터 생성.
-      selfIntroduction =
-          SelfIntroductionFixture.builder()
-              .memberId(targetMember.getId())
-              .title("제목")
-              .content("내용은 50자를 넘어야합니다. 50자를 넘어야 합니다. 50자를 넘어야..")
-              .build();
-
-      // 프로필 교환 데이터 생성.
-      ProfileExchange profileExchange =
-          ProfileExchangeFixture.builder()
-              .requesterId(member.getId())
-              .responderId(targetMember.getId())
-              .status(ProfileExchangeStatus.APPROVE)
-              .build();
-      entityManager.persist(profileExchange);
-      entityManager.persist(selfIntroduction);
-
-      entityManager.flush();
-    }
+  class SelfIntroductionFindTest {
 
     @Test
-    @DisplayName("셀프 소개를 상세 조회합니다.")
+    @DisplayName("셀프 소개를 공개 여부와 상관없이 조회합니다.")
     void findSelfIntroduction() {
-      // Given
-      Long memberId = member.getId();
-      Long selfIntroductionId = selfIntroduction.getId();
+      // given
+      SelfIntroduction selfIntroduction = persist(OTHER_MEMBER_ID, "제목", false);
+      entityManager.flush();
 
-      // When
-      SelfIntroductionView view =
+      // when
+      RawSelfIntroductionView view =
           selfIntroductionQueryRepository
-              .findSelfIntroductionByIdWithMemberId(selfIntroductionId, memberId)
-              .orElse(null);
+              .findSelfIntroduction(selfIntroduction.getId())
+              .orElseThrow();
 
-      // Then
+      // then
+      assertThat(view.id()).isEqualTo(selfIntroduction.getId());
+      assertThat(view.memberId()).isEqualTo(OTHER_MEMBER_ID);
       assertThat(view.title()).isEqualTo(selfIntroduction.getTitle());
       assertThat(view.content()).isEqualTo(selfIntroduction.getContent());
-      assertThat(view.like()).isEqualTo(like.getLevel().toString());
-      assertThat(view.memberBasicInfo().memberId()).isEqualTo(targetMember.getId());
-      assertThat(view.memberBasicInfo().age())
-          .isEqualTo(AgeConverter.toAge(targetMember.getProfile().getYearOfBirth().getValue()));
-      assertThat(view.memberBasicInfo().mbti())
-          .isEqualTo(targetMember.getProfile().getMbti().toString());
-      assertThat(view.memberBasicInfo().nickname())
-          .isEqualTo(targetMember.getProfile().getNickname().getValue());
-      assertThat(view.memberBasicInfo().city())
-          .isEqualTo(targetMember.getProfile().getRegion().getCity().toString());
-      assertThat(view.memberBasicInfo().district())
-          .isEqualTo(targetMember.getProfile().getRegion().getDistrict().toString());
-      assertThat(view.memberBasicInfo().hobbies())
-          .hasSameSizeAs(targetMember.getProfile().getHobbies());
-      assertThat(view.profileExchangeStatus()).isEqualTo(ProfileExchangeStatus.APPROVE.name());
-      assertThat(view.memberBasicInfo().personalityType()).isNull();
-    }
-
-    @Test
-    @DisplayName("작성자가 연애가치관 테스트를 완료한 경우, 상세 조회에 유형 정보가 포함됩니다.")
-    void findSelfIntroductionWithPersonalityType() {
-      // Given
-      DatingExamSubmitResult result =
-          DatingExamSubmitResultFixture.builder()
-              .memberId(targetMember.getId())
-              .counts(Map.of(AnswerPersonalityType.REALISTIC_SHELTER, 5))
-              .build();
-      entityManager.persist(result);
-      entityManager.flush();
-
-      // When
-      SelfIntroductionView view =
-          selfIntroductionQueryRepository
-              .findSelfIntroductionByIdWithMemberId(selfIntroduction.getId(), member.getId())
-              .orElse(null);
-
-      // Then
-      assertThat(view.memberBasicInfo().personalityType())
-          .isEqualTo(AnswerPersonalityType.REALISTIC_SHELTER.name());
+      assertThat(view.imageUrl()).isEqualTo(selfIntroduction.getImageUrl());
+      assertThat(view.createdAt()).isNotNull();
     }
 
     @Test
     @DisplayName("존재하지 않는 셀프 소개의 경우, 빈 값을 반환합니다.")
     void getEmptyValueWhenSelfIntroductionIsNotExists() {
-      // Given
-      Long notExistsSelfIntroductionId = 100L;
-      Long memberId = member.getId();
+      assertThat(selfIntroductionQueryRepository.findSelfIntroduction(Long.MAX_VALUE)).isEmpty();
+    }
 
-      // When & Then
-      assertThat(
-              selfIntroductionQueryRepository.findSelfIntroductionByIdWithMemberId(
-                  notExistsSelfIntroductionId, memberId))
+    @Test
+    @DisplayName("삭제된 셀프 소개의 경우, 빈 값을 반환합니다.")
+    void getEmptyValueWhenSelfIntroductionIsDeleted() {
+      // given
+      SelfIntroduction selfIntroduction = persist(OTHER_MEMBER_ID, "제목", true);
+      selfIntroduction.delete();
+      entityManager.flush();
+
+      // when & then
+      assertThat(selfIntroductionQueryRepository.findSelfIntroduction(selfIntroduction.getId()))
           .isEmpty();
     }
+  }
+
+  @Nested
+  @DisplayName("프로필 교환 상태 조회 테스트")
+  class ProfileExchangeStatusTest {
+
+    @Test
+    @DisplayName("두 회원 사이의 프로필 교환 상태를 요청 방향과 상관없이 조회합니다.")
+    void findProfileExchangeStatusBetween() {
+      // given
+      entityManager.persist(
+          ProfileExchangeFixture.builder()
+              .requesterId(MEMBER_ID)
+              .responderId(OTHER_MEMBER_ID)
+              .status(ProfileExchangeStatus.APPROVE)
+              .build());
+      entityManager.flush();
+
+      // when & then
+      assertThat(
+              selfIntroductionQueryRepository.findProfileExchangeStatus(MEMBER_ID, OTHER_MEMBER_ID))
+          .contains(ProfileExchangeStatus.APPROVE.name());
+      assertThat(
+              selfIntroductionQueryRepository.findProfileExchangeStatus(OTHER_MEMBER_ID, MEMBER_ID))
+          .contains(ProfileExchangeStatus.APPROVE.name());
+    }
+
+    @Test
+    @DisplayName("두 회원 사이에 프로필 교환이 없으면 빈 값을 반환합니다.")
+    void getEmptyValueWhenNoProfileExchange() {
+      // given
+      entityManager.persist(
+          ProfileExchangeFixture.builder().requesterId(MEMBER_ID).responderId(3L).build());
+      entityManager.flush();
+
+      // when & then
+      assertThat(
+              selfIntroductionQueryRepository.findProfileExchangeStatus(MEMBER_ID, OTHER_MEMBER_ID))
+          .isEmpty();
+    }
+  }
+
+  private SelfIntroduction persist(long memberId, String title, boolean opened) {
+    return entityManager.persist(
+        SelfIntroductionFixture.builder().memberId(memberId).title(title).opened(opened).build());
   }
 }

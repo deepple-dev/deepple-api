@@ -3,23 +3,19 @@ package kr.co.deepple.community.application.dto;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
-import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
-import kr.co.deepple.member.domain.City;
-import kr.co.deepple.member.domain.District;
-import kr.co.deepple.member.domain.Gender;
-import kr.co.deepple.member.domain.Hobby;
-import kr.co.deepple.member.domain.Mbti;
 
 public record MemberBasicInfo(
     Long memberId,
     String nickname,
     Integer age,
-    @Schema(implementation = City.class) String city,
-    @Schema(implementation = District.class) String district,
-    @Schema(implementation = Mbti.class) String mbti,
-    @ArraySchema(schema = @Schema(implementation = Hobby.class)) Set<String> hobbies,
-    @Schema(implementation = Gender.class) String gender,
+    @Schema(description = "지역. 값은 회원 프로필의 city와 같다", example = "SEOUL") String city,
+    @Schema(description = "세부 지역. 값은 회원 프로필의 district와 같다", example = "GANGNAM_GU") String district,
+    @Schema(description = "MBTI. 값은 회원 프로필의 mbti와 같다", example = "ENFJ") String mbti,
+    @ArraySchema(
+            schema = @Schema(description = "취미. 값은 회원 프로필의 hobbies와 같다", example = "ANIMATION"))
+        Set<String> hobbies,
+    @Schema(description = "성별. 값은 회원 프로필의 gender와 같다", example = "MALE") String gender,
     @Schema(
-            implementation = AnswerPersonalityType.class,
-            description = AnswerPersonalityType.SCHEMA_DESCRIPTION)
+            description = "연애가치관 유형. 값은 연애고사 결과의 대표 유형과 같고, 연애고사를 제출하지 않았으면 null이다",
+            example = "DECISIVE_INDEPENDENT")
         String personalityType) {}

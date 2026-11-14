@@ -35,6 +35,7 @@ import kr.co.deepple.member.application.dto.ProfileAccessView;
 import kr.co.deepple.member.application.dto.ProfileInfo;
 import kr.co.deepple.member.application.dto.StatusInfo;
 import kr.co.deepple.member.application.port.in.MemberPreview;
+import kr.co.deepple.member.domain.AgeConverter;
 import kr.co.deepple.member.domain.District;
 import kr.co.deepple.member.domain.DrinkingStatus;
 import kr.co.deepple.member.domain.Gender;
@@ -1024,6 +1025,9 @@ class MemberQueryRepositoryTest extends RepositoryTestSupport {
       assertThat(preview.city()).isEqualTo(withImage.getProfile().getRegion().getCity().name());
       assertThat(preview.yearOfBirth())
           .isEqualTo(withImage.getProfile().getYearOfBirth().getValue());
+      assertThat(preview.gender()).isEqualTo(withImage.getProfile().getGender().name());
+      assertThat(preview.age())
+          .isEqualTo(AgeConverter.toAge(withImage.getProfile().getYearOfBirth().getValue()));
       assertThat(
               previews.stream()
                   .filter(p -> p.memberId() == withoutImage.getId())
