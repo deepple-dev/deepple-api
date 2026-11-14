@@ -1,6 +1,6 @@
 package kr.co.deepple.community.application;
 
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.community.application.port.out.ProfileExchangeRepository;
@@ -28,7 +28,7 @@ public class ProfileExchangeService {
   private final ProfileExchangeRepository profileExchangeRepository;
   private final DistributedLockTemplate distributedLockTemplate;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final BlockRepository blockRepository;
+  private final CheckBlockUseCase checkBlockUseCase;
   private final UseHeartUseCase useHeartUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -115,12 +115,12 @@ public class ProfileExchangeService {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_RESPONDER_INACTIVE, "responderId=" + responderId);
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId)) {
+    if (checkBlockUseCase.isBlocked(requesterId, responderId)) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED,
           "requesterId=" + requesterId + ", responderId=" + responderId);
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(responderId, requesterId)) {
+    if (checkBlockUseCase.isBlocked(responderId, requesterId)) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED,
           "requesterId=" + requesterId + ", responderId=" + responderId);

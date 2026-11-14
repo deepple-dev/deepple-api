@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.community.application.port.out.ProfileExchangeRepository;
@@ -44,7 +44,7 @@ class ProfileExchangeServiceTest {
 
   @Mock private DistributedLockTemplate distributedLockTemplate;
 
-  @Mock private BlockRepository blockRepository;
+  @Mock private CheckBlockUseCase checkBlockUseCase;
 
   @Mock private UseHeartUseCase useHeartUseCase;
 
@@ -124,8 +124,7 @@ class ProfileExchangeServiceTest {
       Member responder = MemberFixture.builder().id(responderId).build();
       when(findMemberSummaryUseCase.getMemberSummary(responderId))
           .thenReturn(MemberSummaryFixture.from(responder));
-      when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
-          .thenReturn(true);
+      when(checkBlockUseCase.isBlocked(requesterId, responderId)).thenReturn(true);
 
       Mockito.doAnswer(
               invocation -> {
@@ -154,10 +153,8 @@ class ProfileExchangeServiceTest {
       Member responder = MemberFixture.builder().id(responderId).build();
       when(findMemberSummaryUseCase.getMemberSummary(responderId))
           .thenReturn(MemberSummaryFixture.from(responder));
-      when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
-          .thenReturn(false);
-      when(blockRepository.existsByBlockerIdAndBlockedId(responderId, requesterId))
-          .thenReturn(true);
+      when(checkBlockUseCase.isBlocked(requesterId, responderId)).thenReturn(false);
+      when(checkBlockUseCase.isBlocked(responderId, requesterId)).thenReturn(true);
 
       Mockito.doAnswer(
               invocation -> {
@@ -188,10 +185,8 @@ class ProfileExchangeServiceTest {
           .thenReturn(MemberSummaryFixture.from(responder));
       when(findMemberSummaryUseCase.getMemberSummary(requesterId))
           .thenReturn(MemberSummaryFixture.from(sender));
-      when(blockRepository.existsByBlockerIdAndBlockedId(requesterId, responderId))
-          .thenReturn(false);
-      when(blockRepository.existsByBlockerIdAndBlockedId(responderId, requesterId))
-          .thenReturn(false);
+      when(checkBlockUseCase.isBlocked(requesterId, responderId)).thenReturn(false);
+      when(checkBlockUseCase.isBlocked(responderId, requesterId)).thenReturn(false);
 
       Mockito.doAnswer(
               invocation -> {

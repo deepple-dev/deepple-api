@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import java.util.Set;
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
@@ -41,7 +41,7 @@ class MemberIntroductionServiceTest {
 
   @Mock private SoulmateQueryRepository soulmateQueryRepository;
 
-  @Mock private BlockRepository blockRepository;
+  @Mock private CheckBlockUseCase checkBlockUseCase;
 
   @Test
   @DisplayName("소개받은 멤버가 존재하지 않으면 예외를 던진다.")
@@ -91,8 +91,7 @@ class MemberIntroductionServiceTest {
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
     when(memberCommandRepository.findById(introducedMemberId))
         .thenReturn(Optional.of(introducedMember));
-    when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId))
-        .thenReturn(true);
+    when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(true);
 
     // when & then
     assertThatThrownBy(
@@ -111,10 +110,8 @@ class MemberIntroductionServiceTest {
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
     when(memberCommandRepository.findById(introducedMemberId))
         .thenReturn(Optional.of(introducedMember));
-    when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId))
-        .thenReturn(false);
-    when(blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId))
-        .thenReturn(true);
+    when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
+    when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(true);
 
     // when & then
     assertThatThrownBy(
@@ -133,10 +130,8 @@ class MemberIntroductionServiceTest {
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
     when(memberCommandRepository.findById(introducedMemberId))
         .thenReturn(Optional.of(introducedMember));
-    when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId))
-        .thenReturn(false);
-    when(blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId))
-        .thenReturn(false);
+    when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
+    when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(false);
     when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
             memberId, introducedMemberId))
         .thenReturn(true);
@@ -159,10 +154,8 @@ class MemberIntroductionServiceTest {
     Member introducedMember = MemberFixture.builder().id(introducedMemberId).build();
     when(memberCommandRepository.findById(introducedMemberId))
         .thenReturn(Optional.of(introducedMember));
-    when(blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId))
-        .thenReturn(false);
-    when(blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId))
-        .thenReturn(false);
+    when(checkBlockUseCase.isBlocked(memberId, introducedMemberId)).thenReturn(false);
+    when(checkBlockUseCase.isBlocked(introducedMemberId, memberId)).thenReturn(false);
     when(memberIntroductionCommandRepository.existsByMemberIdAndIntroducedMemberId(
             memberId, introducedMemberId))
         .thenReturn(false);

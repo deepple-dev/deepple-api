@@ -1,6 +1,5 @@
 package kr.co.deepple.match.application;
 
-import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
@@ -21,9 +20,7 @@ import kr.co.deepple.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
-import kr.co.deepple.recommendation.application.port.out.MemberIntroductionCommandRepository;
-import kr.co.deepple.recommendation.domain.IntroductionType;
-import kr.co.deepple.recommendation.domain.MemberIntroduction;
+import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -33,11 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MatchService {
 
+  private static final String SOULMATE_INTRODUCTION_TYPE = "SOULMATE";
+
   private static final String LOCK_PREFIX = "MATCH:";
   private static final String REQUEST_HEART_USAGE_TYPE = "MESSAGE";
 
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final MemberIntroductionCommandRepository introductionCommandRepository;
+  private final FindIntroductionTypeUseCase findIntroductionTypeUseCase;
   private final MatchRepository matchRepository;
   private final DistributedLockTemplate distributedLockTemplate;
   private final UseHeartUseCase useHeartUseCase;
@@ -79,17 +78,11 @@ public class MatchService {
   }
 
   private MatchType getMatchType(long requesterId, long responderId) {
-    Optional<MemberIntroduction> optionalIntroduction =
-        introductionCommandRepository.findByMemberIdAndIntroducedMemberId(requesterId, responderId);
-    if (optionalIntroduction.isEmpty()) {
-      return MatchType.MATCH;
-    }
-
-    MemberIntroduction introduction = optionalIntroduction.get();
-    if (introduction.getType() == IntroductionType.SOULMATE) {
-      return MatchType.SOULMATE;
-    }
-    return MatchType.MATCH;
+    return findIntroductionTypeUseCase
+        .findIntroductionType(requesterId, responderId)
+        .filter(SOULMATE_INTRODUCTION_TYPE::equals)
+        .map(type -> MatchType.SOULMATE)
+        .orElse(MatchType.MATCH);
   }
 
   @Transactional

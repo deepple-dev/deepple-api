@@ -1,7 +1,7 @@
 package kr.co.deepple.recommendation.application;
 
 import java.util.Set;
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.port.out.SoulmateQueryRepository;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
@@ -25,7 +25,7 @@ public class MemberIntroductionService {
   private final MemberCommandRepository memberCommandRepository;
   private final MemberIntroductionCommandRepository memberIntroductionCommandRepository;
   private final SoulmateQueryRepository soulmateQueryRepository;
-  private final BlockRepository blockRepository;
+  private final CheckBlockUseCase checkBlockUseCase;
   private final UseHeartUseCase useHeartUseCase;
 
   @Transactional
@@ -124,12 +124,12 @@ public class MemberIntroductionService {
       throw new DeeppleException(
           MemberErrorCode.INTRODUCED_MEMBER_NOT_ACTIVE, "introducedMemberId=" + introducedMemberId);
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(memberId, introducedMemberId)) {
+    if (checkBlockUseCase.isBlocked(memberId, introducedMemberId)) {
       throw new DeeppleException(
           MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
           "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId);
     }
-    if (blockRepository.existsByBlockerIdAndBlockedId(introducedMemberId, memberId)) {
+    if (checkBlockUseCase.isBlocked(introducedMemberId, memberId)) {
       throw new DeeppleException(
           MemberErrorCode.INTRODUCED_MEMBER_BLOCKED,
           "memberId=" + memberId + ", introducedMemberId=" + introducedMemberId);

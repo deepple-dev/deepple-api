@@ -23,7 +23,7 @@ import kr.co.deepple.interview.domain.InterviewErrorCode;
 import kr.co.deepple.interview.domain.InterviewQuestion;
 import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
 import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
-import kr.co.deepple.mission.application.MemberMissionService;
+import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
 import kr.co.deepple.mission.domain.ActionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,7 +41,7 @@ class InterviewAnswerServiceTest {
 
   @Mock private InterviewAnswerCommandRepository interviewAnswerCommandRepository;
 
-  @Mock private MemberMissionService memberMissionService;
+  @Mock private ExecuteMissionUseCase executeMissionUseCase;
 
   @InjectMocks private InterviewAnswerService interviewAnswerService;
 
@@ -135,7 +135,7 @@ class InterviewAnswerServiceTest {
               interviewQuestionId, memberId))
           .thenReturn(false);
 
-      when(memberMissionService.executeMissionsByAction(memberId, ActionType.INTERVIEW.name()))
+      when(executeMissionUseCase.executeMissionsByAction(memberId, ActionType.INTERVIEW.name()))
           .thenReturn(true);
 
       InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
@@ -152,7 +152,7 @@ class InterviewAnswerServiceTest {
         assertThat(result).isTrue();
       }
       verify(interviewAnswerCommandRepository).save(interviewAnswer);
-      verify(memberMissionService).executeMissionsByAction(memberId, ActionType.INTERVIEW.name());
+      verify(executeMissionUseCase).executeMissionsByAction(memberId, ActionType.INTERVIEW.name());
     }
 
     @Test
@@ -188,7 +188,7 @@ class InterviewAnswerServiceTest {
         assertThat(result).isFalse();
       }
       verify(interviewAnswerCommandRepository).save(interviewAnswer);
-      verify(memberMissionService, never()).executeMissionsByAction(anyLong(), anyString());
+      verify(executeMissionUseCase, never()).executeMissionsByAction(anyLong(), anyString());
     }
   }
 

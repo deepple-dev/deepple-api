@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import kr.co.deepple.block.application.port.out.BlockRepository;
+import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.heart.application.port.in.UseHeartCommand;
@@ -48,7 +48,7 @@ class PersonalityIntroductionUnlockServiceTest {
 
   @Mock private MemberIntroductionCommandRepository memberIntroductionCommandRepository;
 
-  @Mock private BlockRepository blockRepository;
+  @Mock private CheckBlockUseCase checkBlockUseCase;
 
   @Mock private PersonalityIntroductionRedisRepository personalityIntroductionRedisRepository;
 
@@ -213,7 +213,7 @@ class PersonalityIntroductionUnlockServiceTest {
   private void givenValidTarget(long memberId, long targetMemberId) {
     Member target = MemberFixture.builder().id(targetMemberId).build();
     when(memberCommandRepository.findById(targetMemberId)).thenReturn(Optional.of(target));
-    when(blockRepository.existsByBlockerIdAndBlockedId(memberId, targetMemberId)).thenReturn(false);
-    when(blockRepository.existsByBlockerIdAndBlockedId(targetMemberId, memberId)).thenReturn(false);
+    when(checkBlockUseCase.isBlocked(memberId, targetMemberId)).thenReturn(false);
+    when(checkBlockUseCase.isBlocked(targetMemberId, memberId)).thenReturn(false);
   }
 }
