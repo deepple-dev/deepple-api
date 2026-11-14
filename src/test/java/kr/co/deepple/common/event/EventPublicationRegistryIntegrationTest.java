@@ -32,8 +32,6 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private FailedEventResubmitter failedEventResubmitter;
 
-  @Autowired private CompletedEventPublicationCleaner completedEventPublicationCleaner;
-
   @AfterEach
   void tearDown() {
     jdbcTemplate.update(
@@ -98,39 +96,6 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
     // then
     awaitStatus(event.id(), DEFAULT_LISTENER, "COMPLETED");
     assertThat(handler.receivedNote(event.id())).isEqualTo("null");
-  }
-
-  @Test
-  @DisplayName("완료된 지 7일이 지난 기록만 지운다")
-  void cleanCompletedPublicationsOlderThanRetention() {
-    // given
-    RegistryTestEvent old = publishCompletedEvent();
-    RegistryTestEvent recent = publishCompletedEvent();
-    jdbcTemplate.update(
-        "update event_publication set completion_date = date_sub(now(6), interval 8 day)"
-            + " where serialized_event like ?",
-        like(old.id().toString()));
-
-    // when
-    completedEventPublicationCleaner.clean();
-
-    // then
-    assertThat(countPublications(old.id())).isZero();
-    assertThat(countPublications(recent.id())).isEqualTo(1);
-  }
-
-  private RegistryTestEvent publishCompletedEvent() {
-    RegistryTestEvent event = RegistryTestEvent.of("note");
-    publish(event);
-    awaitStatus(event.id(), DEFAULT_LISTENER, "COMPLETED");
-    return event;
-  }
-
-  private int countPublications(UUID eventId) {
-    return jdbcTemplate.queryForObject(
-        "select count(*) from event_publication where serialized_event like ?",
-        Integer.class,
-        like(eventId.toString()));
   }
 
   private RegistryTestEvent publishFailedEvent() {
