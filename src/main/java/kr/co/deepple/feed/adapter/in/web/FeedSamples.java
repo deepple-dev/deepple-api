@@ -169,13 +169,46 @@ final class FeedSamples {
 
   static List<AdminFeedView> adminFeeds(AdminFeedSearchCondition condition) {
     return Stream.of(
-            adminFeed(1L, FeedType.OFFICIAL, FeedStatus.PUBLISHED, "11월 이벤트 안내", TEXT_200, 5, true),
-            adminFeed(2L, FeedType.OFFICIAL, FeedStatus.HIDDEN, TITLE_50, "공지", 0, false),
-            adminFeed(6L, FeedType.TEXT, FeedStatus.PENDING, null, "오늘 다녀온 전시 사진이에요", 1, false),
-            adminFeed(9L, FeedType.POLL, FeedStatus.PENDING, null, "여행은 어디로?", 1, false),
-            adminFeed(41L, FeedType.TEXT, FeedStatus.REJECTED, null, TEXT_100, 1, false),
-            adminFeed(42L, FeedType.TEXT, FeedStatus.HIDDEN_BY_REPORT, null, "신고로 숨겨진 글", 0, false),
-            adminFeed(43L, FeedType.TEXT, FeedStatus.PUBLISHED, null, "승인된 사진 피드", 1, false))
+            adminFeed(
+                1L,
+                FeedType.OFFICIAL,
+                FeedStatus.PUBLISHED,
+                "11월 이벤트 안내",
+                TEXT_200,
+                5,
+                List.of(),
+                true),
+            adminFeed(
+                2L,
+                FeedType.OFFICIAL,
+                FeedStatus.HIDDEN,
+                TITLE_50,
+                "공지",
+                0,
+                List.of("DIAMOND", "GOLD"),
+                false),
+            adminFeed(
+                6L,
+                FeedType.TEXT,
+                FeedStatus.PENDING,
+                null,
+                "오늘 다녀온 전시 사진이에요",
+                1,
+                List.of(),
+                false),
+            adminFeed(9L, FeedType.POLL, FeedStatus.PENDING, null, "여행은 어디로?", 1, List.of(), false),
+            adminFeed(41L, FeedType.TEXT, FeedStatus.REJECTED, null, TEXT_100, 1, List.of(), false),
+            adminFeed(
+                42L,
+                FeedType.TEXT,
+                FeedStatus.HIDDEN_BY_REPORT,
+                null,
+                "신고로 숨겨진 글",
+                0,
+                List.of(),
+                false),
+            adminFeed(
+                43L, FeedType.TEXT, FeedStatus.PUBLISHED, null, "승인된 사진 피드", 1, List.of(), false))
         .filter(feed -> condition.status() == null || condition.status().equals(feed.status()))
         .filter(
             feed -> condition.authorType() == null || isAuthorType(feed, condition.authorType()))
@@ -184,7 +217,14 @@ final class FeedSamples {
 
   static AdminFeedView adminOfficialFeed(long feedId) {
     return adminFeed(
-        feedId, FeedType.OFFICIAL, FeedStatus.PUBLISHED, "11월 이벤트 안내", TEXT_200, 5, true);
+        feedId,
+        FeedType.OFFICIAL,
+        FeedStatus.PUBLISHED,
+        "11월 이벤트 안내",
+        TEXT_200,
+        5,
+        List.of(),
+        true);
   }
 
   private static List<FeedView> firstPageFeeds() {
@@ -450,6 +490,7 @@ final class FeedSamples {
       String title,
       String content,
       int imageCount,
+      List<String> targetGrades,
       boolean isPinned) {
     return new AdminFeedView(
         feedId,
@@ -459,6 +500,7 @@ final class FeedSamples {
         type == FeedType.OFFICIAL ? OFFICIAL.nickname() : GINGER.nickname(),
         content,
         images(feedId * 100, imageCount),
+        targetGrades,
         isPinned,
         minutesAgo(60 * 24 * feedId),
         status == FeedStatus.PENDING || status == FeedStatus.REJECTED
