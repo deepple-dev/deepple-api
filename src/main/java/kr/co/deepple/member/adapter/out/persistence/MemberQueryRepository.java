@@ -14,9 +14,11 @@ import static kr.co.deepple.member.domain.QMember.member;
 import static kr.co.deepple.member.domain.QProfileImage.profileImage;
 import static kr.co.deepple.recommendation.domain.QMemberIntroduction.memberIntroduction;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.match.domain.MatchStatus;
@@ -33,6 +35,7 @@ import kr.co.deepple.member.application.dto.QMemberInfoView;
 import kr.co.deepple.member.application.dto.QMemberProfileView;
 import kr.co.deepple.member.application.dto.QOtherMemberProfileView;
 import kr.co.deepple.member.application.dto.QProfileAccessView;
+import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.domain.Hobby;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -284,5 +287,22 @@ public class MemberQueryRepository {
         .id
         .eq(interviewAnswer.questionId)
         .and(interviewAnswer.memberId.eq(memberId));
+  }
+
+  public List<MemberPreview> findPreviewsByMemberIds(Collection<Long> memberIds) {
+    return queryFactory
+        .select(
+            Projections.constructor(
+                MemberPreview.class,
+                member.id,
+                member.profile.nickname.value,
+                profileImage.imageUrl.value,
+                member.profile.region.city.stringValue(),
+                member.profile.yearOfBirth.value))
+        .from(member)
+        .leftJoin(profileImage)
+        .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
+        .where(member.id.in(memberIds))
+        .fetch();
   }
 }

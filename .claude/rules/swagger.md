@@ -26,6 +26,8 @@ public record InterviewQuestionSaveRequest(
 }
 ```
 
+다른 도메인의 enum 값을 그대로 전달하는 필드는 그 enum을 import하지 않고 `@Schema(description = "...", example = "...")`로 적는다(예: `LikeView.city`).
+
 ## 검색 조건 (Query Parameter)
 
 - 검색 조건은 `XxxSearchCondition` record로 받고, 컨트롤러 파라미터에 `@Valid @ModelAttribute`를 붙인다.
