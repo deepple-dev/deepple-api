@@ -8,4 +8,6 @@ public record FeedGridItemView(
     @Schema(implementation = FeedType.class) String type,
     @Schema(description = "사진 또는 배경의 썸네일") String thumbnailUrl,
     @Schema(description = "글 피드는 내용, 투표 피드는 질문") String content,
-    FeedTextPosition textPosition) {}
+    FeedTextPosition textPosition,
+    long likeCount,
+    long commentCount) {}

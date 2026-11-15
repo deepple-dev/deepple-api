@@ -37,11 +37,13 @@ final class FeedSamples {
   private static final String IMAGE_HOST = "https://example.com/feed";
   private static final String SECOND_PAGE_CURSOR = "cursor-2";
   private static final int BACKGROUND_COUNT = 9;
+  private static final long PARTICIPANT_COUNT = 5246L;
 
   private static final FeedTextPosition CENTER = new FeedTextPosition(0.5, 0.5, 0.0, 1.0);
   private static final FeedTextPosition TOP_LEFT = new FeedTextPosition(0.2, 0.15, 0.0, 1.0);
   private static final FeedTextPosition BOTTOM_RIGHT = new FeedTextPosition(0.8, 0.85, 0.0, 1.0);
 
+  private static final String TEXT_50 = "오늘은 날씨가 정말 좋아서 한강에 다녀왔어요. ".repeat(3).substring(0, 50);
   private static final String TEXT_100 = "오늘은 날씨가 정말 좋아서 한강에 다녀왔어요. ".repeat(5).substring(0, 100);
   private static final String TEXT_200 =
       "11월 한 달 동안 매일 접속하면 하트를 두 배로 드려요. ".repeat(8).substring(0, 200);
@@ -197,7 +199,7 @@ final class FeedSamples {
                 List.of(),
                 false),
             adminFeed(9L, FeedType.POLL, FeedStatus.PENDING, null, "여행은 어디로?", 1, List.of(), false),
-            adminFeed(41L, FeedType.TEXT, FeedStatus.REJECTED, null, TEXT_100, 1, List.of(), false),
+            adminFeed(41L, FeedType.TEXT, FeedStatus.REJECTED, null, TEXT_50, 1, List.of(), false),
             adminFeed(
                 42L,
                 FeedType.TEXT,
@@ -231,7 +233,7 @@ final class FeedSamples {
     List<FeedView> feeds = new ArrayList<>(officialFeeds());
     feeds.add(userFeed(3L, FeedType.TEXT, GINGER, "안녕", CENTER, 1L, null, null, 0L, false, 0L));
     feeds.add(
-        userFeed(4L, FeedType.TEXT, RUNNER, TEXT_100, CENTER, 2L, null, null, 999L, true, 120L));
+        userFeed(4L, FeedType.TEXT, RUNNER, TEXT_50, CENTER, 2L, null, null, 999L, true, 120L));
     feeds.add(
         userFeed(
             5L,
@@ -338,7 +340,7 @@ final class FeedSamples {
   private static List<FeedView> myFeeds() {
     return List.of(
         myFeed(31L, FeedType.TEXT, "내가 쓴 짧은 글", CENTER, 1L, null, null),
-        myFeed(32L, FeedType.TEXT, TEXT_100, TOP_LEFT, 9L, null, null),
+        myFeed(32L, FeedType.TEXT, TEXT_50, TOP_LEFT, 9L, null, null),
         myFeed(33L, FeedType.TEXT, "심사 중이거나 반려된 사진 피드도 똑같이 보여요", CENTER, null, 12L, null),
         myFeed(
             34L,
@@ -437,7 +439,13 @@ final class FeedSamples {
             ? feed.background().thumbnailUrl()
             : feed.images().get(0).thumbnailUrl();
     return new FeedGridItemView(
-        feed.feedId(), feed.type(), thumbnailUrl, feed.content(), feed.textPosition());
+        feed.feedId(),
+        feed.type(),
+        thumbnailUrl,
+        feed.content(),
+        feed.textPosition(),
+        feed.likeCount(),
+        feed.commentCount());
   }
 
   private static FeedPollView poll(long firstOptionId, String... contents) {
@@ -445,7 +453,7 @@ final class FeedSamples {
     for (int index = 0; index < contents.length; index++) {
       options.add(new FeedPollOptionView(firstOptionId + index, contents[index], null));
     }
-    return new FeedPollView(options, null, false);
+    return new FeedPollView(options, null, false, null);
   }
 
   private static FeedPollView withResult(FeedPollView poll, Long myOptionId) {
@@ -455,7 +463,7 @@ final class FeedSamples {
       FeedPollOptionView option = poll.options().get(index);
       options.add(new FeedPollOptionView(option.optionId(), option.content(), percents.get(index)));
     }
-    return new FeedPollView(options, myOptionId, true);
+    return new FeedPollView(options, myOptionId, true, PARTICIPANT_COUNT);
   }
 
   private static FeedCommentView comment(
