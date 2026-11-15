@@ -13,9 +13,9 @@ public record FeedCreateRequest(
             allowableValues = {"TEXT", "POLL"})
         @NotBlank(message = "피드 종류는 필수입니다.")
         String type,
-    @Schema(description = "글 피드는 내용(최대 100자, 줄바꿈 허용), 투표 피드는 질문(최대 20자, 줄바꿈 불가)")
+    @Schema(description = "글 피드는 내용(최대 50자, 줄바꿈 허용), 투표 피드는 질문(최대 20자, 줄바꿈 불가)")
         @NotBlank(message = "피드 내용은 필수입니다.")
-        @Size(max = 100, message = "피드 내용은 100자 이하여야 합니다.")
+        @Size(max = 50, message = "피드 내용은 50자 이하여야 합니다.")
         String content,
     @NotNull(message = "글 위치는 필수입니다.") @Valid FeedTextPosition textPosition,
     @Schema(description = "배경 ID. 배경과 사진 중 하나만 보낸다") Long backgroundId,

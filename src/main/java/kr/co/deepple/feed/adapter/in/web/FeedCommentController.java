@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FeedCommentController {
 
-  @Operation(summary = "댓글 목록 조회", description = "최상위 댓글을 오래된 순으로 20개씩 조회한다. 댓글마다 답글 수가 들어 있다.")
+  @Operation(
+      summary = "댓글 목록 조회",
+      description = "최상위 댓글을 오래된 순으로 20개씩 조회한다. 댓글마다 답글 수가 들어 있다. 차단 관계인 회원의 댓글은 답글까지 함께 빠진다.")
   @GetMapping("/feeds/{feedId}/comments")
   public ResponseEntity<FeedCommentViews> getComments(
       @PathVariable long feedId,
@@ -37,7 +39,7 @@ public class FeedCommentController {
     return ResponseEntity.ok(FeedSamples.createdComment(request.parentCommentId()));
   }
 
-  @Operation(summary = "답글 목록 조회", description = "댓글의 답글을 오래된 순으로 20개씩 조회한다.")
+  @Operation(summary = "답글 목록 조회", description = "댓글의 답글을 오래된 순으로 20개씩 조회한다. 차단 관계인 회원의 답글은 빠진다.")
   @GetMapping("/comments/{commentId}/replies")
   public ResponseEntity<FeedCommentViews> getReplies(
       @PathVariable long commentId,
@@ -46,7 +48,7 @@ public class FeedCommentController {
     return ResponseEntity.ok(FeedSamples.replies(commentId));
   }
 
-  @Operation(summary = "댓글 삭제", description = "본인 또는 피드 작성자가 삭제할 수 있다.")
+  @Operation(summary = "댓글 삭제", description = "본인 댓글만 삭제할 수 있다. 피드 작성자도 다른 사람의 댓글은 삭제할 수 없다.")
   @DeleteMapping("/comments/{commentId}")
   public ResponseEntity<Void> deleteComment(@PathVariable long commentId) {
     return ResponseEntity.noContent().build();

@@ -31,7 +31,7 @@ public class FeedController {
 
   @Operation(
       summary = "피드 목록 조회",
-      description = "홈 피드를 20개씩 조회한다. authorType=OFFICIAL이면 관리자 피드 모아보기다.")
+      description = "홈 피드를 20개씩 조회한다. authorType=OFFICIAL이면 관리자 피드 모아보기다. 둘 다 상단 고정 피드가 먼저 온다.")
   @GetMapping("/feeds")
   public ResponseEntity<FeedViews> getFeeds(
       @Valid @ModelAttribute FeedSearchCondition feedSearchCondition) {
@@ -40,7 +40,7 @@ public class FeedController {
 
   @Operation(
       summary = "내가 쓴 글 목록 조회",
-      description = "격자형 목록. 심사 대기·반려된 피드도 포함한다. 칸을 누르면 피드 상세를 조회한다.")
+      description = "격자형 목록. 최신순이고 심사 대기·반려된 피드도 포함한다. 칸을 누르면 피드 상세를 조회한다.")
   @GetMapping("/me/feeds")
   public ResponseEntity<FeedGridViews> getMyFeeds(
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
