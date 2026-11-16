@@ -56,17 +56,19 @@ final class FeedSamples {
       Map.of(2, List.of(67, 33), 3, List.of(50, 30, 20), 4, List.of(40, 30, 20, 10));
 
   private static final FeedAuthorView GINGER =
-      member(101L, "진저", "동반성장형", 29, "FEMALE", "SEOUL", "ENFP");
+      member(101L, "진저", "GROWING_RUNNING_MATE", "동반성장형", 29, "FEMALE", "SEOUL", "ENFP");
   private static final FeedAuthorView RUNNER =
-      member(102L, "한강러너", "자기주도형", 33, "MALE", "GYEONGGI", "ISTJ");
+      member(102L, "한강러너", "DECISIVE_INDEPENDENT", "자기주도형", 33, "MALE", "GYEONGGI", "ISTJ");
   private static final FeedAuthorView LONG_NICKNAME =
-      member(103L, "열글자닉네임쓰는사람", "정서교감형", 41, "MALE", "BUSAN", "INFP");
-  private static final FeedAuthorView ME = member(1L, "나", "현실안정형", 30, "FEMALE", "SEOUL", "ISFJ");
+      member(103L, "열글자닉네임쓰는사람", "DEVOTED_ROMANTIC", "정서교감형", 41, "MALE", "BUSAN", "INFP");
+  private static final FeedAuthorView ME =
+      member(1L, "나", "REALISTIC_SHELTER", "현실안정형", 30, "FEMALE", "SEOUL", "ISFJ");
   private static final FeedAuthorView OFFICIAL =
       new FeedAuthorView(
           FeedAuthorType.OFFICIAL.name(),
           null,
           "deepple_official",
+          null,
           null,
           IMAGE_HOST + "/profiles/official.webp",
           null,
@@ -522,6 +524,7 @@ final class FeedSamples {
   private static FeedAuthorView member(
       long memberId,
       String nickname,
+      String personalityType,
       String personalityTypeName,
       int age,
       String gender,
@@ -531,6 +534,7 @@ final class FeedSamples {
         FeedAuthorType.MEMBER.name(),
         memberId,
         nickname,
+        personalityType,
         personalityTypeName,
         IMAGE_HOST + "/profiles/" + memberId + ".webp",
         age,
