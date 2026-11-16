@@ -119,7 +119,7 @@ class PersonalityIntroductionUnlockServiceTest {
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
-                    "RATIONAL_REALIST", List.of(2L, 3L, 4L), LocalDateTime.now())));
+                    "RATIONAL_CENTRIST", List.of(2L, 3L, 4L), LocalDateTime.now())));
 
     assertThatThrownBy(
             () -> personalityIntroductionUnlockService.unlock(memberId, TYPE, targetMemberId))

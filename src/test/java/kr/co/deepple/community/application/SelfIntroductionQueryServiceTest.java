@@ -402,7 +402,7 @@ class SelfIntroductionQueryServiceTest {
       given(selfIntroductionQueryRepository.findMySelfIntroductions(MEMBER_ID, 9L, PAGE_SIZE))
           .willReturn(List.of(raw(8L, MEMBER_ID), raw(7L, MEMBER_ID)));
       given(findDominantPersonalityTypesUseCase.findDominantPersonalityTypes(Set.of(MEMBER_ID)))
-          .willReturn(Map.of(MEMBER_ID, "RATIONAL_REALIST"));
+          .willReturn(Map.of(MEMBER_ID, "RATIONAL_CENTRIST"));
 
       // when
       List<SelfIntroductionSummaryView> views =
@@ -414,7 +414,7 @@ class SelfIntroductionQueryServiceTest {
           .allSatisfy(view -> {
             assertThat(view.nickname()).isEqualTo("nickname" + MEMBER_ID);
             assertThat(view.yearOfBirth()).isEqualTo(members.get(MEMBER_ID).yearOfBirth());
-            assertThat(view.personalityType()).isEqualTo("RATIONAL_REALIST");
+            assertThat(view.personalityType()).isEqualTo("RATIONAL_CENTRIST");
           });
       verifyNoInteractions(findBlockedMemberIdsUseCase);
     }

@@ -55,7 +55,7 @@ class PersonalityTypeMemberQueryRepositoryImplTest extends RepositoryTestSupport
 
     // 제외 대상들
     Member differentType = createMember(Gender.FEMALE, true, ActivityStatus.ACTIVE);
-    createSubmitResult(differentType.getId(), AnswerPersonalityType.RATIONAL_REALIST);
+    createSubmitResult(differentType.getId(), AnswerPersonalityType.RATIONAL_CENTRIST);
 
     Member sameGender = createMember(Gender.MALE, true, ActivityStatus.ACTIVE);
     createSubmitResult(sameGender.getId(), TARGET_TYPE);

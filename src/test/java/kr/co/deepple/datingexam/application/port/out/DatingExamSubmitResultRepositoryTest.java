@@ -25,7 +25,7 @@ class DatingExamSubmitResultRepositoryTest extends RepositoryTestSupport {
   void findByMemberIdIn() {
     persist(1L, AnswerPersonalityType.STIMULATING_ADVENTURER);
     persist(2L, AnswerPersonalityType.REALISTIC_SHELTER);
-    persist(3L, AnswerPersonalityType.RATIONAL_REALIST);
+    persist(3L, AnswerPersonalityType.RATIONAL_CENTRIST);
     em.flush();
     em.clear();
 
