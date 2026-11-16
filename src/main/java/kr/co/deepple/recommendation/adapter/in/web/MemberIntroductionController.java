@@ -34,10 +34,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberIntroductionController {
 
   private static final String PERSONALITY_TYPE_DESCRIPTION =
-      "연애가치관 유형. 값은 연애고사의 대표 성격 유형과 같다 - DECISIVE_INDEPENDENT: 단호한 독립주의자, "
-          + "GROWING_RUNNING_MATE: 성장하는 러닝메이트, DEVOTED_ROMANTIC: 헌신적인 로맨티스트, "
-          + "REALISTIC_SHELTER: 현실적인 안식처, STIMULATING_ADVENTURER: 자극모험형, "
-          + "RATIONAL_REALIST: 이성중심형";
+      "연애가치관 유형. 값은 연애고사의 대표 성격 유형과 같다 - DECISIVE_INDEPENDENT: 자기주도형, "
+          + "GROWING_RUNNING_MATE: 동반성장형, DEVOTED_ROMANTIC: 정서교감형, "
+          + "REALISTIC_SHELTER: 현실안정형, STIMULATING_ADVENTURER: 자극모험형, "
+          + "RATIONAL_CENTRIST: 이성중심형";
 
   private final TodayCardService todayCardService;
   private final TodayCardQueryService todayCardQueryService;

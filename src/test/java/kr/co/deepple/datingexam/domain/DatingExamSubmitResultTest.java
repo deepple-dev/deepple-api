@@ -134,7 +134,7 @@ class DatingExamSubmitResultTest {
       result.addCounts(
           Map.of(
               AnswerPersonalityType.REALISTIC_SHELTER, 3,
-              AnswerPersonalityType.RATIONAL_REALIST, 3));
+              AnswerPersonalityType.RATIONAL_CENTRIST, 3));
 
       // Then
       assertThat(result.getDominantPersonalityType())
@@ -167,12 +167,12 @@ class DatingExamSubmitResultTest {
       // When
       result.addCounts(
           Map.of(
-              AnswerPersonalityType.RATIONAL_REALIST, 2,
+              AnswerPersonalityType.RATIONAL_CENTRIST, 2,
               AnswerPersonalityType.DEVOTED_ROMANTIC, 2));
 
       // Then
       assertThat(result.getDominantPersonalityType())
-          .isEqualTo(AnswerPersonalityType.RATIONAL_REALIST);
+          .isEqualTo(AnswerPersonalityType.RATIONAL_CENTRIST);
     }
 
     @Test
