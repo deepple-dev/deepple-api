@@ -1,0 +1,10 @@
+{
+  "adminId": 1,
+  "reporteeId": 2,
+  "reportReason": "STOLEN_IMAGE",
+  "idempotencyKey": "3f2b8c1e-7d4a-4e9b-9c6f-1a2b3c4d5e6f",
+  "metadata": {
+    "id": "0b9f6a2e-3c1d-4f5e-8a7b-6c5d4e3f2a1b",
+    "occurredAt": "2026-11-18T03:00:00Z"
+  }
+}
