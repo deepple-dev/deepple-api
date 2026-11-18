@@ -38,21 +38,21 @@ class PersonalityTypeMemberQueryServiceTest {
   @DisplayName("문자열로 받은 유형의 회원을 찾아 소개할 수 있는 회원만 돌려준다.")
   void findMemberIdsOfType() {
     when(personalityTypeMemberQueryRepository.findMemberIdsByDominantType(
-            AnswerPersonalityType.RATIONAL_REALIST))
+            AnswerPersonalityType.RATIONAL_CENTRIST))
         .thenReturn(Set.of(4L, 3L, 2L));
     when(introducibleMemberFilter.filter(MEMBER_ID, Set.of(4L, 3L, 2L)))
         .thenReturn(List.of(4L, 2L));
 
     List<Long> memberIds =
         personalityTypeMemberQueryService.findMemberIdsByDominantType(
-            MEMBER_ID, "RATIONAL_REALIST");
+            MEMBER_ID, "RATIONAL_CENTRIST");
 
     assertThat(memberIds).containsExactly(4L, 2L);
   }
 
   @ParameterizedTest
   @NullSource
-  @ValueSource(strings = {"", "UNKNOWN", "rational_realist"})
+  @ValueSource(strings = {"", "UNKNOWN", "rational_centrist"})
   @DisplayName("유형 값이 잘못되면 회원을 찾지 않고 예외를 던진다.")
   void throwWhenTypeIsInvalid(String personalityType) {
     assertThatThrownBy(() ->
@@ -73,7 +73,7 @@ class PersonalityTypeMemberQueryServiceTest {
 
   @ParameterizedTest
   @NullSource
-  @ValueSource(strings = {"", "UNKNOWN", "rational_realist"})
+  @ValueSource(strings = {"", "UNKNOWN", "rational_centrist"})
   @DisplayName("유형 이름과 다른 값은 검증에서 예외를 던진다.")
   void throwWhenValidatedTypeIsInvalid(String personalityType) {
     assertThatThrownBy(() -> personalityTypeMemberQueryService.validate(personalityType))

@@ -95,7 +95,7 @@ class PersonalityIntroductionQueryServiceTest {
         .thenReturn(
             Optional.of(
                 new PersonalityIntroductionOpenState(
-                    "RATIONAL_REALIST", List.of(2L, 3L, 4L), LocalDateTime.now())));
+                    "RATIONAL_CENTRIST", List.of(2L, 3L, 4L), LocalDateTime.now())));
 
     assertThatThrownBy(() -> personalityIntroductionQueryService.open(memberId, TYPE))
         .isInstanceOf(DeeppleException.class)

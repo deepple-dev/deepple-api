@@ -56,13 +56,13 @@ final class FeedSamples {
       Map.of(2, List.of(67, 33), 3, List.of(50, 30, 20), 4, List.of(40, 30, 20, 10));
 
   private static final FeedAuthorView GINGER =
-      member(101L, "진저", "성장하는 러닝메이트", "growing-running-mate", 29, "FEMALE", "SEOUL", "ENFP");
+      member(101L, "진저", "GROWING_RUNNING_MATE", "동반성장형", 29, "FEMALE", "SEOUL", "ENFP");
   private static final FeedAuthorView RUNNER =
-      member(102L, "한강러너", "단호한 독립주의자", "decisive-independent", 33, "MALE", "GYEONGGI", "ISTJ");
+      member(102L, "한강러너", "DECISIVE_INDEPENDENT", "자기주도형", 33, "MALE", "GYEONGGI", "ISTJ");
   private static final FeedAuthorView LONG_NICKNAME =
-      member(103L, "열글자닉네임쓰는사람", "헌신적인 로맨티스트", "devoted-romantic", 41, "MALE", "BUSAN", "INFP");
+      member(103L, "열글자닉네임쓰는사람", "DEVOTED_ROMANTIC", "정서교감형", 41, "MALE", "BUSAN", "INFP");
   private static final FeedAuthorView ME =
-      member(1L, "나", "현실적인 안식처", "realistic-shelter", 30, "FEMALE", "SEOUL", "ISFJ");
+      member(1L, "나", "REALISTIC_SHELTER", "현실안정형", 30, "FEMALE", "SEOUL", "ISFJ");
   private static final FeedAuthorView OFFICIAL =
       new FeedAuthorView(
           FeedAuthorType.OFFICIAL.name(),
@@ -118,26 +118,23 @@ final class FeedSamples {
 
   static FeedCommentViews comments(String cursor) {
     if (SECOND_PAGE_CURSOR.equals(cursor)) {
-      return new FeedCommentViews(simpleComments(21L, 23L), null, false);
+      return new FeedCommentViews(simpleComments(3L, 1L), null, false);
     }
     List<FeedCommentView> comments = new ArrayList<>();
-    comments.add(comment(1L, null, GINGER, "저도 가고 싶어요!", 1, false, 60 * 24 * 40));
-    comments.add(comment(2L, null, RUNNER, TEXT_100, 25, false, 60 * 24 * 3));
-    comments.add(comment(3L, null, LONG_NICKNAME, MULTILINE_TEXT, 0, false, 60 * 23));
-    comments.add(comment(4L, null, ME, "내가 쓴 댓글이에요", 0, true, 60 * 5));
-    comments.add(hiddenComment(5L, FeedCommentDisplayStatus.DELETED, 2));
-    comments.add(hiddenComment(6L, FeedCommentDisplayStatus.HIDDEN, 0));
-    comments.add(hiddenComment(7L, FeedCommentDisplayStatus.INACTIVE_AUTHOR, 0));
-    comments.addAll(simpleComments(8L, 20L));
+    comments.add(comment(23L, null, ME, "내가 쓴 댓글이에요", 0, true, 5));
+    comments.add(comment(22L, null, LONG_NICKNAME, MULTILINE_TEXT, 0, false, 60 * 5));
+    comments.add(comment(21L, null, RUNNER, TEXT_100, 25, false, 60 * 23));
+    comments.add(comment(20L, null, GINGER, "저도 가고 싶어요!", 1, false, 60 * 24 * 3));
+    comments.add(hiddenComment(19L, FeedCommentDisplayStatus.DELETED, 2, 60 * 24 * 4));
+    comments.add(hiddenComment(18L, FeedCommentDisplayStatus.HIDDEN, 0, 60 * 24 * 5));
+    comments.add(hiddenComment(17L, FeedCommentDisplayStatus.INACTIVE_AUTHOR, 0, 60 * 24 * 6));
+    comments.addAll(simpleComments(16L, 4L));
     return new FeedCommentViews(comments, SECOND_PAGE_CURSOR, true);
   }
 
   static FeedCommentViews replies(long commentId) {
     return new FeedCommentViews(
         List.of(
-            comment(101L, commentId, RUNNER, "같이 가요", 0, false, 60 * 24 * 40),
-            comment(102L, commentId, ME, "내가 쓴 답글이에요", 0, true, 60 * 24 * 3),
-            comment(103L, commentId, GINGER, TEXT_100, 0, false, 30),
             new FeedCommentView(
                 104L,
                 commentId,
@@ -146,7 +143,10 @@ final class FeedSamples {
                 null,
                 0,
                 false,
-                minutesAgo(1))),
+                minutesAgo(1)),
+            comment(103L, commentId, GINGER, TEXT_100, 0, false, 30),
+            comment(102L, commentId, ME, "내가 쓴 답글이에요", 0, true, 60 * 24 * 3),
+            comment(101L, commentId, RUNNER, "같이 가요", 0, false, 60 * 24 * 40)),
         null,
         false);
   }
@@ -378,8 +378,9 @@ final class FeedSamples {
         .toList();
   }
 
-  private static List<FeedCommentView> simpleComments(long firstCommentId, long lastCommentId) {
-    return LongStream.rangeClosed(firstCommentId, lastCommentId)
+  private static List<FeedCommentView> simpleComments(long newestCommentId, long oldestCommentId) {
+    return LongStream.iterate(
+            newestCommentId, commentId -> commentId >= oldestCommentId, commentId -> commentId - 1L)
         .mapToObj(commentId ->
             comment(
                 commentId,
@@ -388,7 +389,7 @@ final class FeedSamples {
                 "댓글 " + commentId + "번이에요",
                 0,
                 false,
-                60 - commentId * 2))
+                60 * 24 * (40L - commentId * 2L)))
         .toList();
   }
 
@@ -486,9 +487,9 @@ final class FeedSamples {
   }
 
   private static FeedCommentView hiddenComment(
-      long commentId, FeedCommentDisplayStatus status, int replyCount) {
+      long commentId, FeedCommentDisplayStatus status, int replyCount, long minutesAgo) {
     return new FeedCommentView(
-        commentId, null, status.name(), null, null, replyCount, false, minutesAgo(60 * 2));
+        commentId, null, status.name(), null, null, replyCount, false, minutesAgo(minutesAgo));
   }
 
   private static AdminFeedView adminFeed(
@@ -524,8 +525,8 @@ final class FeedSamples {
   private static FeedAuthorView member(
       long memberId,
       String nickname,
+      String personalityType,
       String personalityTypeName,
-      String character,
       int age,
       String gender,
       String city,
@@ -534,8 +535,8 @@ final class FeedSamples {
         FeedAuthorType.MEMBER.name(),
         memberId,
         nickname,
+        personalityType,
         personalityTypeName,
-        IMAGE_HOST + "/characters/" + character + ".webp",
         IMAGE_HOST + "/profiles/" + memberId + ".webp",
         age,
         gender,

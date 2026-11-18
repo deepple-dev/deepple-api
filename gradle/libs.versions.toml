@@ -14,6 +14,8 @@ resilience4j = "2.4.0"
 springdoc = "3.2.0"
 guava = "33.8.0-jre"
 bouncycastle = "1.86"
+lz4-java = "1.11.4"
+snappy-java = "1.1.10.12"
 sentry = "8.63.0"
 gradle-git-properties = "4.0.1"
 spotless = "8.11.0"
@@ -52,6 +54,8 @@ opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:op
 
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+lz4-java = { module = "at.yawk.lz4:lz4-java", version.ref = "lz4-java" }
+snappy-java = { module = "org.xerial.snappy:snappy-java", version.ref = "snappy-java" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

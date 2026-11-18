@@ -35,14 +35,14 @@ class FindDominantPersonalityTypesServiceTest {
                     .build(),
                 DatingExamSubmitResultFixture.builder()
                     .memberId(2L)
-                    .counts(Map.of(AnswerPersonalityType.RATIONAL_REALIST, 2))
+                    .counts(Map.of(AnswerPersonalityType.RATIONAL_CENTRIST, 2))
                     .build()));
 
     Map<Long, String> types =
         findDominantPersonalityTypesService.findDominantPersonalityTypes(List.of(1L, 2L, 3L));
 
     assertThat(types)
-        .containsOnly(Map.entry(1L, "STIMULATING_ADVENTURER"), Map.entry(2L, "RATIONAL_REALIST"));
+        .containsOnly(Map.entry(1L, "STIMULATING_ADVENTURER"), Map.entry(2L, "RATIONAL_CENTRIST"));
   }
 
   @Test

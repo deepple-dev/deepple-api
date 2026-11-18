@@ -43,7 +43,7 @@ public class DatingExamSubmitResult extends BaseEntity {
   private int stimulatingAdventurerCount;
 
   @Column(nullable = false)
-  private int rationalRealistCount;
+  private int rationalCentristCount;
 
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)", nullable = false)
@@ -56,7 +56,7 @@ public class DatingExamSubmitResult extends BaseEntity {
     this.devotedRomanticCount = 0;
     this.realisticShelterCount = 0;
     this.stimulatingAdventurerCount = 0;
-    this.rationalRealistCount = 0;
+    this.rationalCentristCount = 0;
     this.dominantPersonalityType = AnswerPersonalityType.DECISIVE_INDEPENDENT;
   }
 
@@ -73,7 +73,7 @@ public class DatingExamSubmitResult extends BaseEntity {
     this.realisticShelterCount += counts.getOrDefault(AnswerPersonalityType.REALISTIC_SHELTER, 0);
     this.stimulatingAdventurerCount +=
         counts.getOrDefault(AnswerPersonalityType.STIMULATING_ADVENTURER, 0);
-    this.rationalRealistCount += counts.getOrDefault(AnswerPersonalityType.RATIONAL_REALIST, 0);
+    this.rationalCentristCount += counts.getOrDefault(AnswerPersonalityType.RATIONAL_CENTRIST, 0);
     recalculateDominant();
   }
 
@@ -94,9 +94,9 @@ public class DatingExamSubmitResult extends BaseEntity {
       dominant = AnswerPersonalityType.REALISTIC_SHELTER;
       maxCount = this.realisticShelterCount;
     }
-    if (this.rationalRealistCount > maxCount) {
-      dominant = AnswerPersonalityType.RATIONAL_REALIST;
-      maxCount = this.rationalRealistCount;
+    if (this.rationalCentristCount > maxCount) {
+      dominant = AnswerPersonalityType.RATIONAL_CENTRIST;
+      maxCount = this.rationalCentristCount;
     }
     if (this.devotedRomanticCount > maxCount) {
       dominant = AnswerPersonalityType.DEVOTED_ROMANTIC;
