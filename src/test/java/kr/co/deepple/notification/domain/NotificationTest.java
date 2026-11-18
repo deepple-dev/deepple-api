@@ -29,10 +29,11 @@ class NotificationTest {
     String body = "테스트 본문";
 
     // when
-    var notification = Notification.of(senderType, senderId, receiverId, type, title, body);
+    var notification =
+        Notification.of("event-id", senderType, senderId, receiverId, type, title, body);
 
     // then
-    assertThat(notification).isNotNull();
+    assertThat(notification.getIdempotencyKey()).isEqualTo("event-id");
     assertThat(notification.getSenderType()).isEqualTo(senderType);
     assertThat(notification.getSenderId()).isEqualTo(senderId);
     assertThat(notification.getReceiverId()).isEqualTo(receiverId);
@@ -92,7 +93,8 @@ class NotificationTest {
   void createFailedUnsupportedChannelSetsStatus() {
     // when
     var notification =
-        Notification.createFailed(MEMBER, 1L, 2L, LIKE, "제목", "내용", FAILED_UNSUPPORTED_CHANNEL);
+        Notification.createFailed(
+            "event-id", MEMBER, 1L, 2L, LIKE, "제목", "내용", FAILED_UNSUPPORTED_CHANNEL);
 
     // then
     assertThat(notification.getStatus()).isEqualTo(FAILED_UNSUPPORTED_CHANNEL);
@@ -103,7 +105,7 @@ class NotificationTest {
   void createFailedExceptionSetsStatus() {
     // when
     var notification =
-        Notification.createFailed(MEMBER, 1L, 2L, LIKE, "제목", "내용", FAILED_EXCEPTION);
+        Notification.createFailed("event-id", MEMBER, 1L, 2L, LIKE, "제목", "내용", FAILED_EXCEPTION);
 
     // then
     assertThat(notification.getStatus()).isEqualTo(FAILED_EXCEPTION);
@@ -114,7 +116,8 @@ class NotificationTest {
   void createFailedRejectedByPreferenceSetsStatus() {
     // when
     var notification =
-        Notification.createFailed(MEMBER, 1L, 2L, LIKE, "제목", "내용", REJECTED_BY_PREFERENCE);
+        Notification.createFailed(
+            "event-id", MEMBER, 1L, 2L, LIKE, "제목", "내용", REJECTED_BY_PREFERENCE);
 
     // then
     assertThat(notification.getStatus()).isEqualTo(REJECTED_BY_PREFERENCE);

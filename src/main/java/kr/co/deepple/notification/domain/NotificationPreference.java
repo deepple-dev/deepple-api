@@ -13,12 +13,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.MapKeyEnumerated;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Entity
 @Table(name = "notification_preferences")
@@ -33,6 +35,8 @@ public class NotificationPreference extends SoftDeleteBaseEntity {
   private long memberId;
 
   private boolean isEnabledGlobally = true;
+
+  private Instant globalSettingChangedAt;
 
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(
@@ -69,12 +73,20 @@ public class NotificationPreference extends SoftDeleteBaseEntity {
     return isEnabledGlobally && isEnabledForType(type);
   }
 
-  public void enableGlobally() {
+  public void enableGlobally(@NonNull Instant changedAt) {
+    if (globalSettingChangedAt != null && !changedAt.isAfter(globalSettingChangedAt)) {
+      return;
+    }
     isEnabledGlobally = true;
+    globalSettingChangedAt = changedAt;
   }
 
-  public void disableGlobally() {
+  public void disableGlobally(@NonNull Instant changedAt) {
+    if (globalSettingChangedAt != null && !changedAt.isAfter(globalSettingChangedAt)) {
+      return;
+    }
     isEnabledGlobally = false;
+    globalSettingChangedAt = changedAt;
   }
 
   public boolean isDisabledForType(NotificationType type) {

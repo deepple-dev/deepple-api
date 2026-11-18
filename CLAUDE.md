@@ -47,7 +47,7 @@
 
 ```
 event/               다른 도메인이 듣는 이벤트, Kafka 토픽 이름 상수 (`@NamedInterface("event")`로 공개)
-adapter/             in(web, event, scheduler 등 들어오는 쪽), out(persistence, kafka, 외부 연동 등 나가는 쪽)
+adapter/             in(web, event, kafka, scheduler 등 들어오는 쪽), out(persistence, kafka, 외부 연동 등 나가는 쪽)
 application/         port/in(들어오는 포트), port/out(나가는 포트), dto(요청·응답·조회 조건), 서비스
 domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤트, ErrorCode
 ```
@@ -86,7 +86,7 @@ domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤
 | `logging.md` | 로그 레벨·형식, 자동 문맥(MDC), 남기지 않는 값 | `src/main` Java 파일 |
 | `web.md` | 컨트롤러 위임, 성공 응답 형식, 요청 객체 전달 | `adapter/in/web`, `application` |
 | `swagger.md` | API 문서화 | `adapter/in/web`, `application/dto` |
-| `event.md` | 이벤트 발행·처리, 필드 추가, Kafka 발행 | `event`, `application`, `contracts` |
+| `event.md` | 이벤트 발행·처리, 필드 추가, Kafka 발행·소비 | `event`, `application`, `adapter/in/kafka`, `contracts` |
 | `repository.md` | 저장소 구조·이름 | `application`, `adapter` |
 | `concurrency.md` | 비관적 락, unique 제약, 분산 락 | `application`, `adapter/out/persistence` |
 | `resilience.md` | 외부 API 타임아웃·재시도·서킷 브레이커 | `adapter`, `common/infra`, `common/config` |

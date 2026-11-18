@@ -2,11 +2,13 @@ package kr.co.deepple.notification.application;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Optional;
 import kr.co.deepple.notification.application.dto.DeviceRegisterRequest;
 import kr.co.deepple.notification.application.port.out.DeviceRegistrationRepository;
@@ -21,6 +23,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DeviceRegistrationServiceTest {
 
+  private static final Instant CHANGED_AT = Instant.parse("2026-01-01T00:00:00Z");
+
   @Mock DeviceRegistrationRepository repository;
 
   @InjectMocks DeviceRegistrationService service;
@@ -31,7 +35,7 @@ class DeviceRegistrationServiceTest {
     // given
     long memberId = 1L;
     var request = new DeviceRegisterRequest("device-123", "token-abc");
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.empty());
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
     // when
     service.register(memberId, request);
@@ -58,84 +62,43 @@ class DeviceRegistrationServiceTest {
                 .deviceId("old-device")
                 .registrationToken("old-token")
                 .build());
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.of(existing));
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.of(existing));
 
     // when
     service.register(memberId, request);
 
     // then
-    verify(existing).update(request.deviceId(), request.registrationToken());
+    verify(existing).update(eq(request.deviceId()), eq(request.registrationToken()), any());
     verify(repository, never()).save(any());
   }
 
   @Test
-  @DisplayName("activateByMemberId(): 기존 디바이스가 있으면 활성화")
+  @DisplayName("activateByMemberId(): 디바이스가 있으면 이벤트 발생 시각으로 활성화를 요청한다")
   void activateByMemberIdActivatesExistingDevice() {
     // given
     long memberId = 3L;
-    var existing =
-        spy(
-            DeviceRegistrationFixture.builder()
-                .memberId(memberId)
-                .deviceId("device-123")
-                .registrationToken("token")
-                .active(false)
-                .build());
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.of(existing));
+    var existing = spy(DeviceRegistrationFixture.builder().memberId(memberId).build());
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.of(existing));
 
     // when
-    service.activateByMemberId(memberId);
+    service.activateByMemberId(memberId, CHANGED_AT);
 
     // then
-    verify(existing).activate();
+    verify(existing).activate(CHANGED_AT);
   }
 
   @Test
-  @DisplayName("activateByMemberId(): 기존 디바이스가 없으면 로그만 출력")
-  void activateByMemberIdLogsWhenDeviceNotExists() {
-    // given
-    long memberId = 4L;
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.empty());
-
-    // when
-    service.activateByMemberId(memberId);
-
-    // then
-    verify(repository).findByMemberId(memberId);
-  }
-
-  @Test
-  @DisplayName("deactivateByMemberId(): 활성화된 디바이스가 있으면 비활성화")
-  void deactivateByMemberIdDeactivatesActiveDevice() {
+  @DisplayName("deactivateByMemberId(): 디바이스가 있으면 이벤트 발생 시각으로 비활성화를 요청한다")
+  void deactivateByMemberIdDeactivatesDevice() {
     // given
     long memberId = 5L;
-    var existing =
-        spy(
-            DeviceRegistrationFixture.builder()
-                .memberId(memberId)
-                .deviceId("device-123")
-                .registrationToken("token")
-                .build());
-    when(repository.findByMemberIdAndIsActiveTrue(memberId)).thenReturn(Optional.of(existing));
+    var existing = spy(DeviceRegistrationFixture.builder().memberId(memberId).build());
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.of(existing));
 
     // when
-    service.deactivateByMemberId(memberId);
+    service.deactivateByMemberId(memberId, CHANGED_AT);
 
     // then
-    verify(existing).deactivate();
-  }
-
-  @Test
-  @DisplayName("deactivateByMemberId(): 활성화된 디바이스가 없으면 로그만 출력")
-  void deactivateByMemberIdLogsWhenNoActiveDevice() {
-    // given
-    long memberId = 6L;
-    when(repository.findByMemberIdAndIsActiveTrue(memberId)).thenReturn(Optional.empty());
-
-    // when
-    service.deactivateByMemberId(memberId);
-
-    // then
-    verify(repository).findByMemberIdAndIsActiveTrue(memberId);
+    verify(existing).deactivate(CHANGED_AT);
   }
 }

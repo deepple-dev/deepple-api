@@ -25,6 +25,8 @@ public class Notification extends SoftDeleteBaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  private String idempotencyKey;
+
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = "varchar(50)")
   private SenderType senderType;
@@ -48,6 +50,7 @@ public class Notification extends SoftDeleteBaseEntity {
   private NotificationStatus status;
 
   private Notification(
+      String idempotencyKey,
       SenderType senderType,
       long senderId,
       long receiverId,
@@ -55,6 +58,7 @@ public class Notification extends SoftDeleteBaseEntity {
       String title,
       String body,
       NotificationStatus status) {
+    this.idempotencyKey = idempotencyKey;
     this.senderType = senderType;
     this.senderId = senderId;
     this.receiverId = receiverId;
@@ -65,6 +69,7 @@ public class Notification extends SoftDeleteBaseEntity {
   }
 
   public static Notification of(
+      @NonNull String idempotencyKey,
       @NonNull SenderType senderType,
       long senderId,
       long receiverId,
@@ -72,10 +77,18 @@ public class Notification extends SoftDeleteBaseEntity {
       String title,
       String body) {
     return new Notification(
-        senderType, senderId, receiverId, type, title, body, NotificationStatus.CREATED);
+        idempotencyKey,
+        senderType,
+        senderId,
+        receiverId,
+        type,
+        title,
+        body,
+        NotificationStatus.CREATED);
   }
 
   public static Notification createFailed(
+      @NonNull String idempotencyKey,
       @NonNull SenderType senderType,
       long senderId,
       long receiverId,
@@ -83,7 +96,8 @@ public class Notification extends SoftDeleteBaseEntity {
       String title,
       String body,
       @NonNull NotificationStatus status) {
-    return new Notification(senderType, senderId, receiverId, type, title, body, status);
+    return new Notification(
+        idempotencyKey, senderType, senderId, receiverId, type, title, body, status);
   }
 
   public boolean isRead() {
@@ -99,5 +113,9 @@ public class Notification extends SoftDeleteBaseEntity {
 
   public void markAsSent() {
     status = NotificationStatus.SENT;
+  }
+
+  public void markAsFailed(@NonNull NotificationStatus status) {
+    this.status = status;
   }
 }

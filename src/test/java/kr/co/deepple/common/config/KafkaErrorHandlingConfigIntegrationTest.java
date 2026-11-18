@@ -33,8 +33,6 @@ import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnectionAutoConfiguration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportSelector;
-import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -43,17 +41,21 @@ import tools.jackson.databind.json.JsonMapper;
 @SpringBootTest(
     classes = {
       KafkaErrorHandlingConfig.class,
+      KafkaMessageConverterConfig.class,
       KafkaErrorHandlingConfigIntegrationTest.TestListener.class
+    },
+    properties = {
+      "spring.kafka.producer.value-serializer="
+          + "org.apache.kafka.common.serialization.ByteArraySerializer",
+      "spring.kafka.consumer.value-deserializer="
+          + "org.apache.kafka.common.serialization.ByteArrayDeserializer"
     })
 @ImportAutoConfiguration({
   JacksonAutoConfiguration.class,
   KafkaAutoConfiguration.class,
   ServiceConnectionAutoConfiguration.class
 })
-@Import({
-  KafkaContainerConfig.class,
-  KafkaErrorHandlingConfigIntegrationTest.ModulithKafkaJsonImportSelector.class
-})
+@Import(KafkaContainerConfig.class)
 class KafkaErrorHandlingConfigIntegrationTest {
 
   private static final String TOPIC = "kafka-error-handling-test";
@@ -123,14 +125,6 @@ class KafkaErrorHandlingConfigIntegrationTest {
                       .findFirst()
                       .orElse(null),
               Objects::nonNull);
-    }
-  }
-
-  static class ModulithKafkaJsonImportSelector implements ImportSelector {
-
-    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-      return new String[] {"org.springframework.modulith.events.kafka.KafkaJacksonConfiguration"};
     }
   }
 
