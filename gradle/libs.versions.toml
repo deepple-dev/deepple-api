@@ -17,7 +17,7 @@ bouncycastle = "1.86"
 sentry = "8.63.0"
 gradle-git-properties = "4.0.1"
 spotless = "8.11.0"
-opentelemetry-logback-appender = "2.33.1-alpha"
+opentelemetry-logback-appender = "2.28.0-alpha"
 archunit = "1.5.1"
 
 [libraries]

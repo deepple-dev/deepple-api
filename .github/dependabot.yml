@@ -28,6 +28,10 @@ updates:
       timezone: Asia/Seoul
     cooldown:
       default-days: 7
+    ignore:
+      # Spring Boot가 관리하는 OpenTelemetry 버전에 맞춘다. Boot를 올릴 때 같이 올린다
+      - dependency-name: io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0
+        update-types: [ version-update:semver-minor ]
     groups:
       gradle:
         update-types: [ minor, patch ]
