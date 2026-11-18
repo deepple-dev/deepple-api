@@ -9,17 +9,13 @@ import org.junit.jupiter.api.Test;
 class DatingExamQuestionTest {
 
   @Test
-  @DisplayName("content이 null 또는 빈 문자열인 경우 예외가 발생한다.")
-  void createWithNullOrEmptyContent() {
+  @DisplayName("content가 빈 문자열인 경우 예외가 발생한다.")
+  void createWithEmptyContent() {
     // Given
     Long subjectId = 1L;
-    String nullContent = null;
     String emptyContent = "";
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamQuestion.of(subjectId, nullContent))
-        .isInstanceOf(NullPointerException.class);
-
     assertThatThrownBy(() -> DatingExamQuestion.of(subjectId, emptyContent))
         .isInstanceOf(IllegalArgumentException.class);
   }

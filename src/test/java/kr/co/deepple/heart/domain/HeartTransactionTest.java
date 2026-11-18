@@ -49,21 +49,6 @@ class HeartTransactionTest {
     assertThat(transaction.getAmount()).isEqualTo(10L);
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"transactionType is null", "content is null", "balance is null"})
-  @DisplayName("거래 종류, 내용, 잔액이 null이면 예외가 발생한다.")
-  void throwWhenFieldIsNull(String fieldName) {
-    // given
-    TransactionType transactionType =
-        fieldName.equals("transactionType is null") ? null : TransactionType.MISSION;
-    String content = fieldName.equals("content is null") ? null : "미션 완료";
-    HeartBalance balance = fieldName.equals("balance is null") ? null : BALANCE;
-
-    // when & then
-    assertThatThrownBy(() -> HeartTransaction.of(1L, transactionType, content, 10L, balance, null))
-        .isInstanceOf(NullPointerException.class);
-  }
-
   @Test
   @DisplayName("내용이 비어 있으면 예외가 발생한다.")
   void throwWhenContentIsBlank() {

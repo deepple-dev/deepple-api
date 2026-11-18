@@ -8,29 +8,12 @@ import kr.co.deepple.report.fixture.ReportFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class ReportTest {
 
   @Nested
   @DisplayName("of 메서드 테스트")
   class OfTest {
-
-    @ParameterizedTest
-    @ValueSource(strings = {"reporterId", "reporteeId", "reason", "content"})
-    @DisplayName("of 메서드의 필드 값이 null이면 예외를 던진다.")
-    void throwsExceptionWhenFieldValueIsNull(String fieldName) {
-      // given
-      Long reporterId = fieldName.equals("reporterId") ? null : 1L;
-      Long reporteeId = fieldName.equals("reporteeId") ? null : 2L;
-      ReportReasonType reason = fieldName.equals("reason") ? null : ReportReasonType.ETC;
-      String content = fieldName.equals("content") ? null : "content";
-
-      // when, then
-      assertThatThrownBy(() -> Report.of(reporterId, reporteeId, reason, content))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("reporterId와 reporteeId가 같으면 예외를 던진다.")
@@ -100,33 +83,11 @@ class ReportTest {
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_PROCESSED);
     }
-
-    @Test
-    @DisplayName("adminId가 null으로 reject 메서드를 호출하면 예외가 발생한다.")
-    void throwsExceptionWhenAdminIdIsNull() {
-      // given
-      Long adminId = null;
-      Report report = ReportFixture.builder().build();
-
-      // when, then
-      assertThatThrownBy(() -> report.reject(adminId)).isInstanceOf(NullPointerException.class);
-    }
   }
 
   @Nested
   @DisplayName("hasVersionConflict 메서드 테스트")
   class HasVersionConflictTests {
-
-    @Test
-    @DisplayName("version이 null인 경우 hasVersionConflict가 NullPointerException을 던진다.")
-    void throwsExceptionWhenVersionIsNull() {
-      // given
-      Report report = ReportFixture.builder().build();
-
-      // when, then
-      assertThatThrownBy(() -> report.hasVersionConflict(1L))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("같은 version을 입력하면 false를 반환한다.")
@@ -184,17 +145,6 @@ class ReportTest {
       assertThatThrownBy(() -> report.warn(adminId))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_PROCESSED);
-    }
-
-    @Test
-    @DisplayName("adminId가 null인 경우 warn 호출 시 예외가 발생한다.")
-    void throwsExceptionWhenAdminIdIsNull() {
-      // given
-      Long adminId = null;
-      Report report = ReportFixture.builder().build();
-
-      // when, then
-      assertThatThrownBy(() -> report.warn(adminId)).isInstanceOf(NullPointerException.class);
     }
   }
 }

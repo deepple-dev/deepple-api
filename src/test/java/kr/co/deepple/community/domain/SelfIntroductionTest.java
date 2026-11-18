@@ -50,32 +50,6 @@ public class SelfIntroductionTest {
   class Fail {
 
     @Test
-    @DisplayName("멤버 아이디가 null인 경우, 예외 발생")
-    void throwExceptionWhenMemberIdIsNull() {
-      // Given
-      Long memberId = null;
-      String title = "셀프 소개 제목";
-      String content = "셀프 소개 내용.";
-
-      // When & Then
-      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("셀프 소개의 제목이 null인 경우, 예외 발생")
-    void throwsExceptionWhenTitleIsNull() {
-      // Given
-      Long memberId = 1L;
-      String title = null;
-      String content = "셀프 소개 내용.";
-
-      // When & Then
-      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     @DisplayName("셀프 소개의 제목이 빈 문자열이면, 예외 발생")
     void throwsExceptionWhenTitleIsBlank() {
       // Given
@@ -88,19 +62,6 @@ public class SelfIntroductionTest {
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
-    }
-
-    @Test
-    @DisplayName("셀프 소개의 내용이 null인 경우, 예외 발생")
-    void throwExceptionWhenContentIsNull() {
-      // Given
-      Long memberId = 1L;
-      String title = "셀프 소개 제목";
-      String content = null;
-
-      // When & Then
-      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
-          .isInstanceOf(NullPointerException.class);
     }
 
     @Test

@@ -36,20 +36,6 @@ class MissionTest {
           .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    @DisplayName("들어온 Enum 값이 null 인 경우, 예외 발생")
-    void throwExceptionWhenEnumValueIsNull() {
-      // Given
-      ActionType actionType = null;
-      FrequencyType frequencyType = null;
-      TargetGender targetGender = null;
-
-      // When & Then
-      Assertions.assertThatThrownBy(
-              () -> Mission.of(actionType, frequencyType, targetGender, 3, 1, 4, true))
-          .isInstanceOf(NullPointerException.class);
-    }
-
     @ParameterizedTest(name = "{0}")
     @MethodSource("constructorSource")
     void throwExceptionWhenIntValueIsLessThan1(

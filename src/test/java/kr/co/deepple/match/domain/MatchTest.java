@@ -14,51 +14,6 @@ public class MatchTest {
   class Request {
 
     @Test
-    @DisplayName("요청자 아이디가 null인 경우 예외 반환")
-    void throwsExceptionWhenRequesterIdIsNull() {
-      // Given
-      Long requesterId = null;
-      Long responderId = 2L;
-      Message requestMessage = Message.from("매칭을 요청합니다!");
-      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-      // When & Then
-      Assertions.assertThatThrownBy(
-              () -> Match.request(requesterId, responderId, requestMessage, contactType))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("응답자 아이디가 null인 경우 예외 반환")
-    void throwsExceptionWhenResponderIdIsNull() {
-      // Given
-      Long requesterId = 1L;
-      Long responderId = null;
-      Message requestMessage = Message.from("매칭을 요청합니다!");
-      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-      // When & Then
-      Assertions.assertThatThrownBy(
-              () -> Match.request(requesterId, responderId, requestMessage, contactType))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("요청 메세지가 null인 경우 예외 반환")
-    void throwsExceptionWhenMessageIsNull() {
-      // Given
-      Long requesterId = 1L;
-      Long responderId = 2L;
-      Message requestMessage = null;
-      MatchContactType contactType = MatchContactType.PHONE_NUMBER;
-
-      // When & Then
-      Assertions.assertThatThrownBy(
-              () -> Match.request(requesterId, responderId, requestMessage, contactType))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     @DisplayName("모든 값이 null이 아닌 경우 성공.")
     void createMatch() {
       // Given

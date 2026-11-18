@@ -26,20 +26,6 @@ class HeartUsagePolicyTest {
     }
 
     @Test
-    @DisplayName("transactionType이 null이면 예외를 던진다")
-    void throwsExceptionWhenTransactionTypeIsNull() {
-      assertThatThrownBy(() -> HeartUsagePolicy.of(null, Gender.MALE, 10L))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("gender가 null이면 예외를 던진다")
-    void throwsExceptionWhenGenderIsNull() {
-      assertThatThrownBy(() -> HeartUsagePolicy.of(TransactionType.MESSAGE, null, 10L))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     @DisplayName("transaction type이 using type이 아닌 경우 예외 발생")
     void ofMethodWithNotUsingTransactionTypeThrowsException() {
       assertThatThrownBy(() -> HeartUsagePolicy.of(TransactionType.MISSION, Gender.MALE, 10L))

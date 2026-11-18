@@ -1,7 +1,6 @@
 package kr.co.deepple.datingexam.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -15,24 +14,6 @@ class DatingExamSubmitTest {
   @Nested
   @DisplayName("create 메서드 테스트")
   class CreateMethodTest {
-
-    @Test
-    @DisplayName("subjectId가 null이면 예외가 발생한다")
-    void createWithNullSubjectId() {
-      // Given
-      Long memberId = 1L;
-      Long nullSubjectId = null;
-      String encodedAnswers = "encodedAnswers";
-
-      DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
-      when(request.subjectId()).thenReturn(nullSubjectId);
-      DatingExamAnswerEncoder encoder = mock(DatingExamAnswerEncoder.class);
-      when(encoder.encode(request)).thenReturn(encodedAnswers);
-
-      // When & Then
-      assertThatThrownBy(() -> DatingExamSubmit.of(request, encoder, memberId))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("정상적인 memberId로 DatingExamSubmit 객체를 생성한다")

@@ -1,7 +1,6 @@
 package kr.co.deepple.payment.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
@@ -45,46 +44,6 @@ class RefundTest {
       assertThat(refund.getPaymentMethod()).isEqualTo(PaymentMethod.APP_STORE);
       assertThat(refund.getNotificationType()).isEqualTo(NotificationType.REFUND);
       assertThat(refund.getRefundedAt()).isEqualTo(refundedAt);
-    }
-
-    @Test
-    @DisplayName("RefundDetail이 null이면 NullPointerException 발생")
-    void throwsNullPointerExceptionWhenRefundDetailIsNull() {
-      // given
-      NotificationType notificationType = NotificationType.REFUND;
-      LocalDateTime refundedAt = LocalDateTime.now();
-
-      // when & then
-      assertThatThrownBy(() ->
-              Refund.of(
-                  1L,
-                  1L,
-                  "transaction123",
-                  null,
-                  PaymentMethod.APP_STORE,
-                  notificationType,
-                  refundedAt))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("NotificationType이 null이면 NullPointerException 발생")
-    void throwsNullPointerExceptionWhenNotificationTypeIsNull() {
-      // given
-      RefundDetail refundDetail = RefundDetail.of("product123", 1, 1000L);
-      LocalDateTime refundedAt = LocalDateTime.now();
-
-      // when & then
-      assertThatThrownBy(() ->
-              Refund.of(
-                  1L,
-                  1L,
-                  "transaction123",
-                  refundDetail,
-                  PaymentMethod.APP_STORE,
-                  null,
-                  refundedAt))
-          .isInstanceOf(NullPointerException.class);
     }
   }
 

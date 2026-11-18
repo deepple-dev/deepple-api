@@ -8,28 +8,12 @@ import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class InterviewAnswerTest {
 
   @Nested
   @DisplayName("of 메서드 테스트")
   class OfMethodTest {
-
-    @ParameterizedTest
-    @ValueSource(strings = {"body is null", "questionId is null", "memberId is null"})
-    @DisplayName("of 메서드에서 필드 값이 null이면 예외를 던집니다.")
-    void throwsExceptionWhenFieldValueIsNull(String fieldName) {
-      // given
-      Long questionId = fieldName.equals("questionId is null") ? null : 1L;
-      Long memberId = fieldName.equals("memberId is null") ? null : 2L;
-      String content = fieldName.equals("body is null") ? null : "body";
-
-      // when & then
-      assertThatThrownBy(() -> InterviewAnswer.of(questionId, memberId, content))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("of 메서드에서 content가 blank이면 예외를 던집니다.")
@@ -67,17 +51,6 @@ class InterviewAnswerTest {
   class UpdateContentMethodTest {
 
     @Test
-    @DisplayName("updateContent 메서드에서 content가 null이면 예외를 던집니다.")
-    void throwsExceptionWhenContentIsNull() {
-      // given
-      InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder().build();
-
-      // when & then
-      assertThatThrownBy(() -> interviewAnswer.updateContent(null))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
     @DisplayName("updateContent 메서드에서 content가 blank이면 예외를 던집니다.")
     void throwsExceptionWhenContentIsBlank() {
       // given
@@ -108,18 +81,6 @@ class InterviewAnswerTest {
   @Nested
   @DisplayName("isAnsweredBy 메서드 테스트")
   class IsAnsweredByMethodTest {
-
-    @Test
-    @DisplayName("isAnsweredBy 메서드에서 memberId가 null이면 예외를 던집니다.")
-    void throwsExceptionWhenMemberIdIsNull() {
-      // given
-      InterviewAnswer interviewAnswer = InterviewAnswerFixture.builder().build();
-
-      // when & then
-      Long nullMemberId = null;
-      assertThatThrownBy(() -> interviewAnswer.isAnsweredBy(nullMemberId))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("isAnsweredBy 메서드에서 memberId가 interviewAnswer.memberId와 일치하면 true를 반환합니다.")

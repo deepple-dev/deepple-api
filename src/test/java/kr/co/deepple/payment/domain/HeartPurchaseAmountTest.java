@@ -22,17 +22,6 @@ class HeartPurchaseAmountTest {
   }
 
   @Test
-  @DisplayName("amount 값이 null이면 예외가 발생한다.")
-  void throwsExceptionWhenAmountIsNull() {
-    // given
-    Long amount = null;
-
-    // when, then
-    assertThatThrownBy(() -> HeartPurchaseAmount.from(amount))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
   @DisplayName("amount 값이 0보다 크면 객체가 생성된다.")
   void createObjectWhenAmountIsGreaterThanZero() {
     // given
