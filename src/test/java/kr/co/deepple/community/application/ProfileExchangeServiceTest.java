@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.Optional;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
@@ -198,12 +199,22 @@ class ProfileExchangeServiceTest {
           .when(distributedLockTemplate)
           .executeInTransaction(any(), any());
 
+      long profileExchangeId = 10L;
+      when(profileExchangeRepository.save(any()))
+          .thenAnswer(invocation -> {
+            ProfileExchange saved = invocation.getArgument(0);
+            setField(saved, "id", profileExchangeId);
+            return saved;
+          });
+
       // When
       profileExchangeService.request(requesterId, responderId);
 
       // Then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeRequestedEvent.class));
-      Mockito.verify(profileExchangeRepository).save(Mockito.any(ProfileExchange.class));
+      Mockito.verify(eventPublisher)
+          .publishEvent(
+              Mockito.<ProfileExchangeRequestedEvent>argThat(
+                  event -> event.profileExchangeId() == profileExchangeId));
     }
 
     @DisplayName("저장할 때 unique 제약에 걸리면 이미 프로필 교환이 있다는 예외가 발생한다.")
@@ -324,7 +335,10 @@ class ProfileExchangeServiceTest {
       profileExchangeService.approve(profileExchangeId, responderId);
 
       // Then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeAcceptedEvent.class));
+      Mockito.verify(eventPublisher)
+          .publishEvent(
+              Mockito.<ProfileExchangeAcceptedEvent>argThat(
+                  event -> event.profileExchangeId() == profileExchangeId));
       assertThat(profileExchange.getStatus()).isEqualTo(ProfileExchangeStatus.APPROVE);
     }
 
@@ -351,7 +365,10 @@ class ProfileExchangeServiceTest {
       profileExchangeService.reject(profileExchangeId, responderId);
 
       // Then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(ProfileExchangeRejectedEvent.class));
+      Mockito.verify(eventPublisher)
+          .publishEvent(
+              Mockito.<ProfileExchangeRejectedEvent>argThat(
+                  event -> event.profileExchangeId() == profileExchangeId));
       assertThat(profileExchange.getStatus()).isEqualTo(ProfileExchangeStatus.REJECTED);
     }
   }
