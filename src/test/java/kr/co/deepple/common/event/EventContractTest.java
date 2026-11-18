@@ -25,8 +25,8 @@ import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.modulith.core.ApplicationModules;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.JsonNodeType;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeType;
 
 @SpringBootTest(classes = JacksonAutoConfiguration.class)
 class EventContractTest {
