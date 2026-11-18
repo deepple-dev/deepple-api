@@ -58,7 +58,6 @@ public class Admin extends SoftDeleteBaseEntity {
     this.name = name;
     this.phoneNumber = phoneNumber;
     this.comment = comment;
-    this.role = AdminRole.ADMIN;
     this.approvalStatus = ApprovalStatus.PENDING;
   }
 
