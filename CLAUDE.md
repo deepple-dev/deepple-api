@@ -67,7 +67,7 @@ domain/              엔티티, 값 객체, 도메인 안에서만 쓰는 이벤
   - 기록에는 이벤트 클래스와 핸들러 메서드의 전체 이름이 저장된다. 이름이나 패키지를 바꾸기 전에 미완료 기록이 없는지 확인한다
   - 실패한 기록은 1분마다 다시 보내진다(`FailedEventResubmitter`, 시도 10번까지). 핸들러는 같은 이벤트로 여러 번 실행돼도 결과가 같게 만든다
   - 이벤트는 모르는 칸을 무시하고 읽는다. 없는 칸이 primitive면 읽기에 실패하므로 칸을 추가할 때는 wrapper 타입(`Long` 등)으로 추가한다. 칸을 지우거나 이름을 바꿀 때는 미완료 기록을 먼저 확인한다
-  - 다른 모듈이 듣는 이벤트는 `src/test/resources/contracts/<모듈>/<이벤트>/v<N>.json`에 sample을 두고, `EventContractTest`가 마지막 두 버전으로 호환을 검사한다. 모양을 바꾸면 커밋된 sample을 고치지 않고 다음 버전을 추가한다. 출시 전에는 v1을 직접 고쳐도 되고, 출시 때 v1로 고정한다
+  - 다른 모듈이 듣는 이벤트는 `src/test/resources/contracts/<모듈>/<이벤트>/v<N>.json`에 sample을 두고, `EventContractTest`가 마지막 두 버전으로 호환을 검사한다
 - 동시성 처리는 막을 대상에 맞게 고른다.
   - 이미 있는 행의 값 변경: 비관적 락(`@Lock(PESSIMISTIC_WRITE)`, 예: `MemberRepository.findByIdForUpdate`). 락 대기는 3초(`innodb_lock_wait_timeout`)
   - 아직 없는 행의 중복 생성: unique 제약. 제약으로 표현할 수 없는 규칙이거나 저장 전 작업까지 줄 세워야 하면 `DistributedLockTemplate.executeInTransaction`(Redisson)을 함께 쓴다. 락을 잡는 메서드에는 `@Transactional`을 붙이지 않는다(락 → 트랜잭션 → 커밋 → 해제 순서).
