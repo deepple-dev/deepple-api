@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import tools.jackson.databind.exc.UnrecognizedPropertyException;
 
 @Slf4j
 @RestControllerAdvice
@@ -81,20 +79,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       HttpStatusCode status,
       WebRequest request) {
     return handleExceptionInternal(ex, null, headers, status, request);
-  }
-
-  @Override
-  protected ResponseEntity<Object> handleHttpMessageNotReadable(
-      HttpMessageNotReadableException ex,
-      HttpHeaders headers,
-      HttpStatusCode status,
-      WebRequest request) {
-    if (ex.getMostSpecificCause() instanceof UnrecognizedPropertyException cause) {
-      ProblemDetail body =
-          ProblemDetail.forStatusAndDetail(status, "알 수 없는 필드입니다: " + cause.getPropertyName());
-      return handleExceptionInternal(ex, body, headers, status, request);
-    }
-    return super.handleHttpMessageNotReadable(ex, headers, status, request);
   }
 
   @Override

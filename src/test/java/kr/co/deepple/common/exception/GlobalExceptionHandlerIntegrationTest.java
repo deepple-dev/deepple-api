@@ -67,21 +67,6 @@ class GlobalExceptionHandlerIntegrationTest extends IntegrationTestSupport {
     assertThat(result).bodyText().doesNotContain("MemberAuthController");
   }
 
-  @Test
-  @DisplayName("본문에 알 수 없는 필드가 있으면 400과 필드 이름을 응답한다.")
-  void respondUnknownField() {
-    MvcTestResult result =
-        mockMvc
-            .post()
-            .uri(LOGIN_API)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"phoneNumber\":\"01012345678\",\"code\":\"123456\",\"unknown\":\"value\"}")
-            .exchange();
-
-    assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
-    assertThat(result).bodyJson().extractingPath("$.detail").isEqualTo("알 수 없는 필드입니다: unknown");
-  }
-
   private String memberBearer() {
     return "Bearer " + tokenProvider.createAccessToken(1L, Role.MEMBER, Instant.now());
   }

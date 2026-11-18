@@ -1,0 +1,12 @@
+{
+  "memberId": 1,
+  "memberMissionId": 2,
+  "successCount": 3,
+  "rewardHeartAmount": 3,
+  "memberNickname": "철수",
+  "actionType": "오늘의 좋아요 보내기 완료",
+  "metadata": {
+    "id": "0b9f6a2e-3c1d-4f5e-8a7b-6c5d4e3f2a1b",
+    "occurredAt": "2026-11-18T03:00:00Z"
+  }
+}
