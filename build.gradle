@@ -62,6 +62,9 @@ dependencies {
     implementation libs.shedlock.spring
     implementation libs.shedlock.provider.redis.spring
 
+    // Kafka
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+
     // Auth
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
 
@@ -110,6 +113,8 @@ dependencies {
     testImplementation 'org.awaitility:awaitility'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
+    testImplementation 'org.testcontainers:testcontainers-kafka'
     testImplementation libs.spring.modulith.starter.test
     testImplementation libs.archunit
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
