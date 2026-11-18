@@ -10,7 +10,6 @@ import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +27,6 @@ class MemberStatusIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberRepository memberRepository;
 
   private Member member;
-
-  @AfterEach
-  void tearDown() {
-    if (member != null) {
-      memberRepository.delete(member);
-    }
-  }
 
   @Test
   @DisplayName("프로필을 작성하지 않은 회원은 프로필 작성이 필요하다고 응답한다.")

@@ -16,7 +16,6 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,12 +37,6 @@ class ScreeningServiceConcurrencyIntegrationTest extends IntegrationTestSupport 
   @BeforeEach
   void setUp() {
     member = memberRepository.save(MemberFixture.builder().build());
-  }
-
-  @AfterEach
-  void tearDown() {
-    screeningRepository.deleteAll();
-    memberRepository.deleteAll();
   }
 
   @Test

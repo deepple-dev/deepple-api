@@ -11,7 +11,6 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.notification.application.port.out.DeviceRegistrationRepository;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.fixture.DeviceRegistrationFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +28,6 @@ class MemberLogoutIntegrationTest extends IntegrationTestSupport {
   @Autowired private TokenProvider tokenProvider;
 
   @Autowired private DeviceRegistrationRepository deviceRegistrationRepository;
-
-  @AfterEach
-  void tearDown() {
-    deviceRegistrationRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("로그아웃하면 회원의 기기 등록이 비활성화된다.")

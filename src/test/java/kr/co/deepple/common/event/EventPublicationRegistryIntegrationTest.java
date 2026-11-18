@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +30,6 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   @Autowired private RegistryTestEventHandler handler;
 
   @Autowired private FailedEventResubmitter failedEventResubmitter;
-
-  @AfterEach
-  void tearDown() {
-    jdbcTemplate.update(
-        "delete from event_publication where event_type = ?", RegistryTestEvent.class.getName());
-  }
 
   @Test
   @DisplayName("핸들러가 실패한 이벤트는 FAILED로 남고 재제출하면 다시 실행되어 완료 처리된다")

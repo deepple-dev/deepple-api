@@ -17,7 +17,6 @@ import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +38,6 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
   @Autowired private HeartMemberRepository heartMemberRepository;
-
-  @AfterEach
-  void tearDown() {
-    profileExchangeRepository.deleteAll();
-    heartTransactionRepository.deleteAll();
-    memberHeartBalanceRepository.deleteAll();
-    heartMemberRepository.deleteAll();
-    memberRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("두 회원이 서로에게 동시에 프로필 교환을 요청해도 프로필 교환은 하나만 생성된다")

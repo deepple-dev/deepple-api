@@ -21,7 +21,6 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,16 +42,6 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberRepository memberRepository;
 
   @Autowired private AuthMessageRepository authMessageRepository;
-
-  @AfterEach
-  void tearDown() {
-    memberAccountRepository
-        .findByPhoneNumber(PhoneNumber.from(PHONE_NUMBER))
-        .ifPresent(account -> {
-          memberRepository.findById(account.getId()).ifPresent(memberRepository::delete);
-          memberAccountRepository.delete(account);
-        });
-  }
 
   @Test
   @DisplayName("처음 로그인하면 계정과 같은 번호의 회원을 만들고 access token만 본문으로 응답한다.")

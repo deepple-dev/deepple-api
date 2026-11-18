@@ -46,11 +46,7 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
 
   @AfterEach
   void tearDown() {
-    memberHeartBalanceRepository.deleteAll();
-    refundRepository.deleteAll();
-    orderRepository.deleteAll();
     heartPurchaseOptionRepository.delete(option);
-    memberRepository.deleteAll();
   }
 
   @Test
