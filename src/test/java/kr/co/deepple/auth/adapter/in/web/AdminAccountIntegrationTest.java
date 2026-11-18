@@ -10,7 +10,6 @@ import kr.co.deepple.auth.domain.Email;
 import kr.co.deepple.auth.domain.PasswordHasher;
 import kr.co.deepple.auth.fixture.AdminFixture;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,12 +45,6 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             .approvalStatus(ApprovalStatus.APPROVED)
             .build();
     adminRepository.save(superAdmin);
-  }
-
-  @AfterEach
-  void tearDown() {
-    deleteAdmin(SUPER_ADMIN_EMAIL);
-    deleteAdmin(APPLICANT_EMAIL);
   }
 
   @Test
@@ -159,10 +152,6 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
             """
                 .formatted(email, password))
         .exchange();
-  }
-
-  private void deleteAdmin(String email) {
-    adminRepository.findByEmail(Email.from(email)).ifPresent(adminRepository::delete);
   }
 
   private String accessToken(MvcTestResult loginResult) {

@@ -18,7 +18,6 @@ import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +40,6 @@ class HeartTransactorConcurrencyIntegrationTest extends IntegrationTestSupport {
   @Autowired private HeartMemberRepository heartMemberRepository;
 
   @Autowired private HeartTransactionRepository heartTransactionRepository;
-
-  @AfterEach
-  void tearDown() {
-    heartTransactionRepository.deleteAll();
-    memberHeartBalanceRepository.deleteAll();
-    heartMemberRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("같은 회원이 하트를 동시에 사용해도 사용한 만큼만 잔액이 줄어든다")

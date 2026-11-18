@@ -77,11 +77,7 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
 
   @AfterEach
   void tearDown() {
-    memberHeartBalanceRepository.deleteAll();
-    orderRepository.deleteAll();
-    heartTransactionRepository.deleteAll();
     heartPurchaseOptionRepository.delete(option);
-    memberRepository.deleteAll();
   }
 
   @Test

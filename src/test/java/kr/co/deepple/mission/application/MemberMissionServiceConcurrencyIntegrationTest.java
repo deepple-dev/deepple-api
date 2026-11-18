@@ -22,7 +22,6 @@ import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.mission.application.port.out.MemberMissionRepository;
 import kr.co.deepple.mission.domain.MemberMission;
 import kr.co.deepple.mission.event.MemberMissionCompletedEvent;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,14 +44,6 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
   @Autowired private HeartTransactionRepository heartTransactionRepository;
-
-  @AfterEach
-  void tearDown() {
-    memberMissionRepository.deleteAll();
-    heartTransactionRepository.deleteAll();
-    memberHeartBalanceRepository.deleteAll();
-    memberRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("같은 회원이 일일 미션을 동시에 수행해도 회원 미션은 하나이고 반복 횟수만큼만 보상한다")

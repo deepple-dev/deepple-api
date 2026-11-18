@@ -13,7 +13,6 @@ import kr.co.deepple.heart.domain.TransactionType;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.payment.event.HeartPurchasedEvent;
 import kr.co.deepple.payment.event.HeartRefundedEvent;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +30,6 @@ class HeartPaymentEventHandlerIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
   @Autowired private HeartTransactionRepository heartTransactionRepository;
-
-  @AfterEach
-  void tearDown() {
-    heartTransactionRepository.deleteAll();
-    memberHeartBalanceRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("같은 하트 지급 이벤트를 두 번 처리해도 하트는 한 번만 지급되고 거래 내역도 하나만 남는다")

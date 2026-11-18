@@ -17,7 +17,6 @@ import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +36,6 @@ class MemberDormancyIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberRepository memberRepository;
 
   private Long memberId;
-
-  @AfterEach
-  void tearDown() {
-    if (memberId != null) {
-      memberRepository.deleteById(memberId);
-    }
-  }
 
   @Test
   @DisplayName("휴면 회원은 토큰으로 휴면을 해제해 활동 중이 된다.")

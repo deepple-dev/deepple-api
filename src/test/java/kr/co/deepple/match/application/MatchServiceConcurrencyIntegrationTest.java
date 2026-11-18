@@ -19,7 +19,6 @@ import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,15 +40,6 @@ class MatchServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
   @Autowired private HeartMemberRepository heartMemberRepository;
-
-  @AfterEach
-  void tearDown() {
-    matchRepository.deleteAll();
-    heartTransactionRepository.deleteAll();
-    memberHeartBalanceRepository.deleteAll();
-    heartMemberRepository.deleteAll();
-    memberRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("두 회원이 서로에게 동시에 매칭을 요청해도 매칭은 하나만 생성된다")

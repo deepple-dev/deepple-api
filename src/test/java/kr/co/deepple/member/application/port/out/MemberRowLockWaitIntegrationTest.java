@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.member.fixture.MemberFixture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +23,6 @@ class MemberRowLockWaitIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberRepository memberRepository;
 
   @Autowired private TransactionTemplate transactionTemplate;
-
-  @AfterEach
-  void tearDown() {
-    memberRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("다른 트랜잭션이 회원 행을 잠그고 있으면 오래 기다리지 않고 동시성 실패 예외를 던진다")

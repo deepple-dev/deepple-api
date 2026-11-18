@@ -13,7 +13,6 @@ import kr.co.deepple.datingexam.application.dto.DatingExamQuestionInfo;
 import kr.co.deepple.datingexam.application.dto.DatingExamSubjectInfo;
 import kr.co.deepple.notification.application.dto.NotificationTemplateInfo;
 import kr.co.deepple.notification.domain.NotificationType;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +29,6 @@ class CacheConfigIntegrationTest extends IntegrationTestSupport {
   @Autowired private CacheManager cacheManager;
 
   @Autowired private StringRedisTemplate redisTemplate;
-
-  @AfterEach
-  void tearDown() {
-    redisTemplate.delete(
-        List.of(
-            KEY_PREFIX + "datingExamInfo::" + KEY,
-            KEY_PREFIX + "notificationTemplate::" + KEY,
-            KEY_PREFIX + "undeclared::" + KEY));
-  }
 
   @Test
   @DisplayName("연애고사 정보 캐시는 값을 그대로 복원하고 1시간 뒤 만료된다")

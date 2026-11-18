@@ -15,7 +15,6 @@ import kr.co.deepple.heart.application.port.out.HeartMemberRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.domain.Gender;
 import kr.co.deepple.heart.domain.HeartMember;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +31,6 @@ class SyncHeartMemberServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private HeartMemberRepository heartMemberRepository;
 
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
-
-  @AfterEach
-  void tearDown() {
-    memberHeartBalanceRepository.deleteAll();
-    heartMemberRepository.deleteAll();
-  }
 
   @Test
   @DisplayName("처음 온 이벤트로 사본과 0짜리 잔액 행을 만든다")
