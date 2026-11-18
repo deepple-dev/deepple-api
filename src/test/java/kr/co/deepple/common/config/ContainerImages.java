@@ -10,4 +10,5 @@ public final class ContainerImages {
   public static final String MYSQL = "mysql:8.4.13";
   public static final String VALKEY = "valkey/valkey:8.1.11";
   public static final String S3_MOCK = "adobe/s3mock:5.2.3";
+  public static final String KAFKA = "apache/kafka:4.2.2";
 }

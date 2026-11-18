@@ -28,6 +28,17 @@ spring:
         connectTimeout: 3000
         socketTimeout: 5000
 
+  kafka:
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+    consumer:
+      group-id: deepple-api
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.trusted.packages: "kr.co.deepple.*"
+
   data:
     redis:
       connect-timeout: 2s
