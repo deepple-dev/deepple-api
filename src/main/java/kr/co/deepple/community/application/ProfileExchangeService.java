@@ -52,7 +52,8 @@ public class ProfileExchangeService {
             null,
             String.valueOf(profileExchange.getId())));
     eventPublisher.publishEvent(
-        ProfileExchangeRequestedEvent.of(requesterId, responderId, senderName));
+        ProfileExchangeRequestedEvent.of(
+            profileExchange.getId(), requesterId, responderId, senderName));
   }
 
   @Transactional
@@ -63,7 +64,10 @@ public class ProfileExchangeService {
     profileExchange.approve();
     eventPublisher.publishEvent(
         ProfileExchangeAcceptedEvent.of(
-            profileExchange.getRequesterId(), profileExchange.getResponderId(), senderName));
+            profileExchangeId,
+            profileExchange.getRequesterId(),
+            profileExchange.getResponderId(),
+            senderName));
   }
 
   @Transactional
@@ -74,7 +78,10 @@ public class ProfileExchangeService {
     profileExchange.reject();
     eventPublisher.publishEvent(
         ProfileExchangeRejectedEvent.of(
-            profileExchange.getRequesterId(), profileExchange.getResponderId(), senderName));
+            profileExchangeId,
+            profileExchange.getRequesterId(),
+            profileExchange.getResponderId(),
+            senderName));
   }
 
   private String getNickNameByMemberId(long memberId) {

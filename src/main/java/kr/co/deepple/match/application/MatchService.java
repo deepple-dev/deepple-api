@@ -11,14 +11,12 @@ import kr.co.deepple.match.application.port.out.spi.IntroductionTypeFinder;
 import kr.co.deepple.match.domain.Match;
 import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchErrorCode;
-import kr.co.deepple.match.domain.MatchRequestCompletedEvent;
 import kr.co.deepple.match.domain.MatchStatus;
 import kr.co.deepple.match.domain.MatchType;
 import kr.co.deepple.match.domain.Message;
 import kr.co.deepple.match.event.MatchAcceptedEvent;
 import kr.co.deepple.match.event.MatchRejectedEvent;
 import kr.co.deepple.match.event.MatchRequestedEvent;
-import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
@@ -67,10 +65,6 @@ public class MatchService {
     MatchType matchType = getMatchType(requesterId, responderId);
     Match match = Match.request(requesterId, responderId, message, contactType);
     validateContactTypeSettingUseCase.validateContactTypeSetting(requesterId, contactType.name());
-    eventPublisher.publishEvent(
-        MatchRequestedEvent.of(
-            requesterId, requesterName, responderId, matchType.name(), contactType.name()));
-    eventPublisher.publishEvent(MatchRequestCompletedEvent.of(requesterId, responderId));
     saveMatch(match);
     useHeartUseCase.useHeart(
         new UseHeartCommand(
@@ -79,6 +73,14 @@ public class MatchService {
             matchType.name(),
             null,
             String.valueOf(match.getId())));
+    eventPublisher.publishEvent(
+        MatchRequestedEvent.of(
+            match.getId(),
+            requesterId,
+            requesterName,
+            responderId,
+            matchType.name(),
+            contactType.name()));
   }
 
   private MatchType getMatchType(long requesterId, long responderId) {
@@ -98,10 +100,7 @@ public class MatchService {
     match.approve(Message.from(respondDto.responseMessage()), contactType);
     validateContactTypeSettingUseCase.validateContactTypeSetting(responderId, contactType.name());
     eventPublisher.publishEvent(
-        MatchRespondedEvent.of(
-            match.getRequesterId(), responderId, match.getStatus().name(), contactType.name()));
-    eventPublisher.publishEvent(
-        MatchAcceptedEvent.of(match.getRequesterId(), responderId, responderName));
+        MatchAcceptedEvent.of(match.getId(), match.getRequesterId(), responderId, responderName));
   }
 
   @Transactional
@@ -111,10 +110,7 @@ public class MatchService {
     String responderName = findNickname(responderId);
     match.reject();
     eventPublisher.publishEvent(
-        MatchRespondedEvent.of(
-            match.getRequesterId(), responderId, match.getStatus().name(), null));
-    eventPublisher.publishEvent(
-        MatchRejectedEvent.of(match.getRequesterId(), responderId, responderName));
+        MatchRejectedEvent.of(match.getId(), match.getRequesterId(), responderId, responderName));
   }
 
   @Transactional

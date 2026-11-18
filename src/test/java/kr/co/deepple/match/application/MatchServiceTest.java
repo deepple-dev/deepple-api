@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
@@ -21,12 +22,10 @@ import kr.co.deepple.match.application.port.out.spi.IntroductionTypeFinder;
 import kr.co.deepple.match.domain.Match;
 import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchErrorCode;
-import kr.co.deepple.match.domain.MatchRequestCompletedEvent;
 import kr.co.deepple.match.domain.MatchStatus;
 import kr.co.deepple.match.event.MatchAcceptedEvent;
 import kr.co.deepple.match.event.MatchRejectedEvent;
 import kr.co.deepple.match.event.MatchRequestedEvent;
-import kr.co.deepple.match.event.MatchRespondedEvent;
 import kr.co.deepple.match.fixture.MatchFixture;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
@@ -134,22 +133,37 @@ class MatchServiceTest {
 
       mockMember(requesterId, "testUser");
 
+      long matchId = 10L;
+      when(matchRepository.save(any()))
+          .thenAnswer(invocation -> {
+            Match saved = invocation.getArgument(0);
+            setField(saved, "id", matchId);
+            return saved;
+          });
+
       // When
       matchService.request(requesterId, requestDto);
 
       // Then
-      InOrder inOrder = inOrder(validateContactTypeSettingUseCase, eventPublisher);
+      InOrder inOrder =
+          inOrder(
+              validateContactTypeSettingUseCase, matchRepository, useHeartUseCase, eventPublisher);
       inOrder
           .verify(validateContactTypeSettingUseCase)
           .validateContactTypeSetting(requesterId, contactType.name());
-      inOrder.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestedEvent.class));
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRequestCompletedEvent.class));
-      verify(matchRepository)
+      inOrder
+          .verify(matchRepository)
           .save(
               argThat(match ->
                   match.getRequesterId() == requesterId
                       && match.getResponderId() == responderId
                       && match.getRequestMessage().getValue().equals(requestMessage)));
+      inOrder
+          .verify(useHeartUseCase)
+          .useHeart(argThat(command -> command.idempotencyKey().equals(String.valueOf(matchId))));
+      inOrder
+          .verify(eventPublisher)
+          .publishEvent(Mockito.<MatchRequestedEvent>argThat(event -> event.matchId() == matchId));
     }
 
     @Test
@@ -278,7 +292,11 @@ class MatchServiceTest {
       String responseMessage = "매치 수락할게요";
       MatchContactType contactType = MatchContactType.PHONE_NUMBER;
       Match match =
-          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
+          MatchFixture.builder()
+              .id(matchId)
+              .requesterId(requesterId)
+              .responderId(responderId)
+              .build();
 
       MatchResponseDto responseDto = new MatchResponseDto(responseMessage, contactType.name());
 
@@ -299,8 +317,9 @@ class MatchServiceTest {
       inOrder
           .verify(validateContactTypeSettingUseCase)
           .validateContactTypeSetting(responderId, contactType.name());
-      inOrder.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchAcceptedEvent.class));
+      inOrder
+          .verify(eventPublisher)
+          .publishEvent(Mockito.<MatchAcceptedEvent>argThat(event -> event.matchId() == matchId));
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
       Assertions.assertThat(match.getResponseMessage().getValue()).isEqualTo(responseMessage);
       verifyNoInteractions(useHeartUseCase);
@@ -392,7 +411,11 @@ class MatchServiceTest {
       Long matchId = 3L;
 
       Match match =
-          MatchFixture.builder().requesterId(requesterId).responderId(responderId).build();
+          MatchFixture.builder()
+              .id(matchId)
+              .requesterId(requesterId)
+              .responderId(responderId)
+              .build();
 
       when(matchRepository.findByIdAndResponderId(matchId, responderId))
           .thenReturn(Optional.of(match));
@@ -407,8 +430,8 @@ class MatchServiceTest {
       matchService.reject(matchId, responderId);
 
       // Then
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRespondedEvent.class));
-      Mockito.verify(eventPublisher).publishEvent(Mockito.any(MatchRejectedEvent.class));
+      Mockito.verify(eventPublisher)
+          .publishEvent(Mockito.<MatchRejectedEvent>argThat(event -> event.matchId() == matchId));
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.REJECTED);
       verifyNoInteractions(validateContactTypeSettingUseCase);
     }

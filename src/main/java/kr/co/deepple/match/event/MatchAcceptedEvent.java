@@ -5,10 +5,16 @@ import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
 
 public record MatchAcceptedEvent(
-    long requesterId, long responderId, String responderName, @NonNull EventMetadata metadata)
+    long matchId,
+    long requesterId,
+    long responderId,
+    String responderName,
+    @NonNull EventMetadata metadata)
     implements Event {
 
-  public static MatchAcceptedEvent of(long requesterId, long responderId, String responderName) {
-    return new MatchAcceptedEvent(requesterId, responderId, responderName, EventMetadata.create());
+  public static MatchAcceptedEvent of(
+      long matchId, long requesterId, long responderId, String responderName) {
+    return new MatchAcceptedEvent(
+        matchId, requesterId, responderId, responderName, EventMetadata.create());
   }
 }

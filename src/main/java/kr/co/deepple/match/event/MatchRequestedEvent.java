@@ -5,6 +5,7 @@ import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
 
 public record MatchRequestedEvent(
+    long matchId,
     long requesterId,
     @NonNull String requesterName,
     long responderId,
@@ -14,12 +15,19 @@ public record MatchRequestedEvent(
     implements Event {
 
   public static MatchRequestedEvent of(
+      long matchId,
       long requesterId,
       String requesterName,
       long responderId,
       String matchType,
       String contactType) {
     return new MatchRequestedEvent(
-        requesterId, requesterName, responderId, matchType, contactType, EventMetadata.create());
+        matchId,
+        requesterId,
+        requesterName,
+        responderId,
+        matchType,
+        contactType,
+        EventMetadata.create());
   }
 }
