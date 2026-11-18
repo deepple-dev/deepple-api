@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.auth.application.AdminAccountService;
 import kr.co.deepple.auth.application.dto.AdminApproveRequest;
-import kr.co.deepple.auth.application.dto.PendingAdminViews;
+import kr.co.deepple.auth.application.dto.AdminSearchCondition;
+import kr.co.deepple.auth.application.dto.AdminViews;
 import kr.co.deepple.auth.application.port.out.AdminQueryRepository;
 import kr.co.deepple.common.config.ApiTags;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,10 +28,11 @@ public class AdminAccountController {
   private final AdminAccountService adminAccountService;
   private final AdminQueryRepository adminQueryRepository;
 
-  @Operation(summary = "승인 대기 관리자 목록 조회")
+  @Operation(summary = "관리자 목록 조회")
   @GetMapping
-  public ResponseEntity<PendingAdminViews> getPendingAdmins() {
-    return ResponseEntity.ok(new PendingAdminViews(adminQueryRepository.findPendingAdmins()));
+  public ResponseEntity<AdminViews> getAdmins(
+      @Valid @ModelAttribute AdminSearchCondition adminSearchCondition) {
+    return ResponseEntity.ok(new AdminViews(adminQueryRepository.findAdmins(adminSearchCondition)));
   }
 
   @Operation(summary = "관리자 승인")

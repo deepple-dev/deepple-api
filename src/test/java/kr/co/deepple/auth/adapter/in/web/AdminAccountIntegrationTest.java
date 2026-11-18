@@ -107,6 +107,42 @@ class AdminAccountIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("승인 상태로 관리자 목록을 검색하면 해당 상태의 관리자만 응답하고 승인 대기 관리자는 역할이 없다.")
+  void searchAdminsByApprovalStatus() {
+    signup();
+    String superAdminToken = accessToken(login(SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD));
+
+    MvcTestResult result =
+        mockMvc
+            .get()
+            .uri("/admin/accounts?approvalStatus=PENDING")
+            .header(HttpHeaders.AUTHORIZATION, superAdminToken)
+            .exchange();
+
+    assertThat(result).hasStatusOk();
+    assertThat(result).bodyJson().extractingPath("$.admins.length()").isEqualTo(1);
+    assertThat(result).bodyJson().extractingPath("$.admins[0].email").isEqualTo(APPLICANT_EMAIL);
+    assertThat(result).bodyJson().extractingPath("$.admins[0].role").isNull();
+    assertThat(result).bodyJson().extractingPath("$.admins[0].approvalStatus").isEqualTo("PENDING");
+  }
+
+  @Test
+  @DisplayName("승인 상태 값이 잘못되면 400과 INVALID_APPROVAL_STATUS 코드를 응답한다.")
+  void rejectInvalidApprovalStatus() {
+    String superAdminToken = accessToken(login(SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD));
+
+    MvcTestResult result =
+        mockMvc
+            .get()
+            .uri("/admin/accounts?approvalStatus=REJECTED")
+            .header(HttpHeaders.AUTHORIZATION, superAdminToken)
+            .exchange();
+
+    assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
+    assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("INVALID_APPROVAL_STATUS");
+  }
+
+  @Test
   @DisplayName("거절하면 가입 요청이 삭제되어 같은 이메일로 다시 가입할 수 있다.")
   void allowSignupAgainAfterRejection() {
     long applicantId = signup();

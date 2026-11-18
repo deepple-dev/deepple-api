@@ -59,7 +59,7 @@ class AdminTest {
   }
 
   @Test
-  @DisplayName("가입한 관리자는 승인되지 않은 상태입니다.")
+  @DisplayName("가입한 관리자는 승인되지 않은 상태이고 역할이 없습니다.")
   void newAdminIsNotApproved() {
     // given
     Admin admin =
@@ -72,6 +72,7 @@ class AdminTest {
 
     // when & then
     assertThat(admin.isApproved()).isFalse();
+    assertThat(admin.getRole()).isNull();
   }
 
   @ParameterizedTest
