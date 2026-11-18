@@ -48,7 +48,7 @@ class EventContractTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("contracts")
-  @DisplayName("지금 클래스로 쓴 JSON에 옛 sample의 칸이 같은 타입으로 모두 남아 있다.")
+  @DisplayName("지금 클래스로 쓴 JSON에 옛 sample의 필드가 같은 타입으로 모두 남아 있다.")
   void keepContractFieldsWhenWriting(Path contract) throws Exception {
     JsonNode expected = jsonMapper.readTree(contract.toFile());
     Object event = jsonMapper.treeToValue(expected, eventType(contract));

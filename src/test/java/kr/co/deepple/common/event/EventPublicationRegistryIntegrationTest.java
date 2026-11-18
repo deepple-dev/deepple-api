@@ -73,7 +73,7 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("칸이 추가되기 전에 저장된 이벤트 기록도 재제출하면 없는 칸을 null로 읽어 처리한다")
+  @DisplayName("필드가 추가되기 전에 저장된 이벤트 기록도 재제출하면 없는 필드를 null로 읽어 처리한다")
   void resubmitPublicationSerializedBeforeFieldWasAdded() {
     // given
     RegistryTestEvent event = publishFailedEvent();
