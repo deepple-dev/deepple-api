@@ -26,6 +26,10 @@ public class NotificationSendService {
   private final NotificationSenderResolver notificationSenderResolver;
 
   public void send(NotificationSendRequest request) {
+    if (reader.existsNotification(request.idempotencyKey())) {
+      return;
+    }
+
     Notification notification = createNotificationWithTemplate(request);
     if (notification == null) {
       return;
@@ -48,6 +52,7 @@ public class NotificationSendService {
         .findTemplate(request.notificationType())
         .map(template ->
             Notification.of(
+                request.idempotencyKey(),
                 request.senderType(),
                 request.senderId(),
                 request.receiverId(),
@@ -59,7 +64,16 @@ public class NotificationSendService {
               .addKeyValue("notificationType", request.notificationType())
               .addKeyValue("receiverId", request.receiverId())
               .log("알림 템플릿 없음");
-          saveFailedNotification(request, FAILED_TEMPLATE_NOT_FOUND);
+          writer.save(
+              Notification.createFailed(
+                  request.idempotencyKey(),
+                  request.senderType(),
+                  request.senderId(),
+                  request.receiverId(),
+                  request.notificationType(),
+                  "알림 전송 실패",
+                  "알림 전송에 실패했습니다.",
+                  FAILED_TEMPLATE_NOT_FOUND));
           return null;
         });
   }
@@ -70,13 +84,13 @@ public class NotificationSendService {
         .map(pref -> {
           boolean canSend = pref.canReceive(notification.getType());
           if (!canSend) {
-            saveFailedNotification(notification, REJECTED_BY_PREFERENCE);
+            saveFailed(notification, REJECTED_BY_PREFERENCE);
           }
           return canSend;
         })
         .orElseGet(() -> {
           log.atWarn().addKeyValue("receiverId", notification.getReceiverId()).log("알림 설정 없음");
-          saveFailedNotification(notification, FAILED_PREFERENCE_NOT_FOUND);
+          saveFailed(notification, FAILED_PREFERENCE_NOT_FOUND);
           return false;
         });
   }
@@ -85,7 +99,7 @@ public class NotificationSendService {
     return reader
         .findActiveDevice(notification.getReceiverId())
         .orElseGet(() -> {
-          saveFailedNotification(notification, FAILED_DEVICE_NOT_FOUND);
+          saveFailed(notification, FAILED_DEVICE_NOT_FOUND);
           return null;
         });
   }
@@ -101,18 +115,19 @@ public class NotificationSendService {
 
   private void dispatch(
       NotificationSender sender, Notification notification, DeviceRegistration deviceRegistration) {
+    writer.save(notification);
     try {
       sender.send(notification, deviceRegistration);
       notification.markAsSent();
-      writer.save(notification);
     } catch (Exception e) {
       log.atWarn()
           .setCause(e)
           .addKeyValue("receiverId", notification.getReceiverId())
           .addKeyValue("notificationType", notification.getType())
           .log("알림 전송 실패");
-      saveFailedNotification(notification, FAILED_EXCEPTION);
+      notification.markAsFailed(FAILED_EXCEPTION);
     }
+    writer.save(notification);
   }
 
   private void handleUnsupportedChannel(
@@ -121,28 +136,11 @@ public class NotificationSendService {
         .addKeyValue("channel", request.channelType())
         .addKeyValue("receiverId", request.receiverId())
         .log("지원하지 않는 알림 채널");
-    saveFailedNotification(notification, FAILED_UNSUPPORTED_CHANNEL);
+    saveFailed(notification, FAILED_UNSUPPORTED_CHANNEL);
   }
 
-  private void saveFailedNotification(NotificationSendRequest request, NotificationStatus status) {
-    writer.saveFailedNotification(
-        request.senderType(),
-        request.senderId(),
-        request.receiverId(),
-        request.notificationType(),
-        "알림 전송 실패",
-        "알림 전송에 실패했습니다.",
-        status);
-  }
-
-  private void saveFailedNotification(Notification notification, NotificationStatus status) {
-    writer.saveFailedNotification(
-        notification.getSenderType(),
-        notification.getSenderId(),
-        notification.getReceiverId(),
-        notification.getType(),
-        notification.getTitle(),
-        notification.getBody(),
-        status);
+  private void saveFailed(Notification notification, NotificationStatus status) {
+    notification.markAsFailed(status);
+    writer.save(notification);
   }
 }

@@ -3,6 +3,7 @@ package kr.co.deepple.notification.fixture;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import kr.co.deepple.notification.domain.Notification;
 import kr.co.deepple.notification.domain.NotificationStatus;
 import kr.co.deepple.notification.domain.NotificationType;
@@ -18,6 +19,7 @@ import lombok.experimental.Accessors;
 public class NotificationFixture {
 
   private Long id;
+  private String idempotencyKey = UUID.randomUUID().toString();
   private SenderType senderType = SenderType.MEMBER;
   private long senderId = 1L;
   private long receiverId = 2L;
@@ -33,7 +35,7 @@ public class NotificationFixture {
 
   public Notification build() {
     Notification notification =
-        Notification.of(senderType, senderId, receiverId, type, title, body);
+        Notification.of(idempotencyKey, senderType, senderId, receiverId, type, title, body);
     setField(notification, "id", id);
     setField(notification, "status", status);
     setField(notification, "readAt", readAt);

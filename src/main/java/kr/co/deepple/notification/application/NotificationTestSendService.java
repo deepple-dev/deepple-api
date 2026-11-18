@@ -18,9 +18,10 @@ public class NotificationTestSendService {
 
   private final NotificationSendService notificationSendService;
 
-  public void send(long memberId, NotificationTestSendRequest request) {
+  public void send(long memberId, String idempotencyKey, NotificationTestSendRequest request) {
     NotificationSendRequest sendRequest =
         new NotificationSendRequest(
+            idempotencyKey,
             requireNonNullElse(request.senderType(), SenderType.MEMBER),
             requireNonNullElse(request.senderId(), memberId),
             requireNonNullElse(request.receiverId(), memberId),

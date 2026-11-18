@@ -7,6 +7,7 @@ import static kr.co.deepple.notification.domain.NotificationType.REPORT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
 import kr.co.deepple.notification.fixture.NotificationPreferenceFixture;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class NotificationPreferenceTest {
+
+  private static final Instant CHANGED_AT = Instant.parse("2026-01-01T00:00:00Z");
 
   @Test
   @DisplayName("of() 초기화: 글로벌과 타입별 수신 모두 활성화")
@@ -38,12 +41,32 @@ class NotificationPreferenceTest {
     var preference = NotificationPreferenceFixture.builder().build();
 
     // when
-    preference.disableGlobally();
+    preference.disableGlobally(CHANGED_AT);
 
     // then
     assertThat(preference.isEnabledGlobally()).isFalse();
     assertThat(preference.canReceive(MATCH_REQUEST)).isFalse();
     assertThat(preference.canReceive(LIKE)).isFalse();
+    assertThat(preference.getGlobalSettingChangedAt()).isEqualTo(CHANGED_AT);
+  }
+
+  @Test
+  @DisplayName("disableGlobally(): 마지막 변경보다 오래되거나 같은 시각이면 무시한다")
+  void ignoreStaleGlobalChange() {
+    // given
+    var preference =
+        NotificationPreferenceFixture.builder()
+            .enabledGlobally(true)
+            .globalSettingChangedAt(CHANGED_AT)
+            .build();
+
+    // when
+    preference.disableGlobally(CHANGED_AT.minusSeconds(1L));
+    preference.disableGlobally(CHANGED_AT);
+
+    // then
+    assertThat(preference.isEnabledGlobally()).isTrue();
+    assertThat(preference.getGlobalSettingChangedAt()).isEqualTo(CHANGED_AT);
   }
 
   @Test
@@ -53,7 +76,7 @@ class NotificationPreferenceTest {
     var preference = NotificationPreferenceFixture.builder().enabledGlobally(false).build();
 
     // when
-    preference.enableGlobally();
+    preference.enableGlobally(CHANGED_AT);
 
     // then
     assertThat(preference.isEnabledGlobally()).isTrue();

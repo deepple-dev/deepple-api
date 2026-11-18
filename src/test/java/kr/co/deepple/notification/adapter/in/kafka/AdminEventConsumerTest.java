@@ -1,4 +1,4 @@
-package kr.co.deepple.notification.adapter.in.event;
+package kr.co.deepple.notification.adapter.in.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -17,11 +17,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class NotificationEventHandlerTest {
+class AdminEventConsumerTest {
 
   @Mock private NotificationSendService notificationSendService;
 
-  @InjectMocks private NotificationEventHandler notificationEventHandler;
+  @InjectMocks private AdminEventConsumer adminEventConsumer;
 
   @ParameterizedTest
   @EnumSource(WarningReasonType.class)
@@ -31,11 +31,12 @@ class NotificationEventHandlerTest {
     var event = WarningIssuedEvent.of(1L, 2L, 1L, reasonType.name(), false);
 
     // when
-    notificationEventHandler.handleWarningIssuedEvent(event);
+    adminEventConsumer.handle(event);
 
     // then
     var captor = ArgumentCaptor.forClass(NotificationSendRequest.class);
     verify(notificationSendService).send(captor.capture());
     assertThat(captor.getValue().notificationType().name()).isEqualTo(reasonType.name());
+    assertThat(captor.getValue().idempotencyKey()).isEqualTo(event.id().toString());
   }
 }

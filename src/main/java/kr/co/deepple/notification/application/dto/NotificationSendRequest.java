@@ -7,9 +7,13 @@ import kr.co.deepple.notification.domain.SenderType;
 import lombok.NonNull;
 
 public record NotificationSendRequest(
+    @NonNull String idempotencyKey,
     @NonNull SenderType senderType,
     long senderId,
     long receiverId,
     @NonNull NotificationType notificationType,
     @NonNull Map<String, String> params,
-    @NonNull ChannelType channelType) {}
+    @NonNull ChannelType channelType) {
+
+  public static final String SENDER_NAME = "senderName";
+}

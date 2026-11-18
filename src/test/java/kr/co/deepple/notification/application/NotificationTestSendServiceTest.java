@@ -32,10 +32,11 @@ class NotificationTestSendServiceTest {
     var request = new NotificationTestSendRequest(LIKE, null, null, null, null);
 
     // when
-    notificationTestSendService.send(memberId, request);
+    notificationTestSendService.send(memberId, "request-key", request);
 
     // then
     var sent = captureSentRequest();
+    assertThat(sent.idempotencyKey()).isEqualTo("request-key");
     assertThat(sent.senderType()).isEqualTo(SenderType.MEMBER);
     assertThat(sent.senderId()).isEqualTo(memberId);
     assertThat(sent.receiverId()).isEqualTo(memberId);
@@ -52,7 +53,7 @@ class NotificationTestSendServiceTest {
     var request = new NotificationTestSendRequest(LIKE, 2L, SenderType.ADMIN, 3L, params);
 
     // when
-    notificationTestSendService.send(1L, request);
+    notificationTestSendService.send(1L, "request-key", request);
 
     // then
     var sent = captureSentRequest();

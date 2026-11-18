@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
+
+  boolean existsByIdempotencyKey(String idempotencyKey);
+
   @Modifying(clearAutomatically = true)
   @Query(
       "UPDATE Notification n SET n.deletedAt = CURRENT_TIMESTAMP WHERE n.id IN :ids AND n.receiverId = :receiverId AND n.deletedAt IS NULL")

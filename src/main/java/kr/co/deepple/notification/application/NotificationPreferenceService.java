@@ -2,6 +2,7 @@ package kr.co.deepple.notification.application;
 
 import static kr.co.deepple.notification.application.NotificationTypeMapper.toNotificationType;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
@@ -32,21 +33,21 @@ public class NotificationPreferenceService {
   }
 
   @Transactional
-  public void changeGloballyIfPresent(long memberId, boolean enabled) {
+  public void changeGloballyIfPresent(long memberId, boolean enabled, Instant changedAt) {
     notificationPreferenceRepository
-        .findByMemberId(memberId)
+        .findByMemberIdForUpdate(memberId)
         .ifPresent(preference -> {
           if (enabled) {
-            preference.enableGlobally();
+            preference.enableGlobally(changedAt);
           } else {
-            preference.disableGlobally();
+            preference.disableGlobally(changedAt);
           }
         });
   }
 
   @Transactional
   public void enableGlobally(long memberId) {
-    getNotificationPreference(memberId).enableGlobally();
+    getNotificationPreferenceForUpdate(memberId).enableGlobally(Instant.now());
   }
 
   @Transactional
@@ -57,7 +58,7 @@ public class NotificationPreferenceService {
 
   @Transactional
   public void disableGlobally(long memberId) {
-    getNotificationPreference(memberId).disableGlobally();
+    getNotificationPreferenceForUpdate(memberId).disableGlobally(Instant.now());
   }
 
   @Transactional
@@ -81,8 +82,17 @@ public class NotificationPreferenceService {
   private NotificationPreference getNotificationPreference(long memberId) {
     return notificationPreferenceRepository
         .findByMemberId(memberId)
-        .orElseThrow(() ->
-            new DeeppleException(
-                NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND, "memberId=" + memberId));
+        .orElseThrow(() -> preferenceNotFound(memberId));
+  }
+
+  private NotificationPreference getNotificationPreferenceForUpdate(long memberId) {
+    return notificationPreferenceRepository
+        .findByMemberIdForUpdate(memberId)
+        .orElseThrow(() -> preferenceNotFound(memberId));
+  }
+
+  private DeeppleException preferenceNotFound(long memberId) {
+    return new DeeppleException(
+        NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND, "memberId=" + memberId);
   }
 }

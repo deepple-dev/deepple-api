@@ -12,7 +12,8 @@ public class EventLogContextAspect {
   @Around(
       "@annotation(org.springframework.context.event.EventListener)"
           + " || @annotation(org.springframework.transaction.event.TransactionalEventListener)"
-          + " || @annotation(org.springframework.modulith.events.ApplicationModuleListener)")
+          + " || @annotation(org.springframework.modulith.events.ApplicationModuleListener)"
+          + " || @annotation(org.springframework.kafka.annotation.KafkaHandler)")
   public Object putEventAction(ProceedingJoinPoint joinPoint) throws Throwable {
     String action =
         LogContext.resolveEventAction(joinPoint.getSignature().getName(), joinPoint.getArgs());

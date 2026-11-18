@@ -12,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
@@ -69,10 +70,10 @@ class NotificationPreferenceServiceTest {
     // given
     long memberId = 3L;
     var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.of(pref));
 
     // when
-    service.changeGloballyIfPresent(memberId, false);
+    service.changeGloballyIfPresent(memberId, false, Instant.parse("2026-01-01T00:00:00Z"));
 
     // then
     assertThat(pref.isEnabledGlobally()).isFalse();
@@ -83,10 +84,11 @@ class NotificationPreferenceServiceTest {
   void changeGloballyIfPresentSkipsWhenAbsent() {
     // given
     long memberId = 4L;
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.empty());
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
     // when & then
-    assertThatCode(() -> service.changeGloballyIfPresent(memberId, true))
+    assertThatCode(() ->
+            service.changeGloballyIfPresent(memberId, true, Instant.parse("2026-01-01T00:00:00Z")))
         .doesNotThrowAnyException();
   }
 
@@ -97,7 +99,7 @@ class NotificationPreferenceServiceTest {
     long memberId = 3L;
     var pref =
         NotificationPreferenceFixture.builder().memberId(memberId).enabledGlobally(false).build();
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.of(pref));
 
     // when
     service.enableGlobally(memberId);
@@ -111,7 +113,7 @@ class NotificationPreferenceServiceTest {
   void enableGloballyThrowsWhenNotFound() {
     // given
     long memberId = 7L;
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.empty());
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.empty());
 
     // when && then
     assertThatThrownBy(() -> service.enableGlobally(memberId))
@@ -126,7 +128,7 @@ class NotificationPreferenceServiceTest {
     // given
     long memberId = 4L;
     var pref = NotificationPreferenceFixture.builder().memberId(memberId).build();
-    when(repository.findByMemberId(memberId)).thenReturn(Optional.of(pref));
+    when(repository.findByMemberIdForUpdate(memberId)).thenReturn(Optional.of(pref));
 
     // when
     service.disableGlobally(memberId);

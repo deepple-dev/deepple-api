@@ -4,6 +4,7 @@ import java.util.Optional;
 import kr.co.deepple.notification.application.dto.NotificationTemplateInfo;
 import kr.co.deepple.notification.application.port.out.DeviceRegistrationRepository;
 import kr.co.deepple.notification.application.port.out.NotificationPreferenceRepository;
+import kr.co.deepple.notification.application.port.out.NotificationRepository;
 import kr.co.deepple.notification.application.port.out.NotificationTemplateRepository;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.domain.NotificationPreference;
@@ -19,9 +20,15 @@ public class NotificationDataReader {
 
   public static final String TEMPLATE_CACHE = "notificationTemplate";
 
+  private final NotificationRepository notificationRepository;
   private final NotificationTemplateRepository notificationTemplateRepository;
   private final NotificationPreferenceRepository notificationPreferenceRepository;
   private final DeviceRegistrationRepository deviceRegistrationRepository;
+
+  @Transactional(readOnly = true)
+  public boolean existsNotification(String idempotencyKey) {
+    return notificationRepository.existsByIdempotencyKey(idempotencyKey);
+  }
 
   @Cacheable(value = TEMPLATE_CACHE, key = "#type", unless = "#result == null")
   @Transactional(readOnly = true)
