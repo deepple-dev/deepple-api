@@ -3,7 +3,9 @@ package kr.co.deepple.admin.event;
 import kr.co.deepple.common.event.Event;
 import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
+import org.springframework.modulith.events.Externalized;
 
+@Externalized(AdminTopic.NAME + "::#{#this.memberId()}")
 public record WarningIssuedEvent(
     long adminId,
     long memberId,

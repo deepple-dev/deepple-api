@@ -30,6 +30,7 @@ spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-b
 spring-modulith-api = { module = "org.springframework.modulith:spring-modulith-api" }
 spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
 spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
+spring-modulith-events-kafka = { module = "org.springframework.modulith:spring-modulith-events-kafka" }
 
 archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
 

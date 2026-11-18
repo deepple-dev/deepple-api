@@ -13,6 +13,15 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET_NAME}
 
+  kafka:
+    admin:
+      auto-create: false
+
+  modulith:
+    events:
+      externalization:
+        enabled: false
+
 jwt:
   issuer: https://dev-api.deepple.co.kr
 

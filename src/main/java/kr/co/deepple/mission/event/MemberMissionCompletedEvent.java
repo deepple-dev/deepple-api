@@ -3,7 +3,9 @@ package kr.co.deepple.mission.event;
 import kr.co.deepple.common.event.Event;
 import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
+import org.springframework.modulith.events.Externalized;
 
+@Externalized(MissionTopic.NAME + "::#{#this.memberId()}")
 public record MemberMissionCompletedEvent(
     long memberId,
     long memberMissionId,
