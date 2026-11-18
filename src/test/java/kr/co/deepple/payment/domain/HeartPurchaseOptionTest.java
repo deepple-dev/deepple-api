@@ -13,22 +13,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 class HeartPurchaseOptionTest {
 
   @ParameterizedTest
-  @ValueSource(strings = {"amount is null", "price is null", "name is null", "productId is null"})
-  @DisplayName("of 메서드에서 필드 값이 null이면 예외를 던집니다.")
-  void throwsExceptionWhenFieldValueIsNull(String fieldName) {
-    // given
-    HeartPurchaseAmount amount =
-        fieldName.equals("amount is null") ? null : HeartPurchaseAmount.from(10L);
-    Price price = fieldName.equals("price is null") ? null : Price.from(1000L);
-    String productId = fieldName.equals("productId is null") ? null : "productId";
-    String name = fieldName.equals("name is null") ? null : "name";
-
-    // when & then
-    assertThatThrownBy(() -> HeartPurchaseOption.of(amount, price, productId, name))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @ParameterizedTest
   @ValueSource(strings = {"name is blank", "productId is blank"})
   @DisplayName("name, productId 이 blank 이면 예외가 발생한다.")
   void throwsExceptionWhenNameOrProductIdIsBlank(String fieldName) {

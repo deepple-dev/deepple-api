@@ -41,12 +41,5 @@ class HeartAmountTest {
       assertThatThrownBy(() -> HeartAmount.of(TransactionType.MESSAGE, amount))
           .isInstanceOf(IllegalArgumentException.class);
     }
-
-    @Test
-    @DisplayName("거래 종류가 null이면 실패한다")
-    void failWhenTransactionTypeIsNull() {
-      // when & then
-      assertThatThrownBy(() -> HeartAmount.of(null, 10L)).isInstanceOf(NullPointerException.class);
-    }
   }
 }

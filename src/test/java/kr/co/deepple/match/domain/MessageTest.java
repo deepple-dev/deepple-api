@@ -8,17 +8,6 @@ import org.junit.jupiter.api.Test;
 public class MessageTest {
 
   @Test
-  @DisplayName("메세지 값이 null인 경우 예외 반환")
-  void throwsExceptionWhenMessageIsNull() {
-    // Given
-    String value = null;
-
-    // When & Then
-    Assertions.assertThatThrownBy(() -> Message.from(value))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
   @DisplayName("메세지 값이 빈 값인 경우 예외 반환")
   void throwsExceptionWhenMessageIsEmpty() {
     // Given

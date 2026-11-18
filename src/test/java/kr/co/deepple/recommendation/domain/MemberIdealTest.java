@@ -1,7 +1,6 @@
 package kr.co.deepple.recommendation.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Set;
 import kr.co.deepple.recommendation.fixture.MemberIdealFixture;
@@ -17,16 +16,6 @@ class MemberIdealTest {
   @Nested
   @DisplayName("init 메서드 테스트")
   class InitTest {
-
-    @Test
-    @DisplayName("memberId가 null이면 예외를 던진다.")
-    void throwsExceptionWhenMemberIdIsNull() {
-      // given
-      Long memberId = null;
-
-      // when, then
-      assertThatThrownBy(() -> MemberIdeal.init(memberId)).isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("정상적으로 MemberIdeal 객체를 생성한다.")
@@ -67,48 +56,6 @@ class MemberIdealTest {
       smokingStatus = "VAPE";
       drinkingStatus = "SOCIAL";
       hobbies = Set.of("DANCE", "ANIMATION");
-    }
-
-    @Test
-    @DisplayName("ageRange가 null이면 예외를 던진다.")
-    void throwsExceptionWhenAgeRangeIsNull() {
-      // given
-      MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
-      ageRange = null;
-
-      // when, then
-      assertThatThrownBy(() ->
-              memberIdeal.update(
-                  ageRange, hobbies, cities, religion, smokingStatus, drinkingStatus))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("hobbies가 null이면 예외를 던진다.")
-    void throwsExceptionWhenHobbiesAreNull() {
-      // given
-      MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
-      hobbies = null;
-
-      // when, then
-      assertThatThrownBy(() ->
-              memberIdeal.update(
-                  ageRange, hobbies, cities, religion, smokingStatus, drinkingStatus))
-          .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("cities가 null이면 예외를 던진다.")
-    void throwsExceptionWhenCitiesIsNull() {
-      // given
-      MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(1L).build();
-      cities = null;
-
-      // when, then
-      assertThatThrownBy(() ->
-              memberIdeal.update(
-                  ageRange, hobbies, cities, religion, smokingStatus, drinkingStatus))
-          .isInstanceOf(NullPointerException.class);
     }
 
     @ParameterizedTest

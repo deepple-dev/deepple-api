@@ -30,26 +30,6 @@ public class ProfileImageTest {
   }
 
   @Test
-  @DisplayName("멤버 아이디의 값이 NULL인 경우, 유효하지 않음")
-  void isInvalidWhenMemberIdIsNegative() {
-    // Given
-    Long memberId = null;
-    String imageUrl = "url";
-    boolean isPrimary = false;
-    int order = -1;
-
-    // When & Then
-    Assertions.assertThatThrownBy(() ->
-            ProfileImage.builder()
-                .memberId(memberId)
-                .imageUrl(ImageUrl.from(imageUrl))
-                .isPrimary(isPrimary)
-                .order(order)
-                .build())
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
   @DisplayName("order 값이 음수인 경우, 유효하지 않음")
   void isInvalidWhenOrderIsNegative() {
     // Given

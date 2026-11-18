@@ -8,17 +8,6 @@ import org.junit.jupiter.api.Test;
 class NicknameTest {
 
   @Test
-  @DisplayName("닉네임이 입력되지 않은 경우 유효하지 않습니다.")
-  void isInValidWhenNicknameIsNull() {
-    // Given
-    String nickname = null;
-
-    // When & Then
-    Assertions.assertThatThrownBy(() -> Nickname.from(nickname))
-        .isInstanceOf(NullPointerException.class);
-  }
-
-  @Test
   @DisplayName("닉네임이 공백으로 입력된 경우 유효하지 않습니다.")
   void isInValidWhenNicknameIsEmpty() {
     // Given

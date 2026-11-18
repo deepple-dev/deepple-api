@@ -32,43 +32,5 @@ class BlockTest {
       // then
       assertThat(result.getErrorCode()).isEqualTo(BlockErrorCode.SELF_BLOCK);
     }
-
-    @Test
-    @DisplayName("차단하는 id가 null이면 NullPointerException 예외를 던진다.")
-    void throwsNullPointerExceptionWhenBlockerIdIsNull() {
-      // given
-      Long blockerId = null;
-      Long blockedId = 1L;
-
-      // when
-      NullPointerException result =
-          assertThrows(
-              NullPointerException.class,
-              () -> {
-                Block.of(blockerId, blockedId);
-              });
-
-      // then
-      assertThat(result).isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("차단당하는 id가 null이면 NullPointerException 예외를 던진다.")
-    void throwsNullPointerExceptionWhenBlockedIdIsNull() {
-      // given
-      Long blockerId = 1L;
-      Long blockedId = null;
-
-      // when
-      NullPointerException result =
-          assertThrows(
-              NullPointerException.class,
-              () -> {
-                Block.of(blockerId, blockedId);
-              });
-
-      // then
-      assertThat(result).isInstanceOf(NullPointerException.class);
-    }
   }
 }

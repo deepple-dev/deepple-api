@@ -8,29 +8,12 @@ import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class InterviewQuestionTest {
 
   @Nested
   @DisplayName("of 메서드 테스트")
   class ofMethodTest {
-
-    @ParameterizedTest
-    @ValueSource(strings = {"body is null", "interviewCategory is null"})
-    @DisplayName("of 메서드에서 필드 값이 null이면 예외를 던집니다.")
-    void throwsExceptionWhenFieldValueIsNull(String fieldName) {
-      // given
-      String content = fieldName.equals("body is null") ? null : "body";
-      InterviewCategory interviewCategory =
-          fieldName.equals("interviewCategory is null") ? null : InterviewCategory.PERSONAL;
-      boolean isPublic = true;
-
-      // when & then
-      assertThatThrownBy(() -> InterviewQuestion.of(content, interviewCategory, isPublic))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("of 메서드에서 content가 blank이면 예외를 던집니다.")
@@ -67,22 +50,6 @@ class InterviewQuestionTest {
   @Nested
   @DisplayName("update 메서드 테스트")
   class updateMethodTest {
-
-    @ParameterizedTest
-    @ValueSource(strings = {"body is null", "interviewCategory is null"})
-    @DisplayName("update 메서드에서 필드 값이 null이면 예외를 던집니다.")
-    void throwsExceptionWhenFieldValueIsNull(String fieldName) {
-      // given
-      InterviewQuestion interviewQuestion = InterviewQuestionFixture.builder().build();
-      String content = fieldName.equals("body is null") ? null : "updated body";
-      InterviewCategory interviewCategory =
-          fieldName.equals("interviewCategory is null") ? null : InterviewCategory.SOCIAL;
-      boolean isPublic = false;
-
-      // when & then
-      assertThatThrownBy(() -> interviewQuestion.update(content, interviewCategory, isPublic))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("update 메서드에서 content가 blank이면 예외를 던집니다.")

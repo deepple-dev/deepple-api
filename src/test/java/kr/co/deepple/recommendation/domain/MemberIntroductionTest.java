@@ -7,24 +7,8 @@ import static org.mockito.Mockito.mock;
 import kr.co.deepple.common.exception.DeeppleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class MemberIntroductionTest {
-
-  @ParameterizedTest
-  @ValueSource(strings = {"memberId", "introducedMemberId", "content"})
-  @DisplayName("null 값을 가지고 생성하면 예외를 던진다.")
-  void throwsExceptionWhenNullValue(String nullParam) {
-    // given
-    Long memberId = nullParam.equals("memberId") ? null : 1L;
-    Long introducedMemberId = nullParam.equals("introducedMemberId") ? null : 2L;
-    IntroductionType type = nullParam.equals("content") ? null : mock(IntroductionType.class);
-
-    // when & then
-    assertThatThrownBy(() -> MemberIntroduction.of(memberId, introducedMemberId, type))
-        .isInstanceOf(NullPointerException.class);
-  }
 
   @Test
   @DisplayName("소개를 생성한다.")

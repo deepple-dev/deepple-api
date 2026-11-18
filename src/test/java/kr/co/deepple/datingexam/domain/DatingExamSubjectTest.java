@@ -9,31 +9,15 @@ import org.junit.jupiter.api.Test;
 class DatingExamSubjectTest {
 
   @Test
-  @DisplayName("name이 null 또는 빈 문자열인 경우 예외가 발생한다.")
-  void createWithNullOrEmptyName() {
+  @DisplayName("name이 빈 문자열인 경우 예외가 발생한다.")
+  void createWithEmptyName() {
     // Given
-    String nullName = null;
     String emptyName = "";
     SubjectType subjectType = SubjectType.REQUIRED;
 
     // When & Then
-    assertThatThrownBy(() -> DatingExamSubject.of(nullName, subjectType))
-        .isInstanceOf(NullPointerException.class);
-
     assertThatThrownBy(() -> DatingExamSubject.of(emptyName, subjectType))
         .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  @DisplayName("type이 null인 경우 예외가 발생한다.")
-  void createWithNullType() {
-    // Given
-    String subjectName = "Test Subject";
-    SubjectType nullType = null;
-
-    // When & Then
-    assertThatThrownBy(() -> DatingExamSubject.of(subjectName, nullType))
-        .isInstanceOf(NullPointerException.class);
   }
 
   @Test

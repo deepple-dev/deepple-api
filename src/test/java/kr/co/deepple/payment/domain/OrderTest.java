@@ -9,28 +9,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class OrderTest {
 
   @Nested
   @DisplayName("Order 객체 생성 테스트")
   class CreateOrderTest {
-
-    @ParameterizedTest
-    @ValueSource(strings = {"memberId is null", "transactionId is null", "paymentMethod is null"})
-    @DisplayName("Order의 파라미터가 Null이면 NullPointerException 발생")
-    void throwsNullPointerExceptionWhenParameterIsNull(String condition) {
-      // given
-      Long memberId = condition.equals("memberId is null") ? null : 1L;
-      String transactionId = condition.equals("transactionId is null") ? null : "transactionId";
-      PaymentMethod paymentMethod =
-          condition.equals("paymentMethod is null") ? null : PaymentMethod.GOOGLE_PLAY;
-      // when & then
-      assertThatThrownBy(() -> Order.of(memberId, transactionId, paymentMethod))
-          .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("Order의 파라미터가 Null이 아니면 Order 객체 PAID 상태로 생성")

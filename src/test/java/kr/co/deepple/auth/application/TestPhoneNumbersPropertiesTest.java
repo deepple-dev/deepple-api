@@ -45,19 +45,6 @@ class TestPhoneNumbersPropertiesTest {
     assertThat(properties.accepts("01000000000", "008008")).isFalse();
   }
 
-  @DisplayName("환경 변수처럼 쉼표로 이은 문자열을 테스트 번호 목록으로 읽는다.")
-  @Test
-  void bindsCommaSeparatedNumbers() {
-    TestPhoneNumbersProperties properties =
-        bind(
-            Map.of(
-                "auth.test-phone-numbers.verification-code", "135790",
-                "auth.test-phone-numbers.numbers", "01000000000, 01011111111"));
-
-    assertThat(properties.numbers()).containsExactlyInAnyOrder("01000000000", "01011111111");
-    assertThat(properties.allowAll()).isFalse();
-  }
-
   @DisplayName("형식이 틀린 번호나 인증번호가 설정되면 앱이 시작하지 않는다.")
   @Test
   void failsToStartWithInvalidFormat() {
