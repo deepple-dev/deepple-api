@@ -3,7 +3,9 @@ package kr.co.deepple.heart.event;
 import kr.co.deepple.common.event.Event;
 import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
+import org.springframework.modulith.events.Externalized;
 
+@Externalized(HeartTopic.NAME + "::#{#this.memberId()}")
 public record AdminHeartGrantedEvent(
     long memberId, long adminId, long amount, @NonNull EventMetadata metadata) implements Event {
 

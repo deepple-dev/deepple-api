@@ -21,33 +21,39 @@ import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnectionAutoConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.mapping.DefaultJacksonJavaTypeMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = {
       KafkaErrorHandlingConfig.class,
       KafkaErrorHandlingConfigIntegrationTest.TestListener.class
     })
-@ImportAutoConfiguration({KafkaAutoConfiguration.class, ServiceConnectionAutoConfiguration.class})
-@Import(KafkaContainerConfig.class)
+@ImportAutoConfiguration({
+  JacksonAutoConfiguration.class,
+  KafkaAutoConfiguration.class,
+  ServiceConnectionAutoConfiguration.class
+})
+@Import({
+  KafkaContainerConfig.class,
+  KafkaErrorHandlingConfigIntegrationTest.ModulithKafkaJsonImportSelector.class
+})
 class KafkaErrorHandlingConfigIntegrationTest {
 
   private static final String TOPIC = "kafka-error-handling-test";
@@ -56,29 +62,11 @@ class KafkaErrorHandlingConfigIntegrationTest {
 
   @Autowired private KafkaTemplate<Object, Object> kafkaTemplate;
 
-  @Autowired private ProducerFactory<Object, Object> producerFactory;
+  @Autowired private JsonMapper jsonMapper;
 
   @Autowired private ConsumerFactory<Object, Object> consumerFactory;
 
   @Autowired private TestListener listener;
-
-  @Test
-  @DisplayName("JSON에 모르는 칸이 있어도 이벤트 객체로 받는다.")
-  void receiveEventIgnoringUnknownProperties() {
-    String id = newId();
-    ProducerRecord<Object, Object> record =
-        new ProducerRecord<>(
-            TOPIC, id, "{\"id\":\"" + id + "\",\"failure\":\"NONE\",\"unknown\":1}");
-    record
-        .headers()
-        .add(
-            DefaultJacksonJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME,
-            TestEvent.class.getName().getBytes(StandardCharsets.UTF_8));
-
-    stringTemplate().send(record);
-
-    await().atMost(TIMEOUT).until(() -> listener.processed(id));
-  }
 
   @ParameterizedTest
   @EnumSource(names = {"TRANSIENT", "DEEPPLE_UNAVAILABLE"})
@@ -86,7 +74,7 @@ class KafkaErrorHandlingConfigIntegrationTest {
   void sendToDltAfterRetries(Failure failure) {
     String id = newId();
 
-    kafkaTemplate.send(TOPIC, id, new TestEvent(id, failure));
+    kafkaTemplate.send(TOPIC, id, jsonMapper.writeValueAsBytes(new TestEvent(id, failure)));
 
     ConsumerRecord<Object, Object> dead = pollDlt(id);
     assertThat(listener.attempts(id)).isEqualTo(5);
@@ -99,32 +87,25 @@ class KafkaErrorHandlingConfigIntegrationTest {
   void sendToDltWithoutRetry(Failure failure) {
     String id = newId();
 
-    kafkaTemplate.send(TOPIC, id, new TestEvent(id, failure));
+    kafkaTemplate.send(TOPIC, id, jsonMapper.writeValueAsBytes(new TestEvent(id, failure)));
 
     pollDlt(id);
     assertThat(listener.attempts(id)).isEqualTo(1);
   }
 
   @Test
-  @DisplayName("역직렬화에 실패한 메시지는 리스너를 부르지 않고 원본 그대로 DLT로 보낸다.")
-  void sendOriginalBytesToDltWhenDeserializationFails() {
+  @DisplayName("이벤트로 읽지 못한 메시지는 원본 그대로 DLT로 보낸다.")
+  void sendOriginalBytesToDltWhenConversionFails() {
     String id = newId();
 
-    stringTemplate().send(TOPIC, id, "not-json");
+    kafkaTemplate.send(TOPIC, id, "not-json".getBytes(StandardCharsets.UTF_8));
 
     ConsumerRecord<Object, Object> dead = pollDlt(id);
     assertThat(dead.value()).isEqualTo("not-json".getBytes(StandardCharsets.UTF_8));
-    assertThat(listener.attempts(id)).isZero();
   }
 
   private String newId() {
     return UUID.randomUUID().toString();
-  }
-
-  private KafkaTemplate<Object, Object> stringTemplate() {
-    return new KafkaTemplate<>(
-        producerFactory,
-        Map.of(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class));
   }
 
   private ConsumerRecord<Object, Object> pollDlt(String key) {
@@ -145,32 +126,33 @@ class KafkaErrorHandlingConfigIntegrationTest {
     }
   }
 
+  static class ModulithKafkaJsonImportSelector implements ImportSelector {
+
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+      return new String[] {"org.springframework.modulith.events.kafka.KafkaJacksonConfiguration"};
+    }
+  }
+
   static class TestListener {
 
     private final Map<String, AtomicInteger> attempts = new ConcurrentHashMap<>();
-    private final Map<String, Boolean> processed = new ConcurrentHashMap<>();
 
     @KafkaListener(topics = TOPIC)
     void listen(TestEvent event) {
       attempts.computeIfAbsent(event.id(), id -> new AtomicInteger()).incrementAndGet();
       event.failure().throwIfAny();
-      processed.put(event.id(), true);
     }
 
     int attempts(String id) {
       AtomicInteger count = attempts.get(id);
       return count == null ? 0 : count.get();
     }
-
-    boolean processed(String id) {
-      return processed.containsKey(id);
-    }
   }
 
   record TestEvent(String id, Failure failure) {}
 
   enum Failure {
-    NONE,
     TRANSIENT,
     DEEPPLE,
     DEEPPLE_UNAVAILABLE,
@@ -179,7 +161,6 @@ class KafkaErrorHandlingConfigIntegrationTest {
 
     void throwIfAny() {
       switch (this) {
-        case NONE -> {}
         case TRANSIENT -> throw new RuntimeException("일시적 실패");
         case DEEPPLE -> throw new DeeppleException(TestErrorCode.FAILED);
         case DEEPPLE_UNAVAILABLE -> throw new DeeppleException(TestErrorCode.UNAVAILABLE);

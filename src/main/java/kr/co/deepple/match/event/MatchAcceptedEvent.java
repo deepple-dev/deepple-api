@@ -3,7 +3,9 @@ package kr.co.deepple.match.event;
 import kr.co.deepple.common.event.Event;
 import kr.co.deepple.common.event.EventMetadata;
 import lombok.NonNull;
+import org.springframework.modulith.events.Externalized;
 
+@Externalized(MatchTopic.NAME + "::#{#this.matchId()}")
 public record MatchAcceptedEvent(
     long matchId,
     long requesterId,
