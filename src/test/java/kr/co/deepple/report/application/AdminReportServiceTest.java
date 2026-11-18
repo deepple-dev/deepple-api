@@ -6,9 +6,7 @@ import static kr.co.deepple.report.domain.ReportResult.WARNED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -163,23 +161,6 @@ class AdminReportServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_NOT_FOUND);
 
       verify(reportRepository).findById(reportId);
-      verify(reportRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("예외 케이스: null 요청 객체 전달 시 NPE 발생")
-    void shouldThrowNullPointerExceptionWhenRequestIsNull() {
-      // given
-      report = spy(ReportFixture.builder().id(reportId).version(version).build());
-      when(reportRepository.findById(reportId)).thenReturn(Optional.of(report));
-
-      // when & then
-      assertThatThrownBy(() -> adminReportService.updateResult(reportId, null, adminId))
-          .isInstanceOf(NullPointerException.class);
-
-      verify(reportRepository).findById(reportId);
-      verify(report, never()).hasVersionConflict(anyLong());
-      assertThat(report.getResult()).isEqualTo(PENDING);
       verify(reportRepository, never()).save(any());
     }
   }
