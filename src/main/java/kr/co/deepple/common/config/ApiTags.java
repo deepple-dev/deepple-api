@@ -23,6 +23,7 @@ public final class ApiTags {
   public static final String REPORT = "신고";
   public static final String SCREENING = "심사·제재";
   public static final String FEED = "피드";
+  public static final String OPERATION = "운영";
 
   static List<Tag> definitions() {
     return List.of(
@@ -40,7 +41,8 @@ public final class ApiTags {
         tag(BLOCK, "사용자 차단"),
         tag(REPORT, "사용자 신고, 신고 처리"),
         tag(SCREENING, "프로필 심사, 재심사 요청, 정지·경고"),
-        tag(FEED, "피드, 좋아요, 투표, 댓글, 이미지 업로드. 구현 전이라 고정된 예시 값을 응답한다"));
+        tag(FEED, "피드, 좋아요, 투표, 댓글, 이미지 업로드. 구현 전이라 고정된 예시 값을 응답한다"),
+        tag(OPERATION, "Kafka DLT 메시지 재처리"));
   }
 
   private static Tag tag(String name, String description) {

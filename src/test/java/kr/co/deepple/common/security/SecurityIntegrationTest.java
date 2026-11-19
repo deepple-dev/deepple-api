@@ -37,6 +37,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
   private static final String ADMIN_API = "/admin/members";
   private static final String MEMBER_API = "/member/profile/contact";
   private static final String ADMIN_ACCOUNT_API = "/admin/accounts";
+  private static final String DEAD_LETTER_REPLAY_API = "/admin/kafka/dead-letters/member/replay";
   private static final String ALLOWED_ORIGIN = "https://admin.deepple.test";
 
   @Autowired private MockMvcTester mockMvc;
@@ -220,6 +221,19 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
           mockMvc
               .get()
               .uri(ADMIN_ACCOUNT_API)
+              .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(Role.ADMIN)))
+              .exchange();
+
+      assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("일반 관리자 토큰으로 DLT 재처리 API를 호출하면 403을 응답한다.")
+    void rejectAdminOnDeadLetterReplayApi() {
+      MvcTestResult result =
+          mockMvc
+              .post()
+              .uri(DEAD_LETTER_REPLAY_API)
               .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(Role.ADMIN)))
               .exchange();
 

@@ -63,6 +63,17 @@ locals {
       why       = "- Kafka 브로커 중지로 외부화 실패\n- 핸들러 실패가 재제출 10번을 다 씀"
       how       = "- `event_publication`에서 완료되지 않은 기록의 `listener_id`·`event_type`·`completion_attempts` 확인\n- Sentry에서 같은 이벤트의 핸들러 오류 확인\n- 원인을 고친 뒤 `completion_attempts`를 0으로 되돌려 재제출\n- 다시 시도해도 성공할 수 없는 기록(리스너가 없어짐 등)은 삭제"
     }
+    kafka_dead_letters = {
+      title     = "Kafka messages dead-lettered"
+      severity  = "warning"
+      query     = "sum(increase(kafka_dlt_records_total{deployment_environment_name=\"ENV\"}[10m]))"
+      evaluator = { type = "gt", value = 0 }
+      for       = "0s"
+      no_data   = "OK"
+      what      = "최근 10분 동안 DLT로 간 Kafka 메시지 {{ printf \"%.0f\" $values.A.Value }}개"
+      why       = "- 소비자 버그·데이터 문제로 바로 DLT로 가는 예외\n- DB·외부 장애가 재시도(약 16초)보다 길게 이어짐\n- 다른 토픽 이벤트가 아직 처리되지 않음(예: 하트 잔액 행이 없는 구매·미션 이벤트)"
+      how       = "- Sentry·Grafana Explore에서 `Kafka 메시지를 DLT로 보냄` ERROR 로그의 `topic`·`consumerGroup`·예외 확인\n- 원인을 고친 뒤 `POST /admin/kafka/dead-letters/{topic}/replay`(SUPER_ADMIN)로 재처리"
+    }
     old_gen_usage = {
       title     = "High old gen usage after GC"
       severity  = "warning"
