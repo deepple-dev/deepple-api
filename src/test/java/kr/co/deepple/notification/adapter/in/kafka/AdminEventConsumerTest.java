@@ -6,7 +6,7 @@ import static org.mockito.Mockito.verify;
 import kr.co.deepple.admin.domain.WarningReasonType;
 import kr.co.deepple.admin.event.WarningIssuedEvent;
 import kr.co.deepple.notification.application.NotificationSendService;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,7 +34,7 @@ class AdminEventConsumerTest {
     adminEventConsumer.handle(event);
 
     // then
-    var captor = ArgumentCaptor.forClass(NotificationSendRequest.class);
+    var captor = ArgumentCaptor.forClass(SendNotificationCommand.class);
     verify(notificationSendService).send(captor.capture());
     assertThat(captor.getValue().notificationType().name()).isEqualTo(reasonType.name());
     assertThat(captor.getValue().idempotencyKey()).isEqualTo(event.id().toString());

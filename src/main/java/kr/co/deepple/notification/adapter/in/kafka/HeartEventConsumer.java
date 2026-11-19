@@ -5,7 +5,7 @@ import kr.co.deepple.common.event.EventConsumer;
 import kr.co.deepple.heart.event.AdminHeartGrantedEvent;
 import kr.co.deepple.heart.event.HeartTopic;
 import kr.co.deepple.notification.application.NotificationSendService;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.NotificationType;
 import kr.co.deepple.notification.domain.SenderType;
@@ -24,7 +24,7 @@ public class HeartEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(AdminHeartGrantedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.ADMIN,
             event.adminId(),

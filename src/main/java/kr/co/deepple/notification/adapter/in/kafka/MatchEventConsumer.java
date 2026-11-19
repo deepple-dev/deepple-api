@@ -7,7 +7,7 @@ import kr.co.deepple.match.event.MatchRejectedEvent;
 import kr.co.deepple.match.event.MatchRequestedEvent;
 import kr.co.deepple.match.event.MatchTopic;
 import kr.co.deepple.notification.application.NotificationSendService;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.NotificationType;
 import kr.co.deepple.notification.domain.SenderType;
@@ -26,39 +26,39 @@ public class MatchEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(MatchRequestedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.requesterId(),
             event.responderId(),
             NotificationType.MATCH_REQUEST,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.requesterName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.requesterName()),
             ChannelType.PUSH));
   }
 
   @KafkaHandler
   public void handle(MatchAcceptedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.responderId(),
             event.requesterId(),
             NotificationType.MATCH_ACCEPT,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.responderName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.responderName()),
             ChannelType.PUSH));
   }
 
   @KafkaHandler
   public void handle(MatchRejectedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.responderId(),
             event.requesterId(),
             NotificationType.MATCH_REJECT,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.responderName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.responderName()),
             ChannelType.PUSH));
   }
 }

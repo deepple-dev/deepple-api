@@ -7,7 +7,7 @@ import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_TEMPLA
 import static kr.co.deepple.notification.domain.NotificationStatus.FAILED_UNSUPPORTED_CHANNEL;
 import static kr.co.deepple.notification.domain.NotificationStatus.REJECTED_BY_PREFERENCE;
 
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.domain.Notification;
 import kr.co.deepple.notification.domain.NotificationSender;
@@ -25,12 +25,12 @@ public class NotificationSendService {
   private final NotificationDataWriter writer;
   private final NotificationSenderResolver notificationSenderResolver;
 
-  public void send(NotificationSendRequest request) {
-    if (reader.existsNotification(request.idempotencyKey())) {
+  public void send(SendNotificationCommand command) {
+    if (reader.existsNotification(command.idempotencyKey())) {
       return;
     }
 
-    Notification notification = createNotificationWithTemplate(request);
+    Notification notification = createNotificationWithTemplate(command);
     if (notification == null) {
       return;
     }
@@ -44,33 +44,33 @@ public class NotificationSendService {
       return;
     }
 
-    sendNotification(notification, device, request);
+    sendNotification(notification, device, command);
   }
 
-  private Notification createNotificationWithTemplate(NotificationSendRequest request) {
+  private Notification createNotificationWithTemplate(SendNotificationCommand command) {
     return reader
-        .findTemplate(request.notificationType())
+        .findTemplate(command.notificationType())
         .map(template ->
             Notification.of(
-                request.idempotencyKey(),
-                request.senderType(),
-                request.senderId(),
-                request.receiverId(),
-                request.notificationType(),
-                template.generateTitle(request.params()),
-                template.generateBody(request.params())))
+                command.idempotencyKey(),
+                command.senderType(),
+                command.senderId(),
+                command.receiverId(),
+                command.notificationType(),
+                template.generateTitle(command.params()),
+                template.generateBody(command.params())))
         .orElseGet(() -> {
           log.atError()
-              .addKeyValue("notificationType", request.notificationType())
-              .addKeyValue("receiverId", request.receiverId())
+              .addKeyValue("notificationType", command.notificationType())
+              .addKeyValue("receiverId", command.receiverId())
               .log("알림 템플릿 없음");
           writer.save(
               Notification.createFailed(
-                  request.idempotencyKey(),
-                  request.senderType(),
-                  request.senderId(),
-                  request.receiverId(),
-                  request.notificationType(),
+                  command.idempotencyKey(),
+                  command.senderType(),
+                  command.senderId(),
+                  command.receiverId(),
+                  command.notificationType(),
                   "알림 전송 실패",
                   "알림 전송에 실패했습니다.",
                   FAILED_TEMPLATE_NOT_FOUND));
@@ -105,12 +105,12 @@ public class NotificationSendService {
   }
 
   private void sendNotification(
-      Notification notification, DeviceRegistration device, NotificationSendRequest request) {
+      Notification notification, DeviceRegistration device, SendNotificationCommand command) {
     notificationSenderResolver
-        .resolve(request.channelType())
+        .resolve(command.channelType())
         .ifPresentOrElse(
             sender -> dispatch(sender, notification, device),
-            () -> handleUnsupportedChannel(notification, request));
+            () -> handleUnsupportedChannel(notification, command));
   }
 
   private void dispatch(
@@ -131,10 +131,10 @@ public class NotificationSendService {
   }
 
   private void handleUnsupportedChannel(
-      Notification notification, NotificationSendRequest request) {
+      Notification notification, SendNotificationCommand command) {
     log.atWarn()
-        .addKeyValue("channel", request.channelType())
-        .addKeyValue("receiverId", request.receiverId())
+        .addKeyValue("channel", command.channelType())
+        .addKeyValue("receiverId", command.receiverId())
         .log("지원하지 않는 알림 채널");
     saveFailed(notification, FAILED_UNSUPPORTED_CHANNEL);
   }

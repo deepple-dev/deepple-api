@@ -4,7 +4,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Set;
 import kr.co.deepple.admin.application.WarningService;
-import kr.co.deepple.admin.application.dto.WarningCreateRequest;
+import kr.co.deepple.admin.application.port.in.IssueWarningCommand;
 import kr.co.deepple.report.event.ReportWarnedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +31,6 @@ class ReportEventConsumerTest {
 
     // then
     verify(warningService)
-        .issue(1L, new WarningCreateRequest(2L, Set.of("REPORT"), true, "report-warning-1"));
+        .issue(1L, new IssueWarningCommand(2L, Set.of("REPORT"), true, "report-warning-1"));
   }
 }

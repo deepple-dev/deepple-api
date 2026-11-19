@@ -5,7 +5,7 @@ import kr.co.deepple.common.event.EventConsumer;
 import kr.co.deepple.like.event.LikeSentEvent;
 import kr.co.deepple.like.event.LikeTopic;
 import kr.co.deepple.notification.application.NotificationSendService;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.NotificationType;
 import kr.co.deepple.notification.domain.SenderType;
@@ -24,13 +24,13 @@ public class LikeEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(LikeSentEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.senderId(),
             event.receiverId(),
             NotificationType.LIKE,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.senderName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.senderName()),
             ChannelType.PUSH));
   }
 }

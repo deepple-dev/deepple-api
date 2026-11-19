@@ -4,6 +4,7 @@ import static kr.co.deepple.admin.application.WarningMapper.toWarningReasonTypes
 
 import java.util.Set;
 import kr.co.deepple.admin.application.dto.WarningCreateRequest;
+import kr.co.deepple.admin.application.port.in.IssueWarningCommand;
 import kr.co.deepple.admin.application.port.out.WarningRepository;
 import kr.co.deepple.admin.domain.Warning;
 import kr.co.deepple.admin.domain.WarningReasonType;
@@ -24,26 +25,37 @@ public class WarningService {
 
   @Transactional
   public void issue(long adminId, WarningCreateRequest request) {
-    long memberId = request.memberId();
-    String idempotencyKey = request.idempotencyKey();
+    issue(
+        adminId,
+        new IssueWarningCommand(
+            request.memberId(),
+            request.reasonTypes(),
+            request.isCritical(),
+            request.idempotencyKey()));
+  }
+
+  @Transactional
+  public void issue(long adminId, IssueWarningCommand command) {
+    long memberId = command.memberId();
+    String idempotencyKey = command.idempotencyKey();
     if (idempotencyKey != null && warningRepository.existsByIdempotencyKey(idempotencyKey)) {
       log.atInfo().addKeyValue("memberId", memberId).log("이미 처리된 경고 요청");
       return;
     }
 
     long currentWarningCount = warningRepository.countByMemberIdAndIsCriticalTrue(memberId);
-    if (request.isCritical()) {
+    if (command.isCritical()) {
       currentWarningCount += 1;
     }
-    Set<WarningReasonType> reasonTypes = toWarningReasonTypes(request.reasonTypes());
+    Set<WarningReasonType> reasonTypes = toWarningReasonTypes(command.reasonTypes());
     Warning warning =
-        Warning.issue(adminId, memberId, reasonTypes, request.isCritical(), idempotencyKey);
+        Warning.issue(adminId, memberId, reasonTypes, command.isCritical(), idempotencyKey);
 
     warningRepository.save(warning);
     for (WarningReasonType reasonType : reasonTypes) {
       eventPublisher.publishEvent(
           WarningIssuedEvent.of(
-              adminId, memberId, currentWarningCount, reasonType.name(), request.isCritical()));
+              adminId, memberId, currentWarningCount, reasonType.name(), command.isCritical()));
     }
 
     log.atInfo()
