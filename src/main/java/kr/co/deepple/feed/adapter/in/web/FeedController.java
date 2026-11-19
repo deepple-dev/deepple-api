@@ -29,9 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FeedController {
 
-  @Operation(
-      summary = "피드 목록 조회",
-      description = "홈 피드를 20개씩 조회한다. authorType=OFFICIAL이면 관리자 피드 모아보기다. 둘 다 상단 고정 피드가 먼저 온다.")
+  @Operation(summary = "피드 목록 조회", description = "홈 피드를 20개씩 조회한다. 상단 고정 피드가 먼저 온다.")
   @GetMapping("/feeds")
   public ResponseEntity<FeedViews> getFeeds(
       @Valid @ModelAttribute FeedSearchCondition feedSearchCondition) {
@@ -46,6 +44,16 @@ public class FeedController {
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
           String cursor) {
     return ResponseEntity.ok(FeedSamples.myFeedGrid());
+  }
+
+  @Operation(
+      summary = "공식 계정 피드 목록 조회",
+      description = "공식 계정 화면의 격자형 목록. 상단 고정 피드가 먼저 오고 나머지는 최신순이다. 칸을 누르면 피드 상세를 조회한다.")
+  @GetMapping("/official/feeds")
+  public ResponseEntity<FeedGridViews> getOfficialFeeds(
+      @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
+          String cursor) {
+    return ResponseEntity.ok(FeedSamples.officialFeedGrid());
   }
 
   @Operation(summary = "피드 상세 조회")

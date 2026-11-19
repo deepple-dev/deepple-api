@@ -78,9 +78,6 @@ final class FeedSamples {
   private static final List<FeedAuthorView> MEMBERS = List.of(GINGER, RUNNER, LONG_NICKNAME);
 
   static FeedViews feeds(FeedSearchCondition condition) {
-    if (FeedAuthorType.OFFICIAL.name().equals(condition.authorType())) {
-      return new FeedViews(officialFeeds(), null, false);
-    }
     if (SECOND_PAGE_CURSOR.equals(condition.cursor())) {
       return new FeedViews(simpleFeeds(21L, 25L), null, false);
     }
@@ -89,6 +86,11 @@ final class FeedSamples {
 
   static FeedGridViews myFeedGrid() {
     return new FeedGridViews(myFeeds().stream().map(FeedSamples::gridItem).toList(), null, false);
+  }
+
+  static FeedGridViews officialFeedGrid() {
+    return new FeedGridViews(
+        officialFeeds().stream().map(FeedSamples::gridItem).toList(), null, false);
   }
 
   static FeedView feed(long feedId) {
