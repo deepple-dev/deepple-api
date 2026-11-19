@@ -14,6 +14,10 @@ public final class KafkaTopics {
   public static KafkaAdmin.NewTopics withDeadLetterTopic(String name) {
     return new KafkaAdmin.NewTopics(
         TopicBuilder.name(name).partitions(PARTITIONS).build(),
-        TopicBuilder.name(name + DEAD_LETTER_SUFFIX).partitions(PARTITIONS).build());
+        TopicBuilder.name(deadLetterTopic(name)).partitions(PARTITIONS).build());
+  }
+
+  public static String deadLetterTopic(String name) {
+    return name + DEAD_LETTER_SUFFIX;
   }
 }

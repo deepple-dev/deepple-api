@@ -46,6 +46,7 @@ public class SecurityConfig {
     get("/webjars/**")
   };
   private static final String ADMIN_ACCOUNT_API = "/admin/accounts/**";
+  private static final String ADMIN_KAFKA_API = "/admin/kafka/**";
   private static final String ADMIN_API = "/admin/**";
 
   private final TokenAuthenticationEntryPoint authenticationEntryPoint;
@@ -75,7 +76,7 @@ public class SecurityConfig {
     return applyCommonSettings(http)
         .authorizeHttpRequests(authorize ->
             authorize
-                .requestMatchers(ADMIN_ACCOUNT_API)
+                .requestMatchers(ADMIN_ACCOUNT_API, ADMIN_KAFKA_API)
                 .hasRole(Role.SUPER_ADMIN.name())
                 .requestMatchers(ADMIN_API)
                 .hasAnyRole(Role.ADMIN.name(), Role.SUPER_ADMIN.name())

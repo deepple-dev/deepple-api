@@ -1,5 +1,6 @@
 package kr.co.deepple.common.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.exception.ErrorType;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,8 @@ public class KafkaErrorHandlingConfig {
   private static final BackOff NO_RETRY = new FixedBackOff(0L, 0L);
 
   @Bean
-  public DefaultErrorHandler kafkaErrorHandler(KafkaTemplate<?, ?> kafkaTemplate) {
+  public DefaultErrorHandler kafkaErrorHandler(
+      KafkaTemplate<?, ?> kafkaTemplate, MeterRegistry meterRegistry) {
     ExponentialBackOffWithMaxRetries backOff = new ExponentialBackOffWithMaxRetries(MAX_RETRIES);
 
     DefaultErrorHandler errorHandler =
@@ -27,6 +29,7 @@ public class KafkaErrorHandlingConfig {
         IllegalArgumentException.class, IllegalStateException.class);
     errorHandler.setBackOffFunction(
         (record, exception) -> isPermanent(exception) ? NO_RETRY : null);
+    errorHandler.setRetryListeners(new DeadLetterRecoveryListener(meterRegistry));
     return errorHandler;
   }
 

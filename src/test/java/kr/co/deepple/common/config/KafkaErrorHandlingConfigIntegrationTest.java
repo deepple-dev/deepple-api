@@ -3,6 +3,8 @@ package kr.co.deepple.common.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
@@ -42,6 +44,7 @@ import tools.jackson.databind.json.JsonMapper;
     classes = {
       KafkaErrorHandlingConfig.class,
       KafkaMessageConverterConfig.class,
+      SimpleMeterRegistry.class,
       KafkaErrorHandlingConfigIntegrationTest.TestListener.class
     },
     properties = {
@@ -69,6 +72,8 @@ class KafkaErrorHandlingConfigIntegrationTest {
   @Autowired private ConsumerFactory<Object, Object> consumerFactory;
 
   @Autowired private TestListener listener;
+
+  @Autowired private MeterRegistry meterRegistry;
 
   @ParameterizedTest
   @EnumSource(names = {"TRANSIENT", "DEEPPLE_UNAVAILABLE"})
@@ -104,6 +109,22 @@ class KafkaErrorHandlingConfigIntegrationTest {
 
     ConsumerRecord<Object, Object> dead = pollDlt(id);
     assertThat(dead.value()).isEqualTo("not-json".getBytes(StandardCharsets.UTF_8));
+  }
+
+  @Test
+  @DisplayName("DLT로 보내면 DLT 메시지 수 지표를 올린다.")
+  void countDeadLetters() {
+    String id = newId();
+    double before = deadLetterCount();
+
+    kafkaTemplate.send(TOPIC, id, jsonMapper.writeValueAsBytes(new TestEvent(id, Failure.DEEPPLE)));
+
+    pollDlt(id);
+    await().atMost(TIMEOUT).until(() -> deadLetterCount() >= before + 1);
+  }
+
+  private double deadLetterCount() {
+    return meterRegistry.get("kafka.dlt.records").counter().count();
   }
 
   private String newId() {
