@@ -64,6 +64,7 @@ terraform apply            # 실제 적용
 코드만 있고 아직 apply하지 않았다. 출시 준비 때 띄운다.
 
 - Kafka: 비공개 서브넷 첫 번째 AZ의 EC2 `t4g.small` 1대에서 `apache/kafka` 컨테이너를 user data로 띄운다(`kafka.deepple-prod.local:9092`, 토픽 자동 생성 끔). 데이터는 같은 AZ의 별도 EBS(gp3 20GB, `/var/lib/kafka/data`)에 두고 DLM이 매일 03:00(KST)에 스냅샷을 찍어 7개를 보관한다. 로그는 CloudWatch `/ec2/deepple-prod-kafka`에 남는다.
+  - 지표: user data가 CloudWatch agent를 설치해 데이터 디스크·루트 디스크·메모리 사용률을 `CWAgent` namespace로 보낸다. 디스크 80%, 메모리 90%(10분 평균)를 넘으면 알린다. 데이터 디스크 알람은 15분간 값이 안 와도(agent 멈춤) 울린다. agent 설정(`kafka.tf`의 `kafka_agent_config`)을 바꾸면 user data가 바뀌어 인스턴스가 교체된다. 첫 apply 뒤 CloudWatch `CWAgent`에 지표 3개가 오는지, 평소 메모리 사용률이 90%보다 충분히 낮은지 확인한다.
   - 첫 apply: 앱이 Kafka보다 먼저 뜨면 토픽을 만들지 못하고 그대로 뜬다(자동 생성이 꺼져 있다). apply 뒤 Session Manager로 인스턴스에 붙어 `docker exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list`로 토픽을 확인하고, 없으면 앱 service를 다시 배포한다(`aws ecs update-service --cluster deepple-prod --service deepple-prod-api --force-new-deployment`).
   - 접속: SSH 없이 Session Manager로 붙는다(`aws ssm start-session --target <인스턴스 ID>`).
   - OS 패치·Kafka 업그레이드: 평소 apply는 새 AMI를 무시한다. 패치할 때 `terraform apply -replace=aws_instance.kafka`로 최신 AMI 인스턴스로 바꾼다. Kafka 버전은 `variables.tf`의 `kafka.version`을 바꿔 apply하면 인스턴스가 교체된다. 교체되는 몇 분 동안 Kafka가 멈추고, 그동안 발행은 `event_publication`에 남았다가 재제출된다.

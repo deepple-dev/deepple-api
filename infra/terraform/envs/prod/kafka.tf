@@ -22,6 +22,26 @@ locals {
     KAFKA_LOG_DIRS                                         = local.kafka_data_dir
     KAFKA_HEAP_OPTS                                        = "-Xms1g -Xmx1g"
   }
+
+  kafka_agent_config = jsonencode({
+    agent = {
+      metrics_collection_interval = 60
+      run_as_user                 = "cwagent"
+    }
+    metrics = {
+      append_dimensions = { InstanceId = "$${aws:InstanceId}" }
+      metrics_collected = {
+        disk = {
+          resources   = ["/", local.kafka_data_dir]
+          measurement = ["used_percent"]
+          drop_device = true
+        }
+        mem = {
+          measurement = ["used_percent"]
+        }
+      }
+    }
+  })
 }
 
 resource "aws_security_group" "kafka" {
@@ -95,6 +115,24 @@ data "aws_iam_policy_document" "kafka" {
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["${aws_cloudwatch_log_group.kafka.arn}:*"]
   }
+
+  statement {
+    sid       = "AgentMetrics"
+    actions   = ["cloudwatch:PutMetricData"]
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values   = ["CWAgent"]
+    }
+  }
+
+  statement {
+    sid       = "AgentDescribe"
+    actions   = ["ec2:DescribeTags", "ec2:DescribeVolumes"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "kafka" {
@@ -136,13 +174,14 @@ resource "aws_instance" "kafka" {
   iam_instance_profile   = aws_iam_instance_profile.kafka.name
 
   user_data = templatefile("${path.module}/templates/kafka-user-data.sh.tftpl", {
-    volume_id   = aws_ebs_volume.kafka.id
-    data_dir    = local.kafka_data_dir
-    region      = var.region
-    registry    = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com"
-    image       = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/docker-hub/apache/kafka:${var.kafka.version}"
-    log_group   = aws_cloudwatch_log_group.kafka.name
-    environment = join("\n", [for name, value in local.kafka_environment : "${name}=${value}"])
+    volume_id    = aws_ebs_volume.kafka.id
+    data_dir     = local.kafka_data_dir
+    region       = var.region
+    registry     = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com"
+    image        = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/docker-hub/apache/kafka:${var.kafka.version}"
+    log_group    = aws_cloudwatch_log_group.kafka.name
+    environment  = join("\n", [for name, value in local.kafka_environment : "${name}=${value}"])
+    agent_config = local.kafka_agent_config
   })
   user_data_replace_on_change = true
 

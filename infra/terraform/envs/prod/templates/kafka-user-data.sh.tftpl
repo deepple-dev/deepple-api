@@ -1,6 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
+retry() {
+  for _ in $(seq 1 30); do
+    "$@" && return 0
+    sleep 10
+  done
+  echo "30번 시도했지만 실패했다: $*" >&2
+  return 1
+}
+
 dnf install -y docker
 systemctl enable --now docker
 
@@ -16,20 +25,19 @@ mkdir -p ${data_dir}
 uuid=$(blkid -s UUID -o value "$device")
 grep -q "$uuid" /etc/fstab || echo "UUID=$uuid ${data_dir} xfs defaults,nofail 0 2" >> /etc/fstab
 mount -a
+mountpoint -q ${data_dir} || { echo "Kafka 데이터 볼륨이 마운트되지 않았다: ${data_dir}" >&2; exit 1; }
 chown 1000:1000 ${data_dir}
+
+cwagent_config=/opt/aws/amazon-cloudwatch-agent/etc/cloudwatch-agent.json
+retry dnf install -y amazon-cloudwatch-agent
+cat > "$cwagent_config" <<'CONFIG'
+${agent_config}
+CONFIG
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c "file:$cwagent_config"
 
 cat > /etc/kafka.env <<'ENV'
 ${environment}
 ENV
-
-retry() {
-  for _ in $(seq 1 30); do
-    "$@" && return 0
-    sleep 10
-  done
-  echo "30번 시도했지만 실패했다: $*" >&2
-  return 1
-}
 
 ecr_login() {
   aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}

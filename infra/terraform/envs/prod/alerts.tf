@@ -175,6 +175,72 @@ resource "aws_cloudwatch_metric_alarm" "kafka_cpu_surplus" {
   ok_actions          = [module.alerts.topic_arn]
 }
 
+resource "aws_cloudwatch_metric_alarm" "kafka_data_disk" {
+  alarm_name = "${local.name}-kafka-data-disk"
+  alarm_description = jsonencode({
+    title = "High Kafka data disk usage (${aws_instance.kafka.id})"
+    what  = "Kafka 데이터 디스크 사용률 {value} ({condition}, 15분 연속, 전체 ${aws_ebs_volume.kafka.size}GB), 가득 차면 브로커가 멈춤. 값이 15분간 안 와도 울림"
+    why   = ["메시지 증가", "보존 기간 설정 변경", "CloudWatch agent 멈춤(값이 안 옴)"]
+    how   = ["Session Manager로 접속해 `df -h ${local.kafka_data_dir}`, `du -sh ${local.kafka_data_dir}/*` 확인", "Terraform `kafka.volume_size`로 EBS를 늘린 뒤 `xfs_growfs ${local.kafka_data_dir}`", "agent 상태 `amazon-cloudwatch-agent-ctl -a status` 확인"]
+    unit  = "percent"
+  })
+  namespace           = "CWAgent"
+  metric_name         = "disk_used_percent"
+  dimensions          = { InstanceId = aws_instance.kafka.id, path = local.kafka_data_dir, fstype = "xfs" }
+  statistic           = "Maximum"
+  period              = 300
+  evaluation_periods  = 3
+  threshold           = 80
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "breaching"
+  alarm_actions       = [module.alerts.topic_arn]
+  ok_actions          = [module.alerts.topic_arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "kafka_root_disk" {
+  alarm_name = "${local.name}-kafka-root-disk"
+  alarm_description = jsonencode({
+    title = "High Kafka root disk usage (${aws_instance.kafka.id})"
+    what  = "Kafka EC2 루트 디스크 사용률 {value} ({condition})"
+    why   = ["Docker 이미지 누적", "OS 로그·패키지 캐시 증가"]
+    how   = ["Session Manager로 접속해 `df -h /`, `docker system df` 확인", "`docker image prune`, `dnf clean all`로 정리"]
+    unit  = "percent"
+  })
+  namespace           = "CWAgent"
+  metric_name         = "disk_used_percent"
+  dimensions          = { InstanceId = aws_instance.kafka.id, path = "/", fstype = "xfs" }
+  statistic           = "Maximum"
+  period              = 300
+  evaluation_periods  = 1
+  threshold           = 80
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [module.alerts.topic_arn]
+  ok_actions          = [module.alerts.topic_arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "kafka_memory" {
+  alarm_name = "${local.name}-kafka-memory"
+  alarm_description = jsonencode({
+    title = "High Kafka memory usage (${aws_instance.kafka.id})"
+    what  = "Kafka EC2 메모리 사용률 {value} ({condition}, 10분 평균), swap이 없어 다 차면 OOM killer가 Kafka를 멈춤"
+    why   = ["메시지·파티션 증가", "인스턴스(${aws_instance.kafka.instance_type}) 메모리 부족"]
+    how   = ["Session Manager로 접속해 `free -m`, `docker stats kafka` 확인", "Terraform `kafka.instance_type`으로 인스턴스 변경"]
+    unit  = "percent"
+  })
+  namespace           = "CWAgent"
+  metric_name         = "mem_used_percent"
+  dimensions          = { InstanceId = aws_instance.kafka.id }
+  statistic           = "Average"
+  period              = 300
+  evaluation_periods  = 2
+  threshold           = 90
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [module.alerts.topic_arn]
+  ok_actions          = [module.alerts.topic_arn]
+}
+
 data "aws_sns_topic" "account_alerts" {
   name = "deepple-alerts"
 }
