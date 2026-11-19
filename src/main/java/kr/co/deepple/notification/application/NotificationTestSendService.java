@@ -3,8 +3,8 @@ package kr.co.deepple.notification.application;
 import static java.util.Objects.requireNonNullElse;
 
 import java.util.Map;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
 import kr.co.deepple.notification.application.dto.NotificationTestSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.SenderType;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +19,8 @@ public class NotificationTestSendService {
   private final NotificationSendService notificationSendService;
 
   public void send(long memberId, String idempotencyKey, NotificationTestSendRequest request) {
-    NotificationSendRequest sendRequest =
-        new NotificationSendRequest(
+    SendNotificationCommand sendCommand =
+        new SendNotificationCommand(
             idempotencyKey,
             requireNonNullElse(request.senderType(), SenderType.MEMBER),
             requireNonNullElse(request.senderId(), memberId),
@@ -28,6 +28,6 @@ public class NotificationTestSendService {
             request.type(),
             requireNonNullElse(request.params(), Map.of()),
             ChannelType.PUSH);
-    notificationSendService.send(sendRequest);
+    notificationSendService.send(sendCommand);
   }
 }

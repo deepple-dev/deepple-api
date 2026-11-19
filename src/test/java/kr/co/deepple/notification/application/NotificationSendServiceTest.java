@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
 import kr.co.deepple.notification.application.dto.NotificationTemplateInfo;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.domain.Notification;
 import kr.co.deepple.notification.domain.NotificationErrorCode;
@@ -206,8 +206,8 @@ class NotificationSendServiceTest {
     assertThat(savedStatuses).containsExactly(CREATED, FAILED_EXCEPTION);
   }
 
-  private NotificationSendRequest request(long receiverId) {
-    return new NotificationSendRequest(KEY, SYSTEM, 10L, receiverId, LIKE, Map.of(), PUSH);
+  private SendNotificationCommand request(long receiverId) {
+    return new SendNotificationCommand(KEY, SYSTEM, 10L, receiverId, LIKE, Map.of(), PUSH);
   }
 
   private void givenTemplate() {

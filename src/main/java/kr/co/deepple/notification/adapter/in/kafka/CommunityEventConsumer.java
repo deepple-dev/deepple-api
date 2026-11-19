@@ -7,7 +7,7 @@ import kr.co.deepple.community.event.ProfileExchangeAcceptedEvent;
 import kr.co.deepple.community.event.ProfileExchangeRejectedEvent;
 import kr.co.deepple.community.event.ProfileExchangeRequestedEvent;
 import kr.co.deepple.notification.application.NotificationSendService;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.NotificationType;
 import kr.co.deepple.notification.domain.SenderType;
@@ -26,39 +26,39 @@ public class CommunityEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(ProfileExchangeRequestedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.requesterId(),
             event.responderId(),
             NotificationType.PROFILE_EXCHANGE_REQUEST,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.senderName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.senderName()),
             ChannelType.PUSH));
   }
 
   @KafkaHandler
   public void handle(ProfileExchangeAcceptedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.responderId(),
             event.requesterId(),
             NotificationType.PROFILE_EXCHANGE_ACCEPT,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.senderName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.senderName()),
             ChannelType.PUSH));
   }
 
   @KafkaHandler
   public void handle(ProfileExchangeRejectedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.MEMBER,
             event.responderId(),
             event.requesterId(),
             NotificationType.PROFILE_EXCHANGE_REJECT,
-            Map.of(NotificationSendRequest.SENDER_NAME, event.senderName()),
+            Map.of(SendNotificationCommand.SENDER_NAME, event.senderName()),
             ChannelType.PUSH));
   }
 }

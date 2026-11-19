@@ -7,7 +7,7 @@ import kr.co.deepple.admin.event.ScreeningRejectedEvent;
 import kr.co.deepple.admin.event.WarningIssuedEvent;
 import kr.co.deepple.common.event.EventConsumer;
 import kr.co.deepple.notification.application.NotificationSendService;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.NotificationType;
 import kr.co.deepple.notification.domain.SenderType;
@@ -26,7 +26,7 @@ public class AdminEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(WarningIssuedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.ADMIN,
             event.adminId(),
@@ -39,7 +39,7 @@ public class AdminEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(ScreeningApprovedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.ADMIN,
             event.adminId(),
@@ -52,7 +52,7 @@ public class AdminEventConsumer extends EventConsumer {
   @KafkaHandler
   public void handle(ScreeningRejectedEvent event) {
     notificationSendService.send(
-        new NotificationSendRequest(
+        new SendNotificationCommand(
             event.id().toString(),
             SenderType.ADMIN,
             event.adminId(),

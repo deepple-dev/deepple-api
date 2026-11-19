@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import kr.co.deepple.admin.application.dto.WarningCreateRequest;
+import kr.co.deepple.admin.application.port.in.IssueWarningCommand;
 import kr.co.deepple.admin.application.port.out.WarningRepository;
 import kr.co.deepple.admin.domain.Warning;
 import kr.co.deepple.admin.event.WarningIssuedEvent;
@@ -54,11 +55,11 @@ class WarningServiceTest {
   void issueShouldSkipWhenIdempotencyKeyAlreadyUsed() {
     // given
     String idempotencyKey = "key-1";
-    var request = new WarningCreateRequest(2L, Set.of("REPORT"), true, idempotencyKey);
+    var command = new IssueWarningCommand(2L, Set.of("REPORT"), true, idempotencyKey);
     when(warningRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(true);
 
     // when
-    warningService.issue(1L, request);
+    warningService.issue(1L, command);
 
     // then
     verify(warningRepository, never()).save(any(Warning.class));
@@ -70,7 +71,24 @@ class WarningServiceTest {
   void issueShouldSaveWarningWithIdempotencyKey() {
     // given
     String idempotencyKey = "key-1";
-    var request = new WarningCreateRequest(2L, Set.of("REPORT"), true, idempotencyKey);
+    var command = new IssueWarningCommand(2L, Set.of("REPORT"), true, idempotencyKey);
+    when(warningRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
+
+    // when
+    warningService.issue(1L, command);
+
+    // then
+    ArgumentCaptor<Warning> captor = ArgumentCaptor.forClass(Warning.class);
+    verify(warningRepository).save(captor.capture());
+    assertThat(captor.getValue().getIdempotencyKey()).isEqualTo(idempotencyKey);
+  }
+
+  @Test
+  @DisplayName("관리자 요청으로 경고하면 요청의 멱등 키와 경고 여부를 담아 저장한다")
+  void issueByRequestShouldKeepIdempotencyKeyAndCritical() {
+    // given
+    String idempotencyKey = "key-1";
+    var request = new WarningCreateRequest(2L, Set.of("REPORT"), false, idempotencyKey);
     when(warningRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
 
     // when
@@ -80,5 +98,6 @@ class WarningServiceTest {
     ArgumentCaptor<Warning> captor = ArgumentCaptor.forClass(Warning.class);
     verify(warningRepository).save(captor.capture());
     assertThat(captor.getValue().getIdempotencyKey()).isEqualTo(idempotencyKey);
+    assertThat(captor.getValue().isCritical()).isFalse();
   }
 }

@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 import java.util.Map;
-import kr.co.deepple.notification.application.dto.NotificationSendRequest;
 import kr.co.deepple.notification.application.dto.NotificationTestSendRequest;
+import kr.co.deepple.notification.application.port.in.SendNotificationCommand;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.SenderType;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class NotificationTestSendServiceTest {
     notificationTestSendService.send(memberId, "request-key", request);
 
     // then
-    var sent = captureSentRequest();
+    var sent = captureSentCommand();
     assertThat(sent.idempotencyKey()).isEqualTo("request-key");
     assertThat(sent.senderType()).isEqualTo(SenderType.MEMBER);
     assertThat(sent.senderId()).isEqualTo(memberId);
@@ -56,15 +56,15 @@ class NotificationTestSendServiceTest {
     notificationTestSendService.send(1L, "request-key", request);
 
     // then
-    var sent = captureSentRequest();
+    var sent = captureSentCommand();
     assertThat(sent.senderType()).isEqualTo(SenderType.ADMIN);
     assertThat(sent.senderId()).isEqualTo(3L);
     assertThat(sent.receiverId()).isEqualTo(2L);
     assertThat(sent.params()).isEqualTo(params);
   }
 
-  private NotificationSendRequest captureSentRequest() {
-    var captor = ArgumentCaptor.forClass(NotificationSendRequest.class);
+  private SendNotificationCommand captureSentCommand() {
+    var captor = ArgumentCaptor.forClass(SendNotificationCommand.class);
     verify(notificationSendService).send(captor.capture());
     return captor.getValue();
   }
