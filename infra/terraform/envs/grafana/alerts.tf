@@ -52,6 +52,17 @@ locals {
       why       = "- slow query로 커넥션 반환 지연\n- 트래픽 대비 커넥션 풀 크기 부족"
       how       = "- deepple-api 대시보드에서 활성·대기 커넥션 확인\n- Application Observability에서 slow query trace 확인"
     }
+    event_publication_stuck = {
+      title     = "Event publications stuck"
+      severity  = "warning"
+      query     = "max(event_publication_incomplete_oldest_age_seconds{deployment_environment_name=\"ENV\"})"
+      evaluator = { type = "gt", value = 1800 }
+      for       = "5m"
+      no_data   = "OK"
+      what      = "가장 오래된 미완료 이벤트 발행 기록 {{ printf \"%.0f\" $values.A.Value }}초 (> 30분, 5분 지속)"
+      why       = "- Kafka 브로커 중지로 외부화 실패\n- 핸들러 실패가 재제출 10번을 다 씀"
+      how       = "- `event_publication`에서 완료되지 않은 기록의 `listener_id`·`event_type`·`completion_attempts` 확인\n- Sentry에서 같은 이벤트의 핸들러 오류 확인\n- 원인을 고친 뒤 `completion_attempts`를 0으로 되돌려 재제출\n- 다시 시도해도 성공할 수 없는 기록(리스너가 없어짐 등)은 삭제"
+    }
     old_gen_usage = {
       title     = "High old gen usage after GC"
       severity  = "warning"
