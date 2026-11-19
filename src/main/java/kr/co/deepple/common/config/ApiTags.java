@@ -27,7 +27,7 @@ public final class ApiTags {
   static List<Tag> definitions() {
     return List.of(
         tag(AUTH, "SMS 인증, 로그인·가입, 토큰 재발급, 관리자 계정 승인"),
-        tag(MEMBER, "내 정보, 상대 프로필, 프로필 이미지, 관리자 회원 목록·상세"),
+        tag(MEMBER, "내 정보, 상대 프로필, 프로필 바텀시트, 프로필 이미지, 관리자 회원 목록·상세"),
         tag(RECOMMENDATION, "이상형, 소개 목록, 오늘의 카드, 소울메이트·성격 유형 소개, 프로필 블러 해제"),
         tag(MATCH, "매칭 요청 메시지, 수락·거절, 메시지 내역"),
         tag(LIKE, "좋아요 전송, 보낸·받은 목록"),
