@@ -133,6 +133,48 @@ resource "aws_cloudwatch_metric_alarm" "cache_storage" {
   ok_actions          = [module.alerts.topic_arn]
 }
 
+resource "aws_cloudwatch_metric_alarm" "kafka_status_check" {
+  alarm_name = "${local.name}-kafka-status-check"
+  alarm_description = jsonencode({
+    title = "Kafka instance status check failed (${aws_instance.kafka.id})"
+    what  = "Kafka EC2 상태 검사 실패 {value} ({condition}, 2분 연속), 그동안 발행은 event_publication에 쌓이고 소비가 멈춤"
+    why   = ["AWS 하드웨어 장애(자동 복구 시도)", "OS 멈춤·메모리 부족", "부팅 실패"]
+    how   = ["EC2 콘솔에서 시스템·인스턴스 상태 검사 확인", "Session Manager로 접속해 `docker ps`, `docker logs kafka` 확인", "인스턴스 재부팅 또는 `terraform apply -replace=aws_instance.kafka`"]
+  })
+  namespace           = "AWS/EC2"
+  metric_name         = "StatusCheckFailed"
+  dimensions          = { InstanceId = aws_instance.kafka.id }
+  statistic           = "Maximum"
+  period              = 60
+  evaluation_periods  = 2
+  threshold           = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "breaching"
+  alarm_actions       = [module.alerts.topic_arn]
+  ok_actions          = [module.alerts.topic_arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "kafka_cpu_surplus" {
+  alarm_name = "${local.name}-kafka-cpu-surplus"
+  alarm_description = jsonencode({
+    title = "Kafka CPU credits exhausted (${aws_instance.kafka.id})"
+    what  = "Kafka EC2 CPU 크레딧을 다 쓰고 빌려 쓴 크레딧 {value} ({condition}, 15분 연속), 24시간 안에 못 갚으면 추가 요금 발생"
+    why   = ["메시지·파티션 증가", "소비자 재처리로 읽기 급증", "인스턴스(${aws_instance.kafka.instance_type}) 성능 부족"]
+    how   = ["CloudWatch `${aws_cloudwatch_log_group.kafka.name}` 로그 확인", "Terraform `kafka.instance_type`으로 인스턴스 변경"]
+  })
+  namespace           = "AWS/EC2"
+  metric_name         = "CPUSurplusCreditBalance"
+  dimensions          = { InstanceId = aws_instance.kafka.id }
+  statistic           = "Maximum"
+  period              = 300
+  evaluation_periods  = 3
+  threshold           = 0
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [module.alerts.topic_arn]
+  ok_actions          = [module.alerts.topic_arn]
+}
+
 data "aws_sns_topic" "account_alerts" {
   name = "deepple-alerts"
 }

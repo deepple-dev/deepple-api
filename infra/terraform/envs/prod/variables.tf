@@ -124,3 +124,19 @@ variable "grafana_cloud_instance_id" {
   type        = string
   default     = "1902666"
 }
+
+variable "kafka" {
+  description = "Kafka EC2 설정. 데이터 볼륨 크기는 GiB이고, 스냅샷은 매일 찍어 snapshot_retention개를 보관한다"
+  type = object({
+    version            = string
+    instance_type      = string
+    volume_size        = number
+    snapshot_retention = number
+  })
+  default = {
+    version            = "4.2.2"
+    instance_type      = "t4g.small"
+    volume_size        = 20
+    snapshot_retention = 7
+  }
+}

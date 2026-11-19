@@ -21,15 +21,7 @@ spring:
         bucket: ${AWS_S3_BUCKET_NAME}
 
   kafka:
-    admin:
-      auto-create: false
-    listener:
-      auto-startup: false
-
-  modulith:
-    events:
-      externalization:
-        enabled: false
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
 springdoc:
   api-docs:

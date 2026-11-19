@@ -107,3 +107,23 @@ resource "aws_vpc_security_group_egress_rule" "valkey_all" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
+
+resource "aws_security_group" "kafka" {
+  name        = "${local.name}-kafka"
+  description = "Kafka"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kafka_from_app" {
+  security_group_id            = aws_security_group.kafka.id
+  referenced_security_group_id = aws_security_group.app.id
+  ip_protocol                  = "tcp"
+  from_port                    = 9092
+  to_port                      = 9092
+}
+
+resource "aws_vpc_security_group_egress_rule" "kafka_all" {
+  security_group_id = aws_security_group.kafka.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
