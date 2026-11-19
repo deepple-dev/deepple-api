@@ -29,7 +29,7 @@ variable "image_tag" {
 }
 
 variable "nightly_shutdown" {
-  description = "야간 중지 설정. 시각은 KST 정시이고, 앱은 DB보다 5분 먼저 끄고 DB가 켜진 15분 뒤에 켠다"
+  description = "야간 중지 설정. 시각은 KST 정시이고, 앱은 DB·Kafka보다 5분 먼저 끄고 DB·Kafka가 켜진 15분 뒤에 켠다"
   type = object({
     enabled    = bool
     stop_hour  = number
@@ -95,4 +95,10 @@ variable "grafana_cloud_instance_id" {
   description = "Grafana Cloud OTLP 인증 사용자 이름(인스턴스 ID, OpenTelemetry 타일)"
   type        = string
   default     = "1902666"
+}
+
+variable "kafka_version" {
+  description = "apache/kafka 이미지 태그"
+  type        = string
+  default     = "4.2.2"
 }

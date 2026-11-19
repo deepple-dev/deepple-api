@@ -107,6 +107,7 @@ locals {
     MYSQL_DATABASE              = aws_db_instance.this.db_name
     MYSQL_USER                  = aws_db_instance.this.username
     REDIS_HOST                  = aws_elasticache_serverless_cache.this.endpoint[0].address
+    KAFKA_BOOTSTRAP_SERVERS     = local.kafka_bootstrap_servers
     OTEL_EXPORTER_OTLP_ENDPOINT = "http://${local.alloy_host}:4318"
     AWS_S3_BUCKET_NAME          = aws_s3_bucket.storage.bucket
 

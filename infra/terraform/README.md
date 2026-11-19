@@ -47,20 +47,27 @@ terraform apply            # 실제 적용
 
 ### dev
 
-구성은 API Gateway HTTP API(`dev-api.deepple.co.kr`) → VPC Link → Cloud Map → ECS Fargate Spot 앱 task 1개(ARM) → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. 앱의 지표·trace·로그는 Alloy ECS service(`alloy.deepple-dev.local`)를 거쳐 Grafana Cloud로 보낸다. 콘솔 로그는 CloudWatch(`/ecs/deepple-dev`)에 14일 보관한다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
+구성은 API Gateway HTTP API(`dev-api.deepple.co.kr`) → VPC Link → Cloud Map → ECS Fargate Spot 앱 task 1개(ARM) → RDS MySQL이다. Valkey는 별도 ECS service(`valkey.deepple-dev.local`)로 띄운다. Kafka도 별도 ECS service(`kafka.deepple-dev.local:9092`)로 띄운다(브로커 1대, KRaft combined mode). 앱의 지표·trace·로그는 Alloy ECS service(`alloy.deepple-dev.local`)를 거쳐 Grafana Cloud로 보낸다. 콘솔 로그는 CloudWatch(`/ecs/deepple-dev`)에 14일 보관한다. NAT 없이 퍼블릭 서브넷에서 실행하고 RDS는 비공개 서브넷에 둔다.
 
-- 매일 02~08시(KST)에 앱·Alloy와 RDS를 끈다. RDS·Alloy는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
+- 매일 02~08시(KST)에 앱·Alloy·Kafka와 RDS를 끈다. RDS·Alloy·Kafka는 08:00, 앱은 08:15에 켜진다. Valkey는 끄지 않는다.
   - 시각과 사용 여부는 `variables.tf`의 `nightly_shutdown` 기본값을 바꿔 apply한다.
   - 시각이나 사용 여부를 바꾸면 `envs/grafana`의 `environments.dev.quiet_hours`도 같이 바꾼다. 앱이 꺼져 있는 동안 Grafana 알림을 보내지 않는 시간대다.
   - 한 번만 바꿀 때는 `terraform apply -var 'nightly_shutdown={enabled=false,stop_hour=2,start_hour=8}'`처럼 넘긴다. 다음 apply 때 기본값으로 돌아간다.
-  - 꺼져 있는 시간에 사용을 끄면 앱·Alloy와 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
+  - 꺼져 있는 시간에 사용을 끄면 앱·Alloy·Kafka와 RDS는 꺼진 채로 남는다. 직접 켜야 한다.
 - 이미지 버킷 `deepple-dev-storage`는 읽기 공개다.
 - Valkey task가 바뀌면(Spot 회수, 장애) 데이터(인증번호, refresh token)가 사라진다.
+- Kafka task가 바뀌면(야간 중지, Spot 회수, 배포) 토픽·메시지·오프셋이 사라진다. 앱이 시작할 때 토픽을 다시 만들고, 앱이 떠 있는 동안 브로커만 바뀌면 브로커가 파티션 6개로 자동 생성한다.
 - DB·캐시 접속: RDS와 Valkey는 비공개라 앱 task를 거쳐 SSM 포트 포워딩으로 붙는다. 절차는 `/dev-connect` 스킬(`.claude/skills/dev-connect/SKILL.md`)에 있다.
 
 ### prod
 
 코드만 있고 아직 apply하지 않았다. 출시 준비 때 띄운다.
+
+- Kafka: 비공개 서브넷 첫 번째 AZ의 EC2 `t4g.small` 1대에서 `apache/kafka` 컨테이너를 user data로 띄운다(`kafka.deepple-prod.local:9092`, 토픽 자동 생성 끔). 데이터는 같은 AZ의 별도 EBS(gp3 20GB, `/var/lib/kafka/data`)에 두고 DLM이 매일 03:00(KST)에 스냅샷을 찍어 7개를 보관한다. 로그는 CloudWatch `/ec2/deepple-prod-kafka`에 남는다.
+  - 첫 apply: 앱이 Kafka보다 먼저 뜨면 토픽을 만들지 못하고 그대로 뜬다(자동 생성이 꺼져 있다). apply 뒤 Session Manager로 인스턴스에 붙어 `docker exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list`로 토픽을 확인하고, 없으면 앱 service를 다시 배포한다(`aws ecs update-service --cluster deepple-prod --service deepple-prod-api --force-new-deployment`).
+  - 접속: SSH 없이 Session Manager로 붙는다(`aws ssm start-session --target <인스턴스 ID>`).
+  - OS 패치·Kafka 업그레이드: 평소 apply는 새 AMI를 무시한다. 패치할 때 `terraform apply -replace=aws_instance.kafka`로 최신 AMI 인스턴스로 바꾼다. Kafka 버전은 `variables.tf`의 `kafka.version`을 바꿔 apply하면 인스턴스가 교체된다. 교체되는 몇 분 동안 Kafka가 멈추고, 그동안 발행은 `event_publication`에 남았다가 재제출된다.
+  - 복구: 볼륨이 손상되면 DLM 스냅샷으로 볼륨을 만들어 교체한다. 마지막 스냅샷 이후의 메시지·오프셋은 사라진다.
 
 - 배포: `v1.2.3` 같은 태그를 push하면 `Deploy prod` 워크플로가 GitHub `prod` 환경 승인을 기다린다. 승인하면 dev에서 빌드한 그 커밋의 이미지를 확인(provenance)하고 버전 태그를 붙여 배포한다. 다시 빌드하지 않는다.
 - 이미지가 없다고 실패하면: 앱 코드가 바뀌지 않은 커밋이라 dev 빌드가 돌지 않은 것이다. `Deploy` 워크플로를 그 커밋에서 수동 실행한 뒤 다시 실행한다.

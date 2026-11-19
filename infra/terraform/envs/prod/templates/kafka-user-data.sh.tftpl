@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+
+dnf install -y docker
+systemctl enable --now docker
+
+device=/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_${replace(volume_id, "-", "")}
+for _ in $(seq 1 120); do
+  [ -e "$device" ] && break
+  sleep 5
+done
+[ -e "$device" ] || { echo "Kafka 데이터 볼륨이 붙지 않았다: $device" >&2; exit 1; }
+
+blkid "$device" || mkfs.xfs "$device"
+mkdir -p ${data_dir}
+uuid=$(blkid -s UUID -o value "$device")
+grep -q "$uuid" /etc/fstab || echo "UUID=$uuid ${data_dir} xfs defaults,nofail 0 2" >> /etc/fstab
+mount -a
+chown 1000:1000 ${data_dir}
+
+cat > /etc/kafka.env <<'ENV'
+${environment}
+ENV
+
+retry() {
+  for _ in $(seq 1 30); do
+    "$@" && return 0
+    sleep 10
+  done
+  echo "30번 시도했지만 실패했다: $*" >&2
+  return 1
+}
+
+ecr_login() {
+  aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}
+}
+
+run_kafka() {
+  docker rm -f kafka 2>/dev/null || true
+  docker run -d --name kafka --restart unless-stopped --network host --stop-timeout 30 \
+    --env-file /etc/kafka.env \
+    -v ${data_dir}:${data_dir} \
+    --log-driver awslogs \
+    --log-opt awslogs-region=${region} \
+    --log-opt awslogs-group=${log_group} \
+    --log-opt awslogs-stream=kafka \
+    ${image}
+}
+
+retry ecr_login
+retry docker pull ${image}
+retry run_kafka
