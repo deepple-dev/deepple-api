@@ -26,6 +26,9 @@ spring:
         socketTimeout: 5000
 
   kafka:
+    producer:
+      properties:
+        "[max.block.ms]": 3000
     consumer:
       group-id: deepple-api
       auto-offset-reset: earliest

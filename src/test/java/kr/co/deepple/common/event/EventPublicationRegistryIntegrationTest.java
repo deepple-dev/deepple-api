@@ -4,24 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.UUID;
-import kr.co.deepple.common.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 @DisplayName("Event Publication Registry 통합 테스트")
-class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
+class EventPublicationRegistryIntegrationTest extends EventPublicationIntegrationTestSupport {
 
-  private static final String DEFAULT_LISTENER = "RegistryTestEventHandler.handle(";
   private static final Duration TIMEOUT = Duration.ofSeconds(10);
   private static final int MAX_ATTEMPTS = 10;
-
-  @Autowired private JdbcTemplate jdbcTemplate;
-
-  @Autowired private RegistryTestEventHandler handler;
 
   @Autowired private FailedEventResubmitter failedEventResubmitter;
 
@@ -30,15 +21,15 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   void resubmitFailedPublication() {
     // given
     RegistryTestEvent event = publishFailedEvent();
+    handler.succeedFor(event.id());
 
     // when
     failedEventResubmitter.resubmit();
 
     // then
-    awaitStatus(event.id(), DEFAULT_LISTENER, "COMPLETED");
+    awaitStatus(event.id(), "COMPLETED");
     assertThat(handler.callCount(event.id())).isEqualTo(2);
-    assertThat(findPublication(event.id(), DEFAULT_LISTENER).get("completion_attempts"))
-        .isEqualTo(2);
+    assertThat(findPublication(event.id()).get("completion_attempts")).isEqualTo(2);
   }
 
   @Test
@@ -46,12 +37,11 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   void skipPublicationWhenAttemptsExhausted() {
     // given
     RegistryTestEvent event = publishFailedEvent();
+    handler.succeedFor(event.id());
     jdbcTemplate.update(
-        "update event_publication set completion_attempts = ?"
-            + " where serialized_event like ? and listener_id like ?",
+        "update event_publication set completion_attempts = ? where serialized_event like ?",
         MAX_ATTEMPTS,
-        like(event.id().toString()),
-        like(DEFAULT_LISTENER));
+        like(event.id()));
 
     // when
     failedEventResubmitter.resubmit();
@@ -60,9 +50,8 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
     await()
         .during(Duration.ofSeconds(2))
         .atMost(TIMEOUT)
-        .untilAsserted(() ->
-            assertThat(findPublication(event.id(), DEFAULT_LISTENER).get("status"))
-                .isEqualTo("FAILED"));
+        .untilAsserted(
+            () -> assertThat(findPublication(event.id()).get("status")).isEqualTo("FAILED"));
     assertThat(handler.callCount(event.id())).isEqualTo(1);
   }
 
@@ -71,45 +60,17 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   void resubmitPublicationSerializedBeforeFieldWasAdded() {
     // given
     RegistryTestEvent event = publishFailedEvent();
+    handler.succeedFor(event.id());
     jdbcTemplate.update(
         "update event_publication set serialized_event = json_remove(serialized_event, '$.note')"
-            + " where serialized_event like ? and listener_id like ?",
-        like(event.id().toString()),
-        like(DEFAULT_LISTENER));
+            + " where serialized_event like ?",
+        like(event.id()));
 
     // when
     failedEventResubmitter.resubmit();
 
     // then
-    awaitStatus(event.id(), DEFAULT_LISTENER, "COMPLETED");
+    awaitStatus(event.id(), "COMPLETED");
     assertThat(handler.receivedNote(event.id())).isEqualTo("null");
-  }
-
-  private RegistryTestEvent publishFailedEvent() {
-    RegistryTestEvent event = RegistryTestEvent.of("note");
-    handler.failFor(event.id());
-    publishEvent(event);
-    awaitStatus(event.id(), DEFAULT_LISTENER, "FAILED");
-    handler.succeedFor(event.id());
-    return event;
-  }
-
-  private void awaitStatus(UUID eventId, String listener, String status) {
-    await()
-        .atMost(TIMEOUT)
-        .untilAsserted(
-            () -> assertThat(findPublication(eventId, listener).get("status")).isEqualTo(status));
-  }
-
-  private Map<String, Object> findPublication(UUID eventId, String listener) {
-    return jdbcTemplate.queryForMap(
-        "select status, completion_attempts from event_publication"
-            + " where serialized_event like ? and listener_id like ?",
-        like(eventId.toString()),
-        like(listener));
-  }
-
-  private String like(String value) {
-    return "%" + value + "%";
   }
 }
