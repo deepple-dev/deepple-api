@@ -1,9 +1,7 @@
 package kr.co.deepple.payment.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
-import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,15 +95,8 @@ class RefundServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
     assertThat(successCount.get()).isEqualTo(THREAD_COUNT);
     assertThat(failureCount.get()).isZero();
     assertThat(refundRepository.count()).isEqualTo(1);
-    await()
-        .atMost(Duration.ofSeconds(5))
-        .untilAsserted(() ->
-            assertThat(purchaseHeartBalance(member)).isEqualTo(INITIAL_BALANCE - OPTION_AMOUNT));
-    await()
-        .during(Duration.ofSeconds(1))
-        .atMost(Duration.ofSeconds(2))
-        .untilAsserted(() ->
-            assertThat(purchaseHeartBalance(member)).isEqualTo(INITIAL_BALANCE - OPTION_AMOUNT));
+    awaitEventProcessing();
+    assertThat(purchaseHeartBalance(member)).isEqualTo(INITIAL_BALANCE - OPTION_AMOUNT);
   }
 
   private long purchaseHeartBalance(Member member) {

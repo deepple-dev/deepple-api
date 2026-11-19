@@ -1,19 +1,23 @@
-package kr.co.deepple.heart.adapter.in.event;
+package kr.co.deepple.heart.adapter.in.kafka;
 
+import kr.co.deepple.common.event.EventConsumer;
 import kr.co.deepple.heart.application.port.in.SyncHeartMemberCommand;
 import kr.co.deepple.heart.application.port.in.SyncHeartMemberUseCase;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
+import kr.co.deepple.member.event.MemberTopic;
 import lombok.RequiredArgsConstructor;
-import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.kafka.annotation.KafkaHandler;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("heartMemberEventConsumer")
 @RequiredArgsConstructor
-public class HeartMemberEventHandler {
+@KafkaListener(topics = MemberTopic.NAME, groupId = HeartConsumerGroup.ID)
+public class MemberEventConsumer extends EventConsumer {
 
   private final SyncHeartMemberUseCase syncHeartMemberUseCase;
 
-  @ApplicationModuleListener
+  @KafkaHandler
   public void handle(MemberSummaryChangedEvent event) {
     syncHeartMemberUseCase.syncHeartMember(
         new SyncHeartMemberCommand(

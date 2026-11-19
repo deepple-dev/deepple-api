@@ -1,9 +1,7 @@
-package kr.co.deepple.heart.adapter.in.event;
+package kr.co.deepple.heart.adapter.in.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
-import java.time.Duration;
 import java.util.List;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
@@ -18,14 +16,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayName("하트 지급·회수 이벤트 멱등성 통합 테스트")
-class HeartPaymentEventHandlerIntegrationTest extends IntegrationTestSupport {
+class PaymentEventConsumerIntegrationTest extends IntegrationTestSupport {
 
   private static final long MEMBER_ID = 1L;
   private static final long INITIAL_BALANCE = 100L;
   private static final long AMOUNT = 45L;
   private static final long ORDER_ID = 1L;
 
-  @Autowired private HeartPaymentEventHandler heartPaymentEventHandler;
+  @Autowired private PaymentEventConsumer paymentEventConsumer;
 
   @Autowired private MemberHeartBalanceRepository memberHeartBalanceRepository;
 
@@ -39,11 +37,11 @@ class HeartPaymentEventHandlerIntegrationTest extends IntegrationTestSupport {
     HeartPurchasedEvent event = HeartPurchasedEvent.of(MEMBER_ID, ORDER_ID, AMOUNT);
 
     // when
-    heartPaymentEventHandler.handle(event);
-    heartPaymentEventHandler.handle(event);
+    paymentEventConsumer.handle(event);
+    paymentEventConsumer.handle(event);
 
     // then
-    assertBalanceStays(INITIAL_BALANCE + AMOUNT);
+    assertBalance(INITIAL_BALANCE + AMOUNT);
     assertSingleTransaction(TransactionType.PURCHASE, AMOUNT);
   }
 
@@ -56,11 +54,11 @@ class HeartPaymentEventHandlerIntegrationTest extends IntegrationTestSupport {
         HeartRefundedEvent.of(MEMBER_ID, ORDER_ID, AMOUNT, "refund-transaction");
 
     // when
-    heartPaymentEventHandler.handle(event);
-    heartPaymentEventHandler.handle(event);
+    paymentEventConsumer.handle(event);
+    paymentEventConsumer.handle(event);
 
     // then
-    assertBalanceStays(INITIAL_BALANCE - AMOUNT);
+    assertBalance(INITIAL_BALANCE - AMOUNT);
     assertSingleTransaction(TransactionType.REFUND, -AMOUNT);
   }
 
@@ -71,16 +69,12 @@ class HeartPaymentEventHandlerIntegrationTest extends IntegrationTestSupport {
     saveBalance();
 
     // when
-    heartPaymentEventHandler.handle(HeartPurchasedEvent.of(MEMBER_ID, ORDER_ID, AMOUNT));
-    await()
-        .atMost(Duration.ofSeconds(5))
-        .untilAsserted(
-            () -> assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + AMOUNT));
-    heartPaymentEventHandler.handle(
+    paymentEventConsumer.handle(HeartPurchasedEvent.of(MEMBER_ID, ORDER_ID, AMOUNT));
+    paymentEventConsumer.handle(
         HeartRefundedEvent.of(MEMBER_ID, ORDER_ID, AMOUNT, "refund-transaction"));
 
     // then
-    assertBalanceStays(INITIAL_BALANCE);
+    assertBalance(INITIAL_BALANCE);
     assertThat(heartTransactionRepository.count()).isEqualTo(2L);
   }
 
@@ -92,14 +86,8 @@ class HeartPaymentEventHandlerIntegrationTest extends IntegrationTestSupport {
             .build());
   }
 
-  private void assertBalanceStays(long expected) {
-    await()
-        .atMost(Duration.ofSeconds(5))
-        .untilAsserted(() -> assertThat(purchaseHeartBalance()).isEqualTo(expected));
-    await()
-        .during(Duration.ofSeconds(1))
-        .atMost(Duration.ofSeconds(2))
-        .untilAsserted(() -> assertThat(purchaseHeartBalance()).isEqualTo(expected));
+  private void assertBalance(long expected) {
+    assertThat(purchaseHeartBalance()).isEqualTo(expected);
   }
 
   private void assertSingleTransaction(TransactionType transactionType, long amount) {

@@ -10,9 +10,7 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @DisplayName("Event Publication Registry 통합 테스트")
 class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
@@ -20,10 +18,6 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   private static final String DEFAULT_LISTENER = "RegistryTestEventHandler.handle(";
   private static final Duration TIMEOUT = Duration.ofSeconds(10);
   private static final int MAX_ATTEMPTS = 10;
-
-  @Autowired private ApplicationEventPublisher eventPublisher;
-
-  @Autowired private TransactionTemplate transactionTemplate;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -94,14 +88,10 @@ class EventPublicationRegistryIntegrationTest extends IntegrationTestSupport {
   private RegistryTestEvent publishFailedEvent() {
     RegistryTestEvent event = RegistryTestEvent.of("note");
     handler.failFor(event.id());
-    publish(event);
+    publishEvent(event);
     awaitStatus(event.id(), DEFAULT_LISTENER, "FAILED");
     handler.succeedFor(event.id());
     return event;
-  }
-
-  private void publish(RegistryTestEvent event) {
-    transactionTemplate.executeWithoutResult(status -> eventPublisher.publishEvent(event));
   }
 
   private void awaitStatus(UUID eventId, String listener, String status) {

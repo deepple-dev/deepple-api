@@ -71,7 +71,7 @@ class RefundServiceIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(refundRepository.count()).isEqualTo(1);
     await()
-        .atMost(Duration.ofSeconds(5))
+        .atMost(Duration.ofSeconds(30))
         .untilAsserted(() -> {
           long purchaseHeartBalance =
               memberHeartBalanceRepository

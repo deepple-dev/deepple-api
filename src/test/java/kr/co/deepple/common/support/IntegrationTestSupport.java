@@ -4,6 +4,7 @@ import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import kr.co.deepple.common.config.KafkaContainerConfig;
 import kr.co.deepple.common.config.MySqlContainerConfig;
 import kr.co.deepple.common.config.S3ContainerConfig;
@@ -13,10 +14,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -24,11 +27,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
   MySqlContainerConfig.class,
   ValkeyContainerConfig.class,
   S3ContainerConfig.class,
-  KafkaContainerConfig.class
+  KafkaContainerConfig.class,
+  KafkaConsumerLag.class
 })
 public abstract class IntegrationTestSupport {
 
-  private static final Duration EVENT_PROCESSING_TIMEOUT = Duration.ofSeconds(10);
+  private static final Duration EVENT_PROCESSING_TIMEOUT = Duration.ofSeconds(30);
   private static final Set<String> SEEDED_TABLES =
       Set.of(
           "flyway_schema_history",
@@ -47,9 +51,15 @@ public abstract class IntegrationTestSupport {
 
   @Autowired private RedisConnectionFactory redisConnectionFactory;
 
+  @Autowired private KafkaConsumerLag kafkaConsumerLag;
+
+  @Autowired private ApplicationEventPublisher eventPublisher;
+
+  @Autowired private TransactionTemplate transactionTemplate;
+
   @BeforeEach
   void cleanUpStorage() {
-    boolean eventProcessingFinished = awaitEventProcessing();
+    boolean eventProcessingFinished = isEventProcessingFinished();
     jdbcTemplate.batchUpdate(findCleanUpStatements());
     try (RedisConnection connection = redisConnectionFactory.getConnection()) {
       connection.serverCommands().flushDb();
@@ -60,11 +70,25 @@ public abstract class IntegrationTestSupport {
     }
   }
 
-  private boolean awaitEventProcessing() {
+  protected void publishEvent(Object event) {
+    transactionTemplate.executeWithoutResult(status -> eventPublisher.publishEvent(event));
+  }
+
+  protected void awaitEventProcessing() {
+    await().atMost(EVENT_PROCESSING_TIMEOUT).ignoreExceptions().until(this::isEventProcessingIdle);
+  }
+
+  private boolean isEventProcessingIdle() throws ExecutionException, InterruptedException {
+    long completedBefore = countCompletedEventPublications();
+    return countInProgressEventPublications() == 0L
+        && kafkaConsumerLag.isZero()
+        && countInProgressEventPublications() == 0L
+        && countCompletedEventPublications() == completedBefore;
+  }
+
+  private boolean isEventProcessingFinished() {
     try {
-      await()
-          .atMost(EVENT_PROCESSING_TIMEOUT)
-          .until(() -> countInProgressEventPublications() == 0L);
+      awaitEventProcessing();
       return true;
     } catch (ConditionTimeoutException e) {
       return false;
@@ -76,6 +100,11 @@ public abstract class IntegrationTestSupport {
         "select count(*) from event_publication"
             + " where status in ('PUBLISHED', 'PROCESSING', 'RESUBMITTED')",
         Long.class);
+  }
+
+  private long countCompletedEventPublications() {
+    return jdbcTemplate.queryForObject(
+        "select count(*) from event_publication where status = 'COMPLETED'", Long.class);
   }
 
   private String[] findCleanUpStatements() {

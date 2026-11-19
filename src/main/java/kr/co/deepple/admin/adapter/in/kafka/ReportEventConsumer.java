@@ -1,20 +1,24 @@
-package kr.co.deepple.admin.adapter.in.event;
+package kr.co.deepple.admin.adapter.in.kafka;
 
 import java.util.Set;
 import kr.co.deepple.admin.application.WarningService;
 import kr.co.deepple.admin.application.dto.WarningCreateRequest;
+import kr.co.deepple.common.event.EventConsumer;
+import kr.co.deepple.report.event.ReportTopic;
 import kr.co.deepple.report.event.ReportWarnedEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.modulith.events.ApplicationModuleListener;
-import org.springframework.stereotype.Service;
+import org.springframework.kafka.annotation.KafkaHandler;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component("adminReportEventConsumer")
 @RequiredArgsConstructor
-public class ReportWarnedEventHandler {
+@KafkaListener(topics = ReportTopic.NAME, groupId = AdminConsumerGroup.ID)
+public class ReportEventConsumer extends EventConsumer {
 
   private final WarningService warningService;
 
-  @ApplicationModuleListener
+  @KafkaHandler
   public void handle(ReportWarnedEvent event) {
     WarningCreateRequest request =
         new WarningCreateRequest(

@@ -19,19 +19,13 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 @DisplayName("이벤트 Kafka 외부화 통합 테스트")
 class EventExternalizationIntegrationTest extends IntegrationTestSupport {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(30);
-
-  @Autowired private ApplicationEventPublisher eventPublisher;
-
-  @Autowired private TransactionTemplate transactionTemplate;
 
   @Autowired private ConsumerFactory<Object, Object> consumerFactory;
 
@@ -44,7 +38,7 @@ class EventExternalizationIntegrationTest extends IntegrationTestSupport {
     MemberLoggedInEvent event = MemberLoggedInEvent.from(7L);
 
     // when
-    transactionTemplate.executeWithoutResult(status -> eventPublisher.publishEvent(event));
+    publishEvent(event);
 
     // then
     ConsumerRecord<Object, Object> record = pollRecord(MemberTopic.NAME, event.id());

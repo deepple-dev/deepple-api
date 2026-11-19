@@ -3,9 +3,7 @@ package kr.co.deepple.payment.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
 
-import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -137,17 +135,9 @@ class OrderServiceConcurrencyIntegrationTest extends IntegrationTestSupport {
   }
 
   private void assertGrantedOnce() {
-    await()
-        .atMost(Duration.ofSeconds(5))
-        .untilAsserted(
-            () -> assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT));
-    await()
-        .during(Duration.ofSeconds(1))
-        .atMost(Duration.ofSeconds(2))
-        .untilAsserted(() -> {
-          assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
-          assertThat(heartTransactionRepository.count()).isEqualTo(1);
-        });
+    awaitEventProcessing();
+    assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
+    assertThat(heartTransactionRepository.count()).isEqualTo(1);
   }
 
   private long purchaseHeartBalance() {
