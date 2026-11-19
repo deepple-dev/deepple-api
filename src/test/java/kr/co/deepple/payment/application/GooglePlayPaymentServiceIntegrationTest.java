@@ -3,7 +3,6 @@ package kr.co.deepple.payment.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -13,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.androidpublisher.model.ProductPurchase;
-import java.time.Duration;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
@@ -141,17 +139,9 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
   }
 
   private void assertGrantedOnce() {
-    await()
-        .atMost(Duration.ofSeconds(5))
-        .untilAsserted(
-            () -> assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT));
-    await()
-        .during(Duration.ofSeconds(1))
-        .atMost(Duration.ofSeconds(2))
-        .untilAsserted(() -> {
-          assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
-          assertThat(heartTransactionRepository.count()).isEqualTo(1);
-        });
+    awaitEventProcessing();
+    assertThat(purchaseHeartBalance()).isEqualTo(INITIAL_BALANCE + OPTION_AMOUNT);
+    assertThat(heartTransactionRepository.count()).isEqualTo(1);
   }
 
   private long purchaseHeartBalance() {

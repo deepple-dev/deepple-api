@@ -1,9 +1,7 @@
 package kr.co.deepple.mission.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -12,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.heart.adapter.in.event.HeartMissionEventHandler;
+import kr.co.deepple.heart.adapter.in.kafka.MissionEventConsumer;
 import kr.co.deepple.heart.application.port.out.HeartTransactionRepository;
 import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
@@ -35,7 +33,7 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
 
   @Autowired private MemberMissionService memberMissionService;
 
-  @Autowired private HeartMissionEventHandler heartMissionEventHandler;
+  @Autowired private MissionEventConsumer missionEventConsumer;
 
   @Autowired private MemberMissionRepository memberMissionRepository;
 
@@ -77,8 +75,8 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
         MemberMissionCompletedEvent.of(memberId, 1L, 1, "닉네임", LIKE_REWARDED_HEART, "미션");
 
     // when
-    heartMissionEventHandler.handle(event);
-    heartMissionEventHandler.handle(event);
+    missionEventConsumer.handle(event);
+    missionEventConsumer.handle(event);
 
     // then
     assertMissionBalanceStays(memberId, LIKE_REWARDED_HEART);
@@ -94,13 +92,8 @@ class MemberMissionServiceConcurrencyIntegrationTest extends IntegrationTestSupp
   }
 
   private void assertMissionBalanceStays(long memberId, long expected) {
-    await()
-        .atMost(Duration.ofSeconds(5))
-        .untilAsserted(() -> assertThat(missionBalance(memberId)).isEqualTo(expected));
-    await()
-        .during(Duration.ofSeconds(1))
-        .atMost(Duration.ofSeconds(2))
-        .untilAsserted(() -> assertThat(missionBalance(memberId)).isEqualTo(expected));
+    awaitEventProcessing();
+    assertThat(missionBalance(memberId)).isEqualTo(expected);
   }
 
   private long missionBalance(long memberId) {

@@ -16,18 +16,12 @@ import kr.co.deepple.notification.domain.NotificationType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @DisplayName("notification Kafka 소비자 통합 테스트")
 class NotificationKafkaConsumerIntegrationTest extends IntegrationTestSupport {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(30);
   private static final Duration SHORTER_THAN_RETRIES = Duration.ofSeconds(10);
-
-  @Autowired private ApplicationEventPublisher eventPublisher;
-
-  @Autowired private TransactionTemplate transactionTemplate;
 
   @Autowired private NotificationRepository notificationRepository;
 
@@ -40,7 +34,7 @@ class NotificationKafkaConsumerIntegrationTest extends IntegrationTestSupport {
     MatchRejectedEvent event = MatchRejectedEvent.of(1L, 10L, 20L, "응답자");
 
     // when
-    publish(event);
+    publishEvent(event);
 
     // then
     Notification notification = awaitNotification(event.id().toString());
@@ -56,9 +50,9 @@ class NotificationKafkaConsumerIntegrationTest extends IntegrationTestSupport {
     MatchAcceptedEvent next = MatchAcceptedEvent.of(2L, 10L, 20L, "응답자");
 
     // when
-    publish(event);
-    publish(event);
-    publish(next);
+    publishEvent(event);
+    publishEvent(event);
+    publishEvent(next);
 
     // then
     awaitNotification(next.id().toString());
@@ -74,17 +68,13 @@ class NotificationKafkaConsumerIntegrationTest extends IntegrationTestSupport {
     long memberId = 77L;
 
     // when
-    publish(MemberSummaryChangedEvent.of(memberId, "MALE", false));
-    publish(MemberRegisteredEvent.from(memberId));
+    publishEvent(MemberSummaryChangedEvent.of(memberId, "MALE", false));
+    publishEvent(MemberRegisteredEvent.from(memberId));
 
     // then
     await()
         .atMost(SHORTER_THAN_RETRIES)
         .until(() -> notificationPreferenceRepository.existsByMemberId(memberId));
-  }
-
-  private void publish(Object event) {
-    transactionTemplate.executeWithoutResult(status -> eventPublisher.publishEvent(event));
   }
 
   private Notification awaitNotification(String idempotencyKey) {
