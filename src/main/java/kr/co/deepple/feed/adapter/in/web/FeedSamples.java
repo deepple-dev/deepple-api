@@ -82,10 +82,6 @@ final class FeedSamples {
     return new FeedViews(firstPageFeeds(), SECOND_PAGE_CURSOR, true);
   }
 
-  static FeedGridViews myFeedGrid() {
-    return new FeedGridViews(myFeeds().stream().map(FeedSamples::gridItem).toList(), null, false);
-  }
-
   static FeedGridViews officialFeedGrid() {
     return new FeedGridViews(
         officialFeeds().stream().map(FeedSamples::gridItem).toList(), null, false);
@@ -97,10 +93,6 @@ final class FeedSamples {
         .filter(feed -> feed.feedId() == feedId)
         .findFirst()
         .orElseGet(() -> firstPageFeeds().get(2));
-  }
-
-  static FeedView createdFeed() {
-    return myFeeds().get(0);
   }
 
   static FeedPollView vote(long feedId, long optionId) {
@@ -300,6 +292,7 @@ final class FeedSamples {
             true,
             230L,
             false,
+            false,
             minutesAgo(60 * 24 * 40)),
         new FeedView(
             2L,
@@ -314,6 +307,7 @@ final class FeedSamples {
             0L,
             false,
             0L,
+            false,
             false,
             minutesAgo(60 * 24 * 3)));
   }
@@ -400,6 +394,7 @@ final class FeedSamples {
         isLiked,
         commentCount,
         author == ME,
+        false,
         minutesAgo(feedId * feedId * 10));
   }
 
@@ -427,7 +422,8 @@ final class FeedSamples {
         feed.content(),
         feed.textPosition(),
         feed.likeCount(),
-        feed.commentCount());
+        feed.commentCount(),
+        false);
   }
 
   private static FeedPollView poll(long firstOptionId, String... contents) {

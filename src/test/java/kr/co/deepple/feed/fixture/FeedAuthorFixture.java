@@ -18,6 +18,7 @@ public class FeedAuthorFixture {
   private long memberId = 1L;
   private String activityStatus;
   private Instant activityStatusUpdatedAt;
+  private String grade;
 
   public static FeedAuthorFixture builder() {
     return new FeedAuthorFixture();
@@ -28,6 +29,7 @@ public class FeedAuthorFixture {
     setField(author, "id", id);
     setField(author, "activityStatus", activityStatus);
     setField(author, "activityStatusUpdatedAt", activityStatusUpdatedAt);
+    setField(author, "grade", grade);
     return author;
   }
 }

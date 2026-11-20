@@ -17,11 +17,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("피드 배경 서비스 테스트")
-class FeedBackgroundServiceTest {
+class GetFeedBackgroundsServiceTest {
 
   @Mock private FeedBackgroundReader feedBackgroundReader;
 
-  @InjectMocks private FeedBackgroundService feedBackgroundService;
+  @InjectMocks private GetFeedBackgroundsService getFeedBackgroundsService;
 
   @Test
   @DisplayName("숨긴 배경을 빼고 순서대로 돌려준다")
@@ -34,7 +34,7 @@ class FeedBackgroundServiceTest {
         .willReturn(new FeedBackgroundCatalog(List.of(first, hidden, second), Set.of(1L)));
 
     // when
-    FeedBackgroundViews result = feedBackgroundService.getBackgrounds();
+    FeedBackgroundViews result = getFeedBackgroundsService.getFeedBackgrounds();
 
     // then
     assertThat(result.backgrounds()).containsExactly(first, second);
