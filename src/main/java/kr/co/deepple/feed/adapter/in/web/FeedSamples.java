@@ -11,7 +11,6 @@ import kr.co.deepple.feed.application.dto.AdminFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminFeedView;
 import kr.co.deepple.feed.application.dto.FeedAuthorView;
 import kr.co.deepple.feed.application.dto.FeedBackgroundView;
-import kr.co.deepple.feed.application.dto.FeedBackgroundViews;
 import kr.co.deepple.feed.application.dto.FeedCommentDisplayStatus;
 import kr.co.deepple.feed.application.dto.FeedCommentView;
 import kr.co.deepple.feed.application.dto.FeedCommentViews;
@@ -111,11 +110,6 @@ final class FeedSamples {
       poll = feed(7L).poll();
     }
     return withResult(poll, optionId);
-  }
-
-  static FeedBackgroundViews backgrounds() {
-    return new FeedBackgroundViews(
-        LongStream.rangeClosed(1L, BACKGROUND_COUNT).mapToObj(FeedSamples::background).toList());
   }
 
   static FeedCommentViews comments(String cursor) {
@@ -547,8 +541,8 @@ final class FeedSamples {
   }
 
   private static FeedBackgroundView background(long backgroundId) {
-    String path = IMAGE_HOST + "/backgrounds/v1/" + backgroundId;
-    return new FeedBackgroundView(backgroundId, path + ".webp", path + "-thumbnail.webp");
+    String path = IMAGE_HOST + "/feed-backgrounds/" + backgroundId + "/v1/";
+    return new FeedBackgroundView(backgroundId, path + "image.webp", path + "thumbnail.webp");
   }
 
   private static List<FeedImageView> images(long firstImageId, int count) {

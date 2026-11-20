@@ -48,7 +48,7 @@ public class S3Uploader {
     return new PresignedUrlResponse(presignedUrl.toString(), objectUrl);
   }
 
-  private String getObjectUrl(String key) {
+  public String getObjectUrl(String key) {
     if (!publicUrl.isBlank()) {
       return publicUrl + "/" + key;
     }
