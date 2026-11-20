@@ -44,7 +44,7 @@ class ReportServiceTest {
     long reporterId = 2L;
     ReportReasonType reportReasonType = ReportReasonType.ETC;
     ReportCreateRequest request =
-        new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
+        new ReportCreateRequest(reporteeId, "MEMBER", null, reportReasonType.name(), "content");
 
     when(findMemberSummaryUseCase.getMemberSummary(reporteeId))
         .thenThrow(new DeeppleException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -65,7 +65,7 @@ class ReportServiceTest {
     long reporterId = 2L;
     ReportReasonType reportReasonType = ReportReasonType.ETC;
     ReportCreateRequest request =
-        new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
+        new ReportCreateRequest(reporteeId, "MEMBER", null, reportReasonType.name(), "content");
 
     when(reportRepository.existsByReporterIdAndReporteeId(reporterId, reporteeId)).thenReturn(true);
 
@@ -84,7 +84,8 @@ class ReportServiceTest {
     long reporteeId = 1L;
     long reporterId = 2L;
     String invalidReason = "INVALID_REASON";
-    ReportCreateRequest request = new ReportCreateRequest(reporteeId, invalidReason, "content");
+    ReportCreateRequest request =
+        new ReportCreateRequest(reporteeId, "MEMBER", null, invalidReason, "content");
 
     // when, then
     assertThatThrownBy(() -> reportService.report(request, reporterId))
@@ -102,7 +103,7 @@ class ReportServiceTest {
     long reporterId = 2L;
     ReportReasonType reportReasonType = ReportReasonType.ETC;
     ReportCreateRequest request =
-        new ReportCreateRequest(reporteeId, reportReasonType.name(), "content");
+        new ReportCreateRequest(reporteeId, "MEMBER", null, reportReasonType.name(), "content");
 
     // when
     reportService.report(request, reporterId);
