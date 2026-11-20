@@ -73,6 +73,7 @@ dependencies {
 
     // External - AWS
     implementation libs.spring.cloud.aws.starter.s3
+    implementation libs.spring.cloud.aws.starter.sqs
 
     // External - Firebase
     implementation libs.firebase.admin

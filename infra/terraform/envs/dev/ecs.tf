@@ -83,6 +83,18 @@ data "aws_iam_policy_document" "app" {
   }
 
   statement {
+    sid = "ImageResults"
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:ChangeMessageVisibility",
+      "sqs:GetQueueAttributes",
+      "sqs:GetQueueUrl",
+    ]
+    resources = [module.image_processing.results_queue_arn]
+  }
+
+  statement {
     sid = "EcsExec"
     actions = [
       "ssmmessages:CreateControlChannel",
@@ -111,6 +123,7 @@ locals {
     KAFKA_BOOTSTRAP_SERVERS     = local.kafka_bootstrap_servers
     OTEL_EXPORTER_OTLP_ENDPOINT = "http://${local.alloy_host}:4318"
     AWS_S3_BUCKET_NAME          = aws_s3_bucket.storage.bucket
+    IMAGE_RESULT_QUEUE_NAME     = module.image_processing.results_queue_name
 
     GOOGLE_WORKLOAD_IDENTITY_AUDIENCE = "//iam.googleapis.com/${var.gcp_workload_identity_provider}"
     FIREBASE_PROJECT_ID               = var.firebase_project_id

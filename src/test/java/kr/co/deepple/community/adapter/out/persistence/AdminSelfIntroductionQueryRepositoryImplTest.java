@@ -55,7 +55,7 @@ class AdminSelfIntroductionQueryRepositoryImplTest extends RepositoryTestSupport
                   .memberId(WOMAN_ID)
                   .title("제목입니다." + i)
                   .content("내용입니다. 내용은 30자 이상이어야합니다... 30자를 채우자!! " + i)
-                  .imageUrl("https://example.com/" + i + ".jpg")
+                  .imageKey("images/1/" + i + ".webp")
                   .build()));
     }
 
@@ -122,7 +122,9 @@ class AdminSelfIntroductionQueryRepositoryImplTest extends RepositoryTestSupport
       assertThat(view.memberId()).isEqualTo(WOMAN_ID);
       assertThat(view.isOpened()).isEqualTo(expected.isOpened());
       assertThat(view.content()).isEqualTo(expected.getContent());
-      assertThat(view.imageUrl()).isEqualTo(expected.getImageUrl());
+      assertThat(view.imageUrl())
+          .isEqualTo(
+              "https://deepple-test.s3.ap-northeast-2.amazonaws.com/" + expected.getImageKey());
       assertThat(view.createdAt()).isNotNull();
       assertThat(view.updatedAt()).isNotNull();
       assertThat(view.deletedAt()).isNull();

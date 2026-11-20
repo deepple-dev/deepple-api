@@ -54,8 +54,8 @@ class FindMemberScreeningProfilesServiceTest {
     given(profileImageQueryRepository.findByMemberId(1L))
         .willReturn(
             List.of(
-                new ProfileImageView(10L, "https://example.com/1", true, 1),
-                new ProfileImageView(11L, "https://example.com/2", false, 2)));
+                new ProfileImageView(10L, 20L, "https://example.com/1", true, 1),
+                new ProfileImageView(11L, 21L, "https://example.com/2", false, 2)));
 
     assertThat(findMemberScreeningProfilesService.findProfileImages(1L))
         .containsExactly(

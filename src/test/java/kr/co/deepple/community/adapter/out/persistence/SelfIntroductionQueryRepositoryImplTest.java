@@ -72,7 +72,9 @@ class SelfIntroductionQueryRepositoryImplTest extends RepositoryTestSupport {
       assertThat(first.memberId()).isEqualTo(expected.getMemberId());
       assertThat(first.title()).isEqualTo(expected.getTitle());
       assertThat(first.content()).isEqualTo(expected.getContent());
-      assertThat(first.imageUrl()).isEqualTo(expected.getImageUrl());
+      assertThat(first.imageUrl())
+          .isEqualTo(
+              "https://deepple-test.s3.ap-northeast-2.amazonaws.com/" + expected.getImageKey());
       assertThat(first.createdAt()).isNotNull();
     }
 
@@ -201,7 +203,10 @@ class SelfIntroductionQueryRepositoryImplTest extends RepositoryTestSupport {
       assertThat(view.memberId()).isEqualTo(OTHER_MEMBER_ID);
       assertThat(view.title()).isEqualTo(selfIntroduction.getTitle());
       assertThat(view.content()).isEqualTo(selfIntroduction.getContent());
-      assertThat(view.imageUrl()).isEqualTo(selfIntroduction.getImageUrl());
+      assertThat(view.imageUrl())
+          .isEqualTo(
+              "https://deepple-test.s3.ap-northeast-2.amazonaws.com/"
+                  + selfIntroduction.getImageKey());
       assertThat(view.createdAt()).isNotNull();
     }
 
@@ -267,6 +272,12 @@ class SelfIntroductionQueryRepositoryImplTest extends RepositoryTestSupport {
 
   private SelfIntroduction persist(long memberId, String title, boolean opened) {
     return entityManager.persist(
-        SelfIntroductionFixture.builder().memberId(memberId).title(title).opened(opened).build());
+        SelfIntroductionFixture.builder()
+            .memberId(memberId)
+            .title(title)
+            .imageId(10L)
+            .imageKey("images/" + memberId + "/self.webp")
+            .opened(opened)
+            .build());
   }
 }

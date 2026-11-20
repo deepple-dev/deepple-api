@@ -2,7 +2,6 @@ package kr.co.deepple.member.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-import kr.co.deepple.member.domain.ImageUrl;
 import kr.co.deepple.member.domain.ProfileImage;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -16,7 +15,8 @@ public class ProfileImageFixture {
 
   private Long id;
   private long memberId = 1L;
-  private String imageUrl = "https://example.com/profile.jpg";
+  private Long imageId = 1L;
+  private String imageKey = "images/1/profile.webp";
   private int order = 1;
   private boolean primary = true;
 
@@ -28,7 +28,8 @@ public class ProfileImageFixture {
     ProfileImage profileImage =
         ProfileImage.builder()
             .memberId(memberId)
-            .imageUrl(ImageUrl.from(imageUrl))
+            .imageId(imageId)
+            .imageKey(imageKey)
             .order(order)
             .isPrimary(primary)
             .build();

@@ -20,29 +20,34 @@ public class SelfIntroductionTest {
     String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
 
     // When
-    SelfIntroduction selfIntroduction = SelfIntroduction.write(memberId, title, content, null);
+    SelfIntroduction selfIntroduction =
+        SelfIntroduction.write(memberId, title, content, null, null);
 
     // Then
     assertThat(selfIntroduction).isNotNull();
     assertThat(selfIntroduction.getMemberId()).isEqualTo(memberId);
     assertThat(selfIntroduction.getContent()).isEqualTo(content);
-    assertThat(selfIntroduction.getImageUrl()).isNull();
+    assertThat(selfIntroduction.getImageId()).isNull();
+    assertThat(selfIntroduction.getImageKey()).isNull();
   }
 
   @Test
-  @DisplayName("이미지 URL이 포함된 셀프 소개를 생성한다.")
+  @DisplayName("이미지가 포함된 셀프 소개를 생성한다.")
   void writeSelfIntroductionWithImage() {
     // Given
     Long memberId = 1L;
     String title = "셀프 소개 제목";
     String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-    String imageUrl = "https://example.com/image.jpg";
+    long imageId = 10L;
+    String imageKey = "images/1/a.webp";
 
     // When
-    SelfIntroduction selfIntroduction = SelfIntroduction.write(memberId, title, content, imageUrl);
+    SelfIntroduction selfIntroduction =
+        SelfIntroduction.write(memberId, title, content, imageId, imageKey);
 
     // Then
-    assertThat(selfIntroduction.getImageUrl()).isEqualTo(imageUrl);
+    assertThat(selfIntroduction.getImageId()).isEqualTo(imageId);
+    assertThat(selfIntroduction.getImageKey()).isEqualTo(imageKey);
   }
 
   @Nested
@@ -58,7 +63,7 @@ public class SelfIntroductionTest {
       String content = "셀프 소개 내용.";
 
       // When & Then
-      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
+      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null, null))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_TITLE);
@@ -73,26 +78,10 @@ public class SelfIntroductionTest {
       String content = "30자 이하.";
 
       // When & Then
-      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null))
+      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, null, null))
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue(
               "errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
-    }
-
-    @Test
-    @DisplayName("이미지 URL이 빈 문자열이면, 예외 발생")
-    void throwExceptionWhenImageUrlIsBlank() {
-      // Given
-      Long memberId = 1L;
-      String title = "셀프 소개 제목";
-      String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
-      String imageUrl = "";
-
-      // When & Then
-      assertThatThrownBy(() -> SelfIntroduction.write(memberId, title, content, imageUrl))
-          .isInstanceOf(DeeppleException.class)
-          .hasFieldOrPropertyWithValue(
-              "errorCode", CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
     }
   }
 
@@ -133,13 +122,12 @@ public class SelfIntroductionTest {
       String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
       SelfIntroduction selfIntroduction =
           SelfIntroductionFixture.builder().title("title").content(content).build();
-      String newImageUrl = "https://example.com/image.jpg";
-
       // When
-      selfIntroduction.update("title", content, newImageUrl);
+      selfIntroduction.update("title", content, 10L, "images/1/a.webp");
 
       // Then
-      assertThat(selfIntroduction.getImageUrl()).isEqualTo(newImageUrl);
+      assertThat(selfIntroduction.getImageId()).isEqualTo(10L);
+      assertThat(selfIntroduction.getImageKey()).isEqualTo("images/1/a.webp");
     }
 
     @Test
@@ -151,18 +139,20 @@ public class SelfIntroductionTest {
           SelfIntroductionFixture.builder()
               .title("title")
               .content(content)
-              .imageUrl("https://example.com/image.jpg")
+              .imageId(10L)
+              .imageKey("images/1/a.webp")
               .build();
 
       // When
-      selfIntroduction.update("title", content, null);
+      selfIntroduction.update("title", content, null, null);
 
       // Then
-      assertThat(selfIntroduction.getImageUrl()).isNull();
+      assertThat(selfIntroduction.getImageId()).isNull();
+      assertThat(selfIntroduction.getImageKey()).isNull();
     }
 
     @Test
-    @DisplayName("셀프 소개의 이미지를 다른 URL로 교체한다.")
+    @DisplayName("셀프 소개의 이미지를 다른 이미지로 교체한다.")
     void replaceImage() {
       // Given
       String content = "셀프 소개 내용이 공백 포함하여 최소 30자 이상이어야 합니다.";
@@ -170,15 +160,16 @@ public class SelfIntroductionTest {
           SelfIntroductionFixture.builder()
               .title("title")
               .content(content)
-              .imageUrl("https://example.com/old.jpg")
+              .imageId(10L)
+              .imageKey("images/1/old.webp")
               .build();
-      String newImageUrl = "https://example.com/new.jpg";
 
       // When
-      selfIntroduction.update("title", content, newImageUrl);
+      selfIntroduction.update("title", content, 11L, "images/1/new.webp");
 
       // Then
-      assertThat(selfIntroduction.getImageUrl()).isEqualTo(newImageUrl);
+      assertThat(selfIntroduction.getImageId()).isEqualTo(11L);
+      assertThat(selfIntroduction.getImageKey()).isEqualTo("images/1/new.webp");
     }
   }
 }

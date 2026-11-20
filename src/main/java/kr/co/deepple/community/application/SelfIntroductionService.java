@@ -1,13 +1,12 @@
 package kr.co.deepple.community.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
-import kr.co.deepple.common.infra.s3.S3Uploader;
-import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.community.application.dto.SelfIntroductionWriteRequest;
 import kr.co.deepple.community.application.port.out.SelfIntroductionRepository;
 import kr.co.deepple.community.domain.CommunityErrorCode;
 import kr.co.deepple.community.domain.SelfIntroduction;
 import kr.co.deepple.community.event.SelfIntroductionFirstWrittenEvent;
+import kr.co.deepple.image.application.port.in.FindImageUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,19 +17,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SelfIntroductionService {
 
-  private static final String IMAGE_PATH_PREFIX = "self-introduction";
-
   private final SelfIntroductionRepository selfIntroductionRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
-  private final S3Uploader s3Uploader;
+  private final FindImageUseCase findImageUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public boolean write(SelfIntroductionWriteRequest request, long memberId) {
     validateMemberId(memberId);
     boolean isFirstSelfIntroduction = isFirstSelfIntroduction(memberId);
+    String imageKey = findImageKey(request.imageId(), memberId);
     SelfIntroduction selfIntroduction =
-        SelfIntroduction.write(memberId, request.title(), request.content(), request.imageUrl());
+        SelfIntroduction.write(
+            memberId, request.title(), request.content(), request.imageId(), imageKey);
     selfIntroductionRepository.save(selfIntroduction);
     if (isFirstSelfIntroduction) {
       eventPublisher.publishEvent(SelfIntroductionFirstWrittenEvent.from(memberId));
@@ -48,7 +47,8 @@ public class SelfIntroductionService {
     SelfIntroduction selfIntroduction = getSelfIntroductionById(id);
     validateSelfIntroductionAuthor(selfIntroduction.getMemberId(), memberId);
 
-    selfIntroduction.update(request.title(), request.content(), request.imageUrl());
+    String imageKey = findImageKey(request.imageId(), memberId);
+    selfIntroduction.update(request.title(), request.content(), request.imageId(), imageKey);
   }
 
   @Transactional
@@ -56,11 +56,6 @@ public class SelfIntroductionService {
     validateMemberId(memberId);
     validateSelfIntroductionAuthor(getSelfIntroductionById(id).getMemberId(), memberId);
     selfIntroductionRepository.deleteById(id);
-  }
-
-  public PresignedUrlResponse getPresignedUrl(String fileName, long memberId) {
-    validateMemberId(memberId);
-    return s3Uploader.getPresignedUrl(fileName, memberId, IMAGE_PATH_PREFIX);
   }
 
   @Transactional
@@ -87,6 +82,13 @@ public class SelfIntroductionService {
         .orElseThrow(() ->
             new DeeppleException(
                 CommunityErrorCode.SELF_INTRODUCTION_NOT_FOUND, "selfIntroductionId=" + id));
+  }
+
+  private String findImageKey(Long imageId, long memberId) {
+    if (imageId == null) {
+      return null;
+    }
+    return findImageUseCase.getMemberImage(imageId, memberId).imageKey();
   }
 
   private void validateMemberId(long memberId) {

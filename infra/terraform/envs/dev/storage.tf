@@ -33,6 +33,24 @@ data "aws_iam_policy_document" "storage" {
   }
 
   statement {
+    sid       = "DenyAnonymousImageUploadRead"
+    effect    = "Deny"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.storage.arn}/tmp/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "StringNotEquals"
+      variable = "aws:PrincipalAccount"
+      values   = [var.account_id]
+    }
+  }
+
+  statement {
     sid       = "DenyInsecureTransport"
     effect    = "Deny"
     actions   = ["s3:*"]
@@ -56,4 +74,32 @@ resource "aws_s3_bucket_policy" "storage" {
   policy = data.aws_iam_policy_document.storage.json
 
   depends_on = [aws_s3_bucket_public_access_block.storage]
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "storage" {
+  bucket = aws_s3_bucket.storage.id
+
+  rule {
+    id     = "expire-image-uploads"
+    status = "Enabled"
+
+    filter {
+      prefix = "tmp/"
+    }
+
+    expiration {
+      days = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_cors_configuration" "storage" {
+  bucket = aws_s3_bucket.storage.id
+
+  cors_rule {
+    allowed_methods = ["PUT"]
+    allowed_origins = ["https://admin.deepple.co.kr"]
+    allowed_headers = ["content-type"]
+    max_age_seconds = 3000
+  }
 }

@@ -37,3 +37,7 @@ payment:
 notification:
   test-send:
     enabled: true
+
+image:
+  processing:
+    result-queue: ${IMAGE_RESULT_QUEUE_NAME}

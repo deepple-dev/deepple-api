@@ -9,6 +9,7 @@ import java.util.List;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.enums.Role;
+import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.community.domain.ProfileExchange;
 import kr.co.deepple.community.domain.ProfileExchangeStatus;
@@ -49,6 +50,8 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
 
   @Autowired private TransactionTemplate transactionTemplate;
 
+  @Autowired private S3Uploader s3Uploader;
+
   private final List<Object> savedEntities = new ArrayList<>();
 
   @AfterEach
@@ -72,14 +75,14 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
     save(
         ProfileImageFixture.builder()
             .memberId(otherMemberId)
-            .imageUrl("https://example.com/main.jpg")
+            .imageKey("images/1/main.webp")
             .order(1)
             .primary(true)
             .build());
     save(
         ProfileImageFixture.builder()
             .memberId(otherMemberId)
-            .imageUrl("https://example.com/sub.jpg")
+            .imageKey("images/1/sub.webp")
             .order(2)
             .primary(false)
             .build());
@@ -152,7 +155,7 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
     assertThat(result)
         .bodyJson()
         .extractingPath("$.memberInfo.profileImageUrl")
-        .isEqualTo("https://example.com/main.jpg");
+        .isEqualTo(s3Uploader.getObjectUrl("images/1/main.webp"));
     assertThat(result)
         .bodyJson()
         .extractingPath("$.memberInfo.likeLevel")
@@ -160,7 +163,7 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
     assertThat(result)
         .bodyJson()
         .extractingPath("$.memberInfo.additionalProfileImages[*].url")
-        .isEqualTo(List.of("https://example.com/sub.jpg"));
+        .isEqualTo(List.of(s3Uploader.getObjectUrl("images/1/sub.webp")));
     assertThat(result)
         .bodyJson()
         .extractingPath("$.matchInfo.matchId")

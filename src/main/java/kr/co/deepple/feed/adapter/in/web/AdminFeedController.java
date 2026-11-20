@@ -9,8 +9,6 @@ import kr.co.deepple.feed.application.dto.AdminFeedCreateRequest;
 import kr.co.deepple.feed.application.dto.AdminFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminFeedUpdateRequest;
 import kr.co.deepple.feed.application.dto.AdminFeedView;
-import kr.co.deepple.feed.application.dto.ImageUploadRequest;
-import kr.co.deepple.feed.application.dto.ImageUploadResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -60,12 +58,5 @@ public class AdminFeedController {
   @DeleteMapping("/feeds/{feedId}")
   public ResponseEntity<Void> deleteFeed(@PathVariable long feedId) {
     return ResponseEntity.noContent().build();
-  }
-
-  @Operation(summary = "이미지 업로드", description = "관리자 피드에 넣을 이미지를 올린다.")
-  @PostMapping("/images")
-  public ResponseEntity<ImageUploadResponse> createImageUpload(
-      @Valid @RequestBody ImageUploadRequest request) {
-    return ResponseEntity.ok(FeedSamples.imageUpload());
   }
 }

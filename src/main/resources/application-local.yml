@@ -23,6 +23,8 @@ spring:
         endpoint: http://localhost:9090
         path-style-access-enabled: true
         bucket: deepple-local
+      sqs:
+        enabled: false
 
 jwt:
   issuer: http://localhost:8080
@@ -82,3 +84,7 @@ bizgo:
 notification:
   test-send:
     enabled: true
+
+image:
+  processing:
+    result-queue: deepple-local-image-results

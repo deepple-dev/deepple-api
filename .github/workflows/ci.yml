@@ -25,6 +25,7 @@ jobs:
       app: ${{ github.event_name != 'pull_request' || steps.filter.outputs.app == 'true' }}
       dependencies: ${{ github.event_name != 'pull_request' || steps.filter.outputs.dependencies == 'true' }}
       terraform: ${{ github.event_name != 'pull_request' || steps.filter.outputs.terraform == 'true' }}
+      lambda: ${{ github.event_name != 'pull_request' || steps.filter.outputs.lambda == 'true' }}
     steps:
       - id: filter
         if: github.event_name == 'pull_request'
@@ -47,6 +48,9 @@ jobs:
               - 'gradle/**'
             terraform:
               - 'infra/terraform/**'
+              - '.github/workflows/ci.yml'
+            lambda:
+              - 'lambda/**'
               - '.github/workflows/ci.yml'
 
   test:
@@ -149,6 +153,27 @@ jobs:
             echo "::endgroup::"
           done
 
+  lambda:
+    needs: changes
+    if: needs.changes.outputs.lambda == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: lambda/image-processor
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: lambda/image-processor/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test
+
   # dependency-review가 비교할 의존성 그래프를 main과 PR 양쪽에 올린다
   # fork PR은 쓰기 권한이 없어 그래프를 올릴 수 없으므로 건너뛴다
   dependency-submission:
@@ -190,7 +215,7 @@ jobs:
   # main 룰셋의 필수 체크는 이 job 하나만 건다
   ci-passed:
     if: ${{ !cancelled() }}
-    needs: [ changes, test, docker, terraform, dependency-submission, dependency-review ]
+    needs: [ changes, test, docker, terraform, lambda, dependency-submission, dependency-review ]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

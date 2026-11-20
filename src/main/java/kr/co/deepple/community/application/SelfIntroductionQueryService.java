@@ -129,6 +129,7 @@ public class SelfIntroductionQueryService {
         findLikeLevelUseCase.findLikeLevel(memberId, authorId).orElse(null),
         raw.title(),
         raw.content(),
+        raw.imageId(),
         raw.imageUrl(),
         selfIntroductionQueryRepository.findProfileExchangeStatus(memberId, authorId).orElse(null),
         raw.createdAt());

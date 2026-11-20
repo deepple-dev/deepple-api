@@ -18,6 +18,8 @@ spring:
         secret-key: test
       s3:
         path-style-access-enabled: true
+      sqs:
+        enabled: false
 
 management:
   server:
@@ -86,3 +88,7 @@ bizgo:
 
 scheduler:
   event-resubmission-cron: "-"
+
+image:
+  processing:
+    result-queue: deepple-local-image-results

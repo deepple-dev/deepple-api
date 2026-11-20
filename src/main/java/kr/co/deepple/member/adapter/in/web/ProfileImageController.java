@@ -5,10 +5,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import kr.co.deepple.common.config.ApiTags;
-import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.member.application.ProfileImageService;
-import kr.co.deepple.member.application.dto.PresignedUrlPostRequest;
 import kr.co.deepple.member.application.dto.ProfileImageUploadRequestWrapper;
 import kr.co.deepple.member.application.dto.ProfileImageUploadResponse;
 import kr.co.deepple.member.application.dto.ProfileImageUploadResponses;
@@ -40,13 +38,6 @@ public class ProfileImageController {
     List<ProfileImageUploadResponse> result =
         profileImageService.save(memberId, request.requests());
     return ResponseEntity.ok(new ProfileImageUploadResponses(result));
-  }
-
-  @Operation(summary = "프로필 이미지 업로드용 preSignedUrl 생성")
-  @PostMapping("/presigned-url")
-  public ResponseEntity<PresignedUrlResponse> getPresignedUrl(
-      @RequestBody @Valid PresignedUrlPostRequest request, @CurrentMemberId long memberId) {
-    return ResponseEntity.ok(profileImageService.getPresignedUrl(request.fileName(), memberId));
   }
 
   @Operation(summary = "내 프로필 이미지 조회")

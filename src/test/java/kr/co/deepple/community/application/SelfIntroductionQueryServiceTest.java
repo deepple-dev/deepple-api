@@ -114,7 +114,7 @@ class SelfIntroductionQueryServiceTest {
 
   private RawSelfIntroductionView raw(long id, long memberId) {
     return new RawSelfIntroductionView(
-        id, memberId, "제목" + id, "내용" + id, "image" + id, CREATED_AT);
+        id, memberId, "제목" + id, "내용" + id, id + 100L, "image" + id, CREATED_AT);
   }
 
   private SelfIntroductionSearchRequest request(

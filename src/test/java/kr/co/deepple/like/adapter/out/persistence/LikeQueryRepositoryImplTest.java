@@ -255,7 +255,7 @@ class LikeQueryRepositoryImplTest extends RepositoryTestSupport {
       if (i % 2 == 0) {
         continue;
       }
-      var senderImage = createProfileImage(senders.get(i).getId(), "/sender" + i + ".jpg");
+      var senderImage = createProfileImage(senders.get(i).getId(), "images/sender" + i + ".webp");
       senderProfileImages.add(senderImage);
       em.persist(senderImage);
     }
@@ -277,7 +277,8 @@ class LikeQueryRepositoryImplTest extends RepositoryTestSupport {
       if (i % 2 == 1) {
         continue;
       }
-      var receiverImage = createProfileImage(receivers.get(i).getId(), "/receiver" + i + ".jpg");
+      var receiverImage =
+          createProfileImage(receivers.get(i).getId(), "images/receiver" + i + ".webp");
       receiverProfileImages.add(receiverImage);
       em.persist(receiverImage);
     }
@@ -329,10 +330,10 @@ class LikeQueryRepositoryImplTest extends RepositoryTestSupport {
     return member;
   }
 
-  private ProfileImage createProfileImage(long memberId, String url) {
+  private ProfileImage createProfileImage(long memberId, String imageKey) {
     return ProfileImageFixture.builder()
         .memberId(memberId)
-        .imageUrl(url)
+        .imageKey(imageKey)
         .primary(true)
         .order(1)
         .build();
