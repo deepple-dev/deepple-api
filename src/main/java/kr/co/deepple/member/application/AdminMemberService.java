@@ -7,6 +7,7 @@ import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Grade;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.event.MemberGradeChangedEvent;
 import kr.co.deepple.member.event.MemberSettingUpdatedEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class AdminMemberService {
     eventPublisher.publishEvent(
         MemberSummaryChangedEvent.of(
             memberId, gender != null ? gender.name() : null, member.isVip()));
+    eventPublisher.publishEvent(MemberGradeChangedEvent.of(memberId, grade.name()));
     log.atInfo().addKeyValue("memberId", memberId).log("관리자 회원 설정 변경");
   }
 

@@ -11,7 +11,9 @@ import kr.co.deepple.member.application.port.out.ProfileImageRepository;
 import kr.co.deepple.member.domain.ImageUrl;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.domain.ProfileImage;
+import kr.co.deepple.member.event.MemberPrimaryProfileImageChangedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ public class ProfileImageService {
       List.of("jpg", "jpeg", "png", "webp", "heic");
   private final ProfileImageRepository profileImageRepository;
   private final S3Uploader s3Uploader;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public List<ProfileImageUploadResponse> save(
@@ -52,6 +55,9 @@ public class ProfileImageService {
     }
 
     profileImageRepository.saveAll(profileImages);
+    String primaryImageUrl = profileImages.isEmpty() ? null : profileImages.getFirst().getUrl();
+    eventPublisher.publishEvent(
+        MemberPrimaryProfileImageChangedEvent.of(memberId, primaryImageUrl));
     return ProfileImageMapper.toList(profileImages);
   }
 

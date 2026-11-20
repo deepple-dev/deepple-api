@@ -15,6 +15,8 @@ import java.util.Optional;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
+import kr.co.deepple.member.event.MemberActivityStatusChangedEvent;
+import kr.co.deepple.member.event.MemberGradeChangedEvent;
 import kr.co.deepple.member.event.MemberLoggedInEvent;
 import kr.co.deepple.member.event.MemberRegisteredEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
@@ -43,7 +45,7 @@ class MemberAccountSyncServiceTest {
   @InjectMocks private MemberAccountSyncService memberAccountSyncService;
 
   @Test
-  @DisplayName("계정 번호를 회원 번호로 써서 회원을 만들고 가입 이벤트와 요약 변경 이벤트를 발행한다.")
+  @DisplayName("계정 번호를 회원 번호로 써서 회원을 만들고 가입·요약 변경·활동 상태·등급 이벤트를 발행한다.")
   void registerMemberWithAccountId() {
     when(memberRepository.saveAndFlush(any(Member.class))).then(returnsFirstArg());
 
@@ -57,12 +59,19 @@ class MemberAccountSyncServiceTest {
     assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.INITIAL);
 
     ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
-    verify(eventPublisher, times(2)).publishEvent(eventCaptor.capture());
+    verify(eventPublisher, times(4)).publishEvent(eventCaptor.capture());
     assertThat(eventCaptor.getAllValues().get(0))
         .isInstanceOfSatisfying(
             MemberRegisteredEvent.class,
             event -> assertThat(event.memberId()).isEqualTo(MEMBER_ID));
     assertThat(eventCaptor.getAllValues().get(1)).isInstanceOf(MemberSummaryChangedEvent.class);
+    assertThat(eventCaptor.getAllValues().get(2))
+        .isInstanceOfSatisfying(
+            MemberActivityStatusChangedEvent.class,
+            event -> assertThat(event.activityStatus()).isEqualTo("INITIAL"));
+    assertThat(eventCaptor.getAllValues().get(3))
+        .isInstanceOfSatisfying(
+            MemberGradeChangedEvent.class, event -> assertThat(event.grade()).isEqualTo("SILVER"));
   }
 
   @Test
@@ -103,7 +112,7 @@ class MemberAccountSyncServiceTest {
   }
 
   @Test
-  @DisplayName("계정이 탈퇴하면 회원을 삭제 처리한다.")
+  @DisplayName("계정이 탈퇴하면 회원을 삭제 처리하고 활동 상태 변경 이벤트를 발행한다.")
   void deleteMemberWhenAccountDeleted() {
     Member member = MemberFixture.builder().id(MEMBER_ID).build();
     when(memberRepository.findByIdForUpdate(MEMBER_ID)).thenReturn(Optional.of(member));
@@ -111,5 +120,9 @@ class MemberAccountSyncServiceTest {
     memberAccountSyncService.delete(MEMBER_ID);
 
     assertThat(member.isDeleted()).isTrue();
+    ArgumentCaptor<MemberActivityStatusChangedEvent> eventCaptor =
+        ArgumentCaptor.forClass(MemberActivityStatusChangedEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+    assertThat(eventCaptor.getValue().activityStatus()).isEqualTo("DELETED");
   }
 }

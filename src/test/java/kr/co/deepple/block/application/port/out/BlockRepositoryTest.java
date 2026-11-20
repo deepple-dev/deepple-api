@@ -2,6 +2,7 @@ package kr.co.deepple.block.application.port.out;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.support.RepositoryTestSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -24,5 +25,15 @@ class BlockRepositoryTest extends RepositoryTestSupport {
     entityManager.flush();
 
     assertThat(blockRepository.findBlockedIdsByBlockerId(1L)).containsExactlyInAnyOrder(2L, 3L);
+  }
+
+  @Test
+  @DisplayName("같은 차단을 두 번 넣어도 한 행만 남는다.")
+  void insertIfAbsentOnce() {
+    blockRepository.insertIfAbsent(1L, 2L, LocalDateTime.now());
+    blockRepository.insertIfAbsent(1L, 2L, LocalDateTime.now());
+
+    assertThat(blockRepository.count()).isEqualTo(1L);
+    assertThat(blockRepository.existsByBlockerIdAndBlockedId(1L, 2L)).isTrue();
   }
 }

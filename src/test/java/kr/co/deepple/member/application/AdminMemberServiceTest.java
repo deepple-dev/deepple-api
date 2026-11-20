@@ -13,6 +13,7 @@ import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Grade;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.event.MemberGradeChangedEvent;
 import kr.co.deepple.member.event.MemberSettingUpdatedEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,12 @@ class AdminMemberServiceTest {
                     && event.memberId() == memberId
                     && event.isPushNotificationEnabled() == request.isPushNotificationEnabled()));
     verify(eventPublisher).publishEvent(any(MemberSummaryChangedEvent.class));
+    verify(eventPublisher)
+        .publishEvent(
+            ArgumentMatchers.<Object>argThat(published ->
+                published instanceof MemberGradeChangedEvent event
+                    && event.memberId() == memberId
+                    && event.grade().equals(request.grade())));
   }
 
   @Test

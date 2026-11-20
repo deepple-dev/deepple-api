@@ -1,8 +1,10 @@
 package kr.co.deepple.block.application.port.out;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import kr.co.deepple.block.domain.Block;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BlockRepository extends JpaRepository<Block, Long> {
@@ -13,4 +15,15 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
 
   @Query("SELECT b.blockerId FROM Block b WHERE b.blockedId = :blockedId")
   Set<Long> findBlockerIdsByBlockedId(long blockedId);
+
+  @Modifying
+  @Query(
+      value =
+          """
+          insert into blocks (blocker_id, blocked_id, created_at)
+          values (:blockerId, :blockedId, :createdAt)
+          on duplicate key update id = id
+          """,
+      nativeQuery = true)
+  void insertIfAbsent(long blockerId, long blockedId, LocalDateTime createdAt);
 }

@@ -19,6 +19,8 @@ import kr.co.deepple.datingexam.fixture.DatingExamQuestionFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubjectFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
+import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.FeedBlockFixture;
 import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.HeartTransactionFixture;
 import kr.co.deepple.heart.fixture.HeartUsagePolicyFixture;
@@ -86,6 +88,8 @@ class FixturePersistenceTest extends RepositoryTestSupport {
             "MemberHeartBalance",
             (Supplier<Object>) () -> MemberHeartBalanceFixture.builder().build()),
         arguments("HeartMember", (Supplier<Object>) () -> HeartMemberFixture.builder().build()),
+        arguments("FeedAuthor", (Supplier<Object>) () -> FeedAuthorFixture.builder().build()),
+        arguments("FeedBlock", (Supplier<Object>) () -> FeedBlockFixture.builder().build()),
         arguments(
             "InterviewAnswer", (Supplier<Object>) () -> InterviewAnswerFixture.builder().build()),
         arguments(

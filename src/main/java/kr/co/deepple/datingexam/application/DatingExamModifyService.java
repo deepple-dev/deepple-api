@@ -23,6 +23,7 @@ import kr.co.deepple.datingexam.domain.SubjectType;
 import kr.co.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import kr.co.deepple.datingexam.event.AllRequiredSubjectSubmittedEvent;
+import kr.co.deepple.datingexam.event.DominantPersonalityTypeChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -104,6 +105,9 @@ public class DatingExamModifyService implements DatingExamSubmitter {
             .orElseGet(() -> DatingExamSubmitResult.from(memberId));
     result.addCounts(counts);
     datingExamSubmitResultRepository.save(result);
+    eventPublisher.publishEvent(
+        DominantPersonalityTypeChangedEvent.of(
+            memberId, result.getDominantPersonalityType().name()));
   }
 
   private boolean isAllRequiredSubjectsSubmitted(long memberId) {
