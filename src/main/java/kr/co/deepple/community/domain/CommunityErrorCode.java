@@ -19,8 +19,7 @@ public enum CommunityErrorCode implements ErrorCode {
   SELF_INTRODUCTION_NOT_FOUND(ErrorType.NOT_FOUND, "셀프 소개 글을 찾을 수 없습니다."),
   SELF_INTRODUCTION_ACCESS_DENIED(ErrorType.PERMISSION_DENIED, "셀프 소개 글의 작성자가 아닙니다."),
   INVALID_SELF_INTRODUCTION_TITLE(ErrorType.INVALID_ARGUMENT, "셀프 소개 글의 제목을 입력해 주세요."),
-  INVALID_SELF_INTRODUCTION_CONTENT(ErrorType.INVALID_ARGUMENT, "셀프 소개 글은 30자 이상이어야 합니다."),
-  INVALID_SELF_INTRODUCTION_IMAGE_URL(ErrorType.INVALID_ARGUMENT, "유효하지 않은 이미지 URL입니다.");
+  INVALID_SELF_INTRODUCTION_CONTENT(ErrorType.INVALID_ARGUMENT, "셀프 소개 글은 30자 이상이어야 합니다.");
 
   private final ErrorType type;
   private final String message;

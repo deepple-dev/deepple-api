@@ -30,28 +30,37 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
 
   private String content;
 
-  private String imageUrl;
+  private Long imageId;
+
+  private String imageKey;
 
   private boolean isOpened;
 
   private SelfIntroduction(
-      long memberId, String title, String content, String imageUrl, boolean isOpened) {
+      long memberId,
+      String title,
+      String content,
+      Long imageId,
+      String imageKey,
+      boolean isOpened) {
     this.memberId = memberId;
     setTitle(title);
     setContent(content);
-    setImageUrl(imageUrl);
+    this.imageId = imageId;
+    this.imageKey = imageKey;
     this.isOpened = isOpened;
   }
 
   public static SelfIntroduction write(
-      long memberId, String title, String content, String imageUrl) {
-    return new SelfIntroduction(memberId, title, content, imageUrl, false);
+      long memberId, String title, String content, Long imageId, String imageKey) {
+    return new SelfIntroduction(memberId, title, content, imageId, imageKey, false);
   }
 
-  public void update(String title, String content, String imageUrl) {
+  public void update(String title, String content, Long imageId, String imageKey) {
     setTitle(title);
     setContent(content);
-    setImageUrl(imageUrl);
+    this.imageId = imageId;
+    this.imageKey = imageKey;
   }
 
   public void close() {
@@ -74,12 +83,5 @@ public class SelfIntroduction extends SoftDeleteBaseEntity {
       throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_CONTENT);
     }
     this.content = content;
-  }
-
-  private void setImageUrl(String imageUrl) {
-    if (imageUrl != null && imageUrl.isEmpty()) {
-      throw new DeeppleException(CommunityErrorCode.INVALID_SELF_INTRODUCTION_IMAGE_URL);
-    }
-    this.imageUrl = imageUrl;
   }
 }

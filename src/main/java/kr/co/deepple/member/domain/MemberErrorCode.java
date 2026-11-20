@@ -20,9 +20,8 @@ public enum MemberErrorCode implements ErrorCode {
   INVALID_PROFILE_OPTION(ErrorType.INVALID_ARGUMENT, "유효하지 않은 프로필 선택 값입니다."),
   INVALID_GRADE(ErrorType.INVALID_ARGUMENT, "유효하지 않은 회원 등급입니다."),
   PROFILE_IMAGE_COUNT_EXCEEDED(ErrorType.INVALID_ARGUMENT, "프로필 이미지는 6개까지 등록할 수 있습니다."),
-  INVALID_PROFILE_IMAGE_EXTENSION(ErrorType.INVALID_ARGUMENT, "지원하지 않는 이미지 확장자입니다."),
   INVALID_PROFILE_IMAGE_ORDER(ErrorType.INVALID_ARGUMENT, "유효하지 않은 프로필 이미지 순서입니다."),
-  INVALID_PROFILE_IMAGE_URL(ErrorType.INVALID_ARGUMENT, "유효하지 않은 이미지 URL입니다.");
+  DUPLICATE_PROFILE_IMAGE(ErrorType.INVALID_ARGUMENT, "같은 사진을 여러 번 등록할 수 없습니다.");
 
   private final ErrorType type;
   private final String message;

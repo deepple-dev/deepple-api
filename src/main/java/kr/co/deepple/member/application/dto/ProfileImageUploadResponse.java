@@ -4,4 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record ProfileImageUploadResponse(
-    Long id, String imageUrl, Integer order, Boolean isPrimary) {}
+    Long id, Long imageId, String imageUrl, Integer order, Boolean isPrimary) {}

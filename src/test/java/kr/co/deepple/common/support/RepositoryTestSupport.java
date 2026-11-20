@@ -4,6 +4,7 @@ import kr.co.deepple.auth.application.port.out.AuthMessageRepository;
 import kr.co.deepple.auth.application.port.out.RefreshTokenRepository;
 import kr.co.deepple.common.config.MySqlContainerConfig;
 import kr.co.deepple.common.config.QueryDslConfig;
+import kr.co.deepple.common.config.S3UploaderTestConfig;
 import kr.co.deepple.recommendation.application.port.out.IntroductionCacheRepository;
 import kr.co.deepple.recommendation.application.port.out.PersonalityIntroductionOpenStateRepository;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -23,5 +24,5 @@ import org.springframework.stereotype.Repository;
               IntroductionCacheRepository.class,
               PersonalityIntroductionOpenStateRepository.class
             }))
-@Import({QueryDslConfig.class, MySqlContainerConfig.class})
+@Import({QueryDslConfig.class, MySqlContainerConfig.class, S3UploaderTestConfig.class})
 public abstract class RepositoryTestSupport {}

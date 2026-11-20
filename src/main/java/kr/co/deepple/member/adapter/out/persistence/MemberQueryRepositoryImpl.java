@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.member.application.dto.MemberContactView;
 import kr.co.deepple.member.application.dto.MemberProfileView;
 import kr.co.deepple.member.application.dto.QMemberContactView;
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Repository;
 public class MemberQueryRepositoryImpl implements MemberQueryRepository {
 
   private final JPAQueryFactory queryFactory;
+  private final S3Uploader s3Uploader;
 
   @Override
   public Optional<MemberProfileView> findProfileByMemberId(long memberId) {
@@ -183,21 +185,32 @@ public class MemberQueryRepositoryImpl implements MemberQueryRepository {
 
   @Override
   public List<MemberPreview> findPreviewsByMemberIds(Collection<Long> memberIds) {
+    StringExpression city = member.profile.region.city.stringValue();
+    StringExpression gender = member.profile.gender.stringValue();
+
     return queryFactory
         .select(
-            Projections.constructor(
-                MemberPreview.class,
-                member.id,
-                member.profile.nickname.value,
-                profileImage.imageUrl.value,
-                member.profile.region.city.stringValue(),
-                member.profile.yearOfBirth.value,
-                member.profile.gender.stringValue()))
+            member.id,
+            member.profile.nickname.value,
+            profileImage.imageKey,
+            city,
+            member.profile.yearOfBirth.value,
+            gender)
         .from(member)
         .leftJoin(profileImage)
         .on(profileImage.memberId.eq(member.id).and(profileImage.isPrimary.eq(true)))
         .where(member.id.in(memberIds))
-        .fetch();
+        .fetch()
+        .stream()
+        .map(row ->
+            new MemberPreview(
+                row.get(member.id),
+                row.get(member.profile.nickname.value),
+                s3Uploader.getObjectUrl(row.get(profileImage.imageKey)),
+                row.get(city),
+                row.get(member.profile.yearOfBirth.value),
+                row.get(gender)))
+        .toList();
   }
 
   @Override
@@ -220,7 +233,7 @@ public class MemberQueryRepositoryImpl implements MemberQueryRepository {
             groupBy(member.id)
                 .as(
                     member.profile.nickname.value,
-                    profileImage.imageUrl.value,
+                    profileImage.imageKey,
                     member.profile.yearOfBirth.value,
                     gender,
                     city,
@@ -234,7 +247,7 @@ public class MemberQueryRepositoryImpl implements MemberQueryRepository {
             new MemberProfileSummary(
                 entry.getKey(),
                 entry.getValue().getOne(member.profile.nickname.value),
-                entry.getValue().getOne(profileImage.imageUrl.value),
+                s3Uploader.getObjectUrl(entry.getValue().getOne(profileImage.imageKey)),
                 AgeConverter.toAge(entry.getValue().getOne(member.profile.yearOfBirth.value)),
                 entry.getValue().getOne(gender),
                 entry.getValue().getOne(city),

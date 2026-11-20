@@ -4,11 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.common.config.ApiTags;
-import kr.co.deepple.common.infra.s3.dto.PresignedUrlResponse;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.community.application.SelfIntroductionQueryService;
 import kr.co.deepple.community.application.SelfIntroductionService;
-import kr.co.deepple.community.application.dto.SelfIntroductionImagePresignedUrlRequest;
 import kr.co.deepple.community.application.dto.SelfIntroductionSearchRequest;
 import kr.co.deepple.community.application.dto.SelfIntroductionSummaryViews;
 import kr.co.deepple.community.application.dto.SelfIntroductionView;
@@ -43,14 +41,6 @@ public class SelfIntroductionController {
       @RequestBody @Valid SelfIntroductionWriteRequest request, @CurrentMemberId long memberId) {
     boolean hasProcessedMission = selfIntroductionService.write(request, memberId);
     return ResponseEntity.ok(new SelfIntroductionWriteResponse(hasProcessedMission));
-  }
-
-  @Operation(summary = "셀프 소개 이미지 업로드용 preSignedUrl 생성")
-  @PostMapping("/presigned-url")
-  public ResponseEntity<PresignedUrlResponse> getPresignedUrl(
-      @RequestBody @Valid SelfIntroductionImagePresignedUrlRequest request,
-      @CurrentMemberId long memberId) {
-    return ResponseEntity.ok(selfIntroductionService.getPresignedUrl(request.fileName(), memberId));
   }
 
   @Operation(summary = "셀프 소개 수정 API")

@@ -70,6 +70,12 @@ data "aws_iam_policy_document" "deploy" {
   }
 
   statement {
+    sid       = "ImageProcessor"
+    actions   = ["lambda:UpdateFunctionCode", "lambda:GetFunction"]
+    resources = [module.image_processing.function_arn]
+  }
+
+  statement {
     sid       = "Notify"
     actions   = ["sns:Publish"]
     resources = [module.alerts.topic_arn]

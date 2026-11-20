@@ -25,7 +25,7 @@ public class ProfileImageQueryRepositoryImplTest extends RepositoryTestSupport {
     ProfileImage profileImage1 =
         ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl("https://example.com")
+            .imageKey("images/1/a.webp")
             .primary(true)
             .order(1)
             .build();
@@ -33,7 +33,7 @@ public class ProfileImageQueryRepositoryImplTest extends RepositoryTestSupport {
     ProfileImage profileImage2 =
         ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl("https://example2.com")
+            .imageKey("images/1/b.webp")
             .primary(false)
             .order(2)
             .build();
@@ -50,13 +50,15 @@ public class ProfileImageQueryRepositoryImplTest extends RepositoryTestSupport {
 
     ProfileImageView profileImageOrder1 = profileImageViews.getFirst();
     Assertions.assertThat(profileImageOrder1.id()).isEqualTo(profileImage1.getId());
-    Assertions.assertThat(profileImageOrder1.url()).isEqualTo(profileImage1.getUrl());
+    Assertions.assertThat(profileImageOrder1.url())
+        .isEqualTo("https://deepple-test.s3.ap-northeast-2.amazonaws.com/images/1/a.webp");
     Assertions.assertThat(profileImageOrder1.isPrimary()).isEqualTo(profileImage1.isPrimary());
     Assertions.assertThat(profileImageOrder1.order()).isEqualTo(profileImage1.getOrder());
 
     ProfileImageView profileImageOrder2 = profileImageViews.getLast();
     Assertions.assertThat(profileImageOrder2.id()).isEqualTo(profileImage2.getId());
-    Assertions.assertThat(profileImageOrder2.url()).isEqualTo(profileImage2.getUrl());
+    Assertions.assertThat(profileImageOrder2.url())
+        .isEqualTo("https://deepple-test.s3.ap-northeast-2.amazonaws.com/images/1/b.webp");
     Assertions.assertThat(profileImageOrder2.isPrimary()).isEqualTo(profileImage2.isPrimary());
     Assertions.assertThat(profileImageOrder2.order()).isEqualTo(profileImage2.getOrder());
   }

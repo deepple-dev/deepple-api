@@ -9,6 +9,7 @@ import java.util.List;
 import kr.co.deepple.admin.fixture.WarningFixture;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.common.enums.Role;
+import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.interview.domain.InterviewQuestion;
 import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
@@ -40,6 +41,8 @@ class AdminMemberQueryControllerIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private TransactionTemplate transactionTemplate;
 
+  @Autowired private S3Uploader s3Uploader;
+
   private final List<Object> savedEntities = new ArrayList<>();
 
   @AfterEach
@@ -70,14 +73,14 @@ class AdminMemberQueryControllerIntegrationTest extends IntegrationTestSupport {
     save(
         ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl("https://example.com/image2")
+            .imageKey("images/1/image2.webp")
             .order(2)
             .primary(false)
             .build());
     save(
         ProfileImageFixture.builder()
             .memberId(memberId)
-            .imageUrl("https://example.com/image1")
+            .imageKey("images/1/image1.webp")
             .order(1)
             .primary(true)
             .build());
@@ -124,7 +127,10 @@ class AdminMemberQueryControllerIntegrationTest extends IntegrationTestSupport {
     assertThat(result)
         .bodyJson()
         .extractingPath("$.profileImageUrls")
-        .isEqualTo(List.of("https://example.com/image1", "https://example.com/image2"));
+        .isEqualTo(
+            List.of(
+                s3Uploader.getObjectUrl("images/1/image1.webp"),
+                s3Uploader.getObjectUrl("images/1/image2.webp")));
     assertThat(result)
         .bodyJson()
         .extractingPath("$.profileInfo.hobbies")

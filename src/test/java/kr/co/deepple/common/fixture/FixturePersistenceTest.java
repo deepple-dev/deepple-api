@@ -26,6 +26,7 @@ import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.HeartTransactionFixture;
 import kr.co.deepple.heart.fixture.HeartUsagePolicyFixture;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
+import kr.co.deepple.image.fixture.ImageFixture;
 import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
 import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
 import kr.co.deepple.like.fixture.LikeFixture;
@@ -89,6 +90,7 @@ class FixturePersistenceTest extends RepositoryTestSupport {
             "MemberHeartBalance",
             (Supplier<Object>) () -> MemberHeartBalanceFixture.builder().build()),
         arguments("HeartMember", (Supplier<Object>) () -> HeartMemberFixture.builder().build()),
+        arguments("Image", (Supplier<Object>) () -> ImageFixture.builder().build()),
         arguments("FeedAuthor", (Supplier<Object>) () -> FeedAuthorFixture.builder().build()),
         arguments(
             "FeedBackground", (Supplier<Object>) () -> FeedBackgroundFixture.builder().build()),

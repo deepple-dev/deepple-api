@@ -1,0 +1,68 @@
+name: Deploy image processor
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'lambda/image-processor/**'
+      - '.github/workflows/deploy-image-processor.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-image-processor-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/v') && 'prod' || 'dev' }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      STACK: ${{ startsWith(github.ref, 'refs/tags/v') && 'deepple-prod' || 'deepple-dev' }}
+    defaults:
+      run:
+        working-directory: lambda/image-processor
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: lambda/image-processor/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test
+
+      - name: Package
+        run: |
+          rm -rf node_modules
+          npm ci --omit=dev --os=linux --cpu=arm64 --libc=glibc
+          mkdir -p dist
+          zip -qr dist/function.zip index.mjs handler.mjs convert.mjs keys.mjs errors.mjs package.json node_modules
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::339713092351:role/${{ env.STACK }}-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy
+        run: |
+          aws lambda update-function-code \
+            --function-name "${STACK}-image-processor" \
+            --zip-file fileb://dist/function.zip \
+            --query 'CodeSha256' --output text
+          aws lambda wait function-updated-v2 --function-name "${STACK}-image-processor"

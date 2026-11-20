@@ -9,8 +9,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.community.application.dto.AdminSelfIntroductionSearchCondition;
-import kr.co.deepple.community.application.dto.QRawAdminSelfIntroductionView;
 import kr.co.deepple.community.application.dto.RawAdminSelfIntroductionView;
 import kr.co.deepple.community.application.port.out.AdminSelfIntroductionQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,7 @@ public class AdminSelfIntroductionQueryRepositoryImpl
     implements AdminSelfIntroductionQueryRepository {
 
   private final JPAQueryFactory queryFactory;
+  private final S3Uploader s3Uploader;
 
   @Override
   public Page<RawAdminSelfIntroductionView> findSelfIntroductions(
@@ -35,21 +36,32 @@ public class AdminSelfIntroductionQueryRepositoryImpl
     List<RawAdminSelfIntroductionView> content =
         queryFactory
             .select(
-                new QRawAdminSelfIntroductionView(
-                    selfIntroduction.id,
-                    selfIntroduction.memberId,
-                    selfIntroduction.isOpened,
-                    selfIntroduction.content,
-                    selfIntroduction.imageUrl,
-                    selfIntroduction.createdAt,
-                    selfIntroduction.updatedAt,
-                    selfIntroduction.deletedAt))
+                selfIntroduction.id,
+                selfIntroduction.memberId,
+                selfIntroduction.isOpened,
+                selfIntroduction.content,
+                selfIntroduction.imageKey,
+                selfIntroduction.createdAt,
+                selfIntroduction.updatedAt,
+                selfIntroduction.deletedAt)
             .from(selfIntroduction)
             .where(searchCondition)
             .orderBy(selfIntroduction.id.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
-            .fetch();
+            .fetch()
+            .stream()
+            .map(row ->
+                new RawAdminSelfIntroductionView(
+                    row.get(selfIntroduction.id),
+                    row.get(selfIntroduction.memberId),
+                    Boolean.TRUE.equals(row.get(selfIntroduction.isOpened)),
+                    row.get(selfIntroduction.content),
+                    s3Uploader.getObjectUrl(row.get(selfIntroduction.imageKey)),
+                    row.get(selfIntroduction.createdAt),
+                    row.get(selfIntroduction.updatedAt),
+                    row.get(selfIntroduction.deletedAt)))
+            .toList();
 
     long totalCount =
         Optional.ofNullable(

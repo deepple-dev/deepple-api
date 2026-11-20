@@ -1,7 +1,6 @@
 package kr.co.deepple.member.domain;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,9 +25,9 @@ public class ProfileImage extends BaseEntity {
 
   private long memberId;
 
-  @Embedded
-  @Getter(AccessLevel.NONE)
-  private ImageUrl imageUrl;
+  private Long imageId;
+
+  private String imageKey;
 
   private boolean isPrimary;
 
@@ -36,15 +35,12 @@ public class ProfileImage extends BaseEntity {
   private int order;
 
   @Builder
-  private ProfileImage(long memberId, ImageUrl imageUrl, int order, boolean isPrimary) {
+  private ProfileImage(long memberId, Long imageId, String imageKey, int order, boolean isPrimary) {
     this.memberId = memberId;
-    this.imageUrl = imageUrl;
+    this.imageId = imageId;
+    this.imageKey = imageKey;
     setOrder(order);
     this.isPrimary = isPrimary;
-  }
-
-  public String getUrl() {
-    return imageUrl.getValue();
   }
 
   private void setOrder(int order) {
@@ -57,11 +53,5 @@ public class ProfileImage extends BaseEntity {
   public void updateOrderAndPrimary(int order, boolean isPrimary) {
     setOrder(order);
     this.isPrimary = isPrimary;
-  }
-
-  public void updateUrl(String imageUrl) {
-    if (imageUrl != null) {
-      this.imageUrl = ImageUrl.from(imageUrl);
-    }
   }
 }

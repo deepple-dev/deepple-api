@@ -50,3 +50,7 @@ payment:
 
 storage:
   public-url: https://images.deepple.co.kr
+
+image:
+  processing:
+    result-queue: ${IMAGE_RESULT_QUEUE_NAME}

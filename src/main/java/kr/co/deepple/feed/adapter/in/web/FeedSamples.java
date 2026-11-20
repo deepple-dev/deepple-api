@@ -23,7 +23,6 @@ import kr.co.deepple.feed.application.dto.FeedSearchCondition;
 import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.FeedViews;
-import kr.co.deepple.feed.application.dto.ImageUploadResponse;
 import kr.co.deepple.feed.domain.FeedAuthorType;
 import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.domain.FeedType;
@@ -149,20 +148,6 @@ final class FeedSamples {
 
   static FeedCommentView createdComment(Long parentCommentId) {
     return comment(200L, parentCommentId, ME, "방금 쓴 댓글이에요", 0, true, 0);
-  }
-
-  static ImageUploadResponse imageUpload() {
-    return new ImageUploadResponse(
-        10L,
-        "https://example-bucket.s3.ap-northeast-2.amazonaws.com",
-        Map.of(
-            "key", "tmp/1/0b7c1f5e.webp",
-            "Content-Type", "image/webp",
-            "policy", "example-policy",
-            "x-amz-algorithm", "AWS4-HMAC-SHA256",
-            "x-amz-credential", "example-credential",
-            "x-amz-date", "20261114T030000Z",
-            "x-amz-signature", "example-signature"));
   }
 
   static List<AdminFeedView> adminFeeds(AdminFeedSearchCondition condition) {

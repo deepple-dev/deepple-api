@@ -208,8 +208,8 @@ public class MatchQueryRepositoryImplTest extends RepositoryTestSupport {
     return member;
   }
 
-  private ProfileImage createProfileImage(long memberId, String url) {
-    return ProfileImageFixture.builder().memberId(memberId).imageUrl(url).build();
+  private ProfileImage createProfileImage(long memberId, String imageKey) {
+    return ProfileImageFixture.builder().memberId(memberId).imageKey(imageKey).build();
   }
 
   @Test

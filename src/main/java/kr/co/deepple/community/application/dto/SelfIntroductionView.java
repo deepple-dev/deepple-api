@@ -11,6 +11,7 @@ public record SelfIntroductionView(
         String like,
     String title,
     String content,
+    @Schema(description = "수정할 때 그대로 보내면 이미지를 유지한다") Long imageId,
     String imageUrl,
     String profileExchangeStatus,
     LocalDateTime createdAt) {}

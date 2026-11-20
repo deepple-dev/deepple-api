@@ -45,13 +45,13 @@ class MemberProfilesQueryRepositoryTest extends RepositoryTestSupport {
     entityManager.persist(
         ProfileImageFixture.builder()
             .memberId(withAll.getId())
-            .imageUrl("https://example.com/primary.jpg")
+            .imageKey("images/1/primary.webp")
             .primary(true)
             .build());
     entityManager.persist(
         ProfileImageFixture.builder()
             .memberId(withAll.getId())
-            .imageUrl("https://example.com/second.jpg")
+            .imageKey("images/1/second.webp")
             .order(2)
             .primary(false)
             .build());
@@ -68,7 +68,8 @@ class MemberProfilesQueryRepositoryTest extends RepositoryTestSupport {
     MemberProfileSummary profile =
         profiles.stream().filter(p -> p.memberId() == withAll.getId()).findFirst().orElseThrow();
     assertThat(profile.nickname()).isEqualTo("프로필있음");
-    assertThat(profile.profileImageUrl()).isEqualTo("https://example.com/primary.jpg");
+    assertThat(profile.profileImageUrl())
+        .isEqualTo("https://deepple-test.s3.ap-northeast-2.amazonaws.com/images/1/primary.webp");
     assertThat(profile.age()).isEqualTo(AgeConverter.toAge(1995));
     assertThat(profile.gender()).isEqualTo("FEMALE");
     assertThat(profile.city()).isEqualTo(District.GANGBUK_GU.getCity().name());
@@ -91,14 +92,14 @@ class MemberProfilesQueryRepositoryTest extends RepositoryTestSupport {
     entityManager.persist(
         ProfileImageFixture.builder()
             .memberId(member.getId())
-            .imageUrl("https://example.com/first.jpg")
+            .imageKey("images/1/first.webp")
             .order(1)
             .primary(true)
             .build());
     entityManager.persist(
         ProfileImageFixture.builder()
             .memberId(member.getId())
-            .imageUrl("https://example.com/second.jpg")
+            .imageKey("images/1/second.webp")
             .order(2)
             .primary(true)
             .build());
@@ -110,7 +111,9 @@ class MemberProfilesQueryRepositoryTest extends RepositoryTestSupport {
 
     assertThat(profiles).hasSize(1);
     assertThat(profiles.getFirst().profileImageUrl())
-        .isIn("https://example.com/first.jpg", "https://example.com/second.jpg");
+        .isIn(
+            "https://deepple-test.s3.ap-northeast-2.amazonaws.com/images/1/first.webp",
+            "https://deepple-test.s3.ap-northeast-2.amazonaws.com/images/1/second.webp");
     assertThat(profiles.getFirst().hobbies()).containsExactlyInAnyOrder("ANIMATION", "BOARD_GAMES");
   }
 }

@@ -9,10 +9,11 @@ public class ProfileImageTest {
 
   @Test
   @DisplayName("필드값에 NULL이 들어가지 않은 경우에는 성공.")
-  void createWithMemberIdAndImageUrlAndIsPrimaryAndOrder() {
+  void createWithMemberIdAndImageAndIsPrimaryAndOrder() {
     // Given
     Long memberId = 1L;
-    String imageUrl = "url";
+    long imageId = 10L;
+    String imageKey = "images/1/a.webp";
     boolean isPrimary = true;
     int order = 1;
 
@@ -22,7 +23,8 @@ public class ProfileImageTest {
             .memberId(memberId)
             .isPrimary(isPrimary)
             .order(order)
-            .imageUrl(ImageUrl.from(imageUrl))
+            .imageId(imageId)
+            .imageKey(imageKey)
             .build();
 
     // Then
@@ -34,7 +36,8 @@ public class ProfileImageTest {
   void isInvalidWhenOrderIsNegative() {
     // Given
     Long memberId = 1L;
-    String imageUrl = "url";
+    long imageId = 10L;
+    String imageKey = "images/1/a.webp";
     boolean isPrimary = false;
     int order = -1;
 
@@ -42,7 +45,8 @@ public class ProfileImageTest {
     Assertions.assertThatThrownBy(() ->
             ProfileImage.builder()
                 .memberId(memberId)
-                .imageUrl(ImageUrl.from(imageUrl))
+                .imageId(imageId)
+                .imageKey(imageKey)
                 .isPrimary(isPrimary)
                 .order(order)
                 .build())

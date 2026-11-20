@@ -38,6 +38,18 @@ data "aws_iam_policy_document" "storage" {
   }
 
   statement {
+    sid       = "DenyCloudFrontImageUploadRead"
+    effect    = "Deny"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.storage.arn}/tmp/*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+  }
+
+  statement {
     sid       = "DenyInsecureTransport"
     effect    = "Deny"
     actions   = ["s3:*"]
@@ -149,5 +161,33 @@ resource "aws_route53_record" "images" {
     name                   = aws_cloudfront_distribution.images.domain_name
     zone_id                = aws_cloudfront_distribution.images.hosted_zone_id
     evaluate_target_health = false
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "storage" {
+  bucket = aws_s3_bucket.storage.id
+
+  rule {
+    id     = "expire-image-uploads"
+    status = "Enabled"
+
+    filter {
+      prefix = "tmp/"
+    }
+
+    expiration {
+      days = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_cors_configuration" "storage" {
+  bucket = aws_s3_bucket.storage.id
+
+  cors_rule {
+    allowed_methods = ["PUT"]
+    allowed_origins = ["https://admin.deepple.co.kr"]
+    allowed_headers = ["content-type"]
+    max_age_seconds = 3000
   }
 }

@@ -455,13 +455,13 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
       entityManager.persist(
           ProfileImageFixture.builder()
               .memberId(withImage.getId())
-              .imageUrl("https://example.com/primary.jpg")
+              .imageKey("images/1/primary.webp")
               .primary(true)
               .build());
       entityManager.persist(
           ProfileImageFixture.builder()
               .memberId(withImage.getId())
-              .imageUrl("https://example.com/second.jpg")
+              .imageKey("images/1/second.webp")
               .order(2)
               .primary(false)
               .build());
@@ -482,7 +482,8 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
               .findFirst()
               .orElseThrow();
       assertThat(preview.nickname()).isEqualTo("사진있음");
-      assertThat(preview.profileImageUrl()).isEqualTo("https://example.com/primary.jpg");
+      assertThat(preview.profileImageUrl())
+          .isEqualTo("https://deepple-test.s3.ap-northeast-2.amazonaws.com/images/1/primary.webp");
       assertThat(preview.city()).isEqualTo(withImage.getProfile().getRegion().getCity().name());
       assertThat(preview.yearOfBirth())
           .isEqualTo(withImage.getProfile().getYearOfBirth().getValue());
