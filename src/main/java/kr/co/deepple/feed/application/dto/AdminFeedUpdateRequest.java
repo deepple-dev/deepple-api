@@ -12,7 +12,8 @@ public record AdminFeedUpdateRequest(
         String title,
     @Schema(description = "내용. 관리자 피드만") @Size(max = 200, message = "내용은 200자 이하여야 합니다.")
         String content,
-    @Schema(description = "이미지 ID 목록 전체. 관리자 피드만") @Size(max = 5, message = "이미지는 5장 이하여야 합니다.")
+    @Schema(description = "이미지 ID 목록 전체. 관리자 피드만")
+        @Size(min = 1, max = 5, message = "이미지는 1장 이상 5장 이하여야 합니다.")
         List<Long> imageIds,
     @Schema(
             implementation = FeedStatus.class,

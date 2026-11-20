@@ -18,4 +18,12 @@ public interface FeedBlockRepository extends JpaRepository<FeedBlock, Long> {
           """,
       nativeQuery = true)
   void insertIfAbsent(long blockerId, long blockedId, LocalDateTime createdAt);
+
+  @Query(
+      """
+      SELECT COUNT(b) > 0 FROM FeedBlock b
+      WHERE (b.blockerId = :memberId AND b.blockedId = :otherMemberId)
+         OR (b.blockerId = :otherMemberId AND b.blockedId = :memberId)
+      """)
+  boolean existsBetween(long memberId, long otherMemberId);
 }

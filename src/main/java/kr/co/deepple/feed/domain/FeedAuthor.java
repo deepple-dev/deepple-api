@@ -126,6 +126,10 @@ public class FeedAuthor extends BaseEntity {
     this.gradeUpdatedAt = occurredAt;
   }
 
+  public boolean isOfficial() {
+    return authorType == FeedAuthorType.OFFICIAL;
+  }
+
   public boolean isActive() {
     return ACTIVE.equals(activityStatus);
   }

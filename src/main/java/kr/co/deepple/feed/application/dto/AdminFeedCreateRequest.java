@@ -14,7 +14,8 @@ public record AdminFeedCreateRequest(
     @NotBlank(message = "내용은 필수입니다.") @Size(max = 200, message = "내용은 200자 이하여야 합니다.")
         String content,
     @Schema(description = "POST /admin/images로 받은 이미지 ID 목록")
-        @Size(max = 5, message = "이미지는 5장 이하여야 합니다.")
+        @NotNull(message = "이미지는 필수입니다.")
+        @Size(min = 1, max = 5, message = "이미지는 1장 이상 5장 이하여야 합니다.")
         List<Long> imageIds,
     @Schema(
             description = "보여줄 등급 목록. 비우면 모든 등급에 보인다. 값은 회원의 grade와 같다",

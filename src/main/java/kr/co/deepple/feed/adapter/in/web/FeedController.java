@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import kr.co.deepple.common.config.ApiTags;
-import kr.co.deepple.feed.application.FeedBackgroundService;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.feed.application.dto.FeedBackgroundViews;
 import kr.co.deepple.feed.application.dto.FeedCreateRequest;
 import kr.co.deepple.feed.application.dto.FeedGridViews;
@@ -14,6 +16,11 @@ import kr.co.deepple.feed.application.dto.FeedSearchCondition;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.FeedVoteRequest;
+import kr.co.deepple.feed.application.port.in.CreateFeedUseCase;
+import kr.co.deepple.feed.application.port.in.DeleteFeedUseCase;
+import kr.co.deepple.feed.application.port.in.FindMyFeedsUseCase;
+import kr.co.deepple.feed.application.port.in.GetFeedBackgroundsUseCase;
+import kr.co.deepple.feed.application.port.in.GetFeedUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,7 +39,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FeedController {
 
-  private final FeedBackgroundService feedBackgroundService;
+  private final GetFeedBackgroundsUseCase getFeedBackgroundsUseCase;
+  private final CreateFeedUseCase createFeedUseCase;
+  private final DeleteFeedUseCase deleteFeedUseCase;
+  private final GetFeedUseCase getFeedUseCase;
+  private final FindMyFeedsUseCase findMyFeedsUseCase;
 
   @Operation(summary = "피드 목록 조회", description = "홈 피드를 20개씩 조회한다. 상단 고정 피드가 먼저 온다.")
   @GetMapping("/feeds")
@@ -46,9 +57,10 @@ public class FeedController {
       description = "격자형 목록. 최신순이고 심사 대기·반려된 피드도 포함한다. 칸을 누르면 피드 상세를 조회한다.")
   @GetMapping("/me/feeds")
   public ResponseEntity<FeedGridViews> getMyFeeds(
+      @CurrentMemberId long memberId,
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
           String cursor) {
-    return ResponseEntity.ok(FeedSamples.myFeedGrid());
+    return ResponseEntity.ok(findMyFeedsUseCase.findMyFeeds(memberId, cursor));
   }
 
   @Operation(
@@ -63,25 +75,31 @@ public class FeedController {
 
   @Operation(summary = "피드 상세 조회")
   @GetMapping("/feeds/{feedId}")
-  public ResponseEntity<FeedView> getFeed(@PathVariable long feedId) {
-    return ResponseEntity.ok(FeedSamples.feed(feedId));
+  public ResponseEntity<FeedView> getFeed(
+      @CurrentMemberId long memberId, @PathVariable long feedId) {
+    return ResponseEntity.ok(getFeedUseCase.getFeed(memberId, feedId));
   }
 
   @Operation(
       summary = "피드 등록",
-      description = "사진이 없으면 바로 공개되고, 사진이 있으면 심사를 거친다. 같은 Idempotency-Key로 다시 보내면 처음 결과를 돌려준다.")
+      description = "사진이 없으면 바로 공개되고, 사진이 있으면 심사를 거친다. 같은 Idempotency-Key로 다시 보내면 처음 만든 피드를 돌려준다.")
   @PostMapping("/feeds")
   public ResponseEntity<FeedView> createFeed(
-      @Parameter(description = "등록마다 새로 만든 고유한 키. 재전송할 때는 같은 키를 쓴다")
+      @CurrentMemberId long memberId,
+      @Parameter(description = "등록마다 새로 만든 UUID. 재전송할 때는 같은 키를 쓴다")
           @RequestHeader("Idempotency-Key")
+          @NotBlank
+          @Size(max = 100)
           String idempotencyKey,
       @Valid @RequestBody FeedCreateRequest request) {
-    return ResponseEntity.ok(FeedSamples.createdFeed());
+    return ResponseEntity.ok(createFeedUseCase.createFeed(memberId, idempotencyKey, request));
   }
 
   @Operation(summary = "피드 삭제", description = "본인 피드만 삭제할 수 있다. 댓글도 함께 삭제된다.")
   @DeleteMapping("/feeds/{feedId}")
-  public ResponseEntity<Void> deleteFeed(@PathVariable long feedId) {
+  public ResponseEntity<Void> deleteFeed(
+      @CurrentMemberId long memberId, @PathVariable long feedId) {
+    deleteFeedUseCase.deleteFeed(memberId, feedId);
     return ResponseEntity.noContent().build();
   }
 
@@ -107,6 +125,6 @@ public class FeedController {
   @Operation(summary = "피드 배경 목록 조회")
   @GetMapping("/feed-backgrounds")
   public ResponseEntity<FeedBackgroundViews> getBackgrounds() {
-    return ResponseEntity.ok(feedBackgroundService.getBackgrounds());
+    return ResponseEntity.ok(getFeedBackgroundsUseCase.getFeedBackgrounds());
   }
 }

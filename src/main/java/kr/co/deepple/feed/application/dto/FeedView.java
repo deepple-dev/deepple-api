@@ -19,4 +19,6 @@ public record FeedView(
     @Schema(description = "내가 좋아요를 눌렀는지") boolean isLiked,
     long commentCount,
     @Schema(description = "내가 쓴 피드인지") boolean isMine,
+    @Schema(description = "신고가 쌓여 숨겨진 피드인지. 다른 사람에게는 보이지 않아 작성자에게만 true가 될 수 있다")
+        boolean isHiddenByReport,
     LocalDateTime createdAt) {}

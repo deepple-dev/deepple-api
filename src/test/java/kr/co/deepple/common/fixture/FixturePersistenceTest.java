@@ -22,6 +22,9 @@ import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
 import kr.co.deepple.feed.fixture.FeedBackgroundFixture;
 import kr.co.deepple.feed.fixture.FeedBlockFixture;
+import kr.co.deepple.feed.fixture.OfficialFeedFixture;
+import kr.co.deepple.feed.fixture.PollFeedFixture;
+import kr.co.deepple.feed.fixture.TextFeedFixture;
 import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.HeartTransactionFixture;
 import kr.co.deepple.heart.fixture.HeartUsagePolicyFixture;
@@ -95,6 +98,9 @@ class FixturePersistenceTest extends RepositoryTestSupport {
         arguments(
             "FeedBackground", (Supplier<Object>) () -> FeedBackgroundFixture.builder().build()),
         arguments("FeedBlock", (Supplier<Object>) () -> FeedBlockFixture.builder().build()),
+        arguments("TextFeed", (Supplier<Object>) () -> TextFeedFixture.builder().build()),
+        arguments("PollFeed", (Supplier<Object>) () -> PollFeedFixture.builder().build()),
+        arguments("OfficialFeed", (Supplier<Object>) () -> OfficialFeedFixture.builder().build()),
         arguments(
             "InterviewAnswer", (Supplier<Object>) () -> InterviewAnswerFixture.builder().build()),
         arguments(
