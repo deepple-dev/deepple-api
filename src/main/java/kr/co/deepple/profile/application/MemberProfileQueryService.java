@@ -107,10 +107,10 @@ public class MemberProfileQueryService {
       ProfileExchangeSummary profileExchange) {
     long otherMemberId = otherMember.memberId();
     if (checkBlockUseCase.isBlocked(otherMemberId, memberId)) {
-      throw accessDenied(memberId, otherMemberId);
+      throw accessDeniedException(memberId, otherMemberId);
     }
     if (!ACTIVE.equals(otherMember.activityStatus())) {
-      throw accessDenied(memberId, otherMemberId);
+      throw accessDeniedException(memberId, otherMemberId);
     }
     if (introduced) {
       return;
@@ -127,10 +127,10 @@ public class MemberProfileQueryService {
     if (profileExchange != null && profileExchange.responderId() == memberId) {
       return;
     }
-    throw accessDenied(memberId, otherMemberId);
+    throw accessDeniedException(memberId, otherMemberId);
   }
 
-  private DeeppleException accessDenied(long memberId, long otherMemberId) {
+  private DeeppleException accessDeniedException(long memberId, long otherMemberId) {
     return new DeeppleException(
         ProfileErrorCode.PROFILE_ACCESS_DENIED,
         "memberId=" + memberId + ", otherMemberId=" + otherMemberId);

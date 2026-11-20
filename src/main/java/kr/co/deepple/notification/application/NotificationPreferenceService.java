@@ -82,16 +82,16 @@ public class NotificationPreferenceService {
   private NotificationPreference getNotificationPreference(long memberId) {
     return notificationPreferenceRepository
         .findByMemberId(memberId)
-        .orElseThrow(() -> preferenceNotFound(memberId));
+        .orElseThrow(() -> preferenceNotFoundException(memberId));
   }
 
   private NotificationPreference getNotificationPreferenceForUpdate(long memberId) {
     return notificationPreferenceRepository
         .findByMemberIdForUpdate(memberId)
-        .orElseThrow(() -> preferenceNotFound(memberId));
+        .orElseThrow(() -> preferenceNotFoundException(memberId));
   }
 
-  private DeeppleException preferenceNotFound(long memberId) {
+  private DeeppleException preferenceNotFoundException(long memberId) {
     return new DeeppleException(
         NotificationErrorCode.NOTIFICATION_PREFERENCE_NOT_FOUND, "memberId=" + memberId);
   }
