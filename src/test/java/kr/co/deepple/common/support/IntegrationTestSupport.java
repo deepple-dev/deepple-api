@@ -39,6 +39,7 @@ public abstract class IntegrationTestSupport {
           "dating_exam_answer",
           "dating_exam_question",
           "dating_exam_subject",
+          "feed_backgrounds",
           "heart_purchase_options",
           "heart_usage_policies",
           "interview_questions",

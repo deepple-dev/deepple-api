@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.common.config.ApiTags;
+import kr.co.deepple.feed.application.FeedBackgroundService;
 import kr.co.deepple.feed.application.dto.FeedBackgroundViews;
 import kr.co.deepple.feed.application.dto.FeedCreateRequest;
 import kr.co.deepple.feed.application.dto.FeedGridViews;
@@ -13,6 +14,7 @@ import kr.co.deepple.feed.application.dto.FeedSearchCondition;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.FeedVoteRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = ApiTags.FEED)
 @RestController
+@RequiredArgsConstructor
 public class FeedController {
+
+  private final FeedBackgroundService feedBackgroundService;
 
   @Operation(summary = "피드 목록 조회", description = "홈 피드를 20개씩 조회한다. 상단 고정 피드가 먼저 온다.")
   @GetMapping("/feeds")
@@ -102,6 +107,6 @@ public class FeedController {
   @Operation(summary = "피드 배경 목록 조회")
   @GetMapping("/feed-backgrounds")
   public ResponseEntity<FeedBackgroundViews> getBackgrounds() {
-    return ResponseEntity.ok(FeedSamples.backgrounds());
+    return ResponseEntity.ok(feedBackgroundService.getBackgrounds());
   }
 }
