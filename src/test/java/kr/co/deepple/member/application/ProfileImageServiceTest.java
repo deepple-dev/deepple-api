@@ -1,5 +1,6 @@
 package kr.co.deepple.member.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 
@@ -9,14 +10,17 @@ import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.member.application.dto.ProfileImageUploadRequest;
 import kr.co.deepple.member.application.port.out.ProfileImageRepository;
 import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.event.MemberPrimaryProfileImageChangedEvent;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class ProfileImageServiceTest {
@@ -26,6 +30,8 @@ public class ProfileImageServiceTest {
   @Mock private ProfileImageRepository profileImageRepository;
 
   @Mock private S3Uploader s3Uploader;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @Nested
   @DisplayName("pre-signed URL 테스트")
@@ -99,6 +105,40 @@ public class ProfileImageServiceTest {
       // Then
       verify(profileImageRepository).deleteByMemberId(memberId);
       verify(profileImageRepository).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("첫 번째 이미지를 대표 사진으로 담은 대표 사진 변경 이벤트를 발행한다.")
+    void publishPrimaryProfileImageChangedEvent() {
+      // Given
+      long memberId = 1L;
+      List<ProfileImageUploadRequest> requests =
+          List.of(
+              new ProfileImageUploadRequest("https://cdn.example.com/1.webp"),
+              new ProfileImageUploadRequest("https://cdn.example.com/2.webp"));
+
+      // When
+      profileImageService.save(memberId, requests);
+
+      // Then
+      ArgumentCaptor<MemberPrimaryProfileImageChangedEvent> eventCaptor =
+          ArgumentCaptor.forClass(MemberPrimaryProfileImageChangedEvent.class);
+      verify(eventPublisher).publishEvent(eventCaptor.capture());
+      assertThat(eventCaptor.getValue().memberId()).isEqualTo(memberId);
+      assertThat(eventCaptor.getValue().imageUrl()).isEqualTo("https://cdn.example.com/1.webp");
+    }
+
+    @Test
+    @DisplayName("이미지를 모두 지우면 대표 사진 없이 대표 사진 변경 이벤트를 발행한다.")
+    void publishPrimaryProfileImageChangedEventWithoutImage() {
+      // When
+      profileImageService.save(1L, List.of());
+
+      // Then
+      ArgumentCaptor<MemberPrimaryProfileImageChangedEvent> eventCaptor =
+          ArgumentCaptor.forClass(MemberPrimaryProfileImageChangedEvent.class);
+      verify(eventPublisher).publishEvent(eventCaptor.capture());
+      assertThat(eventCaptor.getValue().imageUrl()).isNull();
     }
   }
 }

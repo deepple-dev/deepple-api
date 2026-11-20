@@ -10,11 +10,16 @@ import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCas
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
+import kr.co.deepple.member.domain.Mbti;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
+import kr.co.deepple.member.domain.MemberProfile;
 import kr.co.deepple.member.domain.PrimaryContactType;
+import kr.co.deepple.member.domain.Region;
+import kr.co.deepple.member.event.MemberActivityStatusChangedEvent;
 import kr.co.deepple.member.event.MemberBecameActiveEvent;
 import kr.co.deepple.member.event.MemberBecameDormantEvent;
+import kr.co.deepple.member.event.MemberProfileChangedEvent;
 import kr.co.deepple.member.event.MemberProfileInitializedEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +42,8 @@ public class MemberProfileService
   public void updateMember(long memberId, MemberProfileUpdateRequest request) {
     Member member = getMemberById(memberId);
     member.updateProfile(MemberMapper.toMemberProfile(request));
-    publishSummaryChangedEvent(member);
+    publishSummaryChangedEvent(memberId, member);
+    publishProfileChangedEvent(memberId, member.getProfile());
     if (member.isProfileInitialized()) {
       eventPublisher.publishEvent(MemberProfileInitializedEvent.from(memberId));
     }
@@ -53,14 +59,18 @@ public class MemberProfileService
 
   @Transactional
   public void deactivate(long memberId) {
-    getMemberById(memberId).deactivate();
+    Member member = getMemberById(memberId);
+    member.deactivate();
     eventPublisher.publishEvent(MemberBecameDormantEvent.from(memberId));
+    publishActivityStatusChangedEvent(memberId, member.getActivityStatus());
   }
 
   @Transactional
   public void reactivate(long memberId) {
-    getMemberById(memberId).reactivate();
+    Member member = getMemberById(memberId);
+    member.reactivate();
     eventPublisher.publishEvent(MemberBecameActiveEvent.from(memberId));
+    publishActivityStatusChangedEvent(memberId, member.getActivityStatus());
   }
 
   @Override
@@ -85,6 +95,7 @@ public class MemberProfileService
     Member member = getMemberById(memberId);
     member.approveScreening();
     eventPublisher.publishEvent(MemberBecameActiveEvent.from(memberId));
+    publishActivityStatusChangedEvent(memberId, member.getActivityStatus());
     changeProfilePublishStatus(memberId, true);
   }
 
@@ -93,6 +104,7 @@ public class MemberProfileService
   public void changeReject(long memberId) {
     Member member = getMemberById(memberId);
     member.changeToRejected();
+    publishActivityStatusChangedEvent(memberId, member.getActivityStatus());
     changeProfilePublishStatus(memberId, false);
   }
 
@@ -101,6 +113,7 @@ public class MemberProfileService
   public void changeWaiting(long memberId) {
     Member member = getMemberById(memberId);
     member.changeToWaiting();
+    publishActivityStatusChangedEvent(memberId, member.getActivityStatus());
     changeProfilePublishStatus(memberId, false);
   }
 
@@ -120,6 +133,7 @@ public class MemberProfileService
     Member member = getMemberById(memberId);
     ActivityStatus activityStatus = getActivityStatus(status);
     member.changeActivityStatus(activityStatus);
+    publishActivityStatusChangedEvent(memberId, member.getActivityStatus());
     if (activityStatus == ActivityStatus.DORMANT) {
       eventPublisher.publishEvent(MemberBecameDormantEvent.from(memberId));
     }
@@ -141,11 +155,30 @@ public class MemberProfileService
     member.markDatingExamSubmitted();
   }
 
-  private void publishSummaryChangedEvent(Member member) {
+  private void publishSummaryChangedEvent(long memberId, Member member) {
     Gender gender = member.getGender();
     eventPublisher.publishEvent(
         MemberSummaryChangedEvent.of(
-            member.getId(), gender != null ? gender.name() : null, member.isVip()));
+            memberId, gender != null ? gender.name() : null, member.isVip()));
+  }
+
+  private void publishProfileChangedEvent(long memberId, MemberProfile profile) {
+    Gender gender = profile.getGender();
+    Region region = profile.getRegion();
+    Mbti mbti = profile.getMbti();
+    eventPublisher.publishEvent(
+        MemberProfileChangedEvent.of(
+            memberId,
+            profile.getNickname() != null ? profile.getNickname().getValue() : null,
+            gender != null ? gender.name() : null,
+            profile.getYearOfBirth() != null ? profile.getYearOfBirth().getValue() : null,
+            region != null && region.getCity() != null ? region.getCity().name() : null,
+            mbti != null ? mbti.name() : null));
+  }
+
+  private void publishActivityStatusChangedEvent(long memberId, ActivityStatus activityStatus) {
+    eventPublisher.publishEvent(
+        MemberActivityStatusChangedEvent.of(memberId, activityStatus.name()));
   }
 
   private void publish(Member member) {

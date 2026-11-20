@@ -1,6 +1,6 @@
 package kr.co.deepple.block.adapter.in.kafka;
 
-import kr.co.deepple.block.application.port.in.BlockCommander;
+import kr.co.deepple.block.application.port.in.CreateBlockUseCase;
 import kr.co.deepple.common.event.EventConsumer;
 import kr.co.deepple.report.event.ReportCreatedEvent;
 import kr.co.deepple.report.event.ReportTopic;
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 @KafkaListener(topics = ReportTopic.NAME, groupId = BlockConsumerGroup.ID)
 public class ReportEventConsumer extends EventConsumer {
 
-  private final BlockCommander blockCommander;
+  private final CreateBlockUseCase createBlockUseCase;
 
   @KafkaHandler
   public void handle(ReportCreatedEvent event) {
-    blockCommander.createBlockIfAbsent(event.reporterId(), event.reporteeId());
+    createBlockUseCase.createBlock(event.reporterId(), event.reporteeId());
   }
 }

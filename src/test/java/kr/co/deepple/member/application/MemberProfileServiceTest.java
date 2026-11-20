@@ -21,14 +21,19 @@ import kr.co.deepple.member.domain.Job;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.domain.Religion;
+import kr.co.deepple.member.event.MemberActivityStatusChangedEvent;
 import kr.co.deepple.member.event.MemberBecameActiveEvent;
 import kr.co.deepple.member.event.MemberBecameDormantEvent;
+import kr.co.deepple.member.event.MemberProfileChangedEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -129,6 +134,15 @@ class MemberProfileServiceTest {
 
     // Then
     Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberSummaryChangedEvent.class));
+    ArgumentCaptor<MemberProfileChangedEvent> profileEventCaptor =
+        ArgumentCaptor.forClass(MemberProfileChangedEvent.class);
+    Mockito.verify(eventPublisher).publishEvent(profileEventCaptor.capture());
+    MemberProfileChangedEvent profileEvent = profileEventCaptor.getValue();
+    assertThat(profileEvent.nickname()).isEqualTo("nickname");
+    assertThat(profileEvent.gender()).isEqualTo("MALE");
+    assertThat(profileEvent.yearOfBirth()).isEqualTo(request.yearOfBirth());
+    assertThat(profileEvent.city()).isEqualTo("DAEJEON");
+    assertThat(profileEvent.mbti()).isEqualTo("ENFJ");
     assertThat(existingMember.getProfile().getNickname().getValue()).isEqualTo("nickname");
     assertThat(existingMember.getProfile().getGender()).isEqualTo(Gender.MALE);
     assertThat(existingMember.getProfile().getJob()).isEqualTo(job);
@@ -325,6 +339,61 @@ class MemberProfileServiceTest {
       // Then
       assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.DORMANT);
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameDormantEvent.class));
+      verifyActivityStatusChangedEvent(memberId, "DORMANT");
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+        value = ActivityStatus.class,
+        names = {"ACTIVE", "SUSPENDED_TEMPORARILY", "SUSPENDED_PERMANENTLY"})
+    @DisplayName("관리자가 활동 상태를 바꾸면 바뀐 상태를 담은 활동 상태 변경 이벤트를 발행합니다.")
+    void publishActivityStatusChangedEventWhenStatusChanged(ActivityStatus expected) {
+      // Given
+      long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).build();
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+      String status =
+          switch (expected) {
+            case SUSPENDED_TEMPORARILY -> "TEMPORARY";
+            case SUSPENDED_PERMANENTLY -> "PERMANENT";
+            default -> expected.name();
+          };
+
+      // When
+      memberProfileService.changeMemberActivityStatus(memberId, status);
+
+      // Then
+      verifyActivityStatusChangedEvent(memberId, expected.name());
+    }
+
+    @Test
+    @DisplayName("심사가 반려되면 심사 거절 상태를 담은 활동 상태 변경 이벤트를 발행합니다.")
+    void publishActivityStatusChangedEventWhenScreeningRejected() {
+      // Given
+      long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).build();
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.changeReject(memberId);
+
+      // Then
+      verifyActivityStatusChangedEvent(memberId, "REJECTED_SCREENING");
+    }
+
+    @Test
+    @DisplayName("심사가 생성되면 심사 대기 상태를 담은 활동 상태 변경 이벤트를 발행합니다.")
+    void publishActivityStatusChangedEventWhenScreeningWaiting() {
+      // Given
+      long memberId = 1L;
+      Member member = MemberFixture.builder().id(memberId).build();
+      when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+      // When
+      memberProfileService.changeWaiting(memberId);
+
+      // Then
+      verifyActivityStatusChangedEvent(memberId, "WAITING_SCREENING");
     }
 
     @Test
@@ -342,6 +411,7 @@ class MemberProfileServiceTest {
       // Then
       assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.ACTIVE);
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameActiveEvent.class));
+      verifyActivityStatusChangedEvent(memberId, "ACTIVE");
     }
 
     @Test
@@ -359,6 +429,7 @@ class MemberProfileServiceTest {
       // Then
       assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.ACTIVE);
       Mockito.verify(eventPublisher).publishEvent(Mockito.any(MemberBecameActiveEvent.class));
+      verifyActivityStatusChangedEvent(memberId, "ACTIVE");
     }
   }
 
@@ -465,5 +536,13 @@ class MemberProfileServiceTest {
           .isInstanceOf(DeeppleException.class)
           .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.MEMBER_NOT_FOUND);
     }
+  }
+
+  private void verifyActivityStatusChangedEvent(long memberId, String activityStatus) {
+    ArgumentCaptor<MemberActivityStatusChangedEvent> eventCaptor =
+        ArgumentCaptor.forClass(MemberActivityStatusChangedEvent.class);
+    Mockito.verify(eventPublisher).publishEvent(eventCaptor.capture());
+    assertThat(eventCaptor.getValue().memberId()).isEqualTo(memberId);
+    assertThat(eventCaptor.getValue().activityStatus()).isEqualTo(activityStatus);
   }
 }

@@ -1,5 +1,6 @@
 package kr.co.deepple.datingexam.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
@@ -28,13 +30,16 @@ import kr.co.deepple.datingexam.domain.SubjectType;
 import kr.co.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import kr.co.deepple.datingexam.event.AllRequiredSubjectSubmittedEvent;
+import kr.co.deepple.datingexam.event.DominantPersonalityTypeChangedEvent;
 import kr.co.deepple.datingexam.fixture.DatingExamAnswerFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubjectFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitFixture;
+import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -221,6 +226,104 @@ class DatingExamModifyServiceTest {
                     event instanceof AllRequiredSubjectSubmittedEvent written
                         && written.memberId() == memberId));
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("대표 유형 변경 이벤트 테스트")
+  class DominantPersonalityTypeChangedEventTests {
+
+    private static final long MEMBER_ID = 1L;
+    private static final long SUBJECT_ID = 3L;
+    private static final long ANSWER_ID = 10L;
+
+    @Test
+    @DisplayName("처음 제출해 결과가 생기면 대표 유형을 담아 발행한다.")
+    void publishWhenResultCreated() {
+      // When
+      submitAnswer(AnswerPersonalityType.DECISIVE_INDEPENDENT, Optional.empty());
+
+      // Then
+      verifyDominantEvent("DECISIVE_INDEPENDENT");
+    }
+
+    @Test
+    @DisplayName("대표 유형이 그대로여도 제출할 때마다 현재 대표 유형을 담아 발행한다.")
+    void publishCurrentDominantOnEverySubmit() {
+      // Given
+      DatingExamSubmitResult result =
+          DatingExamSubmitResultFixture.builder()
+              .memberId(MEMBER_ID)
+              .counts(Map.of(AnswerPersonalityType.DECISIVE_INDEPENDENT, 2))
+              .build();
+
+      // When
+      submitAnswer(AnswerPersonalityType.STIMULATING_ADVENTURER, Optional.of(result));
+
+      // Then
+      verifyDominantEvent("DECISIVE_INDEPENDENT");
+    }
+
+    @Test
+    @DisplayName("제출로 대표 유형이 바뀌면 바뀐 대표 유형을 담아 발행한다.")
+    void publishChangedDominant() {
+      // Given
+      DatingExamSubmitResult result =
+          DatingExamSubmitResultFixture.builder().memberId(MEMBER_ID).build();
+
+      // When
+      submitAnswer(AnswerPersonalityType.STIMULATING_ADVENTURER, Optional.of(result));
+
+      // Then
+      verifyDominantEvent("STIMULATING_ADVENTURER");
+    }
+
+    private void submitAnswer(
+        AnswerPersonalityType personalityType, Optional<DatingExamSubmitResult> result) {
+      DatingExamSubmitRequest request = mock(DatingExamSubmitRequest.class);
+      when(request.subjectId()).thenReturn(SUBJECT_ID);
+      when(request.answers()).thenReturn(List.of(new AnswerSubmitRequest(1L, ANSWER_ID)));
+
+      DatingExamSubject subject =
+          DatingExamSubjectFixture.builder().id(SUBJECT_ID).type(SubjectType.OPTIONAL).build();
+      when(datingExamSubjectRepository.findById(SUBJECT_ID)).thenReturn(Optional.of(subject));
+      DatingExamInfoResponse infoResponse = mock(DatingExamInfoResponse.class);
+      when(datingExamQueryRepository.findDatingExamInfo(SubjectType.OPTIONAL))
+          .thenReturn(infoResponse);
+      when(datingExamAnswerRepository.findAllByIdIn(List.of(ANSWER_ID)))
+          .thenReturn(
+              List.of(
+                  DatingExamAnswerFixture.builder()
+                      .id(ANSWER_ID)
+                      .personalityType(personalityType)
+                      .build()));
+      when(datingExamSubmitResultRepository.findByMemberIdForUpdate(MEMBER_ID)).thenReturn(result);
+
+      try (MockedStatic<DatingExamSubmit> mockedDatingExamSubmit =
+              mockStatic(DatingExamSubmit.class);
+          MockedStatic<DatingExamSubmitRequestValidator> mockedValidator =
+              mockStatic(DatingExamSubmitRequestValidator.class)) {
+        mockedDatingExamSubmit
+            .when(() -> DatingExamSubmit.of(request, answerEncoder, MEMBER_ID))
+            .thenReturn(
+                DatingExamSubmitFixture.builder()
+                    .memberId(MEMBER_ID)
+                    .subjectId(SUBJECT_ID)
+                    .build());
+        mockedValidator
+            .when(() -> DatingExamSubmitRequestValidator.validateSubmit(request, infoResponse))
+            .thenAnswer(invocation -> null);
+
+        datingExamModifyService.submitSubject(request, MEMBER_ID);
+      }
+    }
+
+    private void verifyDominantEvent(String personalityType) {
+      ArgumentCaptor<DominantPersonalityTypeChangedEvent> eventCaptor =
+          ArgumentCaptor.forClass(DominantPersonalityTypeChangedEvent.class);
+      verify(eventPublisher).publishEvent(eventCaptor.capture());
+      assertThat(eventCaptor.getValue().memberId()).isEqualTo(MEMBER_ID);
+      assertThat(eventCaptor.getValue().personalityType()).isEqualTo(personalityType);
     }
   }
 }

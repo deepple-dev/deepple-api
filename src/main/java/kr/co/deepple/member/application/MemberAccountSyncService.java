@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
+import kr.co.deepple.member.event.MemberActivityStatusChangedEvent;
+import kr.co.deepple.member.event.MemberGradeChangedEvent;
 import kr.co.deepple.member.event.MemberLoggedInEvent;
 import kr.co.deepple.member.event.MemberRegisteredEvent;
 import kr.co.deepple.member.event.MemberSummaryChangedEvent;
@@ -26,8 +28,11 @@ public class MemberAccountSyncService {
   @Transactional(propagation = Propagation.MANDATORY)
   public void register(long memberId, String phoneNumber) {
     Member member = memberRepository.saveAndFlush(Member.register(memberId, phoneNumber));
-    eventPublisher.publishEvent(MemberRegisteredEvent.from(member.getId()));
-    eventPublisher.publishEvent(MemberSummaryChangedEvent.of(member.getId(), null, member.isVip()));
+    eventPublisher.publishEvent(MemberRegisteredEvent.from(memberId));
+    eventPublisher.publishEvent(MemberSummaryChangedEvent.of(memberId, null, member.isVip()));
+    eventPublisher.publishEvent(
+        MemberActivityStatusChangedEvent.of(memberId, member.getActivityStatus().name()));
+    eventPublisher.publishEvent(MemberGradeChangedEvent.of(memberId, member.getGrade().name()));
   }
 
   @Transactional
@@ -51,6 +56,12 @@ public class MemberAccountSyncService {
 
   @Transactional(propagation = Propagation.MANDATORY)
   public void delete(long memberId) {
-    memberRepository.findByIdForUpdate(memberId).ifPresent(Member::delete);
+    memberRepository
+        .findByIdForUpdate(memberId)
+        .ifPresent(member -> {
+          member.delete();
+          eventPublisher.publishEvent(
+              MemberActivityStatusChangedEvent.of(memberId, member.getActivityStatus().name()));
+        });
   }
 }

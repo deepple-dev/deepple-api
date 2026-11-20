@@ -3,7 +3,7 @@ package kr.co.deepple.block.adapter.in.web;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.block.application.dto.BlockCreateRequest;
-import kr.co.deepple.block.application.port.in.BlockCommander;
+import kr.co.deepple.block.application.port.in.CreateBlockUseCase;
 import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import lombok.AccessLevel;
@@ -20,13 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class BlockApi {
 
-  private final BlockCommander blockCommander;
+  private final CreateBlockUseCase createBlockUseCase;
 
   @PostMapping
   public ResponseEntity<Void> createBlock(
       @RequestBody @Valid BlockCreateRequest request, @CurrentMemberId long memberId) {
-    Long blockerId = memberId;
-    blockCommander.createBlock(blockerId, request.blockedId());
+    createBlockUseCase.createBlock(memberId, request.blockedId());
     return ResponseEntity.noContent().build();
   }
 }
