@@ -2,6 +2,7 @@ package kr.co.deepple.feed.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import kr.co.deepple.feed.domain.FeedImage;
@@ -27,6 +28,8 @@ public class OfficialFeedFixture {
   private boolean isPublished = true;
   private boolean isPinned;
 
+  private LocalDateTime publishedAt;
+
   public static OfficialFeedFixture builder() {
     return new OfficialFeedFixture();
   }
@@ -36,6 +39,9 @@ public class OfficialFeedFixture {
         OfficialFeed.create(
             authorId, adminId, title, content, images, targetGrades, isPublished, isPinned);
     setField(feed, "id", id);
+    if (publishedAt != null) {
+      setField(feed, "publishedAt", publishedAt);
+    }
     return feed;
   }
 }

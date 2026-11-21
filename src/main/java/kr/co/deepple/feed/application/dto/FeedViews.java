@@ -6,4 +6,9 @@ import java.util.List;
 public record FeedViews(
     List<FeedView> feeds,
     @Schema(description = "다음 페이지 요청에 넣을 커서. 마지막 페이지면 null") String nextCursor,
-    boolean hasMore) {}
+    boolean hasMore) {
+
+  public static FeedViews empty() {
+    return new FeedViews(List.of(), null, false);
+  }
+}

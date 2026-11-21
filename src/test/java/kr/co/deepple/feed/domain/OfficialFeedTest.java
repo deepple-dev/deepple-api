@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
+import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +33,23 @@ class OfficialFeedTest {
     assertThat(all.isVisibleTo("SILVER")).isTrue();
     assertThat(goldOnly.isVisibleTo("GOLD")).isTrue();
     assertThat(goldOnly.isVisibleTo("SILVER")).isFalse();
+  }
+
+  @Test
+  @DisplayName("등급이 없는 조회자에게는 사용자 피드도 관리자 피드도 보이지 않는다")
+  void invisibleToViewerWithoutGrade() {
+    assertThat(OfficialFeedFixture.builder().build().isVisibleTo(null)).isFalse();
+    assertThat(TextFeedFixture.builder().grade("GOLD").build().isVisibleTo(null)).isFalse();
+  }
+
+  @Test
+  @DisplayName("홈에 보일 등급은 대상 등급이 없으면 모든 등급, 있으면 대상 등급이다")
+  void visibleGrades() {
+    assertThat(OfficialFeedFixture.builder().build().getVisibleGrades())
+        .containsExactlyInAnyOrder("DIAMOND", "GOLD", "SILVER");
+    assertThat(
+            OfficialFeedFixture.builder().targetGrades(Set.of("GOLD")).build().getVisibleGrades())
+        .containsExactly("GOLD");
   }
 
   @Test

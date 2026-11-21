@@ -6,7 +6,10 @@ import kr.co.deepple.feed.application.port.in.SyncFeedAuthorProfileCommand;
 import kr.co.deepple.feed.application.port.in.SyncFeedAuthorUseCase;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedAuthorActivityChangedEvent;
+import kr.co.deepple.feed.domain.FeedAuthorChangedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,36 +18,44 @@ import org.springframework.transaction.annotation.Transactional;
 public class SyncFeedAuthorService implements SyncFeedAuthorUseCase {
 
   private final FeedAuthorRepository feedAuthorRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
   public void syncProfile(SyncFeedAuthorProfileCommand command) {
-    getAuthorForUpdate(command.memberId())
-        .updateProfile(
-            command.nickname(),
-            command.gender(),
-            command.yearOfBirth(),
-            command.city(),
-            command.mbti(),
-            command.occurredAt());
+    FeedAuthor author = getAuthorForUpdate(command.memberId());
+    author.updateProfile(
+        command.nickname(),
+        command.gender(),
+        command.yearOfBirth(),
+        command.city(),
+        command.mbti(),
+        command.occurredAt());
+    eventPublisher.publishEvent(new FeedAuthorChangedEvent(author.getId()));
   }
 
   @Override
   @Transactional
   public void syncProfileImage(long memberId, String profileImageUrl, Instant occurredAt) {
-    getAuthorForUpdate(memberId).updateProfileImage(profileImageUrl, occurredAt);
+    FeedAuthor author = getAuthorForUpdate(memberId);
+    author.updateProfileImage(profileImageUrl, occurredAt);
+    eventPublisher.publishEvent(new FeedAuthorChangedEvent(author.getId()));
   }
 
   @Override
   @Transactional
   public void syncPersonalityType(long memberId, String personalityType, Instant occurredAt) {
-    getAuthorForUpdate(memberId).updatePersonalityType(personalityType, occurredAt);
+    FeedAuthor author = getAuthorForUpdate(memberId);
+    author.updatePersonalityType(personalityType, occurredAt);
+    eventPublisher.publishEvent(new FeedAuthorChangedEvent(author.getId()));
   }
 
   @Override
   @Transactional
   public void syncActivityStatus(long memberId, String activityStatus, Instant occurredAt) {
-    getAuthorForUpdate(memberId).updateActivityStatus(activityStatus, occurredAt);
+    FeedAuthor author = getAuthorForUpdate(memberId);
+    author.updateActivityStatus(activityStatus, occurredAt);
+    eventPublisher.publishEvent(new FeedAuthorActivityChangedEvent(author.getId()));
   }
 
   @Override

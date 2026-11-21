@@ -14,15 +14,11 @@ import kr.co.deepple.feed.application.dto.FeedBackgroundView;
 import kr.co.deepple.feed.application.dto.FeedCommentDisplayStatus;
 import kr.co.deepple.feed.application.dto.FeedCommentView;
 import kr.co.deepple.feed.application.dto.FeedCommentViews;
-import kr.co.deepple.feed.application.dto.FeedGridItemView;
-import kr.co.deepple.feed.application.dto.FeedGridViews;
 import kr.co.deepple.feed.application.dto.FeedImageView;
 import kr.co.deepple.feed.application.dto.FeedPollOptionView;
 import kr.co.deepple.feed.application.dto.FeedPollView;
-import kr.co.deepple.feed.application.dto.FeedSearchCondition;
 import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.dto.FeedView;
-import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.domain.FeedAuthorType;
 import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.domain.FeedType;
@@ -74,18 +70,6 @@ final class FeedSamples {
           null,
           null);
   private static final List<FeedAuthorView> MEMBERS = List.of(GINGER, RUNNER, LONG_NICKNAME);
-
-  static FeedViews feeds(FeedSearchCondition condition) {
-    if (SECOND_PAGE_CURSOR.equals(condition.cursor())) {
-      return new FeedViews(simpleFeeds(21L, 25L), null, false);
-    }
-    return new FeedViews(firstPageFeeds(), SECOND_PAGE_CURSOR, true);
-  }
-
-  static FeedGridViews officialFeedGrid() {
-    return new FeedGridViews(
-        officialFeeds().stream().map(FeedSamples::gridItem).toList(), null, false);
-  }
 
   static FeedView feed(long feedId) {
     return Stream.of(firstPageFeeds(), simpleFeeds(21L, 25L), myFeeds())
@@ -408,22 +392,6 @@ final class FeedSamples {
       FeedPollView poll) {
     return userFeed(
         feedId, type, ME, content, textPosition, backgroundId, imageId, poll, 2L, false, 1L);
-  }
-
-  private static FeedGridItemView gridItem(FeedView feed) {
-    String thumbnailUrl =
-        feed.images().isEmpty()
-            ? feed.background().thumbnailUrl()
-            : feed.images().get(0).thumbnailUrl();
-    return new FeedGridItemView(
-        feed.feedId(),
-        feed.type(),
-        thumbnailUrl,
-        feed.content(),
-        feed.textPosition(),
-        feed.likeCount(),
-        feed.commentCount(),
-        false);
   }
 
   private static FeedPollView poll(long firstOptionId, String... contents) {

@@ -2,6 +2,7 @@ package kr.co.deepple.feed.fixture;
 
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import kr.co.deepple.feed.domain.FeedImage;
 import kr.co.deepple.feed.domain.FeedStatus;
@@ -28,6 +29,8 @@ public class TextFeedFixture {
 
   private String idempotencyKey = UUID.randomUUID().toString();
 
+  private LocalDateTime publishedAt;
+
   public static TextFeedFixture builder() {
     return new TextFeedFixture();
   }
@@ -43,6 +46,9 @@ public class TextFeedFixture {
             image,
             idempotencyKey);
     setField(feed, "id", id);
+    if (publishedAt != null) {
+      setField(feed, "publishedAt", publishedAt);
+    }
     if (status != null) {
       setField(feed, "status", status);
     }

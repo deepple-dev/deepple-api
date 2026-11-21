@@ -17,8 +17,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -73,20 +75,29 @@ public abstract class Feed extends SoftDeleteBaseEntity {
     this.images.addAll(images);
     this.idempotencyKey = idempotencyKey;
     if (status == FeedStatus.PUBLISHED) {
-      this.publishedAt = LocalDateTime.now();
+      this.publishedAt = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
   }
 
   public abstract FeedType getType();
 
-  protected abstract boolean isTargetGrade(String grade);
+  public abstract Set<String> getVisibleGrades();
+
+  public abstract boolean isPinned();
 
   public boolean isWrittenBy(long authorId) {
     return this.authorId == authorId;
   }
 
+  public boolean isPublished() {
+    return status == FeedStatus.PUBLISHED;
+  }
+
   public boolean isVisibleTo(String viewerGrade) {
-    return status == FeedStatus.PUBLISHED && isTargetGrade(viewerGrade);
+    if (viewerGrade == null) {
+      return false;
+    }
+    return isPublished() && getVisibleGrades().contains(viewerGrade);
   }
 
   public boolean isHiddenByReport() {
