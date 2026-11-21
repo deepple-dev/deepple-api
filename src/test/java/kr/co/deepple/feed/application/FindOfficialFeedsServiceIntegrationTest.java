@@ -1,0 +1,112 @@
+package kr.co.deepple.feed.application;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.feed.application.dto.FeedGridItemView;
+import kr.co.deepple.feed.application.dto.FeedGridViews;
+import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
+import kr.co.deepple.feed.application.port.out.FeedRepository;
+import kr.co.deepple.feed.domain.Feed;
+import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedAuthorType;
+import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.OfficialFeedFixture;
+import kr.co.deepple.feed.fixture.TextFeedFixture;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@DisplayName("관리자 피드 모아보기 통합 테스트")
+class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
+
+  private static final long VIEWER_MEMBER_ID = 1L;
+  private static final LocalDateTime BASE_TIME = LocalDateTime.of(2026, 11, 1, 12, 0);
+
+  @Autowired private FindOfficialFeedsService findOfficialFeedsService;
+
+  @Autowired private FeedRepository feedRepository;
+
+  @Autowired private FeedAuthorRepository feedAuthorRepository;
+
+  private FeedAuthor official;
+
+  @BeforeEach
+  void setUp() {
+    feedAuthorRepository.save(
+        FeedAuthorFixture.builder()
+            .memberId(VIEWER_MEMBER_ID)
+            .activityStatus("ACTIVE")
+            .grade("GOLD")
+            .build());
+    official = feedAuthorRepository.save(FeedAuthorFixture.builder().memberId(99L).build());
+    setField(official, "authorType", FeedAuthorType.OFFICIAL);
+    feedAuthorRepository.save(official);
+  }
+
+  @Test
+  @DisplayName("내 등급에 보이는 공개 관리자 피드만 고정 피드부터 최신순으로 보여준다")
+  void showVisibleOfficialFeedsInOrder() {
+    // given
+    Feed old = saveOfficialFeed(Set.of(), false, true, 1);
+    Feed recent = saveOfficialFeed(Set.of("GOLD"), false, true, 3);
+    Feed pinned = saveOfficialFeed(Set.of(), true, true, 0);
+    saveOfficialFeed(Set.of(), false, false, 4);
+    saveOfficialFeed(Set.of("DIAMOND"), false, true, 5);
+    feedRepository.save(TextFeedFixture.builder().authorId(1L).grade("GOLD").build());
+
+    // when
+    FeedGridViews views = findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
+
+    // then
+    assertThat(views.feeds())
+        .extracting(FeedGridItemView::feedId)
+        .containsExactly(pinned.getId(), recent.getId(), old.getId());
+    assertThat(views.feeds().getFirst().type()).isEqualTo("OFFICIAL");
+    assertThat(views.feeds().getFirst().thumbnailUrl())
+        .endsWith("images/admins/1/1-thumbnail.webp");
+    assertThat(views.hasMore()).isFalse();
+  }
+
+  @Test
+  @DisplayName("커서로 다음 페이지를 이어서 보여주고, 고정 피드에서 일반 피드로 넘어간다")
+  void continueWithCursor() {
+    // given
+    for (int minutes = 1; minutes <= 15; minutes++) {
+      saveOfficialFeed(Set.of(), true, true, minutes);
+      saveOfficialFeed(Set.of(), false, true, minutes);
+    }
+
+    // when
+    FeedGridViews first = findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
+    FeedGridViews second =
+        findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, first.nextCursor());
+
+    // then
+    assertThat(first.feeds()).hasSize(20);
+    assertThat(first.hasMore()).isTrue();
+    assertThat(second.feeds()).hasSize(10);
+    assertThat(second.hasMore()).isFalse();
+    assertThat(second.nextCursor()).isNull();
+    assertThat(first.feeds())
+        .extracting(FeedGridItemView::feedId)
+        .doesNotContainAnyElementsOf(
+            second.feeds().stream().map(FeedGridItemView::feedId).toList());
+  }
+
+  private Feed saveOfficialFeed(
+      Set<String> targetGrades, boolean isPinned, boolean isPublished, int minutes) {
+    return feedRepository.save(
+        OfficialFeedFixture.builder()
+            .authorId(official.getId())
+            .targetGrades(targetGrades)
+            .isPinned(isPinned)
+            .isPublished(isPublished)
+            .publishedAt(isPublished ? BASE_TIME.plusMinutes(minutes) : null)
+            .build());
+  }
+}

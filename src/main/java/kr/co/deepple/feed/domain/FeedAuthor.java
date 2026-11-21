@@ -19,7 +19,7 @@ import lombok.NonNull;
 @Table(name = "feed_authors")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class FeedAuthor extends BaseEntity {
+public class FeedAuthor extends BaseEntity implements FeedAuthorStatus {
 
   private static final String ACTIVE = "ACTIVE";
 
@@ -126,10 +126,16 @@ public class FeedAuthor extends BaseEntity {
     this.gradeUpdatedAt = occurredAt;
   }
 
+  @Override
   public boolean isOfficial() {
     return authorType == FeedAuthorType.OFFICIAL;
   }
 
+  public boolean hasNoGrade() {
+    return grade == null;
+  }
+
+  @Override
   public boolean isActive() {
     return ACTIVE.equals(activityStatus);
   }

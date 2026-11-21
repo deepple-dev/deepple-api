@@ -18,7 +18,9 @@ import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.FeedVoteRequest;
 import kr.co.deepple.feed.application.port.in.CreateFeedUseCase;
 import kr.co.deepple.feed.application.port.in.DeleteFeedUseCase;
+import kr.co.deepple.feed.application.port.in.FindHomeFeedsUseCase;
 import kr.co.deepple.feed.application.port.in.FindMyFeedsUseCase;
+import kr.co.deepple.feed.application.port.in.FindOfficialFeedsUseCase;
 import kr.co.deepple.feed.application.port.in.GetFeedBackgroundsUseCase;
 import kr.co.deepple.feed.application.port.in.GetFeedUseCase;
 import lombok.RequiredArgsConstructor;
@@ -44,12 +46,19 @@ public class FeedController {
   private final DeleteFeedUseCase deleteFeedUseCase;
   private final GetFeedUseCase getFeedUseCase;
   private final FindMyFeedsUseCase findMyFeedsUseCase;
+  private final FindHomeFeedsUseCase findHomeFeedsUseCase;
+  private final FindOfficialFeedsUseCase findOfficialFeedsUseCase;
 
-  @Operation(summary = "피드 목록 조회", description = "홈 피드를 20개씩 조회한다. 상단 고정 피드가 먼저 온다.")
+  @Operation(
+      summary = "피드 목록 조회",
+      description =
+          "홈 피드를 최대 20개씩 조회한다. 차단·비활성 작성자의 피드를 빼서 20개보다 적거나 0개일 수 있으니, 다음 페이지가 있는지는 hasMore로 판단한다. 상단 고정 피드가 먼저 온다.")
   @GetMapping("/feeds")
   public ResponseEntity<FeedViews> getFeeds(
+      @CurrentMemberId long memberId,
       @Valid @ModelAttribute FeedSearchCondition feedSearchCondition) {
-    return ResponseEntity.ok(FeedSamples.feeds(feedSearchCondition));
+    return ResponseEntity.ok(
+        findHomeFeedsUseCase.findHomeFeeds(memberId, feedSearchCondition.cursor()));
   }
 
   @Operation(
@@ -68,9 +77,10 @@ public class FeedController {
       description = "공식 계정 화면의 격자형 목록. 상단 고정 피드가 먼저 오고 나머지는 최신순이다. 칸을 누르면 피드 상세를 조회한다.")
   @GetMapping("/official/feeds")
   public ResponseEntity<FeedGridViews> getOfficialFeeds(
+      @CurrentMemberId long memberId,
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
           String cursor) {
-    return ResponseEntity.ok(FeedSamples.officialFeedGrid());
+    return ResponseEntity.ok(findOfficialFeedsUseCase.findOfficialFeeds(memberId, cursor));
   }
 
   @Operation(summary = "피드 상세 조회")

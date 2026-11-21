@@ -10,6 +10,7 @@ import kr.co.deepple.feed.domain.Feed;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedImage;
+import kr.co.deepple.feed.domain.FeedPublishedEvent;
 import kr.co.deepple.feed.domain.FeedType;
 import kr.co.deepple.feed.domain.PollFeed;
 import kr.co.deepple.feed.domain.TextFeed;
@@ -17,6 +18,7 @@ import kr.co.deepple.feed.domain.TextPosition;
 import kr.co.deepple.image.application.port.in.FindImageUseCase;
 import kr.co.deepple.image.application.port.in.ImageInfo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class FeedWriter {
   private final FeedRepository feedRepository;
   private final FeedBackgroundReader feedBackgroundReader;
   private final FindImageUseCase findImageUseCase;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public long create(FeedAuthor author, String idempotencyKey, FeedCreateRequest request) {
@@ -40,7 +43,11 @@ public class FeedWriter {
           case OFFICIAL ->
               throw new DeeppleException(FeedErrorCode.INVALID_FEED_TYPE, "type=" + request.type());
         };
-    return feedRepository.save(feed).getId();
+    long feedId = feedRepository.save(feed).getId();
+    if (feed.isPublished()) {
+      eventPublisher.publishEvent(new FeedPublishedEvent(feedId));
+    }
+    return feedId;
   }
 
   private TextFeed createTextFeed(

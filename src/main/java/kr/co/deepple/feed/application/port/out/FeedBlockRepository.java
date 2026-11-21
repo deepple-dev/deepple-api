@@ -1,6 +1,7 @@
 package kr.co.deepple.feed.application.port.out;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import kr.co.deepple.feed.domain.FeedBlock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,9 +22,9 @@ public interface FeedBlockRepository extends JpaRepository<FeedBlock, Long> {
 
   @Query(
       """
-      SELECT COUNT(b) > 0 FROM FeedBlock b
-      WHERE (b.blockerId = :memberId AND b.blockedId = :otherMemberId)
-         OR (b.blockerId = :otherMemberId AND b.blockedId = :memberId)
+      SELECT CASE WHEN b.blockerId = :memberId THEN b.blockedId ELSE b.blockerId END
+      FROM FeedBlock b
+      WHERE b.blockerId = :memberId OR b.blockedId = :memberId
       """)
-  boolean existsBetween(long memberId, long otherMemberId);
+  Set<Long> findBlockRelatedMemberIds(long memberId);
 }

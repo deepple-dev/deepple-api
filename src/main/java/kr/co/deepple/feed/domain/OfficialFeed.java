@@ -88,7 +88,15 @@ public class OfficialFeed extends Feed {
   }
 
   @Override
-  protected boolean isTargetGrade(String grade) {
-    return targetGrades.isEmpty() || targetGrades.contains(grade);
+  public boolean isPinned() {
+    return isPinned;
+  }
+
+  @Override
+  public Set<String> getVisibleGrades() {
+    if (targetGrades.isEmpty()) {
+      return FeedGrades.ALL;
+    }
+    return Set.copyOf(targetGrades);
   }
 }

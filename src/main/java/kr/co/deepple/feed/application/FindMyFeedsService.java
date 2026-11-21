@@ -6,6 +6,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.feed.application.dto.FeedCounts;
 import kr.co.deepple.feed.application.dto.FeedGridItemView;
 import kr.co.deepple.feed.application.dto.FeedGridViews;
+import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.port.in.FindMyFeedsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.domain.Feed;
@@ -50,7 +51,8 @@ public class FindMyFeedsService implements FindMyFeedsUseCase {
   private List<FeedGridItemView> toGridItemViews(List<Feed> feeds) {
     Map<Long, FeedCounts> counts = feedCountReader.read(feeds.stream().map(Feed::getId).toList());
     return feeds.stream()
-        .map(feed -> feedViewAssembler.toGridItemView(feed, counts.get(feed.getId())))
+        .map(feed ->
+            feedViewAssembler.toGridItemView(FeedSnapshot.from(feed), counts.get(feed.getId())))
         .toList();
   }
 

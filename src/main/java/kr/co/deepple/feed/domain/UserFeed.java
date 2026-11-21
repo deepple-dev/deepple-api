@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import java.util.List;
+import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,7 +60,12 @@ public abstract class UserFeed extends Feed {
   }
 
   @Override
-  protected boolean isTargetGrade(String grade) {
-    return this.grade.equals(grade);
+  public boolean isPinned() {
+    return false;
+  }
+
+  @Override
+  public Set<String> getVisibleGrades() {
+    return Set.of(grade);
   }
 }
