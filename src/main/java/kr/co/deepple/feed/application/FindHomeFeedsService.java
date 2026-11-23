@@ -3,6 +3,8 @@ package kr.co.deepple.feed.application;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import kr.co.deepple.feed.application.dto.FeedAuthorSnapshot;
 import kr.co.deepple.feed.application.dto.FeedCounts;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
@@ -30,6 +32,7 @@ public class FindHomeFeedsService implements FindHomeFeedsUseCase {
   private final HomeFeedCacheRepository homeFeedCacheRepository;
   private final FeedSnapshotReader feedSnapshotReader;
   private final FeedCountReader feedCountReader;
+  private final LikedFeedReader likedFeedReader;
   private final FeedViewAssembler feedViewAssembler;
 
   @Override
@@ -41,7 +44,7 @@ public class FindHomeFeedsService implements FindHomeFeedsUseCase {
     }
     homeFeedListLoader.loadIfNotLoaded(me.getGrade());
     Page page = findPage(createViewer(me), after);
-    return toViews(page);
+    return toViews(memberId, page);
   }
 
   private FeedViewer createViewer(FeedAuthor me) {
@@ -100,26 +103,28 @@ public class FindHomeFeedsService implements FindHomeFeedsUseCase {
     return candidates.size() < FETCH_SIZE || pageSortKeys.isEmpty();
   }
 
-  private FeedViews toViews(Page page) {
-    List<FeedView> views = toFeedViews(page.feedsWithAuthor());
+  private FeedViews toViews(long memberId, Page page) {
+    List<FeedView> views = toFeedViews(memberId, page.feedsWithAuthor());
     if (page.isLast()) {
       return new FeedViews(views, null, false);
     }
     return new FeedViews(views, page.next().toCursor(), true);
   }
 
-  private List<FeedView> toFeedViews(List<FeedWithAuthor> feedsWithAuthor) {
-    Map<Long, FeedCounts> counts =
-        feedCountReader.read(
-            feedsWithAuthor.stream()
-                .map(feedWithAuthor -> feedWithAuthor.feed().feedId())
-                .toList());
+  private List<FeedView> toFeedViews(long memberId, List<FeedWithAuthor> feedsWithAuthor) {
+    Set<Long> feedIds =
+        feedsWithAuthor.stream()
+            .map(feedWithAuthor -> feedWithAuthor.feed().feedId())
+            .collect(Collectors.toSet());
+    Map<Long, FeedCounts> counts = feedCountReader.read(feedIds);
+    Set<Long> likedFeedIds = likedFeedReader.findLikedFeedIds(memberId, feedIds);
     return feedsWithAuthor.stream()
         .map(feedWithAuthor ->
             feedViewAssembler.toView(
                 feedWithAuthor.feed(),
                 feedWithAuthor.author(),
                 false,
+                likedFeedIds.contains(feedWithAuthor.feed().feedId()),
                 counts.get(feedWithAuthor.feed().feedId())))
         .toList();
   }
