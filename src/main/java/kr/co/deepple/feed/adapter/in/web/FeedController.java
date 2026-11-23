@@ -23,6 +23,8 @@ import kr.co.deepple.feed.application.port.in.FindMyFeedsUseCase;
 import kr.co.deepple.feed.application.port.in.FindOfficialFeedsUseCase;
 import kr.co.deepple.feed.application.port.in.GetFeedBackgroundsUseCase;
 import kr.co.deepple.feed.application.port.in.GetFeedUseCase;
+import kr.co.deepple.feed.application.port.in.LikeFeedUseCase;
+import kr.co.deepple.feed.application.port.in.UnlikeFeedUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,6 +50,8 @@ public class FeedController {
   private final FindMyFeedsUseCase findMyFeedsUseCase;
   private final FindHomeFeedsUseCase findHomeFeedsUseCase;
   private final FindOfficialFeedsUseCase findOfficialFeedsUseCase;
+  private final LikeFeedUseCase likeFeedUseCase;
+  private final UnlikeFeedUseCase unlikeFeedUseCase;
 
   @Operation(
       summary = "피드 목록 조회",
@@ -115,13 +119,16 @@ public class FeedController {
 
   @Operation(summary = "피드 좋아요", description = "이미 누른 상태여도 같은 응답을 준다.")
   @PutMapping("/feeds/{feedId}/like")
-  public ResponseEntity<Void> likeFeed(@PathVariable long feedId) {
+  public ResponseEntity<Void> likeFeed(@CurrentMemberId long memberId, @PathVariable long feedId) {
+    likeFeedUseCase.likeFeed(memberId, feedId);
     return ResponseEntity.noContent().build();
   }
 
   @Operation(summary = "피드 좋아요 취소", description = "누르지 않은 상태여도 같은 응답을 준다.")
   @DeleteMapping("/feeds/{feedId}/like")
-  public ResponseEntity<Void> unlikeFeed(@PathVariable long feedId) {
+  public ResponseEntity<Void> unlikeFeed(
+      @CurrentMemberId long memberId, @PathVariable long feedId) {
+    unlikeFeedUseCase.unlikeFeed(memberId, feedId);
     return ResponseEntity.noContent().build();
   }
 

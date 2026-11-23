@@ -1,6 +1,7 @@
 package kr.co.deepple.feed.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.Instant;
@@ -53,6 +54,8 @@ class FindHomeFeedsServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedAuthorRepository feedAuthorRepository;
 
   @Autowired private FeedBlockRepository feedBlockRepository;
+
+  @Autowired private LikeFeedService likeFeedService;
 
   private FeedAuthor viewer;
   private FeedAuthor writer;
@@ -265,6 +268,24 @@ class FindHomeFeedsServiceIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(afterDormant.feeds()).isEmpty();
     assertThat(afterActive.feeds()).extracting(FeedView::feedId).containsExactly(feed.getId());
+  }
+
+  @Test
+  @DisplayName("좋아요 수와 내가 좋아요를 눌렀는지 함께 보여준다")
+  void showLikeCountAndIsLiked() {
+    // given
+    Feed liked = saveUserFeed(writer, "GOLD", 1);
+    Feed notLiked = saveUserFeed(writer, "GOLD", 0);
+    findHomeFeedsService.findHomeFeeds(VIEWER_MEMBER_ID, null);
+    likeFeedService.likeFeed(VIEWER_MEMBER_ID, liked.getId());
+
+    // when
+    FeedViews views = findHomeFeedsService.findHomeFeeds(VIEWER_MEMBER_ID, null);
+
+    // then
+    assertThat(views.feeds())
+        .extracting(FeedView::feedId, FeedView::likeCount, FeedView::isLiked)
+        .containsExactly(tuple(liked.getId(), 1L, true), tuple(notLiked.getId(), 0L, false));
   }
 
   @Test

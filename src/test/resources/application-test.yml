@@ -88,6 +88,8 @@ bizgo:
 
 scheduler:
   event-resubmission-cron: "-"
+  feed-like-count-flush-cron: "-"
+  feed-like-count-reconcile-cron: "-"
 
 image:
   processing:

@@ -3,6 +3,7 @@ package kr.co.deepple.feed.application;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import kr.co.deepple.feed.application.dto.FeedCounts;
 import kr.co.deepple.feed.application.dto.FeedGridItemView;
 import kr.co.deepple.feed.application.dto.FeedGridViews;
@@ -68,7 +69,8 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
   }
 
   private List<FeedGridItemView> toGridItemViews(List<OfficialFeed> feeds) {
-    Map<Long, FeedCounts> counts = feedCountReader.read(feeds.stream().map(Feed::getId).toList());
+    Map<Long, FeedCounts> counts =
+        feedCountReader.read(feeds.stream().map(Feed::getId).collect(Collectors.toSet()));
     return feeds.stream()
         .map(feed ->
             feedViewAssembler.toGridItemView(FeedSnapshot.from(feed), counts.get(feed.getId())))

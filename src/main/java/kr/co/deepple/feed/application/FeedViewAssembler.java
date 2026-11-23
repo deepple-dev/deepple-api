@@ -28,7 +28,11 @@ public class FeedViewAssembler {
   private final S3Uploader s3Uploader;
 
   public FeedView toView(
-      FeedSnapshot feed, FeedAuthorSnapshot author, boolean isMine, FeedCounts counts) {
+      FeedSnapshot feed,
+      FeedAuthorSnapshot author,
+      boolean isMine,
+      boolean isLiked,
+      FeedCounts counts) {
     return new FeedView(
         feed.feedId(),
         feed.type().name(),
@@ -40,7 +44,7 @@ public class FeedViewAssembler {
         findPoll(feed, isMine),
         feed.isPinned(),
         counts.likeCount(),
-        false,
+        isLiked,
         counts.commentCount(),
         isMine,
         feed.isHiddenByReport(),

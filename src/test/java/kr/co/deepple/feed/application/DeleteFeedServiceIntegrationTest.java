@@ -3,13 +3,17 @@ package kr.co.deepple.feed.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
+import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
+import kr.co.deepple.feed.application.port.out.FeedLikeRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.FeedLikeFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +31,12 @@ class DeleteFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedRepository feedRepository;
 
   @Autowired private FeedAuthorRepository feedAuthorRepository;
+
+  @Autowired private FeedLikeRepository feedLikeRepository;
+
+  @Autowired private FeedCountReader feedCountReader;
+
+  @Autowired private FeedLikeCountCacheRepository feedLikeCountCacheRepository;
 
   private FeedAuthor author;
 
@@ -69,5 +79,23 @@ class DeleteFeedServiceIntegrationTest extends IntegrationTestSupport {
         .isInstanceOf(DeeppleException.class)
         .extracting("errorCode")
         .isEqualTo(FeedErrorCode.FEED_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("피드를 지우면 좋아요 수 카운터를 지우고 좋아요 기록은 남긴다")
+  void deleteLikeCounterAndKeepLikes() {
+    // given
+    long feedId =
+        feedRepository.save(TextFeedFixture.builder().authorId(author.getId()).build()).getId();
+    feedLikeRepository.save(FeedLikeFixture.builder().feedId(feedId).memberId(2L).build());
+    feedCountReader.read(feedId);
+
+    // when
+    deleteFeedService.deleteFeed(MEMBER_ID, feedId);
+    awaitEventProcessing();
+
+    // then
+    assertThat(feedLikeCountCacheRepository.findAll(List.of(feedId))).isEmpty();
+    assertThat(feedLikeRepository.count()).isEqualTo(1L);
   }
 }

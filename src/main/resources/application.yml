@@ -154,4 +154,6 @@ bizgo:
 scheduler:
   cron: "0 0 0 * * *"
   event-resubmission-cron: "0 * * * * *"
+  feed-like-count-flush-cron: "0 * * * * *"
+  feed-like-count-reconcile-cron: "30 0 4 * * *"
   member-account-purge-cron: "0 0 0 * * *"
