@@ -11,6 +11,7 @@ import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.HomeFeedSortKey;
+import kr.co.deepple.feed.application.dto.PollVotes;
 import kr.co.deepple.feed.application.port.in.FindHomeFeedsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedBlockRepository;
 import kr.co.deepple.feed.application.port.out.HomeFeedCacheRepository;
@@ -33,6 +34,7 @@ public class FindHomeFeedsService implements FindHomeFeedsUseCase {
   private final FeedSnapshotReader feedSnapshotReader;
   private final FeedCountReader feedCountReader;
   private final LikedFeedReader likedFeedReader;
+  private final FeedPollVotesReader feedPollVotesReader;
   private final FeedViewAssembler feedViewAssembler;
 
   @Override
@@ -44,7 +46,7 @@ public class FindHomeFeedsService implements FindHomeFeedsUseCase {
     }
     homeFeedListLoader.loadIfNotLoaded(me.getGrade());
     Page page = findPage(createViewer(me), after);
-    return toViews(memberId, page);
+    return toViews(me, page);
   }
 
   private FeedViewer createViewer(FeedAuthor me) {
@@ -103,29 +105,31 @@ public class FindHomeFeedsService implements FindHomeFeedsUseCase {
     return candidates.size() < FETCH_SIZE || pageSortKeys.isEmpty();
   }
 
-  private FeedViews toViews(long memberId, Page page) {
-    List<FeedView> views = toFeedViews(memberId, page.feedsWithAuthor());
+  private FeedViews toViews(FeedAuthor me, Page page) {
+    List<FeedView> views = toFeedViews(me, page.feedsWithAuthor());
     if (page.isLast()) {
       return new FeedViews(views, null, false);
     }
     return new FeedViews(views, page.next().toCursor(), true);
   }
 
-  private List<FeedView> toFeedViews(long memberId, List<FeedWithAuthor> feedsWithAuthor) {
-    Set<Long> feedIds =
-        feedsWithAuthor.stream()
-            .map(feedWithAuthor -> feedWithAuthor.feed().feedId())
-            .collect(Collectors.toSet());
+  private List<FeedView> toFeedViews(FeedAuthor me, List<FeedWithAuthor> feedsWithAuthor) {
+    List<FeedSnapshot> feeds = feedsWithAuthor.stream().map(FeedWithAuthor::feed).toList();
+    Set<Long> feedIds = feeds.stream().map(FeedSnapshot::feedId).collect(Collectors.toSet());
     Map<Long, FeedCounts> counts = feedCountReader.read(feedIds);
-    Set<Long> likedFeedIds = likedFeedReader.findLikedFeedIds(memberId, feedIds);
+    Set<Long> likedFeedIds = likedFeedReader.findLikedFeedIds(me.getMemberId(), feedIds);
+    Map<Long, PollVotes> pollVotes = feedPollVotesReader.read(me, feeds);
     return feedsWithAuthor.stream()
-        .map(feedWithAuthor ->
-            feedViewAssembler.toView(
-                feedWithAuthor.feed(),
-                feedWithAuthor.author(),
-                false,
-                likedFeedIds.contains(feedWithAuthor.feed().feedId()),
-                counts.get(feedWithAuthor.feed().feedId())))
+        .map(feedWithAuthor -> {
+          long feedId = feedWithAuthor.feed().feedId();
+          return feedViewAssembler.toView(
+              feedWithAuthor.feed(),
+              feedWithAuthor.author(),
+              false,
+              likedFeedIds.contains(feedId),
+              counts.get(feedId),
+              pollVotes.get(feedId));
+        })
         .toList();
   }
 

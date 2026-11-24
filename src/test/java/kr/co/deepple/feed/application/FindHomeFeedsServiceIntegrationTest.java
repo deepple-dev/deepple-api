@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.dto.FeedCreateRequest;
+import kr.co.deepple.feed.application.dto.FeedPollOptionView;
 import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.FeedViews;
@@ -25,9 +26,11 @@ import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedAuthorType;
 import kr.co.deepple.feed.domain.FeedImage;
 import kr.co.deepple.feed.domain.FeedStatus;
+import kr.co.deepple.feed.domain.PollFeed;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
 import kr.co.deepple.feed.fixture.FeedBlockFixture;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
+import kr.co.deepple.feed.fixture.PollFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +59,8 @@ class FindHomeFeedsServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedBlockRepository feedBlockRepository;
 
   @Autowired private LikeFeedService likeFeedService;
+
+  @Autowired private VoteFeedService voteFeedService;
 
   private FeedAuthor viewer;
   private FeedAuthor writer;
@@ -286,6 +291,37 @@ class FindHomeFeedsServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(views.feeds())
         .extracting(FeedView::feedId, FeedView::likeCount, FeedView::isLiked)
         .containsExactly(tuple(liked.getId(), 1L, true), tuple(notLiked.getId(), 0L, false));
+  }
+
+  @Test
+  @DisplayName("투표한 피드에는 내 선택과 결과를 보여주고, 투표하지 않은 피드는 결과를 숨긴다")
+  void showPollResultOnlyForVotedFeeds() {
+    // given
+    PollFeed voted =
+        feedRepository.save(
+            PollFeedFixture.builder().authorId(writer.getId()).grade("GOLD").build());
+    PollFeed notVoted =
+        feedRepository.save(
+            PollFeedFixture.builder().authorId(writer.getId()).grade("GOLD").build());
+    long yes = voted.getOptions().getFirst().getId();
+    findHomeFeedsService.findHomeFeeds(VIEWER_MEMBER_ID, null);
+    voteFeedService.vote(VIEWER_MEMBER_ID, voted.getId(), yes);
+
+    // when
+    FeedViews views = findHomeFeedsService.findHomeFeeds(VIEWER_MEMBER_ID, null);
+
+    // then
+    assertThat(views.feeds())
+        .extracting(
+            FeedView::feedId,
+            view -> view.poll().myOptionId(),
+            view -> view.poll().isResultVisible(),
+            view -> view.poll().participantCount())
+        .containsExactly(
+            tuple(notVoted.getId(), null, false, null), tuple(voted.getId(), yes, true, 1L));
+    assertThat(views.feeds().getLast().poll().options())
+        .extracting(FeedPollOptionView::votePercent)
+        .containsExactly(100, 0);
   }
 
   @Test

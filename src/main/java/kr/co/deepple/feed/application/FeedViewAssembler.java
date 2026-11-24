@@ -14,8 +14,9 @@ import kr.co.deepple.feed.application.dto.FeedPollView;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.dto.FeedView;
+import kr.co.deepple.feed.application.dto.PollVotes;
 import kr.co.deepple.feed.domain.FeedPersonalityType;
-import kr.co.deepple.feed.domain.FeedType;
+import kr.co.deepple.feed.domain.PollResult;
 import kr.co.deepple.feed.domain.TextPosition;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,8 @@ public class FeedViewAssembler {
       FeedAuthorSnapshot author,
       boolean isMine,
       boolean isLiked,
-      FeedCounts counts) {
+      FeedCounts counts,
+      PollVotes pollVotes) {
     return new FeedView(
         feed.feedId(),
         feed.type().name(),
@@ -41,7 +43,7 @@ public class FeedViewAssembler {
         toTextPosition(feed.textPosition()),
         findBackground(feed.backgroundId()),
         feed.images().stream().map(this::toImageView).toList(),
-        findPoll(feed, isMine),
+        findPoll(feed, pollVotes),
         feed.isPinned(),
         counts.likeCount(),
         isLiked,
@@ -49,6 +51,13 @@ public class FeedViewAssembler {
         isMine,
         feed.isHiddenByReport(),
         feed.createdAt());
+  }
+
+  public FeedPollView toPollView(FeedSnapshot pollFeed, PollVotes pollVotes) {
+    if (pollVotes.isResultVisible()) {
+      return toVisibleResultPollView(pollFeed, pollVotes);
+    }
+    return toHiddenResultPollView(pollFeed);
   }
 
   public FeedGridItemView toGridItemView(FeedSnapshot feed, FeedCounts counts) {
@@ -108,27 +117,27 @@ public class FeedViewAssembler {
         s3Uploader.getObjectUrl(image.thumbnailKey()));
   }
 
-  private FeedPollView findPoll(FeedSnapshot feed, boolean isMine) {
-    if (feed.type() != FeedType.POLL) {
+  private FeedPollView findPoll(FeedSnapshot feed, PollVotes pollVotes) {
+    if (!feed.isPoll()) {
       return null;
     }
-    if (isMine) {
-      return toVisibleResultPollView(feed);
-    }
-    return toHiddenResultPollView(feed);
+    return toPollView(feed, pollVotes);
   }
 
-  private FeedPollView toVisibleResultPollView(FeedSnapshot feed) {
+  private FeedPollView toVisibleResultPollView(FeedSnapshot pollFeed, PollVotes pollVotes) {
+    PollResult result = PollResult.of(pollFeed.pollOptionIds(), pollVotes.voteCounts());
     List<FeedPollOptionView> options =
-        feed.pollOptions().stream()
-            .map(option -> new FeedPollOptionView(option.optionId(), option.content(), 0))
+        pollFeed.pollOptions().stream()
+            .map(option ->
+                new FeedPollOptionView(
+                    option.optionId(), option.content(), result.votePercentOf(option.optionId())))
             .toList();
-    return new FeedPollView(options, null, true, 0L);
+    return new FeedPollView(options, pollVotes.myOptionId(), true, result.participantCount());
   }
 
-  private FeedPollView toHiddenResultPollView(FeedSnapshot feed) {
+  private FeedPollView toHiddenResultPollView(FeedSnapshot pollFeed) {
     List<FeedPollOptionView> options =
-        feed.pollOptions().stream()
+        pollFeed.pollOptions().stream()
             .map(option -> new FeedPollOptionView(option.optionId(), option.content(), null))
             .toList();
     return new FeedPollView(options, null, false, null);

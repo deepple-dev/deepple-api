@@ -4,21 +4,15 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import kr.co.deepple.feed.application.dto.AdminFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminFeedView;
 import kr.co.deepple.feed.application.dto.FeedAuthorView;
-import kr.co.deepple.feed.application.dto.FeedBackgroundView;
 import kr.co.deepple.feed.application.dto.FeedCommentDisplayStatus;
 import kr.co.deepple.feed.application.dto.FeedCommentView;
 import kr.co.deepple.feed.application.dto.FeedCommentViews;
 import kr.co.deepple.feed.application.dto.FeedImageView;
-import kr.co.deepple.feed.application.dto.FeedPollOptionView;
-import kr.co.deepple.feed.application.dto.FeedPollView;
-import kr.co.deepple.feed.application.dto.FeedTextPosition;
-import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.domain.FeedAuthorType;
 import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.domain.FeedType;
@@ -30,24 +24,13 @@ final class FeedSamples {
 
   private static final String IMAGE_HOST = "https://example.com/feed";
   private static final String SECOND_PAGE_CURSOR = "cursor-2";
-  private static final int BACKGROUND_COUNT = 9;
-  private static final long PARTICIPANT_COUNT = 5246L;
-
-  private static final FeedTextPosition CENTER = new FeedTextPosition(0.5, 0.5, 0.0, 1.0);
-  private static final FeedTextPosition TOP_LEFT = new FeedTextPosition(0.2, 0.15, 0.0, 1.0);
-  private static final FeedTextPosition BOTTOM_RIGHT = new FeedTextPosition(0.8, 0.85, 0.0, 1.0);
 
   private static final String TEXT_50 = "오늘은 날씨가 정말 좋아서 한강에 다녀왔어요. ".repeat(3).substring(0, 50);
   private static final String TEXT_100 = "오늘은 날씨가 정말 좋아서 한강에 다녀왔어요. ".repeat(5).substring(0, 100);
   private static final String TEXT_200 =
       "11월 한 달 동안 매일 접속하면 하트를 두 배로 드려요. ".repeat(8).substring(0, 200);
   private static final String MULTILINE_TEXT = "첫 줄이에요\n둘째 줄이에요\n\n한 줄 띄고 넷째 줄 🙂🎉";
-  private static final String QUESTION_19 = "주말 데이트 장소 어디가 좋을까요?";
-  private static final String OPTION_20 = "분위기 좋은 루프탑 레스토랑에서 저녁";
   private static final String TITLE_50 = "관리자 피드 타이틀 ".repeat(5).substring(0, 50);
-
-  private static final Map<Integer, List<Integer>> VOTE_PERCENTS =
-      Map.of(2, List.of(67, 33), 3, List.of(50, 30, 20), 4, List.of(40, 30, 20, 10));
 
   private static final FeedAuthorView GINGER =
       member(101L, "진저", "GROWING_RUNNING_MATE", "동반성장형", 29, "FEMALE", "SEOUL", "ENFP");
@@ -70,22 +53,6 @@ final class FeedSamples {
           null,
           null);
   private static final List<FeedAuthorView> MEMBERS = List.of(GINGER, RUNNER, LONG_NICKNAME);
-
-  static FeedView feed(long feedId) {
-    return Stream.of(firstPageFeeds(), simpleFeeds(21L, 25L), myFeeds())
-        .flatMap(List::stream)
-        .filter(feed -> feed.feedId() == feedId)
-        .findFirst()
-        .orElseGet(() -> firstPageFeeds().get(2));
-  }
-
-  static FeedPollView vote(long feedId, long optionId) {
-    FeedPollView poll = feed(feedId).poll();
-    if (poll == null) {
-      poll = feed(7L).poll();
-    }
-    return withResult(poll, optionId);
-  }
 
   static FeedCommentViews comments(String cursor) {
     if (SECOND_PAGE_CURSOR.equals(cursor)) {
@@ -186,157 +153,6 @@ final class FeedSamples {
         true);
   }
 
-  private static List<FeedView> firstPageFeeds() {
-    List<FeedView> feeds = new ArrayList<>(officialFeeds());
-    feeds.add(userFeed(3L, FeedType.TEXT, GINGER, "안녕", CENTER, 1L, null, null, 0L, false, 0L));
-    feeds.add(
-        userFeed(4L, FeedType.TEXT, RUNNER, TEXT_50, CENTER, 2L, null, null, 999L, true, 120L));
-    feeds.add(
-        userFeed(
-            5L,
-            FeedType.TEXT,
-            LONG_NICKNAME,
-            MULTILINE_TEXT,
-            TOP_LEFT,
-            3L,
-            null,
-            null,
-            3L,
-            false,
-            1L));
-    feeds.add(
-        userFeed(
-            6L,
-            FeedType.TEXT,
-            GINGER,
-            "오늘 다녀온 전시 사진이에요",
-            BOTTOM_RIGHT,
-            null,
-            10L,
-            null,
-            15L,
-            false,
-            2L));
-    feeds.add(
-        userFeed(
-            7L,
-            FeedType.POLL,
-            RUNNER,
-            "짜장면 vs 짬뽕",
-            CENTER,
-            4L,
-            null,
-            poll(71L, "짜장면", "짬뽕"),
-            4L,
-            false,
-            0L));
-    feeds.add(
-        userFeed(
-            8L,
-            FeedType.POLL,
-            LONG_NICKNAME,
-            QUESTION_19,
-            CENTER,
-            5L,
-            null,
-            withResult(poll(81L, OPTION_20, "한강 피크닉", "영화관", "집"), 82L),
-            88L,
-            true,
-            40L));
-    feeds.add(
-        userFeed(
-            9L,
-            FeedType.POLL,
-            GINGER,
-            "여행은 어디로?",
-            TOP_LEFT,
-            null,
-            11L,
-            poll(91L, "제주도", "부산", "강릉"),
-            1L,
-            false,
-            0L));
-    feeds.addAll(simpleFeeds(10L, 20L));
-    return feeds;
-  }
-
-  private static List<FeedView> officialFeeds() {
-    return List.of(
-        new FeedView(
-            1L,
-            FeedType.OFFICIAL.name(),
-            OFFICIAL,
-            TEXT_200,
-            null,
-            null,
-            images(20L, 5),
-            null,
-            true,
-            12345L,
-            true,
-            230L,
-            false,
-            false,
-            minutesAgo(60 * 24 * 40)),
-        new FeedView(
-            2L,
-            FeedType.OFFICIAL.name(),
-            OFFICIAL,
-            "공지",
-            null,
-            null,
-            images(25L, 1),
-            null,
-            true,
-            0L,
-            false,
-            0L,
-            false,
-            false,
-            minutesAgo(60 * 24 * 3)));
-  }
-
-  private static List<FeedView> myFeeds() {
-    return List.of(
-        myFeed(31L, FeedType.TEXT, "내가 쓴 짧은 글", CENTER, 1L, null, null),
-        myFeed(32L, FeedType.TEXT, TEXT_50, TOP_LEFT, 9L, null, null),
-        myFeed(33L, FeedType.TEXT, "심사 중이거나 반려된 사진 피드도 똑같이 보여요", CENTER, null, 12L, null),
-        myFeed(
-            34L,
-            FeedType.POLL,
-            "내가 올린 투표",
-            CENTER,
-            6L,
-            null,
-            withResult(poll(341L, "첫째", "둘째", "셋째"), null)),
-        myFeed(
-            35L,
-            FeedType.POLL,
-            QUESTION_19,
-            BOTTOM_RIGHT,
-            null,
-            13L,
-            withResult(poll(351L, OPTION_20, "집"), null)));
-  }
-
-  private static List<FeedView> simpleFeeds(long firstFeedId, long lastFeedId) {
-    return LongStream.rangeClosed(firstFeedId, lastFeedId)
-        .mapToObj(feedId ->
-            userFeed(
-                feedId,
-                FeedType.TEXT,
-                MEMBERS.get((int) (feedId % MEMBERS.size())),
-                "피드 " + feedId + "번이에요",
-                CENTER,
-                feedId % BACKGROUND_COUNT + 1L,
-                null,
-                null,
-                feedId,
-                feedId % 2 == 0,
-                feedId % 4))
-        .toList();
-  }
-
   private static List<FeedCommentView> simpleComments(long newestCommentId, long oldestCommentId) {
     return LongStream.iterate(
             newestCommentId, commentId -> commentId >= oldestCommentId, commentId -> commentId - 1L)
@@ -350,66 +166,6 @@ final class FeedSamples {
                 false,
                 60 * 24 * (40L - commentId * 2L)))
         .toList();
-  }
-
-  private static FeedView userFeed(
-      long feedId,
-      FeedType type,
-      FeedAuthorView author,
-      String content,
-      FeedTextPosition textPosition,
-      Long backgroundId,
-      Long imageId,
-      FeedPollView poll,
-      long likeCount,
-      boolean isLiked,
-      long commentCount) {
-    return new FeedView(
-        feedId,
-        type.name(),
-        author,
-        content,
-        textPosition,
-        backgroundId == null ? null : background(backgroundId),
-        imageId == null ? List.of() : images(imageId, 1),
-        poll,
-        false,
-        likeCount,
-        isLiked,
-        commentCount,
-        author == ME,
-        false,
-        minutesAgo(feedId * feedId * 10));
-  }
-
-  private static FeedView myFeed(
-      long feedId,
-      FeedType type,
-      String content,
-      FeedTextPosition textPosition,
-      Long backgroundId,
-      Long imageId,
-      FeedPollView poll) {
-    return userFeed(
-        feedId, type, ME, content, textPosition, backgroundId, imageId, poll, 2L, false, 1L);
-  }
-
-  private static FeedPollView poll(long firstOptionId, String... contents) {
-    List<FeedPollOptionView> options = new ArrayList<>();
-    for (int index = 0; index < contents.length; index++) {
-      options.add(new FeedPollOptionView(firstOptionId + index, contents[index], null));
-    }
-    return new FeedPollView(options, null, false, null);
-  }
-
-  private static FeedPollView withResult(FeedPollView poll, Long myOptionId) {
-    List<Integer> percents = VOTE_PERCENTS.get(poll.options().size());
-    List<FeedPollOptionView> options = new ArrayList<>();
-    for (int index = 0; index < poll.options().size(); index++) {
-      FeedPollOptionView option = poll.options().get(index);
-      options.add(new FeedPollOptionView(option.optionId(), option.content(), percents.get(index)));
-    }
-    return new FeedPollView(options, myOptionId, true, PARTICIPANT_COUNT);
   }
 
   private static FeedCommentView comment(
@@ -487,11 +243,6 @@ final class FeedSamples {
         gender,
         city,
         mbti);
-  }
-
-  private static FeedBackgroundView background(long backgroundId) {
-    String path = IMAGE_HOST + "/feed-backgrounds/" + backgroundId + "/v1/";
-    return new FeedBackgroundView(backgroundId, path + "image.webp", path + "thumbnail.webp");
   }
 
   private static List<FeedImageView> images(long firstImageId, int count) {

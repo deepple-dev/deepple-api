@@ -156,4 +156,6 @@ scheduler:
   event-resubmission-cron: "0 * * * * *"
   feed-like-count-flush-cron: "0 * * * * *"
   feed-like-count-reconcile-cron: "30 0 4 * * *"
+  feed-vote-count-flush-cron: "30 * * * * *"
+  feed-vote-count-reconcile-cron: "30 30 4 * * *"
   member-account-purge-cron: "0 0 0 * * *"
