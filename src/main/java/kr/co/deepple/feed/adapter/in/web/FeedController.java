@@ -25,6 +25,7 @@ import kr.co.deepple.feed.application.port.in.GetFeedBackgroundsUseCase;
 import kr.co.deepple.feed.application.port.in.GetFeedUseCase;
 import kr.co.deepple.feed.application.port.in.LikeFeedUseCase;
 import kr.co.deepple.feed.application.port.in.UnlikeFeedUseCase;
+import kr.co.deepple.feed.application.port.in.VoteFeedUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -52,6 +53,7 @@ public class FeedController {
   private final FindOfficialFeedsUseCase findOfficialFeedsUseCase;
   private final LikeFeedUseCase likeFeedUseCase;
   private final UnlikeFeedUseCase unlikeFeedUseCase;
+  private final VoteFeedUseCase voteFeedUseCase;
 
   @Operation(
       summary = "피드 목록 조회",
@@ -135,8 +137,10 @@ public class FeedController {
   @Operation(summary = "투표하기", description = "한 번만 투표할 수 있고 바꿀 수 없다. 응답에 결과와 내 선택이 들어 있다.")
   @PostMapping("/feeds/{feedId}/votes")
   public ResponseEntity<FeedPollView> vote(
-      @PathVariable long feedId, @Valid @RequestBody FeedVoteRequest request) {
-    return ResponseEntity.ok(FeedSamples.vote(feedId, request.optionId()));
+      @CurrentMemberId long memberId,
+      @PathVariable long feedId,
+      @Valid @RequestBody FeedVoteRequest request) {
+    return ResponseEntity.ok(voteFeedUseCase.vote(memberId, feedId, request.optionId()));
   }
 
   @Operation(summary = "피드 배경 목록 조회")

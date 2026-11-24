@@ -90,6 +90,8 @@ scheduler:
   event-resubmission-cron: "-"
   feed-like-count-flush-cron: "-"
   feed-like-count-reconcile-cron: "-"
+  feed-vote-count-flush-cron: "-"
+  feed-vote-count-reconcile-cron: "-"
 
 image:
   processing:

@@ -46,6 +46,18 @@ public record FeedSnapshot(
     return this.authorId == authorId;
   }
 
+  public boolean isPoll() {
+    return type == FeedType.POLL;
+  }
+
+  public List<Long> pollOptionIds() {
+    return pollOptions.stream().map(PollOption::optionId).toList();
+  }
+
+  public boolean hasPollOption(long optionId) {
+    return pollOptions.stream().anyMatch(option -> option.optionId() == optionId);
+  }
+
   private static TextPosition findTextPosition(Feed feed) {
     if (feed instanceof UserFeed userFeed) {
       return userFeed.getTextPosition();

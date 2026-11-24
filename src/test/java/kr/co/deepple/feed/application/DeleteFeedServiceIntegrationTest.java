@@ -6,14 +6,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
+import kr.co.deepple.feed.application.port.out.FeedVoteCountCacheRepository;
+import kr.co.deepple.feed.application.port.out.FeedVoteRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedErrorCode;
+import kr.co.deepple.feed.domain.PollFeed;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
 import kr.co.deepple.feed.fixture.FeedLikeFixture;
+import kr.co.deepple.feed.fixture.FeedVoteFixture;
+import kr.co.deepple.feed.fixture.PollFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +43,12 @@ class DeleteFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedCountReader feedCountReader;
 
   @Autowired private FeedLikeCountCacheRepository feedLikeCountCacheRepository;
+
+  @Autowired private FeedVoteRepository feedVoteRepository;
+
+  @Autowired private FeedVoteCountReader feedVoteCountReader;
+
+  @Autowired private FeedVoteCountCacheRepository feedVoteCountCacheRepository;
 
   private FeedAuthor author;
 
@@ -97,5 +109,27 @@ class DeleteFeedServiceIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(feedLikeCountCacheRepository.findAll(List.of(feedId))).isEmpty();
     assertThat(feedLikeRepository.count()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("피드를 지우면 표 수 카운터를 지우고 투표 기록은 남긴다")
+  void deleteVoteCounterAndKeepVotes() {
+    // given
+    PollFeed feed = feedRepository.save(PollFeedFixture.builder().authorId(author.getId()).build());
+    feedVoteRepository.save(
+        FeedVoteFixture.builder()
+            .feedId(feed.getId())
+            .memberId(2L)
+            .optionId(feed.getOptions().getFirst().getId())
+            .build());
+    feedVoteCountReader.read(FeedSnapshot.from(feed));
+
+    // when
+    deleteFeedService.deleteFeed(MEMBER_ID, feed.getId());
+    awaitEventProcessing();
+
+    // then
+    assertThat(feedVoteCountCacheRepository.findAll(List.of(feed.getId()))).isEmpty();
+    assertThat(feedVoteRepository.count()).isEqualTo(1L);
   }
 }

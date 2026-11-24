@@ -24,6 +24,8 @@ import kr.co.deepple.feed.fixture.FeedBackgroundFixture;
 import kr.co.deepple.feed.fixture.FeedBlockFixture;
 import kr.co.deepple.feed.fixture.FeedCountFixture;
 import kr.co.deepple.feed.fixture.FeedLikeFixture;
+import kr.co.deepple.feed.fixture.FeedVoteCountFixture;
+import kr.co.deepple.feed.fixture.FeedVoteFixture;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
 import kr.co.deepple.feed.fixture.PollFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
@@ -102,6 +104,8 @@ class FixturePersistenceTest extends RepositoryTestSupport {
         arguments("FeedBlock", (Supplier<Object>) () -> FeedBlockFixture.builder().build()),
         arguments("FeedLike", (Supplier<Object>) () -> FeedLikeFixture.builder().build()),
         arguments("FeedCount", (Supplier<Object>) () -> FeedCountFixture.builder().build()),
+        arguments("FeedVote", (Supplier<Object>) () -> FeedVoteFixture.builder().build()),
+        arguments("FeedVoteCount", (Supplier<Object>) () -> FeedVoteCountFixture.builder().build()),
         arguments("TextFeed", (Supplier<Object>) () -> TextFeedFixture.builder().build()),
         arguments("PollFeed", (Supplier<Object>) () -> PollFeedFixture.builder().build()),
         arguments("OfficialFeed", (Supplier<Object>) () -> OfficialFeedFixture.builder().build()),

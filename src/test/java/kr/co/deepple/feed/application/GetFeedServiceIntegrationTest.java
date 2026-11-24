@@ -70,6 +70,8 @@ class GetFeedServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(view.poll().options()).extracting("content").containsExactly("예", "아니오");
     assertThat(view.poll().isResultVisible()).isFalse();
     assertThat(view.poll().participantCount()).isNull();
+    assertThat(view.poll().myOptionId()).isNull();
+    assertThat(view.poll().options()).extracting("votePercent").containsOnlyNulls();
   }
 
   @Test
@@ -101,6 +103,24 @@ class GetFeedServiceIntegrationTest extends IntegrationTestSupport {
           .extracting("errorCode")
           .isEqualTo(FeedErrorCode.FEED_NOT_FOUND);
     }
+  }
+
+  @Test
+  @DisplayName("작성자는 아무도 투표하지 않았어도 결과를 0으로 본다")
+  void authorSeesEmptyPollResult() {
+    // given
+    Feed feed =
+        feedRepository.save(
+            PollFeedFixture.builder().authorId(viewer.getId()).grade("GOLD").build());
+
+    // when
+    FeedView view = getFeedService.getFeed(VIEWER_MEMBER_ID, feed.getId());
+
+    // then
+    assertThat(view.poll().isResultVisible()).isTrue();
+    assertThat(view.poll().myOptionId()).isNull();
+    assertThat(view.poll().participantCount()).isZero();
+    assertThat(view.poll().options()).extracting("votePercent").containsExactly(0, 0);
   }
 
   @Test
