@@ -16,6 +16,7 @@ import kr.co.deepple.feed.application.dto.FeedSearchCondition;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.FeedVoteRequest;
+import kr.co.deepple.feed.application.dto.OfficialFeedGridViews;
 import kr.co.deepple.feed.application.port.in.CreateFeedUseCase;
 import kr.co.deepple.feed.application.port.in.DeleteFeedUseCase;
 import kr.co.deepple.feed.application.port.in.FindHomeFeedsUseCase;
@@ -82,7 +83,7 @@ public class FeedController {
       summary = "공식 계정 피드 목록 조회",
       description = "공식 계정 화면의 격자형 목록. 상단 고정 피드가 먼저 오고 나머지는 최신순이다. 칸을 누르면 피드 상세를 조회한다.")
   @GetMapping("/official/feeds")
-  public ResponseEntity<FeedGridViews> getOfficialFeeds(
+  public ResponseEntity<OfficialFeedGridViews> getOfficialFeeds(
       @CurrentMemberId long memberId,
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
           String cursor) {

@@ -14,6 +14,7 @@ import kr.co.deepple.feed.application.dto.FeedPollView;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.dto.FeedView;
+import kr.co.deepple.feed.application.dto.OfficialFeedGridItemView;
 import kr.co.deepple.feed.application.dto.PollVotes;
 import kr.co.deepple.feed.domain.FeedPersonalityType;
 import kr.co.deepple.feed.domain.PollResult;
@@ -66,10 +67,20 @@ public class FeedViewAssembler {
         feed.type().name(),
         findThumbnailUrl(feed),
         feed.content(),
+        feed.pollOptions().stream().map(FeedSnapshot.PollOption::content).toList(),
         toTextPosition(feed.textPosition()),
         counts.likeCount(),
         counts.commentCount(),
         feed.isHiddenByReport());
+  }
+
+  public OfficialFeedGridItemView toOfficialGridItemView(FeedSnapshot feed, FeedCounts counts) {
+    return new OfficialFeedGridItemView(
+        feed.feedId(),
+        findThumbnailUrl(feed),
+        feed.content(),
+        counts.likeCount(),
+        counts.commentCount());
   }
 
   private FeedAuthorView toAuthorView(FeedAuthorSnapshot author) {

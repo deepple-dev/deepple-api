@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import kr.co.deepple.feed.application.dto.FeedCounts;
-import kr.co.deepple.feed.application.dto.FeedGridItemView;
-import kr.co.deepple.feed.application.dto.FeedGridViews;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
+import kr.co.deepple.feed.application.dto.OfficialFeedGridItemView;
+import kr.co.deepple.feed.application.dto.OfficialFeedGridViews;
 import kr.co.deepple.feed.application.dto.OfficialFeedSortKey;
 import kr.co.deepple.feed.application.port.in.FindOfficialFeedsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
@@ -33,10 +33,10 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
 
   @Override
   @Transactional(readOnly = true)
-  public FeedGridViews findOfficialFeeds(long memberId, String cursor) {
+  public OfficialFeedGridViews findOfficialFeeds(long memberId, String cursor) {
     FeedAuthor me = feedAuthorReader.getMember(memberId);
     if (me.hasNoGrade()) {
-      return FeedGridViews.empty();
+      return OfficialFeedGridViews.empty();
     }
     List<OfficialFeed> feeds = findFeeds(me.getGrade(), cursor);
     return toGridViews(feeds);
@@ -55,25 +55,26 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
         grade, after.isPinned(), after.publishedAt(), after.feedId(), FETCH_LIMIT);
   }
 
-  private FeedGridViews toGridViews(List<OfficialFeed> feeds) {
+  private OfficialFeedGridViews toGridViews(List<OfficialFeed> feeds) {
     if (isLastPage(feeds)) {
-      return new FeedGridViews(toGridItemViews(feeds), null, false);
+      return new OfficialFeedGridViews(toGridItemViews(feeds), null, false);
     }
     List<OfficialFeed> page = feeds.subList(0, PAGE_SIZE);
     String nextCursor = OfficialFeedSortKey.of(page.getLast()).toCursor();
-    return new FeedGridViews(toGridItemViews(page), nextCursor, true);
+    return new OfficialFeedGridViews(toGridItemViews(page), nextCursor, true);
   }
 
   private boolean isLastPage(List<OfficialFeed> feeds) {
     return feeds.size() <= PAGE_SIZE;
   }
 
-  private List<FeedGridItemView> toGridItemViews(List<OfficialFeed> feeds) {
+  private List<OfficialFeedGridItemView> toGridItemViews(List<OfficialFeed> feeds) {
     Map<Long, FeedCounts> counts =
         feedCountReader.read(feeds.stream().map(Feed::getId).collect(Collectors.toSet()));
     return feeds.stream()
         .map(feed ->
-            feedViewAssembler.toGridItemView(FeedSnapshot.from(feed), counts.get(feed.getId())))
+            feedViewAssembler.toOfficialGridItemView(
+                FeedSnapshot.from(feed), counts.get(feed.getId())))
         .toList();
   }
 }
