@@ -22,6 +22,9 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
   @Query("SELECT f FROM OfficialFeed f WHERE f.id = :id AND f.deletedAt IS NULL")
   Optional<OfficialFeed> findOfficialFeedById(long id);
 
+  @Query("SELECT f FROM UserFeed f WHERE f.id = :id")
+  Optional<UserFeed> findUserFeedIncludingDeletedById(long id);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT f FROM UserFeed f WHERE f.id = :id AND f.deletedAt IS NULL")
   Optional<UserFeed> findUserFeedByIdForUpdate(long id);

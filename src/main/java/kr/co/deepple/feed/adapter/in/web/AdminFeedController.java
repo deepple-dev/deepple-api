@@ -8,17 +8,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentAdminId;
+import kr.co.deepple.feed.application.dto.AdminFeedCommentView;
 import kr.co.deepple.feed.application.dto.AdminFeedCreateRequest;
 import kr.co.deepple.feed.application.dto.AdminFeedUpdateRequest;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedStatusRequest;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedView;
+import kr.co.deepple.feed.application.dto.AdminUserFeedDetailView;
 import kr.co.deepple.feed.application.dto.AdminUserFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminUserFeedStatusRequest;
 import kr.co.deepple.feed.application.dto.AdminUserFeedView;
 import kr.co.deepple.feed.application.port.in.ChangeAdminFeedStatusUseCase;
 import kr.co.deepple.feed.application.port.in.CreateOfficialFeedUseCase;
 import kr.co.deepple.feed.application.port.in.DeleteAdminFeedUseCase;
+import kr.co.deepple.feed.application.port.in.FindAdminFeedCommentUseCase;
 import kr.co.deepple.feed.application.port.in.FindAdminFeedsUseCase;
 import kr.co.deepple.feed.application.port.in.UpdateOfficialFeedUseCase;
 import kr.co.deepple.feed.domain.FeedStatus;
@@ -46,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminFeedController {
 
   private final FindAdminFeedsUseCase findAdminFeedsUseCase;
+  private final FindAdminFeedCommentUseCase findAdminFeedCommentUseCase;
   private final CreateOfficialFeedUseCase createOfficialFeedUseCase;
   private final UpdateOfficialFeedUseCase updateOfficialFeedUseCase;
   private final ChangeAdminFeedStatusUseCase changeAdminFeedStatusUseCase;
@@ -58,6 +62,20 @@ public class AdminFeedController {
       @PageableDefault(size = 100) Pageable pageable) {
     return ResponseEntity.ok(
         findAdminFeedsUseCase.findUserFeeds(adminUserFeedSearchCondition, pageable));
+  }
+
+  @Operation(
+      summary = "사용자 피드 상세 조회",
+      description = "신고 확인용. 삭제·숨김·반려된 피드도 조회된다. 관리자 피드 ID면 FEED_NOT_FOUND다.")
+  @GetMapping("/feeds/{feedId}")
+  public ResponseEntity<AdminUserFeedDetailView> getUserFeed(@PathVariable long feedId) {
+    return ResponseEntity.ok(findAdminFeedsUseCase.getUserFeed(feedId));
+  }
+
+  @Operation(summary = "피드 댓글 상세 조회", description = "신고 확인용. 삭제·숨김된 댓글도 조회된다.")
+  @GetMapping("/comments/{commentId}")
+  public ResponseEntity<AdminFeedCommentView> getComment(@PathVariable long commentId) {
+    return ResponseEntity.ok(findAdminFeedCommentUseCase.getComment(commentId));
   }
 
   @Operation(summary = "관리자 피드 목록 조회", description = "최신순이다.")

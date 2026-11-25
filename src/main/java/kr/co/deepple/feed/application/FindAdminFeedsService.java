@@ -1,11 +1,15 @@
 package kr.co.deepple.feed.application;
 
+import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedView;
+import kr.co.deepple.feed.application.dto.AdminUserFeedDetailView;
 import kr.co.deepple.feed.application.dto.AdminUserFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminUserFeedView;
 import kr.co.deepple.feed.application.port.in.FindAdminFeedsUseCase;
 import kr.co.deepple.feed.application.port.out.AdminFeedQueryRepository;
+import kr.co.deepple.feed.application.port.out.FeedRepository;
+import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.domain.UserFeed;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +23,18 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FindAdminFeedsService implements FindAdminFeedsUseCase {
 
+  private final FeedRepository feedRepository;
   private final AdminFeedQueryRepository adminFeedQueryRepository;
   private final AdminFeedViewAssembler adminFeedViewAssembler;
+
+  @Override
+  @Transactional(readOnly = true)
+  public AdminUserFeedDetailView getUserFeed(long feedId) {
+    return feedRepository
+        .findUserFeedIncludingDeletedById(feedId)
+        .map(adminFeedViewAssembler::toUserFeedDetailView)
+        .orElseThrow(() -> new DeeppleException(FeedErrorCode.FEED_NOT_FOUND, "feedId=" + feedId));
+  }
 
   @Override
   @Transactional(readOnly = true)

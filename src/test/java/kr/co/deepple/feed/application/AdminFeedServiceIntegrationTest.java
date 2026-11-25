@@ -3,14 +3,17 @@ package kr.co.deepple.feed.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.feed.application.dto.AdminFeedCommentView;
 import kr.co.deepple.feed.application.dto.AdminFeedCreateRequest;
 import kr.co.deepple.feed.application.dto.AdminFeedUpdateRequest;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminOfficialFeedView;
+import kr.co.deepple.feed.application.dto.AdminUserFeedDetailView;
 import kr.co.deepple.feed.application.dto.AdminUserFeedSearchCondition;
 import kr.co.deepple.feed.application.dto.AdminUserFeedView;
 import kr.co.deepple.feed.application.dto.FeedImageView;
@@ -21,12 +24,14 @@ import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.application.port.out.HomeFeedCacheRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedComment;
+import kr.co.deepple.feed.domain.FeedCommentStatus;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedImage;
 import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
 import kr.co.deepple.feed.fixture.FeedCommentFixture;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
+import kr.co.deepple.feed.fixture.PollFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import kr.co.deepple.image.application.port.out.ImageRepository;
 import kr.co.deepple.image.domain.Image;
@@ -50,6 +55,8 @@ class AdminFeedServiceIntegrationTest extends IntegrationTestSupport {
   private static final PageRequest FIRST_PAGE = PageRequest.of(0, 100);
 
   @Autowired private FindAdminFeedsService findAdminFeedsService;
+
+  @Autowired private FindAdminFeedCommentService findAdminFeedCommentService;
 
   @Autowired private CreateOfficialFeedService createOfficialFeedService;
 
@@ -481,6 +488,97 @@ class AdminFeedServiceIntegrationTest extends IntegrationTestSupport {
     deleteAdminFeedService.deleteUserFeed(feedId);
 
     assertThat(feedRepository.findById(feedId).orElseThrow().isDeleted()).isTrue();
+  }
+
+  @Test
+  @DisplayName("사용자 피드 상세는 지운 피드도 작성자·투표 선택지·배경과 함께 보여준다")
+  void getDeletedUserFeed() {
+    // given
+    long feedId =
+        feedRepository
+            .save(
+                PollFeedFixture.builder()
+                    .authorId(member.getId())
+                    .question("주말에 뭐 할까요?")
+                    .options(List.of("등산", "영화"))
+                    .backgroundId(1L)
+                    .build())
+            .getId();
+    deleteAdminFeedService.deleteUserFeed(feedId);
+
+    // when
+    AdminUserFeedDetailView view = findAdminFeedsService.getUserFeed(feedId);
+
+    // then
+    assertThat(view.type()).isEqualTo("POLL");
+    assertThat(view.authorMemberId()).isEqualTo(MEMBER_ID);
+    assertThat(view.authorNickname()).isEqualTo("진저");
+    assertThat(view.content()).isEqualTo("주말에 뭐 할까요?");
+    assertThat(view.pollOptions()).containsExactly("등산", "영화");
+    assertThat(view.images()).isEmpty();
+    assertThat(view.background().backgroundId()).isEqualTo(1L);
+    assertThat(view.deletedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("관리자 피드 ID로 사용자 피드 상세를 조회하면 피드 없음이다")
+  void rejectOfficialFeedAsUserFeedDetail() {
+    long officialFeedId = saveOfficialFeed(true);
+
+    assertFeedNotFound(() -> findAdminFeedsService.getUserFeed(officialFeedId));
+  }
+
+  @Test
+  @DisplayName("댓글 상세는 지우거나 숨긴 댓글도 상태·작성자와 함께 보여준다")
+  void getHiddenAndDeletedComment() {
+    // given
+    long feedId =
+        feedRepository.save(TextFeedFixture.builder().authorId(member.getId()).build()).getId();
+    long parentId =
+        feedCommentRepository
+            .save(FeedCommentFixture.builder().feedId(feedId).authorId(member.getId()).build())
+            .getId();
+    LocalDateTime deletedAt = LocalDateTime.of(2026, 11, 25, 12, 0);
+    long replyId =
+        feedCommentRepository
+            .save(
+                FeedCommentFixture.builder()
+                    .feedId(feedId)
+                    .parentId(parentId)
+                    .authorId(member.getId())
+                    .content("연락처 남겨요")
+                    .status(FeedCommentStatus.HIDDEN_BY_REPORT)
+                    .deletedAt(deletedAt)
+                    .build())
+            .getId();
+
+    // when
+    AdminFeedCommentView view = findAdminFeedCommentService.getComment(replyId);
+
+    // then
+    assertThat(view)
+        .usingRecursiveComparison()
+        .ignoringFields("createdAt")
+        .isEqualTo(
+            new AdminFeedCommentView(
+                replyId,
+                feedId,
+                parentId,
+                "HIDDEN_BY_REPORT",
+                MEMBER_ID,
+                "진저",
+                "연락처 남겨요",
+                null,
+                deletedAt));
+  }
+
+  @Test
+  @DisplayName("없는 댓글은 댓글 없음이다")
+  void rejectMissingComment() {
+    assertThatThrownBy(() -> findAdminFeedCommentService.getComment(Long.MAX_VALUE))
+        .isInstanceOf(DeeppleException.class)
+        .extracting("errorCode")
+        .isEqualTo(FeedErrorCode.FEED_COMMENT_NOT_FOUND);
   }
 
   private static void assertFeedNotFound(Runnable action) {
