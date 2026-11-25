@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
+import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.image.application.port.in.ImageInfo;
@@ -92,5 +93,36 @@ class ImageQueryServiceTest {
         .isInstanceOf(DeeppleException.class)
         .extracting("errorCode")
         .isEqualTo(ImageErrorCode.IMAGE_PROCESSING_FAILED);
+  }
+
+  @Test
+  @DisplayName("관리자가 올린 이미지는 올린 관리자와 상관없이 쓸 수 있다.")
+  void getAdminImage() {
+    given(imageRepository.findById(10L))
+        .willReturn(Optional.of(ImageFixture.builder().id(10L).adminId(2L).build()));
+
+    assertThat(imageQueryService.getAdminImage(10L).imageId()).isEqualTo(10L);
+  }
+
+  @Test
+  @DisplayName("회원이 올린 이미지는 관리자 이미지로 쓸 수 없다.")
+  void rejectMemberImageAsAdminImage() {
+    given(imageRepository.findById(10L))
+        .willReturn(Optional.of(ImageFixture.builder().id(10L).memberId(1L).build()));
+
+    assertThatThrownBy(() -> imageQueryService.getAdminImage(10L))
+        .isInstanceOf(DeeppleException.class)
+        .extracting("errorCode")
+        .isEqualTo(ImageErrorCode.IMAGE_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("변환이 끝난 이미지 ID만 돌려준다.")
+  void findCompletedImageIds() {
+    given(imageRepository.findIdsByIdInAndStatus(List.of(1L, 2L), ImageStatus.COMPLETED))
+        .willReturn(List.of(2L));
+
+    assertThat(imageQueryService.findCompletedImageIds(List.of(1L, 2L))).containsExactly(2L);
+    assertThat(imageQueryService.findCompletedImageIds(List.of())).isEmpty();
   }
 }

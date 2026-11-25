@@ -4,6 +4,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.Instant;
 import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedAuthorType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,9 +20,18 @@ public class FeedAuthorFixture {
   private String activityStatus;
   private Instant activityStatusUpdatedAt;
   private String grade;
+  private String nickname;
 
   public static FeedAuthorFixture builder() {
     return new FeedAuthorFixture();
+  }
+
+  public static FeedAuthor official() {
+    FeedAuthor author = FeedAuthor.member(0L);
+    setField(author, "authorType", FeedAuthorType.OFFICIAL);
+    setField(author, "memberId", null);
+    setField(author, "nickname", "deepple_official");
+    return author;
   }
 
   public FeedAuthor build() {
@@ -30,6 +40,7 @@ public class FeedAuthorFixture {
     setField(author, "activityStatus", activityStatus);
     setField(author, "activityStatusUpdatedAt", activityStatusUpdatedAt);
     setField(author, "grade", grade);
+    setField(author, "nickname", nickname);
     return author;
   }
 }

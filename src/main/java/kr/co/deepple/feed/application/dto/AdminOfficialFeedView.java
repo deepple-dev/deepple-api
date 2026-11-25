@@ -4,18 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 import kr.co.deepple.feed.domain.FeedStatus;
-import kr.co.deepple.feed.domain.FeedType;
 
-public record AdminFeedView(
+public record AdminOfficialFeedView(
     long feedId,
-    @Schema(implementation = FeedType.class) String type,
     @Schema(implementation = FeedStatus.class) String status,
-    @Schema(description = "타이틀. 사용자 피드는 null") String title,
-    @Schema(description = "작성자 닉네임. 관리자 피드는 공식 계정 이름") String authorNickname,
+    @Schema(description = "타이틀. 앱에는 보이지 않는다") String title,
     String content,
     List<FeedImageView> images,
     @Schema(
-            description = "보여줄 등급 목록. 비어 있으면 모든 등급에 보인다. 사용자 피드는 빈 목록. 값은 회원의 grade와 같다",
+            description = "보여줄 등급 목록. 비어 있으면 모든 등급에 보인다. 값은 회원의 grade와 같다",
             example = "[\"DIAMOND\"]")
         List<String> targetGrades,
     @Schema(description = "상단 고정 여부") boolean isPinned,

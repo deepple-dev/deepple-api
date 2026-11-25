@@ -4,6 +4,8 @@ public interface SyncHomeFeedCacheUseCase {
 
   void addFeed(long feedId);
 
+  void syncFeed(long feedId);
+
   void removeFeed(long feedId);
 
   void evictAuthor(long authorId);

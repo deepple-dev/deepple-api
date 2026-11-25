@@ -25,6 +25,8 @@ public class OfficialFeed extends Feed {
   private static final int MAX_TITLE_LENGTH = 50;
   private static final int MAX_CONTENT_LENGTH = 200;
   private static final int MAX_IMAGE_COUNT = 5;
+  private static final Set<FeedStatus> CHANGEABLE_STATUSES =
+      Set.of(FeedStatus.PUBLISHED, FeedStatus.HIDDEN);
 
   private String title;
 
@@ -46,8 +48,14 @@ public class OfficialFeed extends Feed {
       List<FeedImage> images,
       Set<String> targetGrades,
       boolean isPublished,
-      boolean isPinned) {
-    super(authorId, isPublished ? FeedStatus.PUBLISHED : FeedStatus.HIDDEN, content, images, null);
+      boolean isPinned,
+      String idempotencyKey) {
+    super(
+        authorId,
+        isPublished ? FeedStatus.PUBLISHED : FeedStatus.HIDDEN,
+        content,
+        images,
+        idempotencyKey);
     this.adminId = adminId;
     this.title = title;
     this.targetGrades.addAll(targetGrades);
@@ -62,23 +70,78 @@ public class OfficialFeed extends Feed {
       @NonNull List<FeedImage> images,
       @NonNull Set<String> targetGrades,
       boolean isPublished,
-      boolean isPinned) {
-    validate(title, content, images);
+      boolean isPinned,
+      String idempotencyKey) {
+    validateTitle(title);
+    validateContent(content);
+    validateImages(images);
+    validateTargetGrades(targetGrades);
     return new OfficialFeed(
-        authorId, adminId, title, content, images, targetGrades, isPublished, isPinned);
+        authorId,
+        adminId,
+        title,
+        content,
+        images,
+        targetGrades,
+        isPublished,
+        isPinned,
+        idempotencyKey);
   }
 
-  private static void validate(String title, String content, List<FeedImage> images) {
+  public void changeTitle(@NonNull String title) {
+    validateTitle(title);
+    this.title = title;
+  }
+
+  public void changeContent(@NonNull String content) {
+    validateContent(content);
+    applyContent(content);
+  }
+
+  public void changeImages(@NonNull List<FeedImage> images) {
+    validateImages(images);
+    applyImages(images);
+  }
+
+  public void changeTargetGrades(@NonNull Set<String> targetGrades) {
+    validateTargetGrades(targetGrades);
+    this.targetGrades.clear();
+    this.targetGrades.addAll(targetGrades);
+  }
+
+  public void changePinned(boolean isPinned) {
+    this.isPinned = isPinned;
+  }
+
+  @Override
+  protected Set<FeedStatus> changeableStatuses() {
+    return CHANGEABLE_STATUSES;
+  }
+
+  private static void validateTitle(String title) {
     if (title.isBlank() || title.length() > MAX_TITLE_LENGTH) {
       throw new DeeppleException(
           FeedErrorCode.INVALID_FEED_CONTENT, "titleLength=" + title.length());
     }
+  }
+
+  private static void validateContent(String content) {
     if (content.isBlank() || content.length() > MAX_CONTENT_LENGTH) {
       throw new DeeppleException(
           FeedErrorCode.INVALID_FEED_CONTENT, "contentLength=" + content.length());
     }
+  }
+
+  private static void validateImages(List<FeedImage> images) {
     if (images.isEmpty() || images.size() > MAX_IMAGE_COUNT) {
       throw new DeeppleException(FeedErrorCode.INVALID_FEED_IMAGES, "count=" + images.size());
+    }
+  }
+
+  private static void validateTargetGrades(Set<String> targetGrades) {
+    if (!FeedGrades.ALL.containsAll(targetGrades)) {
+      throw new DeeppleException(
+          FeedErrorCode.INVALID_FEED_TARGET_GRADES, "targetGrades=" + targetGrades);
     }
   }
 

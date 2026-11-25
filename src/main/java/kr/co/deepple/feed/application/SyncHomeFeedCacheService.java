@@ -1,6 +1,8 @@
 package kr.co.deepple.feed.application;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.feed.application.dto.HomeFeedSortKey;
 import kr.co.deepple.feed.application.port.in.SyncHomeFeedCacheUseCase;
@@ -9,6 +11,7 @@ import kr.co.deepple.feed.application.port.out.FeedSnapshotCacheRepository;
 import kr.co.deepple.feed.application.port.out.HomeFeedCacheRepository;
 import kr.co.deepple.feed.domain.Feed;
 import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedGrades;
 import kr.co.deepple.feed.domain.UserFeed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,23 @@ public class SyncHomeFeedCacheService implements SyncHomeFeedCacheUseCase {
                 .findByIdAndDeletedAtIsNull(feedId)
                 .filter(Feed::isPublished)
                 .ifPresent(this::addToHome));
+  }
+
+  @Override
+  public void syncFeed(long feedId) {
+    feedSnapshotCacheRepository.invalidateFeed(feedId);
+    distributedLockTemplate.executeInTransaction(
+        HomeFeedListLoader.LOCK_KEY, () -> syncHomeFeed(feedId));
+  }
+
+  private void syncHomeFeed(long feedId) {
+    Optional<Feed> published =
+        feedRepository.findByIdAndDeletedAtIsNull(feedId).filter(Feed::isPublished);
+    Set<String> visibleGrades = published.map(Feed::getVisibleGrades).orElse(Set.of());
+    published.ifPresent(this::addToHome);
+    FeedGrades.ALL.stream()
+        .filter(grade -> !visibleGrades.contains(grade))
+        .forEach(grade -> homeFeedCacheRepository.remove(grade, feedId));
   }
 
   @Override

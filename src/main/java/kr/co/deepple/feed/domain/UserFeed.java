@@ -16,6 +16,9 @@ import lombok.NonNull;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class UserFeed extends Feed {
 
+  private static final Set<FeedStatus> CHANGEABLE_STATUSES =
+      Set.of(FeedStatus.PUBLISHED, FeedStatus.REJECTED);
+
   @Column(columnDefinition = "varchar(50)")
   private String grade;
 
@@ -57,6 +60,11 @@ public abstract class UserFeed extends Feed {
     return new DeeppleException(
         FeedErrorCode.INVALID_FEED_CANVAS,
         "backgroundId=" + backgroundId + ", hasImage=" + hasImage);
+  }
+
+  @Override
+  protected Set<FeedStatus> changeableStatuses() {
+    return CHANGEABLE_STATUSES;
   }
 
   @Override

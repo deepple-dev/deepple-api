@@ -78,6 +78,10 @@ public class Image extends BaseEntity {
     return this.ownerType == ownerType && this.ownerId == ownerId;
   }
 
+  public boolean isOwnedBy(ImageOwnerType ownerType) {
+    return this.ownerType == ownerType;
+  }
+
   public boolean isFailed() {
     return status == ImageStatus.FAILED;
   }
