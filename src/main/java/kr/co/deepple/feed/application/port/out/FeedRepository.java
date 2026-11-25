@@ -1,5 +1,6 @@
 package kr.co.deepple.feed.application.port.out;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -11,11 +12,23 @@ import kr.co.deepple.feed.domain.OfficialFeed;
 import kr.co.deepple.feed.domain.UserFeed;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 
   Optional<Feed> findByIdAndDeletedAtIsNull(long id);
+
+  @Query("SELECT f FROM OfficialFeed f WHERE f.id = :id AND f.deletedAt IS NULL")
+  Optional<OfficialFeed> findOfficialFeedById(long id);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT f FROM UserFeed f WHERE f.id = :id AND f.deletedAt IS NULL")
+  Optional<UserFeed> findUserFeedByIdForUpdate(long id);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT f FROM OfficialFeed f WHERE f.id = :id AND f.deletedAt IS NULL")
+  Optional<OfficialFeed> findOfficialFeedByIdForUpdate(long id);
 
   Optional<Feed> findByIdAndAuthorIdAndDeletedAtIsNull(long id, long authorId);
 

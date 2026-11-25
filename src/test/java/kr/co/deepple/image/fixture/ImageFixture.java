@@ -17,6 +17,7 @@ public class ImageFixture {
 
   private Long id;
   private long memberId = 1L;
+  private Long adminId;
   private ImageContentType contentType = ImageContentType.WEBP;
   private ImageStatus status = ImageStatus.PROCESSING;
 
@@ -25,7 +26,10 @@ public class ImageFixture {
   }
 
   public Image build() {
-    Image image = Image.uploadedByMember(memberId, contentType);
+    Image image =
+        adminId == null
+            ? Image.uploadedByMember(memberId, contentType)
+            : Image.uploadedByAdmin(adminId, contentType);
     setField(image, "id", id);
     setField(image, "status", status);
     return image;

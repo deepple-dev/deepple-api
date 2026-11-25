@@ -5,6 +5,7 @@ import kr.co.deepple.feed.domain.FeedAuthorActivityChangedEvent;
 import kr.co.deepple.feed.domain.FeedAuthorChangedEvent;
 import kr.co.deepple.feed.domain.FeedDeletedEvent;
 import kr.co.deepple.feed.domain.FeedPublishedEvent;
+import kr.co.deepple.feed.domain.FeedUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,11 @@ public class HomeFeedCacheEventHandler {
   @ApplicationModuleListener
   public void handle(FeedPublishedEvent event) {
     syncHomeFeedCacheUseCase.addFeed(event.feedId());
+  }
+
+  @ApplicationModuleListener
+  public void handle(FeedUpdatedEvent event) {
+    syncHomeFeedCacheUseCase.syncFeed(event.feedId());
   }
 
   @ApplicationModuleListener

@@ -65,6 +65,11 @@ public class HomeFeedCacheRepositoryImpl implements HomeFeedCacheRepository {
   }
 
   @Override
+  public void remove(String grade, long feedId) {
+    redisTemplate.opsForZSet().remove(buildKey(grade), toMember(feedId));
+  }
+
+  @Override
   public void remove(long feedId) {
     String member = toMember(feedId);
     FeedGrades.ALL.forEach(grade -> redisTemplate.opsForZSet().remove(buildKey(grade), member));

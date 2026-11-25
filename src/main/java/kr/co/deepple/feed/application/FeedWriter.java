@@ -1,27 +1,39 @@
 package kr.co.deepple.feed.application;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.feed.application.dto.AdminFeedCreateRequest;
+import kr.co.deepple.feed.application.dto.AdminFeedUpdateRequest;
 import kr.co.deepple.feed.application.dto.FeedCreateRequest;
 import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.domain.Feed;
 import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedDeletedEvent;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedImage;
 import kr.co.deepple.feed.domain.FeedPublishedEvent;
+import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.domain.FeedType;
+import kr.co.deepple.feed.domain.FeedUpdatedEvent;
+import kr.co.deepple.feed.domain.OfficialFeed;
 import kr.co.deepple.feed.domain.PollFeed;
 import kr.co.deepple.feed.domain.TextFeed;
 import kr.co.deepple.feed.domain.TextPosition;
+import kr.co.deepple.feed.domain.UserFeed;
 import kr.co.deepple.image.application.port.in.FindImageUseCase;
 import kr.co.deepple.image.application.port.in.ImageInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class FeedWriter {
@@ -48,6 +60,150 @@ public class FeedWriter {
       eventPublisher.publishEvent(new FeedPublishedEvent(feedId));
     }
     return feedId;
+  }
+
+  @Transactional
+  public long createOfficial(
+      FeedAuthor officialAuthor,
+      long adminId,
+      String idempotencyKey,
+      AdminFeedCreateRequest request) {
+    OfficialFeed feed =
+        OfficialFeed.create(
+            officialAuthor.getId(),
+            adminId,
+            request.title(),
+            request.content(),
+            findAdminImages(request.imageIds()),
+            toTargetGrades(request.targetGrades()),
+            request.isPublished(),
+            request.isPinned(),
+            idempotencyKey);
+    if (feed.isPublished()) {
+      validateImagesProcessed(feed);
+    }
+    long feedId = feedRepository.save(feed).getId();
+    if (feed.isPublished()) {
+      eventPublisher.publishEvent(new FeedPublishedEvent(feedId));
+    }
+    log.atInfo()
+        .addKeyValue("feedId", feedId)
+        .addKeyValue("status", feed.getStatus())
+        .log("관리자 피드 등록");
+    return feedId;
+  }
+
+  @Transactional
+  public OfficialFeed updateOfficial(long feedId, AdminFeedUpdateRequest request) {
+    OfficialFeed feed = getOfficialFeedForUpdate(feedId);
+    if (request.title() != null) {
+      feed.changeTitle(request.title());
+    }
+    if (request.content() != null) {
+      feed.changeContent(request.content());
+    }
+    if (request.imageIds() != null) {
+      feed.changeImages(findAdminImages(request.imageIds()));
+      if (feed.isPublished()) {
+        validateImagesProcessed(feed);
+      }
+    }
+    if (request.targetGrades() != null) {
+      feed.changeTargetGrades(toTargetGrades(request.targetGrades()));
+    }
+    if (request.isPinned() != null) {
+      feed.changePinned(request.isPinned());
+    }
+    eventPublisher.publishEvent(new FeedUpdatedEvent(feedId));
+    log.atInfo().addKeyValue("feedId", feedId).log("관리자 피드 수정");
+    return feed;
+  }
+
+  @Transactional
+  public UserFeed changeUserFeedStatus(long feedId, FeedStatus status) {
+    UserFeed feed = getUserFeedForUpdate(feedId);
+    if (status == FeedStatus.PUBLISHED) {
+      validateImagesProcessed(feed);
+    }
+    feed.changeStatus(status);
+    publishStatusChanged(feed, status);
+    return feed;
+  }
+
+  @Transactional
+  public OfficialFeed changeOfficialFeedStatus(long feedId, FeedStatus status) {
+    OfficialFeed feed = getOfficialFeedForUpdate(feedId);
+    if (status == FeedStatus.PUBLISHED) {
+      validateImagesProcessed(feed);
+    }
+    feed.changeStatus(status);
+    publishStatusChanged(feed, status);
+    return feed;
+  }
+
+  @Transactional
+  public void deleteUserFeed(long feedId) {
+    delete(getUserFeedForUpdate(feedId));
+  }
+
+  @Transactional
+  public void deleteOfficialFeed(long feedId) {
+    delete(getOfficialFeedForUpdate(feedId));
+  }
+
+  private void publishStatusChanged(Feed feed, FeedStatus status) {
+    eventPublisher.publishEvent(new FeedUpdatedEvent(feed.getId()));
+    log.atInfo()
+        .addKeyValue("feedId", feed.getId())
+        .addKeyValue("feedType", feed.getType())
+        .addKeyValue("status", status)
+        .log("관리자 피드 상태 변경");
+  }
+
+  private void delete(Feed feed) {
+    feed.delete();
+    eventPublisher.publishEvent(new FeedDeletedEvent(feed.getId()));
+    log.atInfo()
+        .addKeyValue("feedId", feed.getId())
+        .addKeyValue("feedType", feed.getType())
+        .log("관리자 피드 삭제");
+  }
+
+  private UserFeed getUserFeedForUpdate(long feedId) {
+    return feedRepository
+        .findUserFeedByIdForUpdate(feedId)
+        .orElseThrow(() -> new DeeppleException(FeedErrorCode.FEED_NOT_FOUND, "feedId=" + feedId));
+  }
+
+  private OfficialFeed getOfficialFeedForUpdate(long feedId) {
+    return feedRepository
+        .findOfficialFeedByIdForUpdate(feedId)
+        .orElseThrow(() -> new DeeppleException(FeedErrorCode.FEED_NOT_FOUND, "feedId=" + feedId));
+  }
+
+  private void validateImagesProcessed(Feed feed) {
+    List<Long> imageIds = feed.getImageIds();
+    if (!findImageUseCase.findCompletedImageIds(imageIds).containsAll(imageIds)) {
+      throw new DeeppleException(
+          FeedErrorCode.FEED_IMAGE_NOT_PROCESSED,
+          "feedId=" + feed.getId() + ", imageIds=" + imageIds);
+    }
+  }
+
+  private List<FeedImage> findAdminImages(List<Long> imageIds) {
+    if (new HashSet<>(imageIds).size() != imageIds.size()) {
+      throw new DeeppleException(FeedErrorCode.INVALID_FEED_IMAGES, "imageIds=" + imageIds);
+    }
+    return IntStream.range(0, imageIds.size())
+        .mapToObj(index -> {
+          ImageInfo image = findImageUseCase.getAdminImage(imageIds.get(index));
+          return FeedImage.of(image.imageId(), image.imageKey(), image.thumbnailKey(), index);
+        })
+        .toList();
+  }
+
+  private Set<String> toTargetGrades(List<String> targetGrades) {
+    return targetGrades == null ? Set.of() : Set.copyOf(targetGrades);
   }
 
   private TextFeed createTextFeed(

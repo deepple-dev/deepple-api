@@ -14,6 +14,8 @@ public interface HomeFeedCacheRepository {
 
   void add(String grade, HomeFeedSortKey sortKey);
 
+  void remove(String grade, long feedId);
+
   void remove(long feedId);
 
   void removeAll(Collection<Long> feedIds);

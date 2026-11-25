@@ -19,7 +19,11 @@ public enum FeedErrorCode implements ErrorCode {
   INVALID_FEED_CONTENT(ErrorType.INVALID_ARGUMENT, "피드 내용이 올바르지 않습니다."),
   INVALID_POLL_OPTIONS(ErrorType.INVALID_ARGUMENT, "투표 선택지가 올바르지 않습니다."),
   INVALID_FEED_IMAGES(ErrorType.INVALID_ARGUMENT, "피드 이미지가 올바르지 않습니다."),
-  INVALID_FEED_CURSOR(ErrorType.INVALID_ARGUMENT, "커서가 올바르지 않습니다.");
+  INVALID_FEED_CURSOR(ErrorType.INVALID_ARGUMENT, "커서가 올바르지 않습니다."),
+  INVALID_FEED_STATUS(ErrorType.INVALID_ARGUMENT, "피드 상태가 올바르지 않습니다."),
+  INVALID_FEED_TARGET_GRADES(ErrorType.INVALID_ARGUMENT, "대상 등급이 올바르지 않습니다."),
+  INVALID_FEED_STATUS_CHANGE(ErrorType.FAILED_PRECONDITION, "바꿀 수 없는 피드 상태입니다."),
+  FEED_IMAGE_NOT_PROCESSED(ErrorType.FAILED_PRECONDITION, "변환이 끝나지 않은 이미지가 있어 공개할 수 없습니다.");
 
   private final ErrorType type;
   private final String message;

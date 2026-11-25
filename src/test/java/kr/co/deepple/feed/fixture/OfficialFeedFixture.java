@@ -27,6 +27,7 @@ public class OfficialFeedFixture {
   private Set<String> targetGrades = Set.of();
   private boolean isPublished = true;
   private boolean isPinned;
+  private String idempotencyKey;
 
   private LocalDateTime publishedAt;
 
@@ -37,7 +38,15 @@ public class OfficialFeedFixture {
   public OfficialFeed build() {
     OfficialFeed feed =
         OfficialFeed.create(
-            authorId, adminId, title, content, images, targetGrades, isPublished, isPinned);
+            authorId,
+            adminId,
+            title,
+            content,
+            images,
+            targetGrades,
+            isPublished,
+            isPinned,
+            idempotencyKey);
     setField(feed, "id", id);
     if (publishedAt != null) {
       setField(feed, "publishedAt", publishedAt);

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import kr.co.deepple.common.entity.SoftDeleteBaseEntity;
+import kr.co.deepple.common.exception.DeeppleException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -81,6 +82,8 @@ public abstract class Feed extends SoftDeleteBaseEntity {
 
   public abstract FeedType getType();
 
+  protected abstract Set<FeedStatus> changeableStatuses();
+
   public abstract Set<String> getVisibleGrades();
 
   public abstract boolean isPinned();
@@ -102,5 +105,34 @@ public abstract class Feed extends SoftDeleteBaseEntity {
 
   public boolean isHiddenByReport() {
     return status == FeedStatus.HIDDEN_BY_REPORT;
+  }
+
+  public List<Long> getImageIds() {
+    return images.stream().map(FeedImage::getImageId).toList();
+  }
+
+  public void changeStatus(@NonNull FeedStatus status) {
+    if (isHiddenByReport() || !changeableStatuses().contains(status)) {
+      throw invalidStatusChangeException(status);
+    }
+    this.status = status;
+    if (status == FeedStatus.PUBLISHED && publishedAt == null) {
+      this.publishedAt = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
+    }
+  }
+
+  protected void applyContent(String content) {
+    this.content = content;
+  }
+
+  protected void applyImages(List<FeedImage> images) {
+    this.images.clear();
+    this.images.addAll(images);
+  }
+
+  protected DeeppleException invalidStatusChangeException(FeedStatus requestedStatus) {
+    return new DeeppleException(
+        FeedErrorCode.INVALID_FEED_STATUS_CHANGE,
+        "feedId=" + id + ", status=" + status + ", requestedStatus=" + requestedStatus);
   }
 }

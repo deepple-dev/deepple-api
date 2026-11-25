@@ -3,11 +3,14 @@ package kr.co.deepple.feed.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayName("회원 피드 규칙 테스트")
@@ -89,5 +92,53 @@ class UserFeedTest {
         .isInstanceOf(DeeppleException.class)
         .extracting("errorCode")
         .isEqualTo(errorCode);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = FeedStatus.class,
+      names = {"PUBLISHED", "REJECTED"})
+  @DisplayName("심사 대기 피드를 공개하거나 반려할 수 있다")
+  void reviewPendingFeed(FeedStatus status) {
+    TextFeed feed = TextFeed.create(1L, "GOLD", "사진", CENTER, null, IMAGE, KEY);
+
+    feed.changeStatus(status);
+
+    assertThat(feed.getStatus()).isEqualTo(status);
+    assertThat(feed.getPublishedAt() != null).isEqualTo(status == FeedStatus.PUBLISHED);
+  }
+
+  @Test
+  @DisplayName("심사 결과는 다시 바꿀 수 있고, 다시 공개해도 처음 공개 시각을 유지한다")
+  void changeReviewResult() {
+    TextFeed feed = TextFeed.create(1L, "GOLD", "사진", CENTER, null, IMAGE, KEY);
+    feed.changeStatus(FeedStatus.PUBLISHED);
+    LocalDateTime publishedAt = feed.getPublishedAt();
+
+    feed.changeStatus(FeedStatus.REJECTED);
+    feed.changeStatus(FeedStatus.PUBLISHED);
+
+    assertThat(feed.getStatus()).isEqualTo(FeedStatus.PUBLISHED);
+    assertThat(feed.getPublishedAt()).isEqualTo(publishedAt);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = FeedStatus.class,
+      names = {"PENDING", "HIDDEN", "HIDDEN_BY_REPORT"})
+  @DisplayName("공개·반려가 아닌 상태로는 바꿀 수 없다")
+  void rejectNonReviewStatus(FeedStatus status) {
+    TextFeed feed = TextFeed.create(1L, "GOLD", "사진", CENTER, null, IMAGE, KEY);
+
+    assertErrorCode(() -> feed.changeStatus(status), FeedErrorCode.INVALID_FEED_STATUS_CHANGE);
+  }
+
+  @Test
+  @DisplayName("신고로 숨겨진 피드는 다시 공개할 수 없다")
+  void rejectChangingHiddenByReport() {
+    TextFeed feed = TextFeedFixture.builder().status(FeedStatus.HIDDEN_BY_REPORT).build();
+
+    assertErrorCode(
+        () -> feed.changeStatus(FeedStatus.PUBLISHED), FeedErrorCode.INVALID_FEED_STATUS_CHANGE);
   }
 }
