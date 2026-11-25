@@ -6,6 +6,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import kr.co.deepple.datingexam.application.port.in.DominantPersonalityType;
 import kr.co.deepple.datingexam.application.port.out.DatingExamSubmitResultRepository;
 import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
@@ -51,5 +53,28 @@ class FindDominantPersonalityTypesServiceTest {
     assertThat(findDominantPersonalityTypesService.findDominantPersonalityTypes(List.of()))
         .isEmpty();
     verifyNoInteractions(datingExamSubmitResultRepository);
+  }
+
+  @Test
+  @DisplayName("회원 한 명의 대표 성격 유형 코드와 이름을 돌려준다.")
+  void findDominantPersonalityType() {
+    given(datingExamSubmitResultRepository.findByMemberId(1L))
+        .willReturn(
+            Optional.of(
+                DatingExamSubmitResultFixture.builder()
+                    .memberId(1L)
+                    .counts(Map.of(AnswerPersonalityType.STIMULATING_ADVENTURER, 3))
+                    .build()));
+
+    assertThat(findDominantPersonalityTypesService.findDominantPersonalityType(1L))
+        .contains(new DominantPersonalityType("STIMULATING_ADVENTURER", "자극모험형"));
+  }
+
+  @Test
+  @DisplayName("연애고사 결과가 없으면 빈 값을 돌려준다.")
+  void returnEmptyWhenNoSubmitResult() {
+    given(datingExamSubmitResultRepository.findByMemberId(1L)).willReturn(Optional.empty());
+
+    assertThat(findDominantPersonalityTypesService.findDominantPersonalityType(1L)).isEmpty();
   }
 }

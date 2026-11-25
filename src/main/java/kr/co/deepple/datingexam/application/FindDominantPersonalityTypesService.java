@@ -2,9 +2,12 @@ package kr.co.deepple.datingexam.application;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import kr.co.deepple.datingexam.application.port.in.DominantPersonalityType;
 import kr.co.deepple.datingexam.application.port.in.FindDominantPersonalityTypesUseCase;
 import kr.co.deepple.datingexam.application.port.out.DatingExamSubmitResultRepository;
+import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
 import kr.co.deepple.datingexam.domain.DatingExamSubmitResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,5 +30,18 @@ public class FindDominantPersonalityTypesService implements FindDominantPersonal
             Collectors.toMap(
                 DatingExamSubmitResult::getMemberId,
                 result -> result.getDominantPersonalityType().name()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<DominantPersonalityType> findDominantPersonalityType(long memberId) {
+    return datingExamSubmitResultRepository
+        .findByMemberId(memberId)
+        .map(DatingExamSubmitResult::getDominantPersonalityType)
+        .map(FindDominantPersonalityTypesService::toDominantPersonalityType);
+  }
+
+  private static DominantPersonalityType toDominantPersonalityType(AnswerPersonalityType type) {
+    return new DominantPersonalityType(type.name(), type.getDescription());
   }
 }
