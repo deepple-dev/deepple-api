@@ -147,13 +147,7 @@ public class FeedViewAssembler {
   }
 
   private FeedBackgroundView findBackground(Long backgroundId) {
-    if (backgroundId == null) {
-      return null;
-    }
-    return feedBackgroundReader.readCatalog().backgrounds().stream()
-        .filter(background -> background.backgroundId() == backgroundId)
-        .findFirst()
-        .orElse(null);
+    return feedBackgroundReader.readCatalog().find(backgroundId).orElse(null);
   }
 
   private FeedImageView toImageView(FeedSnapshot.Image image) {
