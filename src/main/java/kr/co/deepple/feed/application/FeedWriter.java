@@ -142,6 +142,18 @@ public class FeedWriter {
   }
 
   @Transactional
+  public void hideUserFeedByReport(long feedId) {
+    feedRepository
+        .findUserFeedByIdForUpdate(feedId)
+        .filter(Feed::isPublished)
+        .ifPresent(feed -> {
+          feed.hideByReport();
+          eventPublisher.publishEvent(new FeedUpdatedEvent(feedId));
+          log.atInfo().addKeyValue("feedId", feedId).log("신고 누적으로 피드 숨김");
+        });
+  }
+
+  @Transactional
   public void deleteUserFeed(long feedId) {
     delete(getUserFeedForUpdate(feedId));
   }

@@ -40,6 +40,8 @@ public class ReportQueryService {
             nicknameOf(members, raw.reporterId()),
             raw.reporteeId(),
             nicknameOf(members, raw.reporteeId()),
+            raw.targetType(),
+            raw.targetId(),
             raw.reason(),
             raw.result(),
             raw.createdAt()));
@@ -61,6 +63,8 @@ public class ReportQueryService {
         nicknameOf(members, raw.reporterId()),
         raw.reporteeId(),
         nicknameOf(members, raw.reporteeId()),
+        raw.targetType(),
+        raw.targetId(),
         raw.reason(),
         raw.result(),
         raw.content(),

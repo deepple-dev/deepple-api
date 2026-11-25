@@ -8,6 +8,8 @@ public record RawReportDetailView(
     Long version,
     Long reporterId,
     Long reporteeId,
+    String targetType,
+    Long targetId,
     String reason,
     String result,
     String content,

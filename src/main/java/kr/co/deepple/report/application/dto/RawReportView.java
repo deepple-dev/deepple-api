@@ -7,6 +7,8 @@ public record RawReportView(
     Long id,
     Long reporterId,
     Long reporteeId,
+    String targetType,
+    Long targetId,
     String reason,
     String result,
     LocalDateTime createdAt) {

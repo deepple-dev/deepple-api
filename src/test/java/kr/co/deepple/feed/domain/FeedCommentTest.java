@@ -69,6 +69,17 @@ class FeedCommentTest {
     assertInvalidContent("가".repeat(99) + "🙂");
   }
 
+  @Test
+  @DisplayName("신고로 숨기면 숨김_신고가 되고, 다시 숨겨도 그대로다")
+  void hideByReport() {
+    FeedComment comment = FeedComment.create(1L, 1L, "댓글");
+
+    comment.hideByReport();
+    comment.hideByReport();
+
+    assertThat(comment.isHiddenByReport()).isTrue();
+  }
+
   private void assertInvalidContent(String content) {
     assertThatThrownBy(() -> FeedComment.create(1L, 1L, content))
         .isInstanceOf(DeeppleException.class)

@@ -34,6 +34,8 @@ public class ReportQueryRepositoryImpl implements ReportQueryRepository {
                     report.id,
                     report.reporterId,
                     report.reporteeId,
+                    report.targetType.stringValue(),
+                    report.targetId,
                     report.reason.stringValue(),
                     report.result.stringValue(),
                     report.createdAt))
@@ -84,6 +86,8 @@ public class ReportQueryRepositoryImpl implements ReportQueryRepository {
                     report.version,
                     report.reporterId,
                     report.reporteeId,
+                    report.targetType.stringValue(),
+                    report.targetId,
                     report.reason.stringValue(),
                     report.result.stringValue(),
                     report.content,

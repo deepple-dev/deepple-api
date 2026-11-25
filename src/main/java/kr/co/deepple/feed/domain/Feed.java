@@ -121,6 +121,13 @@ public abstract class Feed extends SoftDeleteBaseEntity {
     }
   }
 
+  public void hideByReport() {
+    if (!isPublished()) {
+      throw new IllegalStateException("공개된 피드만 신고로 숨길 수 있습니다. feedId=" + id + ", status=" + status);
+    }
+    this.status = FeedStatus.HIDDEN_BY_REPORT;
+  }
+
   protected void applyContent(String content) {
     this.content = content;
   }

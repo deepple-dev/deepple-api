@@ -30,7 +30,9 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
   @Query("SELECT f FROM OfficialFeed f WHERE f.id = :id AND f.deletedAt IS NULL")
   Optional<OfficialFeed> findOfficialFeedByIdForUpdate(long id);
 
-  Optional<Feed> findByIdAndAuthorIdAndDeletedAtIsNull(long id, long authorId);
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT f FROM Feed f WHERE f.id = :id AND f.authorId = :authorId AND f.deletedAt IS NULL")
+  Optional<Feed> findByIdAndAuthorIdForUpdate(long id, long authorId);
 
   List<Feed> findByAuthorIdAndDeletedAtIsNullOrderByIdDesc(long authorId, Limit limit);
 

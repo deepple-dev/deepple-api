@@ -16,6 +16,7 @@ import kr.co.deepple.report.application.dto.ReportSearchCondition;
 import kr.co.deepple.report.domain.Report;
 import kr.co.deepple.report.domain.ReportReasonType;
 import kr.co.deepple.report.domain.ReportResult;
+import kr.co.deepple.report.domain.ReportTargetType;
 import kr.co.deepple.report.fixture.ReportFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +32,8 @@ class ReportQueryRepositoryImplTest extends RepositoryTestSupport {
 
   @Autowired private ReportQueryRepositoryImpl reportQueryRepository;
 
+  private long nextFeedId = 1L;
+
   private Member createMember(String phoneNumber, String nickname) {
     Member member = MemberFixture.builder().phoneNumber(phoneNumber).nickname(nickname).build();
     entityManager.persist(member);
@@ -43,6 +46,8 @@ class ReportQueryRepositoryImplTest extends RepositoryTestSupport {
         ReportFixture.builder()
             .reporterId(reporter.getId())
             .reporteeId(reportee.getId())
+            .targetType(ReportTargetType.FEED)
+            .targetId(nextFeedId++)
             .reason(reason)
             .content("test content")
             .result(result)
@@ -77,6 +82,8 @@ class ReportQueryRepositoryImplTest extends RepositoryTestSupport {
       assertThat(view.id()).isEqualTo(report.getId());
       assertThat(view.reporterId()).isEqualTo(reporter.getId());
       assertThat(view.reporteeId()).isEqualTo(reportee.getId());
+      assertThat(view.targetType()).isEqualTo("FEED");
+      assertThat(view.targetId()).isEqualTo(report.getTargetId());
       assertThat(view.reason()).isEqualTo(report.getReason().name());
       assertThat(view.result()).isEqualTo(report.getResult().name());
       assertThat(view.createdAt()).isCloseTo(report.getCreatedAt(), within(1, ChronoUnit.MICROS));
@@ -131,8 +138,7 @@ class ReportQueryRepositoryImplTest extends RepositoryTestSupport {
       Member reporter = createMember("01000000001", "Reporter1");
       Member reportee = createMember("01000000002", "Reportee1");
       Report report =
-          createReport(
-              reporter, reportee, ReportReasonType.CONTACT_IN_PROFILE, ReportResult.PENDING);
+          createReport(reporter, reportee, ReportReasonType.CONTACT_EXPOSURE, ReportResult.PENDING);
       entityManager.flush();
 
       LocalDate reportDate = report.getCreatedAt().toLocalDate();
