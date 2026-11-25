@@ -6,14 +6,16 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import java.time.LocalDateTime;
 import java.util.Set;
 import kr.co.deepple.common.support.IntegrationTestSupport;
-import kr.co.deepple.feed.application.dto.FeedGridItemView;
-import kr.co.deepple.feed.application.dto.FeedGridViews;
+import kr.co.deepple.feed.application.dto.OfficialFeedGridItemView;
+import kr.co.deepple.feed.application.dto.OfficialFeedGridViews;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
+import kr.co.deepple.feed.application.port.out.FeedCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.domain.Feed;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedAuthorType;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.FeedCountFixture;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,8 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedRepository feedRepository;
 
   @Autowired private FeedAuthorRepository feedAuthorRepository;
+
+  @Autowired private FeedCountRepository feedCountRepository;
 
   private FeedAuthor official;
 
@@ -60,16 +64,39 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     feedRepository.save(TextFeedFixture.builder().authorId(1L).grade("GOLD").build());
 
     // when
-    FeedGridViews views = findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
+    OfficialFeedGridViews views =
+        findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
 
     // then
     assertThat(views.feeds())
-        .extracting(FeedGridItemView::feedId)
+        .extracting(OfficialFeedGridItemView::feedId)
         .containsExactly(pinned.getId(), recent.getId(), old.getId());
-    assertThat(views.feeds().getFirst().type()).isEqualTo("OFFICIAL");
     assertThat(views.feeds().getFirst().thumbnailUrl())
         .endsWith("images/admins/1/1-thumbnail.webp");
     assertThat(views.hasMore()).isFalse();
+  }
+
+  @Test
+  @DisplayName("격자 칸에 관리자 피드의 내용과 좋아요 수를 담는다")
+  void gridItemContentAndLikeCount() {
+    // given
+    Feed feed =
+        feedRepository.save(
+            OfficialFeedFixture.builder()
+                .authorId(official.getId())
+                .content("12월 이벤트 안내")
+                .publishedAt(BASE_TIME)
+                .build());
+    feedCountRepository.save(FeedCountFixture.builder().feedId(feed.getId()).likeCount(3L).build());
+
+    // when
+    OfficialFeedGridViews views =
+        findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
+
+    // then
+    OfficialFeedGridItemView item = views.feeds().getFirst();
+    assertThat(item.content()).isEqualTo("12월 이벤트 안내");
+    assertThat(item.likeCount()).isEqualTo(3L);
   }
 
   @Test
@@ -82,8 +109,9 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     }
 
     // when
-    FeedGridViews first = findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
-    FeedGridViews second =
+    OfficialFeedGridViews first =
+        findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
+    OfficialFeedGridViews second =
         findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, first.nextCursor());
 
     // then
@@ -93,9 +121,9 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(second.hasMore()).isFalse();
     assertThat(second.nextCursor()).isNull();
     assertThat(first.feeds())
-        .extracting(FeedGridItemView::feedId)
+        .extracting(OfficialFeedGridItemView::feedId)
         .doesNotContainAnyElementsOf(
-            second.feeds().stream().map(FeedGridItemView::feedId).toList());
+            second.feeds().stream().map(OfficialFeedGridItemView::feedId).toList());
   }
 
   private Feed saveOfficialFeed(

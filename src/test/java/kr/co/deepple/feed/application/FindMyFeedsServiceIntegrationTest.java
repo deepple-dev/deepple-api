@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.util.List;
 import java.util.stream.IntStream;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
@@ -18,6 +19,7 @@ import kr.co.deepple.feed.domain.FeedAuthorType;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedImage;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.PollFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -88,6 +90,28 @@ class FindMyFeedsServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(views.feeds().get(0).thumbnailUrl()).endsWith("/images/members/1/1-thumbnail.webp");
     assertThat(views.feeds().get(1).thumbnailUrl())
         .endsWith("/feed-backgrounds/2/v1/thumbnail.webp");
+  }
+
+  @Test
+  @DisplayName("투표 피드는 질문과 함께 선택지 내용을 주고, 투표 피드가 아니면 선택지는 빈 목록이다")
+  void pollOptions() {
+    // given
+    feedRepository.save(TextFeedFixture.builder().authorId(viewer.getId()).build());
+    feedRepository.save(
+        PollFeedFixture.builder()
+            .authorId(viewer.getId())
+            .question("주말에 뭐 할까요?")
+            .options(List.of("영화", "산책", "집콕"))
+            .build());
+
+    // when
+    FeedGridViews views = findMyFeedsService.findMyFeeds(VIEWER_MEMBER_ID, null);
+
+    // then
+    FeedGridItemView poll = views.feeds().get(0);
+    assertThat(poll.content()).isEqualTo("주말에 뭐 할까요?");
+    assertThat(poll.pollOptions()).containsExactly("영화", "산책", "집콕");
+    assertThat(views.feeds().get(1).pollOptions()).isEmpty();
   }
 
   @Test
