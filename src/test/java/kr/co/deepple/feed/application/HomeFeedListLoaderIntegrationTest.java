@@ -73,17 +73,18 @@ class HomeFeedListLoaderIntegrationTest extends IntegrationTestSupport {
     Feed feed = feedRepository.save(TextFeedFixture.builder().grade("GOLD").build());
     AtomicReference<CompletableFuture<Void>> adding = new AtomicReference<>();
     try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
-      doAnswer(invocation -> {
-            adding.set(
-                CompletableFuture.runAsync(
-                    () -> syncHomeFeedCacheService.addFeed(feed.getId()), executor));
-            adding
-                .get()
-                .exceptionally(e -> null)
-                .completeOnTimeout(null, ADD_WAIT_MILLIS, TimeUnit.MILLISECONDS)
-                .join();
-            return List.of();
-          })
+      doAnswer(
+              invocation -> {
+                adding.set(
+                    CompletableFuture.runAsync(
+                        () -> syncHomeFeedCacheService.addFeed(feed.getId()), executor));
+                adding
+                    .get()
+                    .exceptionally(e -> null)
+                    .completeOnTimeout(null, ADD_WAIT_MILLIS, TimeUnit.MILLISECONDS)
+                    .join();
+                return List.of();
+              })
           .when(feedRepository)
           .findHomeUserFeedSortKeys("GOLD");
 

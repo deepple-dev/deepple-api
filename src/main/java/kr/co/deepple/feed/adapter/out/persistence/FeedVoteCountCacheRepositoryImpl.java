@@ -132,12 +132,11 @@ public class FeedVoteCountCacheRepositoryImpl implements FeedVoteCountCacheRepos
       long feedId, Map<Long, Long> expectedCounts, Map<Long, Long> voteCounts) {
     Object[] args =
         voteCounts.entrySet().stream()
-            .flatMap(
-                entry ->
-                    Stream.of(
-                        String.valueOf(entry.getKey()),
-                        String.valueOf(expectedCounts.getOrDefault(entry.getKey(), 0L)),
-                        String.valueOf(entry.getValue())))
+            .flatMap(entry ->
+                Stream.of(
+                    String.valueOf(entry.getKey()),
+                    String.valueOf(expectedCounts.getOrDefault(entry.getKey(), 0L)),
+                    String.valueOf(entry.getValue())))
             .toArray();
     redisTemplate.execute(UPDATE_IF_UNCHANGED, List.of(buildKey(feedId)), args);
   }

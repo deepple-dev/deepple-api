@@ -53,11 +53,12 @@ class ReconcileFeedLikeCountsServiceIntegrationTest extends IntegrationTestSuppo
     // given
     saveLikes(1L, 2);
     feedLikeCountCacheRepository.saveAllIfAbsent(Map.of(1L, 2L));
-    doAnswer(invocation -> {
-          feedLikeRepository.save(FeedLikeFixture.builder().feedId(1L).memberId(3L).build());
-          feedLikeCountCacheRepository.incrementIfPresent(1L);
-          return List.of(new FeedLikeCount(1L, 2L));
-        })
+    doAnswer(
+            invocation -> {
+              feedLikeRepository.save(FeedLikeFixture.builder().feedId(1L).memberId(3L).build());
+              feedLikeCountCacheRepository.incrementIfPresent(1L);
+              return List.of(new FeedLikeCount(1L, 2L));
+            })
         .when(feedLikeRepository)
         .countByFeedIdBetween(anyLong(), anyLong());
 

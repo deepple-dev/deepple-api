@@ -18,8 +18,7 @@ public interface FeedVoteCountCacheRepository {
 
   List<Long> popChangedFeedIds(int count);
 
-  void updateIfUnchanged(
-      long feedId, Map<Long, Long> expectedCounts, Map<Long, Long> voteCounts);
+  void updateIfUnchanged(long feedId, Map<Long, Long> expectedCounts, Map<Long, Long> voteCounts);
 
   void delete(long feedId);
 }

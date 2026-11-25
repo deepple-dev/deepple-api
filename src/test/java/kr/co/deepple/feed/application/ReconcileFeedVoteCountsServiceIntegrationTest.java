@@ -60,11 +60,12 @@ class ReconcileFeedVoteCountsServiceIntegrationTest extends IntegrationTestSuppo
     // given
     saveVotes(1L, 11L, 2);
     feedVoteCountCacheRepository.saveAllIfAbsent(Map.of(1L, Map.of(11L, 2L)));
-    doAnswer(invocation -> {
-          saveVotes(1L, 11L, 1);
-          feedVoteCountCacheRepository.incrementIfPresent(1L, 11L);
-          return List.of(new PollOptionVoteCount(1L, 11L, 2L));
-        })
+    doAnswer(
+            invocation -> {
+              saveVotes(1L, 11L, 1);
+              feedVoteCountCacheRepository.incrementIfPresent(1L, 11L);
+              return List.of(new PollOptionVoteCount(1L, 11L, 2L));
+            })
         .when(feedVoteRepository)
         .countByFeedIdBetween(anyLong(), anyLong());
 
