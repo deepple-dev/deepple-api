@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.LongStream;
+import java.util.stream.IntStream;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
@@ -21,6 +21,8 @@ import kr.co.deepple.feed.fixture.FeedAuthorFixture;
 import kr.co.deepple.feed.fixture.FeedCommentFixture;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
+import kr.co.deepple.member.application.port.out.MemberRepository;
+import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.report.application.dto.ReportCreateRequest;
 import kr.co.deepple.report.application.port.out.ReportRepository;
 import kr.co.deepple.report.domain.ReportErrorCode;
@@ -36,9 +38,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 @DisplayName("피드·댓글 신고 통합 테스트")
 class ReportServiceIntegrationTest extends IntegrationTestSupport {
 
-  private static final long WRITER_MEMBER_ID = 1L;
-  private static final long FIRST_REPORTER_ID = 11L;
-
   @Autowired private ReportService reportService;
 
   @Autowired private ReportRepository reportRepository;
@@ -49,14 +48,19 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private FeedCommentRepository feedCommentRepository;
 
+  @Autowired private MemberRepository memberRepository;
+
+  private long writerMemberId;
+  private List<Long> reporterIds;
   private FeedAuthor writer;
   private long feedId;
 
   @BeforeEach
   void setUp() {
-    writer = feedAuthorRepository.save(activeMember(WRITER_MEMBER_ID, "GOLD"));
-    LongStream.range(FIRST_REPORTER_ID, FIRST_REPORTER_ID + 5)
-        .forEach(memberId -> feedAuthorRepository.save(activeMember(memberId, "GOLD")));
+    writerMemberId = saveMember();
+    reporterIds = IntStream.range(0, 5).mapToObj(i -> saveMember()).toList();
+    writer = feedAuthorRepository.save(activeMember(writerMemberId, "GOLD"));
+    reporterIds.forEach(memberId -> feedAuthorRepository.save(activeMember(memberId, "GOLD")));
     feedId = saveFeed(writer, "GOLD");
   }
 
@@ -64,7 +68,7 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
   @DisplayName("피드 신고에 대상 종류와 피드 ID를 남긴다")
   void saveFeedReport() {
     // when
-    reportService.report(request("FEED", feedId), FIRST_REPORTER_ID);
+    reportService.report(request("FEED", feedId), reporterIds.get(0));
 
     // then
     assertThat(reportRepository.findAll())
@@ -72,7 +76,7 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
         .satisfies(report -> {
           assertThat(report.getTargetType()).isEqualTo(ReportTargetType.FEED);
           assertThat(report.getTargetId()).isEqualTo(feedId);
-          assertThat(report.getReporteeId()).isEqualTo(WRITER_MEMBER_ID);
+          assertThat(report.getReporteeId()).isEqualTo(writerMemberId);
         });
   }
 
@@ -85,7 +89,7 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(feedStatus(feedId)).isEqualTo(FeedStatus.PUBLISHED);
 
     // when
-    reportService.report(request("FEED", feedId), FIRST_REPORTER_ID + 4);
+    reportService.report(request("FEED", feedId), reporterIds.get(4));
     awaitEventProcessing();
 
     // then
@@ -96,19 +100,20 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
   @DisplayName("관리자가 기각한 신고도 5명에 센다")
   void countRejectedReports() {
     // given
-    LongStream.range(FIRST_REPORTER_ID, FIRST_REPORTER_ID + 4)
+    reporterIds
+        .subList(0, 4)
         .forEach(reporterId ->
             reportRepository.save(
                 ReportFixture.builder()
                     .reporterId(reporterId)
-                    .reporteeId(WRITER_MEMBER_ID)
+                    .reporteeId(writerMemberId)
                     .targetType(ReportTargetType.FEED)
                     .targetId(feedId)
                     .result(ReportResult.REJECTED)
                     .build()));
 
     // when
-    reportService.report(request("FEED", feedId), FIRST_REPORTER_ID + 4);
+    reportService.report(request("FEED", feedId), reporterIds.get(4));
     awaitEventProcessing();
 
     // then
@@ -134,13 +139,15 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("같은 대상을 다시 신고하면 거절한다")
-  void rejectDuplicateReport() {
+  @DisplayName("자동 차단이 반영된 뒤 같은 대상을 다시 신고해도 이미 신고했다고 거절한다")
+  void rejectDuplicateReportAfterAutoBlock() {
     // given
-    reportService.report(request("FEED", feedId), FIRST_REPORTER_ID);
+    long reporterId = reporterIds.get(0);
+    reportService.report(request("FEED", feedId), reporterId);
+    awaitEventProcessing();
 
     // when & then
-    assertThatThrownBy(() -> reportService.report(request("FEED", feedId), FIRST_REPORTER_ID))
+    assertThatThrownBy(() -> reportService.report(request("FEED", feedId), reporterId))
         .isInstanceOf(DeeppleException.class)
         .extracting("errorCode")
         .isEqualTo(ReportErrorCode.REPORT_ALREADY_EXISTS);
@@ -155,7 +162,7 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
 
     // when & then
     assertThatThrownBy(
-            () -> reportService.report(request("FEED", otherGradeFeedId), FIRST_REPORTER_ID))
+            () -> reportService.report(request("FEED", otherGradeFeedId), reporterIds.get(0)))
         .isInstanceOf(DeeppleException.class)
         .extracting("errorCode")
         .isEqualTo(FeedErrorCode.FEED_NOT_FOUND);
@@ -180,11 +187,11 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
                     .build())
             .getId();
     ReportCreateRequest wrongReportee =
-        new ReportCreateRequest(FIRST_REPORTER_ID + 1, "FEED", feedId, "ETC", "");
+        new ReportCreateRequest(reporterIds.get(1), "FEED", feedId, "ETC", "");
 
     // when & then
     for (ReportCreateRequest request : List.of(wrongReportee, request("FEED", officialFeedId))) {
-      assertThatThrownBy(() -> reportService.report(request, FIRST_REPORTER_ID))
+      assertThatThrownBy(() -> reportService.report(request, reporterIds.get(0)))
           .isInstanceOf(DeeppleException.class)
           .extracting("errorCode")
           .isEqualTo(ReportErrorCode.INVALID_REPORT_TARGET);
@@ -218,7 +225,7 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
     // when & then
     for (long commentId : invisibleCommentIds) {
       assertThatThrownBy(
-              () -> reportService.report(request("COMMENT", commentId), FIRST_REPORTER_ID))
+              () -> reportService.report(request("COMMENT", commentId), reporterIds.get(0)))
           .isInstanceOf(DeeppleException.class)
           .extracting("errorCode")
           .isEqualTo(FeedErrorCode.FEED_COMMENT_NOT_FOUND);
@@ -227,7 +234,8 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
   }
 
   private void reportByMembers(int count, String targetType, long targetId) {
-    LongStream.range(FIRST_REPORTER_ID, FIRST_REPORTER_ID + count)
+    reporterIds
+        .subList(0, count)
         .forEach(reporterId -> reportService.report(request(targetType, targetId), reporterId));
   }
 
@@ -247,8 +255,12 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
         .getId();
   }
 
-  private static ReportCreateRequest request(String targetType, long targetId) {
-    return new ReportCreateRequest(WRITER_MEMBER_ID, targetType, targetId, "ETC", "");
+  private ReportCreateRequest request(String targetType, long targetId) {
+    return new ReportCreateRequest(writerMemberId, targetType, targetId, "ETC", "");
+  }
+
+  private long saveMember() {
+    return memberRepository.save(MemberFixture.builder().build()).getId();
   }
 
   private static FeedAuthor activeMember(long memberId, String grade) {

@@ -15,6 +15,7 @@ import kr.co.deepple.heart.application.port.out.MemberHeartBalanceRepository;
 import kr.co.deepple.heart.fixture.HeartMemberFixture;
 import kr.co.deepple.heart.fixture.MemberHeartBalanceFixture;
 import kr.co.deepple.member.application.port.out.MemberRepository;
+import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -45,7 +46,7 @@ class ProfileExchangeServiceConcurrencyIntegrationTest extends IntegrationTestSu
     // given
     Member memberA = memberRepository.save(MemberFixture.builder().build());
     saveHeartBalance(memberA.getId());
-    Member memberB = memberRepository.save(MemberFixture.builder().build());
+    Member memberB = memberRepository.save(MemberFixture.builder().gender(Gender.FEMALE).build());
     saveHeartBalance(memberB.getId());
     long memberAId = memberA.getId();
     long memberBId = memberB.getId();

@@ -40,8 +40,8 @@ public class ProfileExchangeService {
   }
 
   private void createProfileExchange(long requesterId, long responderId) {
-    validateProfileExchangeRequest(requesterId, responderId);
-    String senderName = getNickNameByMemberId(requesterId);
+    MemberSummary requester = validateProfileExchangeRequest(requesterId, responderId);
+    String senderName = requester.requireNickname();
     ProfileExchange profileExchange = ProfileExchange.request(requesterId, responderId);
     saveProfileExchange(profileExchange);
     useHeartUseCase.useHeart(
@@ -112,7 +112,7 @@ public class ProfileExchangeService {
         + Math.min(requesterId, responderId);
   }
 
-  private void validateProfileExchangeRequest(long requesterId, long responderId) {
+  private MemberSummary validateProfileExchangeRequest(long requesterId, long responderId) {
     if (profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId)) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_ALREADY_EXISTS,
@@ -122,6 +122,16 @@ public class ProfileExchangeService {
     if (!responder.isActive()) {
       throw new DeeppleException(
           CommunityErrorCode.PROFILE_EXCHANGE_RESPONDER_INACTIVE, "responderId=" + responderId);
+    }
+    MemberSummary requester = findMemberSummaryUseCase.getMemberSummary(requesterId);
+    if (!requester.isActive()) {
+      throw new DeeppleException(
+          CommunityErrorCode.PROFILE_EXCHANGE_REQUESTER_INACTIVE, "requesterId=" + requesterId);
+    }
+    if (requester.requireGender().equals(responder.requireGender())) {
+      throw new DeeppleException(
+          CommunityErrorCode.PROFILE_EXCHANGE_SAME_GENDER,
+          "requesterId=" + requesterId + ", responderId=" + responderId);
     }
     if (checkBlockUseCase.isBlocked(requesterId, responderId)) {
       throw new DeeppleException(
@@ -133,6 +143,7 @@ public class ProfileExchangeService {
           CommunityErrorCode.PROFILE_EXCHANGE_BLOCKED,
           "requesterId=" + requesterId + ", responderId=" + responderId);
     }
+    return requester;
   }
 
   private void saveProfileExchange(ProfileExchange profileExchange) {

@@ -21,6 +21,7 @@ import kr.co.deepple.community.fixture.ProfileExchangeFixture;
 import kr.co.deepple.heart.application.port.in.UseHeartUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.domain.ActivityStatus;
+import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
@@ -114,6 +115,76 @@ class ProfileExchangeServiceTest {
               "errorCode", CommunityErrorCode.PROFILE_EXCHANGE_RESPONDER_INACTIVE);
     }
 
+    @DisplayName("신청자가 활동 중이 아니면, 예외를 던진다.")
+    @Test
+    void throwsExceptionWhenRequesterNotActive() {
+      // Given
+      long requesterId = 1L;
+      long responderId = 2L;
+
+      when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
+          .thenReturn(false);
+      Member responder = MemberFixture.builder().id(responderId).gender(Gender.FEMALE).build();
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
+      Member requester =
+          MemberFixture.builder()
+              .id(requesterId)
+              .activityStatus(ActivityStatus.INITIAL)
+              .noProfile()
+              .build();
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(requester));
+
+      Mockito.doAnswer(
+              invocation -> {
+                Runnable runnable = invocation.getArgument(1);
+                runnable.run();
+                return null;
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
+
+      // When & Then
+      assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue(
+              "errorCode", CommunityErrorCode.PROFILE_EXCHANGE_REQUESTER_INACTIVE);
+      Mockito.verifyNoInteractions(checkBlockUseCase, useHeartUseCase, eventPublisher);
+    }
+
+    @DisplayName("상대가 같은 성별이면, 예외를 던진다.")
+    @Test
+    void throwsExceptionWhenSameGender() {
+      // Given
+      long requesterId = 1L;
+      long responderId = 2L;
+
+      when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
+          .thenReturn(false);
+      Member responder = MemberFixture.builder().id(responderId).gender(Gender.MALE).build();
+      when(findMemberSummaryUseCase.getMemberSummary(responderId))
+          .thenReturn(MemberSummaryFixture.from(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(sender));
+
+      Mockito.doAnswer(
+              invocation -> {
+                Runnable runnable = invocation.getArgument(1);
+                runnable.run();
+                return null;
+              })
+          .when(distributedLockTemplate)
+          .executeInTransaction(any(), any());
+
+      // When & Then
+      assertThatThrownBy(() -> profileExchangeService.request(requesterId, responderId))
+          .isInstanceOf(DeeppleException.class)
+          .hasFieldOrPropertyWithValue(
+              "errorCode", CommunityErrorCode.PROFILE_EXCHANGE_SAME_GENDER);
+      Mockito.verifyNoInteractions(checkBlockUseCase, useHeartUseCase, eventPublisher);
+    }
+
     @DisplayName("프로필 교환 요청자가 응답자를 차단했다면, 예외를 던진다.")
     @Test
     void throwsExceptionWhenRequesterBlocksResponder() {
@@ -123,9 +194,11 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);
-      Member responder = MemberFixture.builder().id(responderId).build();
+      Member responder = MemberFixture.builder().id(responderId).gender(Gender.FEMALE).build();
       when(findMemberSummaryUseCase.getMemberSummary(responderId))
           .thenReturn(MemberSummaryFixture.from(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(sender));
       when(checkBlockUseCase.isBlocked(requesterId, responderId)).thenReturn(true);
 
       Mockito.doAnswer(
@@ -152,9 +225,11 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);
-      Member responder = MemberFixture.builder().id(responderId).build();
+      Member responder = MemberFixture.builder().id(responderId).gender(Gender.FEMALE).build();
       when(findMemberSummaryUseCase.getMemberSummary(responderId))
           .thenReturn(MemberSummaryFixture.from(responder));
+      when(findMemberSummaryUseCase.getMemberSummary(requesterId))
+          .thenReturn(MemberSummaryFixture.from(sender));
       when(checkBlockUseCase.isBlocked(requesterId, responderId)).thenReturn(false);
       when(checkBlockUseCase.isBlocked(responderId, requesterId)).thenReturn(true);
 
@@ -182,7 +257,7 @@ class ProfileExchangeServiceTest {
 
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);
-      Member responder = MemberFixture.builder().id(responderId).build();
+      Member responder = MemberFixture.builder().id(responderId).gender(Gender.FEMALE).build();
       when(findMemberSummaryUseCase.getMemberSummary(responderId))
           .thenReturn(MemberSummaryFixture.from(responder));
       when(findMemberSummaryUseCase.getMemberSummary(requesterId))
@@ -224,7 +299,7 @@ class ProfileExchangeServiceTest {
       long requesterId = 1L;
       long responderId = 2L;
       Member requester = MemberFixture.builder().id(requesterId).build();
-      Member responder = MemberFixture.builder().id(responderId).build();
+      Member responder = MemberFixture.builder().id(responderId).gender(Gender.FEMALE).build();
 
       when(profileExchangeRepository.existsProfileExchangeBetween(requesterId, responderId))
           .thenReturn(false);

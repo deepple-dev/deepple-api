@@ -13,6 +13,9 @@ public enum CommunityErrorCode implements ErrorCode {
   SELF_PROFILE_EXCHANGE(ErrorType.INVALID_ARGUMENT, "자기 자신에게 프로필 교환을 신청할 수 없습니다."),
   PROFILE_EXCHANGE_RESPONDER_INACTIVE(
       ErrorType.FAILED_PRECONDITION, "활동 중이 아닌 회원에게는 프로필 교환을 신청할 수 없습니다."),
+  PROFILE_EXCHANGE_REQUESTER_INACTIVE(
+      ErrorType.FAILED_PRECONDITION, "활동 중인 회원만 프로필 교환을 신청할 수 있습니다."),
+  PROFILE_EXCHANGE_SAME_GENDER(ErrorType.FAILED_PRECONDITION, "같은 성별에게는 프로필 교환을 신청할 수 없습니다."),
   PROFILE_EXCHANGE_BLOCKED(ErrorType.PERMISSION_DENIED, "차단 관계인 회원에게는 프로필 교환을 신청할 수 없습니다."),
   PROFILE_EXCHANGE_ACCESS_DENIED(ErrorType.PERMISSION_DENIED, "프로필 교환 요청의 응답 대상이 아닙니다."),
   INVALID_PROFILE_EXCHANGE_STATUS(ErrorType.FAILED_PRECONDITION, "대기 중인 프로필 교환 요청에만 응답할 수 있습니다."),

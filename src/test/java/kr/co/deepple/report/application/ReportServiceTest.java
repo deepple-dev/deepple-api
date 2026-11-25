@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -62,11 +63,9 @@ class ReportServiceTest {
   }
 
   @Test
-  @DisplayName("같은 대상을 이미 신고했으면 예외를 던진다.")
+  @DisplayName("같은 대상을 이미 신고했으면 대상을 확인하지 않고 예외를 던진다.")
   void throwsExceptionWhenReportAlreadyExists() {
     // given
-    when(reportTargetFinder.findFeedAuthorMemberId(REPORTER_ID, FEED_ID))
-        .thenReturn(Optional.of(REPORTEE_ID));
     when(reportRepository.existsByReporterIdAndTargetTypeAndTargetId(
             REPORTER_ID, ReportTargetType.FEED, FEED_ID))
         .thenReturn(true);
@@ -76,6 +75,7 @@ class ReportServiceTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_EXISTS);
 
+    verifyNoInteractions(reportTargetFinder);
     verify(reportRepository, never()).save(any());
   }
 
