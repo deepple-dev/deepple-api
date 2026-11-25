@@ -13,12 +13,13 @@ public class FeedCountFixture {
 
   private long feedId = 1L;
   private long likeCount;
+  private long commentCount;
 
   public static FeedCountFixture builder() {
     return new FeedCountFixture();
   }
 
   public FeedCount build() {
-    return FeedCount.of(feedId, likeCount);
+    return FeedCount.of(feedId, likeCount, commentCount);
   }
 }

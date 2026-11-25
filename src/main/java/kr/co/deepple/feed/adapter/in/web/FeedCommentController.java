@@ -5,9 +5,15 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.deepple.common.config.ApiTags;
+import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.feed.application.dto.FeedCommentCreateRequest;
 import kr.co.deepple.feed.application.dto.FeedCommentView;
 import kr.co.deepple.feed.application.dto.FeedCommentViews;
+import kr.co.deepple.feed.application.port.in.CreateFeedCommentUseCase;
+import kr.co.deepple.feed.application.port.in.DeleteFeedCommentUseCase;
+import kr.co.deepple.feed.application.port.in.FindFeedCommentRepliesUseCase;
+import kr.co.deepple.feed.application.port.in.FindFeedCommentsUseCase;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,38 +25,66 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = ApiTags.FEED)
 @RestController
+@RequiredArgsConstructor
 public class FeedCommentController {
+
+  private final FindFeedCommentsUseCase findFeedCommentsUseCase;
+  private final FindFeedCommentRepliesUseCase findFeedCommentRepliesUseCase;
+  private final CreateFeedCommentUseCase createFeedCommentUseCase;
+  private final DeleteFeedCommentUseCase deleteFeedCommentUseCase;
 
   @Operation(
       summary = "댓글 목록 조회",
-      description = "최상위 댓글을 최신순으로 20개씩 조회한다. 댓글마다 답글 수가 들어 있다. 차단 관계인 회원의 댓글은 답글까지 함께 빠진다.")
+      description =
+          "최상위 댓글을 최신순으로 20개씩 조회한다. 댓글마다 답글 수가 들어 있다. 차단 관계인 회원의 댓글은 답글까지 함께 빠진다. "
+              + "볼 수 없는 피드는 FEED_NOT_FOUND다.")
   @GetMapping("/feeds/{feedId}/comments")
   public ResponseEntity<FeedCommentViews> getComments(
+      @CurrentMemberId long memberId,
       @PathVariable long feedId,
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
           String cursor) {
-    return ResponseEntity.ok(FeedSamples.comments(cursor));
+    return ResponseEntity.ok(findFeedCommentsUseCase.findComments(memberId, feedId, cursor));
   }
 
-  @Operation(summary = "댓글 작성", description = "답글이면 부모 댓글 ID를 함께 보낸다.")
+  @Operation(
+      summary = "댓글 작성",
+      description =
+          "답글이면 부모 댓글 ID를 함께 보낸다. 볼 수 없는 피드는 FEED_NOT_FOUND, "
+              + "부모 댓글이 없거나 정상으로 보이는 댓글(VISIBLE)이 아니면 FEED_COMMENT_NOT_FOUND, "
+              + "답글에 답글을 달면 INVALID_PARENT_COMMENT다.")
   @PostMapping("/feeds/{feedId}/comments")
   public ResponseEntity<FeedCommentView> createComment(
-      @PathVariable long feedId, @Valid @RequestBody FeedCommentCreateRequest request) {
-    return ResponseEntity.ok(FeedSamples.createdComment(request.parentCommentId()));
+      @CurrentMemberId long memberId,
+      @PathVariable long feedId,
+      @Valid @RequestBody FeedCommentCreateRequest request) {
+    return ResponseEntity.ok(createFeedCommentUseCase.createComment(memberId, feedId, request));
   }
 
-  @Operation(summary = "답글 목록 조회", description = "댓글의 답글을 최신순으로 20개씩 조회한다. 차단 관계인 회원의 답글은 빠진다.")
+  @Operation(
+      summary = "답글 목록 조회",
+      description =
+          "댓글의 답글을 최신순으로 20개씩 조회한다. 차단 관계인 회원의 답글은 빠진다. "
+              + "댓글이 없거나 차단 관계인 회원의 댓글이면 FEED_COMMENT_NOT_FOUND다.")
   @GetMapping("/comments/{commentId}/replies")
   public ResponseEntity<FeedCommentViews> getReplies(
+      @CurrentMemberId long memberId,
       @PathVariable long commentId,
       @Parameter(description = "이전 응답의 nextCursor. 첫 페이지는 비운다") @RequestParam(required = false)
           String cursor) {
-    return ResponseEntity.ok(FeedSamples.replies(commentId));
+    return ResponseEntity.ok(
+        findFeedCommentRepliesUseCase.findReplies(memberId, commentId, cursor));
   }
 
-  @Operation(summary = "댓글 삭제", description = "본인 댓글만 삭제할 수 있다. 피드 작성자도 다른 사람의 댓글은 삭제할 수 없다.")
+  @Operation(
+      summary = "댓글 삭제",
+      description =
+          "본인 댓글만 삭제할 수 있다. 피드 작성자도 다른 사람의 댓글은 삭제할 수 없다(FEED_COMMENT_NOT_FOUND). "
+              + "삭제된 댓글은 목록에 DELETED로 남고, 이미 삭제한 댓글을 다시 삭제해도 204다.")
   @DeleteMapping("/comments/{commentId}")
-  public ResponseEntity<Void> deleteComment(@PathVariable long commentId) {
+  public ResponseEntity<Void> deleteComment(
+      @CurrentMemberId long memberId, @PathVariable long commentId) {
+    deleteFeedCommentUseCase.deleteComment(memberId, commentId);
     return ResponseEntity.noContent().build();
   }
 }

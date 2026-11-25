@@ -4,19 +4,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Map;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
+import kr.co.deepple.feed.application.port.out.FeedCommentCountCacheRepository;
+import kr.co.deepple.feed.application.port.out.FeedCommentRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedComment;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.PollFeed;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.FeedCommentFixture;
 import kr.co.deepple.feed.fixture.FeedLikeFixture;
 import kr.co.deepple.feed.fixture.FeedVoteFixture;
 import kr.co.deepple.feed.fixture.PollFeedFixture;
@@ -49,6 +54,10 @@ class DeleteFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedVoteCountReader feedVoteCountReader;
 
   @Autowired private FeedVoteCountCacheRepository feedVoteCountCacheRepository;
+
+  @Autowired private FeedCommentRepository feedCommentRepository;
+
+  @Autowired private FeedCommentCountCacheRepository feedCommentCountCacheRepository;
 
   private FeedAuthor author;
 
@@ -131,5 +140,51 @@ class DeleteFeedServiceIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(feedVoteCountCacheRepository.findAll(List.of(feed.getId()))).isEmpty();
     assertThat(feedVoteRepository.count()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("피드를 지우면 그 피드의 댓글과 답글을 모두 soft delete하고 다른 피드의 댓글은 그대로 둔다")
+  void softDeleteCommentsOfFeed() {
+    // given
+    long feedId =
+        feedRepository.save(TextFeedFixture.builder().authorId(author.getId()).build()).getId();
+    long otherFeedId =
+        feedRepository.save(TextFeedFixture.builder().authorId(author.getId()).build()).getId();
+    FeedComment comment =
+        feedCommentRepository.save(FeedCommentFixture.builder().feedId(feedId).build());
+    FeedComment reply =
+        feedCommentRepository.save(
+            FeedCommentFixture.builder().feedId(feedId).parentId(comment.getId()).build());
+    FeedComment otherFeedComment =
+        feedCommentRepository.save(FeedCommentFixture.builder().feedId(otherFeedId).build());
+
+    // when
+    deleteFeedService.deleteFeed(MEMBER_ID, feedId);
+    awaitEventProcessing();
+
+    // then
+    assertThat(isDeleted(comment)).isTrue();
+    assertThat(isDeleted(reply)).isTrue();
+    assertThat(isDeleted(otherFeedComment)).isFalse();
+  }
+
+  @Test
+  @DisplayName("피드를 지우면 댓글 수 카운터를 지운다")
+  void deleteCommentCounter() {
+    // given
+    long feedId =
+        feedRepository.save(TextFeedFixture.builder().authorId(author.getId()).build()).getId();
+    feedCommentCountCacheRepository.saveAllIfAbsent(Map.of(feedId, 3L));
+
+    // when
+    deleteFeedService.deleteFeed(MEMBER_ID, feedId);
+    awaitEventProcessing();
+
+    // then
+    assertThat(feedCommentCountCacheRepository.findAll(List.of(feedId))).isEmpty();
+  }
+
+  private boolean isDeleted(FeedComment comment) {
+    return feedCommentRepository.findById(comment.getId()).orElseThrow().isDeleted();
   }
 }

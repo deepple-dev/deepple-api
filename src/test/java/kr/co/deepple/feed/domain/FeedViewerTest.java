@@ -39,4 +39,20 @@ class FeedViewerTest {
 
     assertThat(VIEWER.canSeeAuthor(official)).isTrue();
   }
+
+  @Test
+  @DisplayName("차단 관계는 활동 상태와 상관없이 회원 ID로만 판단한다")
+  void isBlockedWithMember() {
+    FeedAuthor dormant = FeedAuthorFixture.builder().memberId(2L).activityStatus("DORMANT").build();
+    FeedAuthor blocked = FeedAuthorFixture.builder().memberId(3L).activityStatus("ACTIVE").build();
+
+    assertThat(VIEWER.isBlockedWith(dormant)).isFalse();
+    assertThat(VIEWER.isBlockedWith(blocked)).isTrue();
+  }
+
+  @Test
+  @DisplayName("회원 ID가 없는 공식 계정과는 차단 관계가 아니다")
+  void isNotBlockedWithOfficial() {
+    assertThat(VIEWER.isBlockedWith(FeedAuthorFixture.official())).isFalse();
+  }
 }

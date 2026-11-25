@@ -31,6 +31,7 @@ public class FeedAuthorFixture {
     setField(author, "authorType", FeedAuthorType.OFFICIAL);
     setField(author, "memberId", null);
     setField(author, "nickname", "deepple_official");
+    setField(author, "activityStatus", "ACTIVE");
     return author;
   }
 
