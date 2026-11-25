@@ -8,7 +8,9 @@ public interface VotedFeedCacheRepository {
 
   Optional<Map<Long, Long>> findVotedOptionIds(long memberId, Set<Long> feedIds);
 
-  void save(long memberId, Map<Long, Long> votedOptionIds);
+  boolean exists(long memberId);
+
+  void saveIfAbsent(long memberId, Map<Long, Long> votedOptionIds);
 
   void addIfPresent(long memberId, long feedId, long optionId);
 }

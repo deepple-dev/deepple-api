@@ -4,9 +4,11 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import kr.co.deepple.feed.application.dto.PollOptionVoteCount;
 import kr.co.deepple.feed.application.port.in.ReconcileFeedVoteCountsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedVoteCountCacheRepository;
@@ -36,11 +38,17 @@ public class ReconcileFeedVoteCountsService implements ReconcileFeedVoteCountsUs
   }
 
   private void reconcileRange(long fromFeedId, long toFeedId) {
+    Map<Long, Map<Long, Long>> cachedByFeed =
+        feedVoteCountCacheRepository.findAll(findFeedIdsBetween(fromFeedId, toFeedId));
     Map<Long, FeedVoteCount> savedCounts = findSavedCounts(fromFeedId, toFeedId);
     Map<Long, PollOptionVoteCount> actualCounts =
         countVotes(fromFeedId, toFeedId, savedCounts.values());
-    fixCachedCounts(actualCounts.values());
+    fixCachedCounts(cachedByFeed, actualCounts.values());
     fixSavedCounts(actualCounts.values(), savedCounts);
+  }
+
+  private List<Long> findFeedIdsBetween(long fromFeedId, long toFeedId) {
+    return LongStream.rangeClosed(fromFeedId, toFeedId).boxed().toList();
   }
 
   private Map<Long, FeedVoteCount> findSavedCounts(long fromFeedId, long toFeedId) {
@@ -61,14 +69,14 @@ public class ReconcileFeedVoteCountsService implements ReconcileFeedVoteCountsUs
     return voteCounts;
   }
 
-  private void fixCachedCounts(Collection<PollOptionVoteCount> actualCounts) {
+  private void fixCachedCounts(
+      Map<Long, Map<Long, Long>> cachedByFeed, Collection<PollOptionVoteCount> actualCounts) {
     Map<Long, Map<Long, Long>> actualByFeed = groupByFeed(actualCounts);
-    Map<Long, Map<Long, Long>> cachedByFeed =
-        feedVoteCountCacheRepository.findAll(actualByFeed.keySet());
     cachedByFeed.forEach((feedId, cachedCounts) -> {
-      Map<Long, Long> wrongCounts = findWrongCounts(actualByFeed.get(feedId), cachedCounts);
+      Map<Long, Long> wrongCounts =
+          findWrongCounts(actualByFeed.getOrDefault(feedId, Map.of()), cachedCounts);
       if (!wrongCounts.isEmpty()) {
-        feedVoteCountCacheRepository.updateIfPresent(feedId, wrongCounts);
+        feedVoteCountCacheRepository.updateIfUnchanged(feedId, cachedCounts, wrongCounts);
       }
     });
   }

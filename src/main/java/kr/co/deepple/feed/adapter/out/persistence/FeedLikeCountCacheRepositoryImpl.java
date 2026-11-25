@@ -33,6 +33,16 @@ public class FeedLikeCountCacheRepositoryImpl implements FeedLikeCountCacheRepos
           return likeCount
           """,
           Long.class);
+  private static final RedisScript<Long> UPDATE_IF_UNCHANGED =
+      RedisScript.of(
+          """
+          if redis.call('GET', KEYS[1]) ~= ARGV[1] then
+            return 0
+          end
+          redis.call('SET', KEYS[1], ARGV[2], 'KEEPTTL')
+          return 1
+          """,
+          Long.class);
 
   private final StringRedisTemplate redisTemplate;
 
@@ -78,6 +88,11 @@ public class FeedLikeCountCacheRepositoryImpl implements FeedLikeCountCacheRepos
   }
 
   @Override
+  public boolean exists(long feedId) {
+    return Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(feedId)));
+  }
+
+  @Override
   public void saveChangedIfAbsent(long feedId, long likeCount) {
     redisTemplate.opsForValue().setIfAbsent(buildKey(feedId), String.valueOf(likeCount), TTL);
     markChanged(feedId);
@@ -103,17 +118,12 @@ public class FeedLikeCountCacheRepositoryImpl implements FeedLikeCountCacheRepos
   }
 
   @Override
-  public void updateIfPresent(long feedId, long likeCount) {
+  public void updateIfUnchanged(long feedId, long expectedCount, long likeCount) {
     redisTemplate.execute(
-        (RedisCallback<Boolean>)
-            connection ->
-                connection
-                    .stringCommands()
-                    .set(
-                        toBytes(buildKey(feedId)),
-                        toBytes(String.valueOf(likeCount)),
-                        SetCondition.ifPresent(),
-                        Expiration.keepTtl()));
+        UPDATE_IF_UNCHANGED,
+        List.of(buildKey(feedId)),
+        String.valueOf(expectedCount),
+        String.valueOf(likeCount));
   }
 
   @Override

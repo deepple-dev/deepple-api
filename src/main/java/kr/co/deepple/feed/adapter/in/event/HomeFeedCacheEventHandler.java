@@ -9,6 +9,7 @@ import kr.co.deepple.feed.domain.FeedUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 
 @Component
 @RequiredArgsConstructor
@@ -16,17 +17,17 @@ public class HomeFeedCacheEventHandler {
 
   private final SyncHomeFeedCacheUseCase syncHomeFeedCacheUseCase;
 
-  @ApplicationModuleListener
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handle(FeedPublishedEvent event) {
     syncHomeFeedCacheUseCase.addFeed(event.feedId());
   }
 
-  @ApplicationModuleListener
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handle(FeedUpdatedEvent event) {
     syncHomeFeedCacheUseCase.syncFeed(event.feedId());
   }
 
-  @ApplicationModuleListener
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handle(FeedDeletedEvent event) {
     syncHomeFeedCacheUseCase.removeFeed(event.feedId());
   }
@@ -36,7 +37,7 @@ public class HomeFeedCacheEventHandler {
     syncHomeFeedCacheUseCase.evictAuthor(event.authorId());
   }
 
-  @ApplicationModuleListener
+  @ApplicationModuleListener(propagation = Propagation.NOT_SUPPORTED)
   public void handle(FeedAuthorActivityChangedEvent event) {
     syncHomeFeedCacheUseCase.syncAuthorFeeds(event.authorId());
   }

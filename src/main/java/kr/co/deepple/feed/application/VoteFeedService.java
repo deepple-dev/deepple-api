@@ -21,6 +21,7 @@ public class VoteFeedService implements VoteFeedUseCase {
   private final FeedAccessChecker feedAccessChecker;
   private final FeedVoteRepository feedVoteRepository;
   private final FeedVoteCounter feedVoteCounter;
+  private final VotedFeedReader votedFeedReader;
   private final VotedFeedCacheRepository votedFeedCacheRepository;
   private final FeedVoteCountReader feedVoteCountReader;
   private final FeedViewAssembler feedViewAssembler;
@@ -32,6 +33,8 @@ public class VoteFeedService implements VoteFeedUseCase {
     validateNotMine(accessibleFeed, memberId);
     FeedSnapshot feed = accessibleFeed.feed();
     validatePollOption(feed, optionId);
+    feedVoteCounter.loadIfAbsent(feed);
+    votedFeedReader.loadIfAbsent(memberId);
     saveVote(memberId, feed, optionId);
     increaseCachedVote(memberId, feed, optionId);
     return feedViewAssembler.toPollView(

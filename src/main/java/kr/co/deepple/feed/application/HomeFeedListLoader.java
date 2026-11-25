@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HomeFeedListLoader {
 
-  private static final String LOCK_KEY_PREFIX = "feed:home:";
+  static final String LOCK_KEY = "feed:home";
 
   private final HomeFeedCacheRepository homeFeedCacheRepository;
   private final FeedRepository feedRepository;
@@ -23,7 +23,7 @@ public class HomeFeedListLoader {
     if (homeFeedCacheRepository.isLoaded(grade)) {
       return;
     }
-    distributedLockTemplate.execute(LOCK_KEY_PREFIX + grade, () -> loadIfStillNotLoaded(grade));
+    distributedLockTemplate.execute(LOCK_KEY, () -> loadIfStillNotLoaded(grade));
   }
 
   private void loadIfStillNotLoaded(String grade) {

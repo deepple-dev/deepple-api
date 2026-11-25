@@ -15,12 +15,15 @@ public class UnlikeFeedService implements UnlikeFeedUseCase {
   private final FeedAccessChecker feedAccessChecker;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedLikeCounter feedLikeCounter;
+  private final LikedFeedReader likedFeedReader;
   private final LikedFeedCacheRepository likedFeedCacheRepository;
 
   @Override
   public void unlikeFeed(long memberId, long feedId) {
     FeedAuthor me = feedAuthorReader.getMember(memberId);
     feedAccessChecker.validateAccessible(me, feedId);
+    feedLikeCounter.loadIfAbsent(feedId);
+    likedFeedReader.loadIfAbsent(memberId);
     if (deleteLikeIfPresent(memberId, feedId)) {
       decreaseCachedLike(memberId, feedId);
     }

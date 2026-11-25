@@ -2,9 +2,11 @@ package kr.co.deepple.feed.application;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import kr.co.deepple.feed.application.port.in.ReconcileFeedLikeCountsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
@@ -33,10 +35,16 @@ public class ReconcileFeedLikeCountsService implements ReconcileFeedLikeCountsUs
   }
 
   private void reconcileRange(long fromFeedId, long toFeedId) {
+    Map<Long, Long> cachedCounts =
+        feedLikeCountCacheRepository.findAll(findFeedIdsBetween(fromFeedId, toFeedId));
     Map<Long, Long> savedCounts = findSavedCounts(fromFeedId, toFeedId);
     Map<Long, Long> actualCounts = countLikes(fromFeedId, toFeedId, savedCounts.keySet());
-    fixCachedCounts(actualCounts);
+    fixCachedCounts(cachedCounts, actualCounts);
     fixSavedCounts(actualCounts, savedCounts);
+  }
+
+  private List<Long> findFeedIdsBetween(long fromFeedId, long toFeedId) {
+    return LongStream.rangeClosed(fromFeedId, toFeedId).boxed().toList();
   }
 
   private Map<Long, Long> findSavedCounts(long fromFeedId, long toFeedId) {
@@ -53,12 +61,11 @@ public class ReconcileFeedLikeCountsService implements ReconcileFeedLikeCountsUs
     return likeCounts;
   }
 
-  private void fixCachedCounts(Map<Long, Long> actualCounts) {
-    Map<Long, Long> cachedCounts = feedLikeCountCacheRepository.findAll(actualCounts.keySet());
+  private void fixCachedCounts(Map<Long, Long> cachedCounts, Map<Long, Long> actualCounts) {
     cachedCounts.forEach((feedId, cachedCount) -> {
-      long actualCount = actualCounts.get(feedId);
+      long actualCount = actualCounts.getOrDefault(feedId, 0L);
       if (cachedCount != actualCount) {
-        feedLikeCountCacheRepository.updateIfPresent(feedId, actualCount);
+        feedLikeCountCacheRepository.updateIfUnchanged(feedId, cachedCount, actualCount);
       }
     });
   }

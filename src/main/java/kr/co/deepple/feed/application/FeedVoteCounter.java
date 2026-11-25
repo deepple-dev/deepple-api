@@ -15,6 +15,12 @@ public class FeedVoteCounter {
   private final FeedVoteCountCacheRepository feedVoteCountCacheRepository;
   private final FeedVoteRepository feedVoteRepository;
 
+  public void loadIfAbsent(FeedSnapshot pollFeed) {
+    if (!feedVoteCountCacheRepository.exists(pollFeed.feedId())) {
+      loadVoteCounts(pollFeed);
+    }
+  }
+
   public void increase(FeedSnapshot pollFeed, long optionId) {
     if (!feedVoteCountCacheRepository.incrementIfPresent(pollFeed.feedId(), optionId)) {
       loadVoteCounts(pollFeed);
