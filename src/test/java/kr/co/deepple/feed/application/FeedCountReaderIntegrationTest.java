@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.dto.FeedCounts;
+import kr.co.deepple.feed.application.port.out.FeedCommentCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
 import kr.co.deepple.feed.fixture.FeedCountFixture;
@@ -22,6 +23,8 @@ class FeedCountReaderIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedCountRepository feedCountRepository;
 
   @Autowired private FeedLikeCountCacheRepository feedLikeCountCacheRepository;
+
+  @Autowired private FeedCommentCountCacheRepository feedCommentCountCacheRepository;
 
   @Test
   @DisplayName("카운터가 있으면 카운터 값을, 없으면 feed_counts 값을 주고 feed_counts에도 없으면 0을 준다")
@@ -54,5 +57,25 @@ class FeedCountReaderIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(counts.likeCount()).isEqualTo(42L);
     assertThat(feedLikeCountCacheRepository.findAll(List.of(1L))).containsEntry(1L, 42L);
+  }
+
+  @Test
+  @DisplayName("댓글 수도 카운터가 있으면 카운터 값을, 없으면 feed_counts 값을 주고 채운 값을 카운터에 저장한다")
+  void readCommentCounts() {
+    // given
+    feedCommentCountCacheRepository.saveAllIfAbsent(Map.of(1L, 3L));
+    feedCountRepository.save(
+        FeedCountFixture.builder().feedId(2L).likeCount(42L).commentCount(9L).build());
+
+    // when
+    Map<Long, FeedCounts> counts = feedCountReader.read(Set.of(1L, 2L, 3L));
+
+    // then
+    assertThat(counts.get(1L).commentCount()).isEqualTo(3L);
+    assertThat(counts.get(2L).commentCount()).isEqualTo(9L);
+    assertThat(counts.get(2L).likeCount()).isEqualTo(42L);
+    assertThat(counts.get(3L).commentCount()).isZero();
+    assertThat(feedCommentCountCacheRepository.findAll(List.of(2L, 3L)))
+        .containsOnly(Map.entry(2L, 9L), Map.entry(3L, 0L));
   }
 }

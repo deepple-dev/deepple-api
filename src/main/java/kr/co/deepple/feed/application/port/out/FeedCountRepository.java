@@ -22,6 +22,18 @@ public interface FeedCountRepository extends JpaRepository<FeedCount, Long> {
       nativeQuery = true)
   void upsertLikeCount(long feedId, long likeCount, LocalDateTime now);
 
+  @Transactional
+  @Modifying
+  @Query(
+      value =
+          """
+          insert into feed_counts (feed_id, like_count, comment_count, created_at)
+          values (:feedId, 0, :commentCount, :now) as new
+          on duplicate key update comment_count = new.comment_count, updated_at = :now
+          """,
+      nativeQuery = true)
+  void upsertCommentCount(long feedId, long commentCount, LocalDateTime now);
+
   @Query("SELECT coalesce(max(c.feedId), 0) FROM FeedCount c")
   long findMaxFeedId();
 

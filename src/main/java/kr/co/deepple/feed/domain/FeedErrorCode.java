@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 public enum FeedErrorCode implements ErrorCode {
   FEED_NOT_FOUND(ErrorType.NOT_FOUND, "피드를 찾을 수 없습니다."),
   MEMBER_NOT_FOUND(ErrorType.NOT_FOUND, "회원을 찾을 수 없습니다."),
+  FEED_COMMENT_NOT_FOUND(ErrorType.NOT_FOUND, "댓글을 찾을 수 없습니다."),
   FEED_BACKGROUND_NOT_FOUND(ErrorType.NOT_FOUND, "배경을 찾을 수 없습니다."),
   POLL_OPTION_NOT_FOUND(ErrorType.NOT_FOUND, "투표 선택지를 찾을 수 없습니다."),
   FEED_VOTE_ALREADY_EXISTS(ErrorType.ALREADY_EXISTS, "이미 투표한 피드입니다."),
@@ -22,6 +23,8 @@ public enum FeedErrorCode implements ErrorCode {
   INVALID_FEED_CURSOR(ErrorType.INVALID_ARGUMENT, "커서가 올바르지 않습니다."),
   INVALID_FEED_STATUS(ErrorType.INVALID_ARGUMENT, "피드 상태가 올바르지 않습니다."),
   INVALID_FEED_TARGET_GRADES(ErrorType.INVALID_ARGUMENT, "대상 등급이 올바르지 않습니다."),
+  INVALID_FEED_COMMENT_CONTENT(ErrorType.INVALID_ARGUMENT, "댓글 내용이 올바르지 않습니다."),
+  INVALID_PARENT_COMMENT(ErrorType.INVALID_ARGUMENT, "답글에는 답글을 달 수 없습니다."),
   INVALID_FEED_STATUS_CHANGE(ErrorType.FAILED_PRECONDITION, "바꿀 수 없는 피드 상태입니다."),
   FEED_IMAGE_NOT_PROCESSED(ErrorType.FAILED_PRECONDITION, "변환이 끝나지 않은 이미지가 있어 공개할 수 없습니다.");
 

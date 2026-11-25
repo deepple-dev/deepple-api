@@ -18,12 +18,15 @@ public class FeedCount extends BaseEntity {
 
   private long likeCount;
 
-  private FeedCount(long feedId, long likeCount) {
+  private long commentCount;
+
+  private FeedCount(long feedId, long likeCount, long commentCount) {
     this.feedId = feedId;
     this.likeCount = likeCount;
+    this.commentCount = commentCount;
   }
 
-  public static FeedCount of(long feedId, long likeCount) {
-    return new FeedCount(feedId, likeCount);
+  public static FeedCount of(long feedId, long likeCount, long commentCount) {
+    return new FeedCount(feedId, likeCount, commentCount);
   }
 }

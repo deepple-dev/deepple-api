@@ -5,6 +5,7 @@ import kr.co.deepple.auth.application.port.out.RefreshTokenRepository;
 import kr.co.deepple.common.config.MySqlContainerConfig;
 import kr.co.deepple.common.config.QueryDslConfig;
 import kr.co.deepple.common.config.S3UploaderTestConfig;
+import kr.co.deepple.feed.application.port.out.FeedCommentCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedSnapshotCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteCountCacheRepository;
@@ -34,7 +35,8 @@ import org.springframework.stereotype.Repository;
               FeedLikeCountCacheRepository.class,
               LikedFeedCacheRepository.class,
               FeedVoteCountCacheRepository.class,
-              VotedFeedCacheRepository.class
+              VotedFeedCacheRepository.class,
+              FeedCommentCountCacheRepository.class
             }))
 @Import({QueryDslConfig.class, MySqlContainerConfig.class, S3UploaderTestConfig.class})
 public abstract class RepositoryTestSupport {}

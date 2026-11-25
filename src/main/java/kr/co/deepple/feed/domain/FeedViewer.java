@@ -19,7 +19,10 @@ public record FeedViewer(long authorId, String grade, @NonNull Set<Long> blockRe
     return !isBlockedWith(author);
   }
 
-  private boolean isBlockedWith(FeedAuthorStatus author) {
+  public boolean isBlockedWith(FeedAuthorStatus author) {
+    if (author.isOfficial()) {
+      return false;
+    }
     return blockRelatedMemberIds.contains(author.getMemberId());
   }
 }

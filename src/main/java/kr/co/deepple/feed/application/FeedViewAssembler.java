@@ -6,6 +6,9 @@ import kr.co.deepple.common.infra.s3.S3Uploader;
 import kr.co.deepple.feed.application.dto.FeedAuthorSnapshot;
 import kr.co.deepple.feed.application.dto.FeedAuthorView;
 import kr.co.deepple.feed.application.dto.FeedBackgroundView;
+import kr.co.deepple.feed.application.dto.FeedCommentDisplayStatus;
+import kr.co.deepple.feed.application.dto.FeedCommentView;
+import kr.co.deepple.feed.application.dto.FeedCommentWithAuthor;
 import kr.co.deepple.feed.application.dto.FeedCounts;
 import kr.co.deepple.feed.application.dto.FeedGridItemView;
 import kr.co.deepple.feed.application.dto.FeedImageView;
@@ -16,6 +19,8 @@ import kr.co.deepple.feed.application.dto.FeedTextPosition;
 import kr.co.deepple.feed.application.dto.FeedView;
 import kr.co.deepple.feed.application.dto.OfficialFeedGridItemView;
 import kr.co.deepple.feed.application.dto.PollVotes;
+import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedComment;
 import kr.co.deepple.feed.domain.FeedPersonalityType;
 import kr.co.deepple.feed.domain.PollResult;
 import kr.co.deepple.feed.domain.TextPosition;
@@ -83,6 +88,23 @@ public class FeedViewAssembler {
         counts.commentCount());
   }
 
+  public FeedCommentView toCommentView(
+      FeedCommentWithAuthor commentWithAuthor, long replyCount, FeedAuthor me) {
+    FeedComment comment = commentWithAuthor.comment();
+    FeedAuthor author = commentWithAuthor.author();
+    FeedCommentDisplayStatus displayStatus = decideDisplayStatus(comment, author);
+    boolean isVisible = displayStatus == FeedCommentDisplayStatus.VISIBLE;
+    return new FeedCommentView(
+        comment.getId(),
+        comment.getParentId(),
+        displayStatus.name(),
+        isVisible ? toAuthorView(FeedAuthorSnapshot.from(author)) : null,
+        isVisible ? comment.getContent() : null,
+        Math.toIntExact(replyCount),
+        comment.isWrittenBy(me.getId()),
+        comment.getCreatedAt());
+  }
+
   private FeedAuthorView toAuthorView(FeedAuthorSnapshot author) {
     return new FeedAuthorView(
         author.authorType().name(),
@@ -95,6 +117,19 @@ public class FeedViewAssembler {
         author.gender(),
         author.city(),
         author.mbti());
+  }
+
+  private FeedCommentDisplayStatus decideDisplayStatus(FeedComment comment, FeedAuthor author) {
+    if (comment.isDeleted()) {
+      return FeedCommentDisplayStatus.DELETED;
+    }
+    if (comment.isHiddenByReport()) {
+      return FeedCommentDisplayStatus.HIDDEN;
+    }
+    if (!author.isActive()) {
+      return FeedCommentDisplayStatus.INACTIVE_AUTHOR;
+    }
+    return FeedCommentDisplayStatus.VISIBLE;
   }
 
   private Integer toAge(Integer yearOfBirth) {

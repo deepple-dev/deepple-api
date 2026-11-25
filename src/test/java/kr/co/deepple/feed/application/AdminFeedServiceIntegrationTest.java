@@ -16,13 +16,16 @@ import kr.co.deepple.feed.application.dto.AdminUserFeedView;
 import kr.co.deepple.feed.application.dto.FeedImageView;
 import kr.co.deepple.feed.application.dto.HomeFeedSortKey;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
+import kr.co.deepple.feed.application.port.out.FeedCommentRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.application.port.out.HomeFeedCacheRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
+import kr.co.deepple.feed.domain.FeedComment;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedImage;
 import kr.co.deepple.feed.domain.FeedStatus;
 import kr.co.deepple.feed.fixture.FeedAuthorFixture;
+import kr.co.deepple.feed.fixture.FeedCommentFixture;
 import kr.co.deepple.feed.fixture.OfficialFeedFixture;
 import kr.co.deepple.feed.fixture.TextFeedFixture;
 import kr.co.deepple.image.application.port.out.ImageRepository;
@@ -59,6 +62,8 @@ class AdminFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedRepository feedRepository;
 
   @Autowired private FeedAuthorRepository feedAuthorRepository;
+
+  @Autowired private FeedCommentRepository feedCommentRepository;
 
   @Autowired private ImageRepository imageRepository;
 
@@ -404,6 +409,38 @@ class AdminFeedServiceIntegrationTest extends IntegrationTestSupport {
         changeAdminFeedStatusService.changeOfficialFeedStatus(userFeedId, FeedStatus.PUBLISHED));
     assertFeedNotFound(() -> deleteAdminFeedService.deleteUserFeed(officialFeedId));
     assertFeedNotFound(() -> deleteAdminFeedService.deleteOfficialFeed(userFeedId));
+  }
+
+  @Test
+  @DisplayName("관리자가 사용자 피드나 관리자 피드를 지우면 그 피드의 댓글을 soft delete한다")
+  void softDeleteCommentsOnAdminDelete() {
+    // given
+    long userFeedId =
+        feedRepository
+            .save(TextFeedFixture.builder().authorId(member.getId()).grade("GOLD").build())
+            .getId();
+    long officialFeedId = saveOfficialFeed(true);
+    FeedComment userFeedComment =
+        feedCommentRepository.save(
+            FeedCommentFixture.builder().feedId(userFeedId).authorId(member.getId()).build());
+    FeedComment officialFeedComment =
+        feedCommentRepository.save(
+            FeedCommentFixture.builder().feedId(officialFeedId).authorId(member.getId()).build());
+
+    // when
+    deleteAdminFeedService.deleteUserFeed(userFeedId);
+    deleteAdminFeedService.deleteOfficialFeed(officialFeedId);
+    awaitEventProcessing();
+
+    // then
+    assertThat(feedCommentRepository.findById(userFeedComment.getId()))
+        .get()
+        .extracting(FeedComment::isDeleted)
+        .isEqualTo(true);
+    assertThat(feedCommentRepository.findById(officialFeedComment.getId()))
+        .get()
+        .extracting(FeedComment::isDeleted)
+        .isEqualTo(true);
   }
 
   @Test

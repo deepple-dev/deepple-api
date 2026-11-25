@@ -92,6 +92,8 @@ scheduler:
   feed-like-count-reconcile-cron: "-"
   feed-vote-count-flush-cron: "-"
   feed-vote-count-reconcile-cron: "-"
+  feed-comment-count-flush-cron: "-"
+  feed-comment-count-reconcile-cron: "-"
 
 image:
   processing:
