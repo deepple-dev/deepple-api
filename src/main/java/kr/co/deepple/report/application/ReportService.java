@@ -39,8 +39,8 @@ public class ReportService {
             request.targetId(),
             reason,
             request.content());
-    validateTarget(report);
     validateNotReported(report);
+    validateTarget(report);
     save(report);
     eventPublisher.publishEvent(ReportCreatedEvent.of(reporterId, request.reporteeId()));
     if (report.isContentReport()) {
