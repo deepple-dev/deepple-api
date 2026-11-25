@@ -17,11 +17,13 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.dto.FeedPollOptionView;
 import kr.co.deepple.feed.application.dto.FeedPollView;
+import kr.co.deepple.feed.application.dto.VotedOption;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
 import kr.co.deepple.feed.application.port.out.FeedBlockRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteRepository;
+import kr.co.deepple.feed.application.port.out.VotedFeedCacheRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedErrorCode;
 import kr.co.deepple.feed.domain.FeedVoteCount;
@@ -61,6 +63,8 @@ class VoteFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FlushFeedVoteCountsService flushFeedVoteCountsService;
 
   @Autowired private StringRedisTemplate redisTemplate;
+
+  @Autowired private VotedFeedCacheRepository votedFeedCacheRepository;
 
   private FeedAuthor writer;
 
@@ -111,6 +115,26 @@ class VoteFeedServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(poll.myOptionId()).isEqualTo(yes);
     assertThat(poll.participantCount()).isEqualTo(1L);
     assertThat(poll.options()).extracting(FeedPollOptionView::votePercent).containsExactly(100, 0);
+  }
+
+  @Test
+  @DisplayName("투표 기록을 DB에서 읽어 캐시에 채우는 사이에 투표해도 내 선택이 보인다")
+  void showMyOptionWhenVotedWhileLoadingVotedFeeds() {
+    // given
+    PollFeed feed = savePollFeed(writer, "GOLD");
+    long yes = optionId(feed, 0);
+    Map<Long, Long> loadingVotedOptionIds =
+        feedVoteRepository.findVotedOptionsByMemberId(VIEWER_MEMBER_ID).stream()
+            .collect(Collectors.toMap(VotedOption::feedId, VotedOption::optionId));
+
+    // when
+    voteFeedService.vote(VIEWER_MEMBER_ID, feed.getId(), yes);
+    votedFeedCacheRepository.saveIfAbsent(VIEWER_MEMBER_ID, loadingVotedOptionIds);
+
+    // then
+    FeedPollView poll = getFeedService.getFeed(VIEWER_MEMBER_ID, feed.getId()).poll();
+    assertThat(poll.myOptionId()).isEqualTo(yes);
+    assertThat(poll.isResultVisible()).isTrue();
   }
 
   @Test
@@ -166,7 +190,30 @@ class VoteFeedServiceIntegrationTest extends IntegrationTestSupport {
     for (long memberId = 100L; memberId < 100L + CONCURRENT_REQUESTS; memberId++) {
       feedAuthorRepository.save(activeMember(memberId, "GOLD"));
     }
-    getFeedService.getFeed(VIEWER_MEMBER_ID, feed.getId());
+    getFeedService.getFeed(WRITER_MEMBER_ID, feed.getId());
+
+    // when
+    List<Throwable> failures =
+        runConcurrently(index -> voteFeedService.vote(100L + index, feed.getId(), yes));
+
+    // then
+    assertThat(failures).isEmpty();
+    assertThat(feedVoteRepository.count()).isEqualTo(CONCURRENT_REQUESTS);
+    assertThat(voteFeedService.vote(VIEWER_MEMBER_ID, feed.getId(), yes).participantCount())
+        .isEqualTo(CONCURRENT_REQUESTS + 1L);
+  }
+
+  @Test
+  @DisplayName("카운터가 없을 때 여러 회원이 동시에 투표해도 표 수가 한 번씩만 반영된다")
+  void voteConcurrentlyByManyMembersWithoutCounter() throws Exception {
+    // given
+    PollFeed feed = savePollFeed(writer, "GOLD");
+    long yes = optionId(feed, 0);
+    for (long memberId = 100L; memberId < 100L + CONCURRENT_REQUESTS; memberId++) {
+      feedAuthorRepository.save(activeMember(memberId, "GOLD"));
+    }
+    getFeedService.getFeed(WRITER_MEMBER_ID, feed.getId());
+    redisTemplate.delete("feed:vote-count:v1:" + feed.getId());
 
     // when
     List<Throwable> failures =

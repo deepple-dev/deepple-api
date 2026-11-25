@@ -16,12 +16,15 @@ public class LikeFeedService implements LikeFeedUseCase {
   private final FeedAccessChecker feedAccessChecker;
   private final FeedLikeRepository feedLikeRepository;
   private final FeedLikeCounter feedLikeCounter;
+  private final LikedFeedReader likedFeedReader;
   private final LikedFeedCacheRepository likedFeedCacheRepository;
 
   @Override
   public void likeFeed(long memberId, long feedId) {
     FeedAuthor me = feedAuthorReader.getMember(memberId);
     feedAccessChecker.validateAccessible(me, feedId);
+    feedLikeCounter.loadIfAbsent(feedId);
+    likedFeedReader.loadIfAbsent(memberId);
     if (saveLikeIfAbsent(memberId, feedId)) {
       increaseCachedLike(memberId, feedId);
     }

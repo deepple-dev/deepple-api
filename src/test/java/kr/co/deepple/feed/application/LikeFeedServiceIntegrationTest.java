@@ -19,6 +19,7 @@ import kr.co.deepple.feed.application.port.out.FeedBlockRepository;
 import kr.co.deepple.feed.application.port.out.FeedCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
+import kr.co.deepple.feed.application.port.out.LikedFeedCacheRepository;
 import kr.co.deepple.feed.domain.Feed;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedAuthorType;
@@ -58,6 +59,8 @@ class LikeFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedLikeRepository feedLikeRepository;
 
   @Autowired private FeedCountRepository feedCountRepository;
+
+  @Autowired private LikedFeedCacheRepository likedFeedCacheRepository;
 
   @Autowired private FlushFeedLikeCountsService flushFeedLikeCountsService;
 
@@ -113,11 +116,46 @@ class LikeFeedServiceIntegrationTest extends IntegrationTestSupport {
     getFeedService.getFeed(VIEWER_MEMBER_ID, feedId);
 
     // when
-    runConcurrently(() -> likeFeedService.likeFeed(VIEWER_MEMBER_ID, feedId));
+    runConcurrently(index -> likeFeedService.likeFeed(VIEWER_MEMBER_ID, feedId));
 
     // then
     assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, feedId).likeCount()).isEqualTo(1L);
     assertThat(feedLikeRepository.count()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("카운터가 없을 때 여러 회원이 동시에 좋아요해도 수가 한 번씩만 오른다")
+  void likeConcurrentlyByManyMembersWithoutCounter() throws Exception {
+    // given
+    long feedId = saveFeed(writer, "GOLD");
+    for (long memberId = 100L; memberId < 100L + CONCURRENT_REQUESTS; memberId++) {
+      feedAuthorRepository.save(activeMember(memberId, "GOLD"));
+    }
+    getFeedService.getFeed(VIEWER_MEMBER_ID, feedId);
+    redisTemplate.delete("feed:like-count:v1:" + feedId);
+
+    // when
+    runConcurrently(index -> likeFeedService.likeFeed(100L + index, feedId));
+
+    // then
+    assertThat(feedLikeRepository.count()).isEqualTo(CONCURRENT_REQUESTS);
+    assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, feedId).likeCount())
+        .isEqualTo(CONCURRENT_REQUESTS);
+  }
+
+  @Test
+  @DisplayName("좋아요 목록을 DB에서 읽어 캐시에 채우는 사이에 좋아요해도 isLiked가 true다")
+  void showLikedWhenLikedWhileLoadingLikedFeeds() {
+    // given
+    long feedId = saveFeed(writer, "GOLD");
+    List<Long> loadingLikedFeedIds = feedLikeRepository.findFeedIdsByMemberId(VIEWER_MEMBER_ID);
+
+    // when
+    likeFeedService.likeFeed(VIEWER_MEMBER_ID, feedId);
+    likedFeedCacheRepository.saveIfAbsent(VIEWER_MEMBER_ID, loadingLikedFeedIds);
+
+    // then
+    assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, feedId).isLiked()).isTrue();
   }
 
   @Test
@@ -227,15 +265,16 @@ class LikeFeedServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, myFeedId).isLiked()).isTrue();
   }
 
-  private void runConcurrently(Runnable task) throws Exception {
+  private void runConcurrently(IndexedTask task) throws Exception {
     CountDownLatch start = new CountDownLatch(1);
     try (ExecutorService executor = Executors.newFixedThreadPool(CONCURRENT_REQUESTS)) {
       List<Future<?>> futures = new ArrayList<>();
       for (int i = 0; i < CONCURRENT_REQUESTS; i++) {
+        int index = i;
         futures.add(
             executor.submit(() -> {
               start.await();
-              task.run();
+              task.run(index);
               return null;
             }));
       }
@@ -262,5 +301,10 @@ class LikeFeedServiceIntegrationTest extends IntegrationTestSupport {
 
   private static FeedImage image() {
     return FeedImage.of(1L, "images/members/2/1.webp", "images/members/2/1-thumbnail.webp", 0);
+  }
+
+  @FunctionalInterface
+  private interface IndexedTask {
+    void run(int index);
   }
 }

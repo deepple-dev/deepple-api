@@ -16,6 +16,7 @@ import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
 import kr.co.deepple.feed.application.port.out.FeedCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
+import kr.co.deepple.feed.application.port.out.LikedFeedCacheRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedCount;
 import kr.co.deepple.feed.domain.FeedErrorCode;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 @DisplayName("피드 좋아요 취소 통합 테스트")
 class UnlikeFeedServiceIntegrationTest extends IntegrationTestSupport {
@@ -51,6 +53,10 @@ class UnlikeFeedServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedCountRepository feedCountRepository;
 
   @Autowired private FlushFeedLikeCountsService flushFeedLikeCountsService;
+
+  @Autowired private StringRedisTemplate redisTemplate;
+
+  @Autowired private LikedFeedCacheRepository likedFeedCacheRepository;
 
   private FeedAuthor writer;
 
@@ -108,10 +114,51 @@ class UnlikeFeedServiceIntegrationTest extends IntegrationTestSupport {
     likeFeedService.likeFeed(OTHER_MEMBER_ID, feedId);
 
     // when
-    runConcurrently(() -> unlikeFeedService.unlikeFeed(VIEWER_MEMBER_ID, feedId));
+    runConcurrently(index -> unlikeFeedService.unlikeFeed(VIEWER_MEMBER_ID, feedId));
 
     // then
     assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, feedId).likeCount()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("카운터가 없을 때 여러 회원이 동시에 취소해도 수가 한 번씩만 내려간다")
+  void unlikeConcurrentlyByManyMembersWithoutCounter() throws Exception {
+    // given
+    long feedId = saveFeed("GOLD");
+    feedLikeRepository.save(
+        FeedLikeFixture.builder().feedId(feedId).memberId(OTHER_MEMBER_ID).build());
+    for (long memberId = 100L; memberId < 100L + CONCURRENT_REQUESTS; memberId++) {
+      feedAuthorRepository.save(activeMember(memberId, "GOLD"));
+      feedLikeRepository.save(FeedLikeFixture.builder().feedId(feedId).memberId(memberId).build());
+    }
+    getFeedService.getFeed(VIEWER_MEMBER_ID, feedId);
+    redisTemplate.delete("feed:like-count:v1:" + feedId);
+
+    // when
+    runConcurrently(index -> unlikeFeedService.unlikeFeed(100L + index, feedId));
+
+    // then
+    assertThat(feedLikeRepository.findAll())
+        .extracting("memberId")
+        .containsExactly(OTHER_MEMBER_ID);
+    assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, feedId).likeCount()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("좋아요 목록을 DB에서 읽어 캐시에 채우는 사이에 취소해도 isLiked가 false다")
+  void showUnlikedWhenUnlikedWhileLoadingLikedFeeds() {
+    // given
+    long feedId = saveFeed("GOLD");
+    feedLikeRepository.save(
+        FeedLikeFixture.builder().feedId(feedId).memberId(VIEWER_MEMBER_ID).build());
+    List<Long> loadingLikedFeedIds = feedLikeRepository.findFeedIdsByMemberId(VIEWER_MEMBER_ID);
+
+    // when
+    unlikeFeedService.unlikeFeed(VIEWER_MEMBER_ID, feedId);
+    likedFeedCacheRepository.saveIfAbsent(VIEWER_MEMBER_ID, loadingLikedFeedIds);
+
+    // then
+    assertThat(getFeedService.getFeed(VIEWER_MEMBER_ID, feedId).isLiked()).isFalse();
   }
 
   @Test
@@ -153,15 +200,16 @@ class UnlikeFeedServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(feedLikeRepository.count()).isEqualTo(1L);
   }
 
-  private void runConcurrently(Runnable task) throws Exception {
+  private void runConcurrently(IndexedTask task) throws Exception {
     CountDownLatch start = new CountDownLatch(1);
     try (ExecutorService executor = Executors.newFixedThreadPool(CONCURRENT_REQUESTS)) {
       List<Future<?>> futures = new ArrayList<>();
       for (int i = 0; i < CONCURRENT_REQUESTS; i++) {
+        int index = i;
         futures.add(
             executor.submit(() -> {
               start.await();
-              task.run();
+              task.run(index);
               return null;
             }));
       }
@@ -184,5 +232,10 @@ class UnlikeFeedServiceIntegrationTest extends IntegrationTestSupport {
         .activityStatus("ACTIVE")
         .grade(grade)
         .build();
+  }
+
+  @FunctionalInterface
+  private interface IndexedTask {
+    void run(int index);
   }
 }

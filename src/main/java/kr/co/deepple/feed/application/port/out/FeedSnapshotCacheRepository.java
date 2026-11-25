@@ -11,11 +11,11 @@ public interface FeedSnapshotCacheRepository {
 
   void saveFeeds(Collection<FeedSnapshot> feeds);
 
-  void deleteFeed(long feedId);
+  void invalidateFeed(long feedId);
 
   List<FeedAuthorSnapshot> findAuthors(Collection<Long> authorIds);
 
   void saveAuthors(Collection<FeedAuthorSnapshot> authors);
 
-  void deleteAuthor(long authorId);
+  void invalidateAuthor(long authorId);
 }

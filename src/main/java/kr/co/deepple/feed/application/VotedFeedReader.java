@@ -33,11 +33,17 @@ public class VotedFeedReader {
         .collect(Collectors.toMap(Function.identity(), votedOptionIds::get));
   }
 
+  public void loadIfAbsent(long memberId) {
+    if (!votedFeedCacheRepository.exists(memberId)) {
+      loadVotedOptionIds(memberId);
+    }
+  }
+
   private Map<Long, Long> loadVotedOptionIds(long memberId) {
     Map<Long, Long> votedOptionIds =
         feedVoteRepository.findVotedOptionsByMemberId(memberId).stream()
             .collect(Collectors.toMap(VotedOption::feedId, VotedOption::optionId));
-    votedFeedCacheRepository.save(memberId, votedOptionIds);
+    votedFeedCacheRepository.saveIfAbsent(memberId, votedOptionIds);
     return votedOptionIds;
   }
 }
