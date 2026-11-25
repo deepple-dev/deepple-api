@@ -1,12 +1,15 @@
 package kr.co.deepple.feed.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.feed.application.dto.PollOptionVoteCount;
 import kr.co.deepple.feed.application.port.out.FeedVoteCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedVoteRepository;
@@ -17,13 +20,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @DisplayName("표 수 다시 세기 통합 테스트")
 class ReconcileFeedVoteCountsServiceIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ReconcileFeedVoteCountsService reconcileFeedVoteCountsService;
 
-  @Autowired private FeedVoteRepository feedVoteRepository;
+  @MockitoSpyBean private FeedVoteRepository feedVoteRepository;
 
   @Autowired private FeedVoteCountRepository feedVoteCountRepository;
 
@@ -48,6 +52,28 @@ class ReconcileFeedVoteCountsServiceIntegrationTest extends IntegrationTestSuppo
     assertThat(feedVoteCountCacheRepository.findAll(List.of(1L)))
         .containsEntry(1L, Map.of(11L, 3L, 12L, 1L));
     assertThat(findVoteCounts()).containsOnly(Map.entry(11L, 3L), Map.entry(12L, 1L));
+  }
+
+  @Test
+  @DisplayName("다시 세는 사이에 들어온 표는 카운터에서 지우지 않는다")
+  void keepVoteAddedWhileReconciling() {
+    // given
+    saveVotes(1L, 11L, 2);
+    feedVoteCountCacheRepository.saveAllIfAbsent(Map.of(1L, Map.of(11L, 2L)));
+    doAnswer(invocation -> {
+          saveVotes(1L, 11L, 1);
+          feedVoteCountCacheRepository.incrementIfPresent(1L, 11L);
+          return List.of(new PollOptionVoteCount(1L, 11L, 2L));
+        })
+        .when(feedVoteRepository)
+        .countByFeedIdBetween(anyLong(), anyLong());
+
+    // when
+    reconcileFeedVoteCountsService.reconcile();
+
+    // then
+    assertThat(feedVoteCountCacheRepository.findAll(List.of(1L)))
+        .containsEntry(1L, Map.of(11L, 3L));
   }
 
   @Test

@@ -8,7 +8,9 @@ public interface LikedFeedCacheRepository {
 
   Optional<Set<Long>> findLikedFeedIds(long memberId, Set<Long> feedIds);
 
-  void save(long memberId, Collection<Long> likedFeedIds);
+  boolean exists(long memberId);
+
+  void saveIfAbsent(long memberId, Collection<Long> likedFeedIds);
 
   void addIfPresent(long memberId, long feedId);
 

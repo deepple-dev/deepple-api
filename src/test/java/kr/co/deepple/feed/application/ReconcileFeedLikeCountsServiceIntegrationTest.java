@@ -1,11 +1,14 @@
 package kr.co.deepple.feed.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.feed.application.dto.FeedLikeCount;
 import kr.co.deepple.feed.application.port.out.FeedCountRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeCountCacheRepository;
 import kr.co.deepple.feed.application.port.out.FeedLikeRepository;
@@ -15,13 +18,14 @@ import kr.co.deepple.feed.fixture.FeedLikeFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @DisplayName("좋아요 수 다시 세기 통합 테스트")
 class ReconcileFeedLikeCountsServiceIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ReconcileFeedLikeCountsService reconcileFeedLikeCountsService;
 
-  @Autowired private FeedLikeRepository feedLikeRepository;
+  @MockitoSpyBean private FeedLikeRepository feedLikeRepository;
 
   @Autowired private FeedCountRepository feedCountRepository;
 
@@ -41,6 +45,27 @@ class ReconcileFeedLikeCountsServiceIntegrationTest extends IntegrationTestSuppo
     // then
     assertThat(feedLikeCountCacheRepository.findAll(List.of(1L))).containsEntry(1L, 3L);
     assertThat(findLikeCounts()).containsEntry(1L, 3L);
+  }
+
+  @Test
+  @DisplayName("다시 세는 사이에 들어온 좋아요는 카운터에서 지우지 않는다")
+  void keepLikeAddedWhileReconciling() {
+    // given
+    saveLikes(1L, 2);
+    feedLikeCountCacheRepository.saveAllIfAbsent(Map.of(1L, 2L));
+    doAnswer(invocation -> {
+          feedLikeRepository.save(FeedLikeFixture.builder().feedId(1L).memberId(3L).build());
+          feedLikeCountCacheRepository.incrementIfPresent(1L);
+          return List.of(new FeedLikeCount(1L, 2L));
+        })
+        .when(feedLikeRepository)
+        .countByFeedIdBetween(anyLong(), anyLong());
+
+    // when
+    reconcileFeedLikeCountsService.reconcile();
+
+    // then
+    assertThat(feedLikeCountCacheRepository.findAll(List.of(1L))).containsEntry(1L, 3L);
   }
 
   @Test

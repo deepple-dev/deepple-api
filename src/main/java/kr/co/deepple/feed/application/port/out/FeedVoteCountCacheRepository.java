@@ -10,13 +10,16 @@ public interface FeedVoteCountCacheRepository {
 
   void saveAllIfAbsent(Map<Long, Map<Long, Long>> voteCounts);
 
+  boolean exists(long feedId);
+
   void saveChangedIfAbsent(long feedId, Map<Long, Long> voteCounts);
 
   boolean incrementIfPresent(long feedId, long optionId);
 
   List<Long> popChangedFeedIds(int count);
 
-  void updateIfPresent(long feedId, Map<Long, Long> voteCounts);
+  void updateIfUnchanged(
+      long feedId, Map<Long, Long> expectedCounts, Map<Long, Long> voteCounts);
 
   void delete(long feedId);
 }

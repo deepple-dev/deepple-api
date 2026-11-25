@@ -43,13 +43,20 @@ public class FeedVoteCountCacheRepositoryImpl implements FeedVoteCountCacheRepos
           return 1
           """,
           Long.class);
-  private static final RedisScript<Long> UPDATE_IF_PRESENT =
+  private static final RedisScript<Long> UPDATE_IF_UNCHANGED =
       RedisScript.of(
           """
           if redis.call('EXISTS', KEYS[1]) == 0 then
             return 0
           end
-          redis.call('HSET', KEYS[1], unpack(ARGV))
+          for i = 1, #ARGV, 3 do
+            if (redis.call('HGET', KEYS[1], ARGV[i]) or '0') ~= ARGV[i + 1] then
+              return 0
+            end
+          end
+          for i = 1, #ARGV, 3 do
+            redis.call('HSET', KEYS[1], ARGV[i], ARGV[i + 2])
+          end
           return 1
           """,
           Long.class);
@@ -86,6 +93,11 @@ public class FeedVoteCountCacheRepositoryImpl implements FeedVoteCountCacheRepos
   }
 
   @Override
+  public boolean exists(long feedId) {
+    return Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(feedId)));
+  }
+
+  @Override
   public void saveChangedIfAbsent(long feedId, Map<Long, Long> voteCounts) {
     saveIfAbsent(feedId, voteCounts);
     markChanged(feedId);
@@ -116,9 +128,18 @@ public class FeedVoteCountCacheRepositoryImpl implements FeedVoteCountCacheRepos
   }
 
   @Override
-  public void updateIfPresent(long feedId, Map<Long, Long> voteCounts) {
-    redisTemplate.execute(
-        UPDATE_IF_PRESENT, List.of(buildKey(feedId)), toFieldValues(voteCounts).toArray());
+  public void updateIfUnchanged(
+      long feedId, Map<Long, Long> expectedCounts, Map<Long, Long> voteCounts) {
+    Object[] args =
+        voteCounts.entrySet().stream()
+            .flatMap(
+                entry ->
+                    Stream.of(
+                        String.valueOf(entry.getKey()),
+                        String.valueOf(expectedCounts.getOrDefault(entry.getKey(), 0L)),
+                        String.valueOf(entry.getValue())))
+            .toArray();
+    redisTemplate.execute(UPDATE_IF_UNCHANGED, List.of(buildKey(feedId)), args);
   }
 
   @Override

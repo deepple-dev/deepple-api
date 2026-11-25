@@ -31,9 +31,12 @@ public class VotedFeedCacheRepositoryImpl implements VotedFeedCacheRepository {
           return nil
           """,
           Long.class);
-  private static final RedisScript<Long> SAVE_WITH_TTL =
+  private static final RedisScript<Long> SAVE_IF_ABSENT =
       RedisScript.of(
           """
+          if redis.call('EXISTS', KEYS[1]) == 1 then
+            return 0
+          end
           for i = 2, #ARGV, 1000 do
             redis.call('HSET', KEYS[1], unpack(ARGV, i, math.min(i + 999, #ARGV)))
           end
@@ -65,7 +68,12 @@ public class VotedFeedCacheRepositoryImpl implements VotedFeedCacheRepository {
   }
 
   @Override
-  public void save(long memberId, Map<Long, Long> votedOptionIds) {
+  public boolean exists(long memberId) {
+    return Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(memberId)));
+  }
+
+  @Override
+  public void saveIfAbsent(long memberId, Map<Long, Long> votedOptionIds) {
     Object[] args =
         Stream.concat(
                 Stream.of(String.valueOf(TTL.toSeconds()), LOADED_MARKER, LOADED_VALUE),
@@ -74,7 +82,7 @@ public class VotedFeedCacheRepositoryImpl implements VotedFeedCacheRepository {
                         Stream.of(
                             String.valueOf(entry.getKey()), String.valueOf(entry.getValue()))))
             .toArray();
-    redisTemplate.execute(SAVE_WITH_TTL, List.of(buildKey(memberId)), args);
+    redisTemplate.execute(SAVE_IF_ABSENT, List.of(buildKey(memberId)), args);
   }
 
   @Override

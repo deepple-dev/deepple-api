@@ -32,9 +32,12 @@ public class LikedFeedCacheRepositoryImpl implements LikedFeedCacheRepository {
           """,
           Long.class);
 
-  private static final RedisScript<Long> SAVE_WITH_TTL =
+  private static final RedisScript<Long> SAVE_IF_ABSENT =
       RedisScript.of(
           """
+          if redis.call('EXISTS', KEYS[1]) == 1 then
+            return 0
+          end
           for i = 2, #ARGV, 1000 do
             redis.call('SADD', KEYS[1], unpack(ARGV, i, math.min(i + 999, #ARGV)))
           end
@@ -62,13 +65,18 @@ public class LikedFeedCacheRepositoryImpl implements LikedFeedCacheRepository {
   }
 
   @Override
-  public void save(long memberId, Collection<Long> likedFeedIds) {
+  public boolean exists(long memberId) {
+    return Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(memberId)));
+  }
+
+  @Override
+  public void saveIfAbsent(long memberId, Collection<Long> likedFeedIds) {
     Object[] args =
         Stream.concat(
                 Stream.of(String.valueOf(TTL.toSeconds()), LOADED_MARKER),
                 likedFeedIds.stream().map(String::valueOf))
             .toArray();
-    redisTemplate.execute(SAVE_WITH_TTL, List.of(buildKey(memberId)), args);
+    redisTemplate.execute(SAVE_IF_ABSENT, List.of(buildKey(memberId)), args);
   }
 
   @Override
