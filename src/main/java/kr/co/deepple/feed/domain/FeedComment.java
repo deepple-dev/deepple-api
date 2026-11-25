@@ -72,6 +72,10 @@ public class FeedComment extends SoftDeleteBaseEntity {
     return status == FeedCommentStatus.HIDDEN_BY_REPORT;
   }
 
+  public void hideByReport() {
+    this.status = FeedCommentStatus.HIDDEN_BY_REPORT;
+  }
+
   private static void validateTopLevel(FeedComment parent) {
     if (parent.isReply()) {
       throw invalidParentCommentException(parent);

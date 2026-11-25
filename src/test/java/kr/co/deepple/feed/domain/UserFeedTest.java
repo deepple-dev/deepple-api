@@ -141,4 +141,27 @@ class UserFeedTest {
     assertErrorCode(
         () -> feed.changeStatus(FeedStatus.PUBLISHED), FeedErrorCode.INVALID_FEED_STATUS_CHANGE);
   }
+
+  @Test
+  @DisplayName("공개된 피드를 신고로 숨기면 비공개_신고가 된다")
+  void hidePublishedFeedByReport() {
+    TextFeed feed = TextFeedFixture.builder().status(FeedStatus.PUBLISHED).build();
+
+    feed.hideByReport();
+
+    assertThat(feed.getStatus()).isEqualTo(FeedStatus.HIDDEN_BY_REPORT);
+    assertThat(feed.isHiddenByReport()).isTrue();
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = FeedStatus.class,
+      names = {"PUBLISHED"},
+      mode = EnumSource.Mode.EXCLUDE)
+  @DisplayName("공개되지 않은 피드는 신고로 숨길 수 없다")
+  void rejectHidingUnpublishedFeedByReport(FeedStatus status) {
+    TextFeed feed = TextFeedFixture.builder().status(status).build();
+
+    assertThatThrownBy(feed::hideByReport).isInstanceOf(IllegalStateException.class);
+  }
 }

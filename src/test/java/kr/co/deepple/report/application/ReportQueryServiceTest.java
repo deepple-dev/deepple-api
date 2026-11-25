@@ -49,7 +49,8 @@ class ReportQueryServiceTest {
     when(reportQueryRepository.getPage(condition, pageable))
         .thenReturn(
             new PageImpl<>(
-                List.of(new RawReportView(1L, 10L, 20L, "ETC", "PENDING", CREATED_AT)),
+                List.of(
+                    new RawReportView(1L, 10L, 20L, "FEED", 100L, "ETC", "PENDING", CREATED_AT)),
                 pageable,
                 1));
     when(findMemberSummaryUseCase.findMemberSummaries(Set.of(10L, 20L)))
@@ -64,6 +65,8 @@ class ReportQueryServiceTest {
     assertThat(view.reporterNickname()).isEqualTo("신고자");
     assertThat(view.reporteeId()).isEqualTo(20L);
     assertThat(view.reporteeNickname()).isNull();
+    assertThat(view.targetType()).isEqualTo("FEED");
+    assertThat(view.targetId()).isEqualTo(100L);
     assertThat(view.reason()).isEqualTo("ETC");
     assertThat(view.result()).isEqualTo("PENDING");
     assertThat(view.createdAt()).isEqualTo(CREATED_AT);
@@ -75,13 +78,16 @@ class ReportQueryServiceTest {
     when(reportQueryRepository.findReportDetailView(1L))
         .thenReturn(
             Optional.of(
-                new RawReportDetailView(1L, 3L, 10L, 20L, "ETC", "PENDING", "내용", CREATED_AT)));
+                new RawReportDetailView(
+                    1L, 3L, 10L, 20L, "MEMBER", 20L, "ETC", "PENDING", "내용", CREATED_AT)));
     when(findMemberSummaryUseCase.findMemberSummaries(Set.of(10L, 20L)))
         .thenReturn(Map.of(10L, summary(10L, "신고자"), 20L, summary(20L, "대상")));
 
     ReportDetailView view = reportQueryService.getReport(1L);
 
     assertThat(view.version()).isEqualTo(3L);
+    assertThat(view.targetType()).isEqualTo("MEMBER");
+    assertThat(view.targetId()).isEqualTo(20L);
     assertThat(view.reporterNickname()).isEqualTo("신고자");
     assertThat(view.reporteeNickname()).isEqualTo("대상");
     assertThat(view.content()).isEqualTo("내용");

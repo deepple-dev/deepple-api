@@ -6,6 +6,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import kr.co.deepple.report.domain.Report;
 import kr.co.deepple.report.domain.ReportReasonType;
 import kr.co.deepple.report.domain.ReportResult;
+import kr.co.deepple.report.domain.ReportTargetType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +20,8 @@ public class ReportFixture {
   private Long id;
   private long reporterId = 1L;
   private long reporteeId = 2L;
+  private ReportTargetType targetType = ReportTargetType.MEMBER;
+  private Long targetId;
   private Long adminId;
   private ReportReasonType reason = ReportReasonType.STOLEN_IMAGE;
   private String content = "신고 내용";
@@ -34,6 +37,8 @@ public class ReportFixture {
     setField(report, "id", id);
     setField(report, "reporterId", reporterId);
     setField(report, "reporteeId", reporteeId);
+    setField(report, "targetType", targetType);
+    setField(report, "targetId", targetId == null ? reporteeId : targetId);
     setField(report, "adminId", adminId);
     setField(report, "reason", reason);
     setField(report, "content", content);

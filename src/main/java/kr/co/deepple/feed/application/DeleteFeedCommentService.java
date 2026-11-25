@@ -23,7 +23,7 @@ public class DeleteFeedCommentService implements DeleteFeedCommentUseCase {
     FeedAuthor me = feedAuthorReader.getMember(memberId);
     FeedComment comment =
         feedCommentRepository
-            .findByIdAndAuthorId(commentId, me.getId())
+            .findByIdAndAuthorIdForUpdate(commentId, me.getId())
             .orElseThrow(() -> commentNotFoundException(commentId, memberId));
     comment.delete();
   }

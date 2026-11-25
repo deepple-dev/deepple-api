@@ -26,7 +26,7 @@ public class DeleteFeedService implements DeleteFeedUseCase {
     FeedAuthor author = feedAuthorReader.getMember(memberId);
     Feed feed =
         feedRepository
-            .findByIdAndAuthorIdAndDeletedAtIsNull(feedId, author.getId())
+            .findByIdAndAuthorIdForUpdate(feedId, author.getId())
             .orElseThrow(() ->
                 new DeeppleException(
                     FeedErrorCode.FEED_NOT_FOUND, "feedId=" + feedId + ", memberId=" + memberId));

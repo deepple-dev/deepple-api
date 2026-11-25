@@ -30,6 +30,12 @@ public class Report extends BaseEntity {
 
   private long reporteeId;
 
+  @Enumerated(EnumType.STRING)
+  @Column(columnDefinition = "varchar(50)", nullable = false)
+  private ReportTargetType targetType;
+
+  private long targetId;
+
   private Long adminId;
 
   @Enumerated(EnumType.STRING)
@@ -47,6 +53,8 @@ public class Report extends BaseEntity {
   private Report(
       long reporterId,
       long reporteeId,
+      @NonNull ReportTargetType targetType,
+      long targetId,
       Long adminId,
       @NonNull ReportReasonType reason,
       @NonNull String content,
@@ -54,8 +62,15 @@ public class Report extends BaseEntity {
     if (reporterId == reporteeId) {
       throw new DeeppleException(ReportErrorCode.SELF_REPORT, "memberId=" + reporterId);
     }
+    if (targetType == ReportTargetType.MEMBER && targetId != reporteeId) {
+      throw new DeeppleException(
+          ReportErrorCode.INVALID_REPORT_TARGET,
+          "reporteeId=" + reporteeId + ", targetId=" + targetId);
+    }
     this.reporterId = reporterId;
     this.reporteeId = reporteeId;
+    this.targetType = targetType;
+    this.targetId = targetId;
     this.adminId = adminId;
     this.reason = reason;
     this.content = content;
@@ -63,8 +78,18 @@ public class Report extends BaseEntity {
   }
 
   public static Report of(
-      long reporterId, long reporteeId, ReportReasonType reason, String content) {
-    return new Report(reporterId, reporteeId, null, reason, content, ReportResult.PENDING);
+      long reporterId,
+      long reporteeId,
+      ReportTargetType targetType,
+      long targetId,
+      ReportReasonType reason,
+      String content) {
+    return new Report(
+        reporterId, reporteeId, targetType, targetId, null, reason, content, ReportResult.PENDING);
+  }
+
+  public boolean isContentReport() {
+    return targetType != ReportTargetType.MEMBER;
   }
 
   public void reject(long adminId) {

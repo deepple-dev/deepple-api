@@ -11,7 +11,7 @@ public enum ReportReasonType {
   INAPPROPRIATE_IMAGE("부적절한 사진"),
   EXPLICIT_CONTENT("과도한 성적 컨텐츠"),
   OFFENSIVE_LANGUAGE("욕설 또는 불쾌한 표현"),
-  CONTACT_IN_PROFILE("프로필 연락처 노출"),
+  CONTACT_EXPOSURE("연락처 노출"),
   SPAM_OR_ADVERTISING("스팸 또는 광고"),
   HATE_OR_HARASSMENT("혐오 또는 괴롭힘"),
   ETC("기타");

@@ -5,12 +5,10 @@ import kr.co.deepple.feed.application.dto.FeedCommentCreateRequest;
 import kr.co.deepple.feed.application.dto.FeedCommentView;
 import kr.co.deepple.feed.application.dto.FeedCommentWithAuthor;
 import kr.co.deepple.feed.application.port.in.CreateFeedCommentUseCase;
-import kr.co.deepple.feed.application.port.out.FeedBlockRepository;
 import kr.co.deepple.feed.application.port.out.FeedCommentRepository;
 import kr.co.deepple.feed.domain.FeedAuthor;
 import kr.co.deepple.feed.domain.FeedComment;
 import kr.co.deepple.feed.domain.FeedErrorCode;
-import kr.co.deepple.feed.domain.FeedViewer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +18,7 @@ public class CreateFeedCommentService implements CreateFeedCommentUseCase {
 
   private final FeedAuthorReader feedAuthorReader;
   private final FeedAccessChecker feedAccessChecker;
-  private final FeedBlockRepository feedBlockRepository;
+  private final FeedCommentAccessChecker feedCommentAccessChecker;
   private final FeedCommentRepository feedCommentRepository;
   private final FeedCommentCounter feedCommentCounter;
   private final FeedViewAssembler feedViewAssembler;
@@ -46,40 +44,12 @@ public class CreateFeedCommentService implements CreateFeedCommentUseCase {
   }
 
   private FeedComment findReplyableParent(FeedAuthor me, long feedId, long parentCommentId) {
-    FeedComment parent =
-        feedCommentRepository
-            .findById(parentCommentId)
-            .filter(comment -> comment.getFeedId() == feedId)
-            .orElseThrow(() -> commentNotFoundException(parentCommentId, me));
-    validateReplyable(parent, me);
+    FeedComment parent = feedCommentAccessChecker.getVisibleComment(me, parentCommentId);
+    if (parent.getFeedId() != feedId) {
+      throw new DeeppleException(
+          FeedErrorCode.FEED_COMMENT_NOT_FOUND,
+          "commentId=" + parentCommentId + ", memberId=" + me.getMemberId());
+    }
     return parent;
-  }
-
-  private void validateReplyable(FeedComment parent, FeedAuthor me) {
-    if (!isReplyable(parent, me)) {
-      throw commentNotFoundException(parent.getId(), me);
-    }
-  }
-
-  private boolean isReplyable(FeedComment parent, FeedAuthor me) {
-    if (parent.isDeleted()) {
-      return false;
-    }
-    if (parent.isHiddenByReport()) {
-      return false;
-    }
-    return canSeeAuthor(parent, me);
-  }
-
-  private boolean canSeeAuthor(FeedComment parent, FeedAuthor me) {
-    FeedViewer viewer =
-        FeedViewer.of(me, feedBlockRepository.findBlockRelatedMemberIds(me.getMemberId()));
-    return viewer.canSeeAuthor(feedAuthorReader.getAuthor(parent.getAuthorId()));
-  }
-
-  private DeeppleException commentNotFoundException(long commentId, FeedAuthor me) {
-    return new DeeppleException(
-        FeedErrorCode.FEED_COMMENT_NOT_FOUND,
-        "commentId=" + commentId + ", memberId=" + me.getMemberId());
   }
 }
