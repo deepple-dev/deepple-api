@@ -32,9 +32,15 @@ public class LikedFeedReader {
     return findLikedFeedIds(memberId, Set.of(feedId)).contains(feedId);
   }
 
+  public void loadIfAbsent(long memberId) {
+    if (!likedFeedCacheRepository.exists(memberId)) {
+      loadLikedFeedIds(memberId);
+    }
+  }
+
   private Set<Long> loadLikedFeedIds(long memberId) {
     List<Long> likedFeedIds = feedLikeRepository.findFeedIdsByMemberId(memberId);
-    likedFeedCacheRepository.save(memberId, likedFeedIds);
+    likedFeedCacheRepository.saveIfAbsent(memberId, likedFeedIds);
     return Set.copyOf(likedFeedIds);
   }
 }

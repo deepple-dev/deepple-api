@@ -5,15 +5,16 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import kr.co.deepple.feed.application.dto.FeedAuthorSnapshot;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
 import kr.co.deepple.feed.application.port.out.FeedSnapshotCacheRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.connection.SetCondition;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Repository;
 import tools.jackson.databind.ObjectMapper;
 
@@ -24,6 +25,8 @@ public class FeedSnapshotCacheRepositoryImpl implements FeedSnapshotCacheReposit
   private static final String FEED_KEY_PREFIX = "feed:content:v1:";
   private static final String AUTHOR_KEY_PREFIX = "feed:author:v1:";
   private static final Duration TTL = Duration.ofHours(1);
+  private static final String INVALIDATED_MARKER = "invalidated";
+  private static final Duration INVALIDATED_TTL = Duration.ofSeconds(10);
 
   private final StringRedisTemplate redisTemplate;
   private final ObjectMapper objectMapper;
@@ -39,8 +42,8 @@ public class FeedSnapshotCacheRepositoryImpl implements FeedSnapshotCacheReposit
   }
 
   @Override
-  public void deleteFeed(long feedId) {
-    redisTemplate.delete(FEED_KEY_PREFIX + feedId);
+  public void invalidateFeed(long feedId) {
+    invalidate(FEED_KEY_PREFIX + feedId);
   }
 
   @Override
@@ -54,8 +57,12 @@ public class FeedSnapshotCacheRepositoryImpl implements FeedSnapshotCacheReposit
   }
 
   @Override
-  public void deleteAuthor(long authorId) {
-    redisTemplate.delete(AUTHOR_KEY_PREFIX + authorId);
+  public void invalidateAuthor(long authorId) {
+    invalidate(AUTHOR_KEY_PREFIX + authorId);
+  }
+
+  private void invalidate(String key) {
+    redisTemplate.opsForValue().set(key, INVALIDATED_MARKER, INVALIDATED_TTL);
   }
 
   private <T> List<T> findAll(String keyPrefix, Collection<Long> ids, Class<T> type) {
@@ -68,7 +75,7 @@ public class FeedSnapshotCacheRepositoryImpl implements FeedSnapshotCacheReposit
       return List.of();
     }
     return values.stream()
-        .filter(Objects::nonNull)
+        .filter(value -> value != null && !INVALIDATED_MARKER.equals(value))
         .map(value -> objectMapper.readValue(value, type))
         .toList();
   }
@@ -86,7 +93,13 @@ public class FeedSnapshotCacheRepositoryImpl implements FeedSnapshotCacheReposit
         (RedisCallback<Object>)
             connection -> {
               jsonByKey.forEach((key, json) ->
-                  connection.stringCommands().setEx(toBytes(key), TTL.toSeconds(), toBytes(json)));
+                  connection
+                      .stringCommands()
+                      .set(
+                          toBytes(key),
+                          toBytes(json),
+                          SetCondition.ifAbsent(),
+                          Expiration.from(TTL)));
               return null;
             });
   }

@@ -12,3 +12,4 @@ paths:
 - 엔티티 테스트 데이터는 fixture로 만든다: `MemberFixture.builder().gender(FEMALE).build()`. 테스트와 관련된 값만 지정하고, fixture는 저장하지 않는다.
 - 엔티티를 추가하거나 필드를 바꾸면 fixture와 `FixturePersistenceTest`도 같이 고친다.
 - 라이브러리·framework 동작을 검증하는 테스트는 쓰지 않는다(예: Jackson 직렬화 왕복, Lombok `@NonNull` 검사).
+- 실패하는 테스트를 `@Disabled`로 끄거나 지워서 빌드를 통과시키지 않는다. 원인을 고친다.

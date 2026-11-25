@@ -10,6 +10,8 @@ public interface FeedLikeCountCacheRepository {
 
   void saveAllIfAbsent(Map<Long, Long> likeCounts);
 
+  boolean exists(long feedId);
+
   void saveChangedIfAbsent(long feedId, long likeCount);
 
   boolean incrementIfPresent(long feedId);
@@ -18,7 +20,7 @@ public interface FeedLikeCountCacheRepository {
 
   List<Long> popChangedFeedIds(int count);
 
-  void updateIfPresent(long feedId, long likeCount);
+  void updateIfUnchanged(long feedId, long expectedCount, long likeCount);
 
   void delete(long feedId);
 }

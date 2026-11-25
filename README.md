@@ -68,6 +68,5 @@ Claude Code를 쓰면 `/issue <작업 설명>`, `/branch <이슈번호>`, `/comm
 
 ## 문서
 
-- [CLAUDE.md](CLAUDE.md): 구조, 도메인, 코딩 규칙
-- [`.claude/rules/`](.claude/rules): Java, Swagger, 외부 API 연동, DB, 테스트, 빌드 규칙
+- [`.claude/rules/`](.claude/rules): 모듈 경계, Java, 예외, 로깅, 이벤트, Swagger, 외부 API 연동, DB, 테스트, 빌드 규칙
 - [infra/terraform/README.md](infra/terraform/README.md): 인프라, secret, 배포 절차

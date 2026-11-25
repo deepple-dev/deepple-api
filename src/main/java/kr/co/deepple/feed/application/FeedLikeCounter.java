@@ -12,6 +12,12 @@ public class FeedLikeCounter {
   private final FeedLikeCountCacheRepository feedLikeCountCacheRepository;
   private final FeedLikeRepository feedLikeRepository;
 
+  public void loadIfAbsent(long feedId) {
+    if (!feedLikeCountCacheRepository.exists(feedId)) {
+      loadLikeCount(feedId);
+    }
+  }
+
   public void increase(long feedId) {
     if (!feedLikeCountCacheRepository.incrementIfPresent(feedId)) {
       loadLikeCount(feedId);
