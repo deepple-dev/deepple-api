@@ -17,7 +17,7 @@ public record MemberSummaryView(
         String personalityType,
     @Schema(description = "연애고사 대표 유형명", example = "자기주도형") String personalityTypeName,
     @Schema(description = "대표 프로필 사진. 블러 처리하지 않는다") String profileImageUrl,
-    int age,
+    @Schema(description = "나이. 출생 연도가 없으면 null이다", example = "32") Integer age,
     @Schema(description = "성별. 값은 회원 프로필의 gender와 같다", example = "MALE") String gender,
     @Schema(description = "지역. 값은 회원 프로필의 city와 같다", example = "SEOUL") String city,
     @Schema(description = "세부 지역. 값은 회원 프로필의 district와 같다", example = "DONGJAK_GU") String district,
