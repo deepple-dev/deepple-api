@@ -90,6 +90,30 @@ public class FeedController {
     return ResponseEntity.ok(findOfficialFeedsUseCase.findOfficialFeeds(memberId, cursor));
   }
 
+  @Operation(
+      summary = "내가 쓴 글 하나씩 보기 목록 조회",
+      description =
+          "내 피드 격자(/me/feeds)와 같은 순서·같은 커서로, 피드 상세와 같은 모양을 최대 20개씩 준다. 심사 대기·반려된 피드도 포함한다. 격자에서 누른 칸이 있는 페이지의 커서로 부르고, 누른 피드는 feedId로 찾는다.")
+  @GetMapping("/me/feeds/views")
+  public ResponseEntity<FeedViews> getMyFeedViews(
+      @CurrentMemberId long memberId,
+      @Parameter(description = "격자와 같은 커서. 첫 페이지는 비운다") @RequestParam(required = false)
+          String cursor) {
+    return ResponseEntity.ok(findMyFeedsUseCase.findMyFeedViews(memberId, cursor));
+  }
+
+  @Operation(
+      summary = "공식 계정 피드 하나씩 보기 목록 조회",
+      description =
+          "공식 계정 격자(/official/feeds)와 같은 순서·같은 커서로, 피드 상세와 같은 모양을 최대 20개씩 준다. 격자에서 누른 칸이 있는 페이지의 커서로 부르고, 누른 피드는 feedId로 찾는다.")
+  @GetMapping("/official/feeds/views")
+  public ResponseEntity<FeedViews> getOfficialFeedViews(
+      @CurrentMemberId long memberId,
+      @Parameter(description = "격자와 같은 커서. 첫 페이지는 비운다") @RequestParam(required = false)
+          String cursor) {
+    return ResponseEntity.ok(findOfficialFeedsUseCase.findOfficialFeedViews(memberId, cursor));
+  }
+
   @Operation(summary = "피드 상세 조회")
   @GetMapping("/feeds/{feedId}")
   public ResponseEntity<FeedView> getFeed(

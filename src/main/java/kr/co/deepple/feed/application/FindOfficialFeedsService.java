@@ -3,12 +3,17 @@ package kr.co.deepple.feed.application;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import kr.co.deepple.feed.application.dto.FeedAuthorSnapshot;
 import kr.co.deepple.feed.application.dto.FeedCounts;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
+import kr.co.deepple.feed.application.dto.FeedView;
+import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.OfficialFeedGridItemView;
 import kr.co.deepple.feed.application.dto.OfficialFeedGridViews;
 import kr.co.deepple.feed.application.dto.OfficialFeedSortKey;
+import kr.co.deepple.feed.application.dto.PollVotes;
 import kr.co.deepple.feed.application.port.in.FindOfficialFeedsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.domain.Feed;
@@ -30,6 +35,9 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
   private final FeedAuthorReader feedAuthorReader;
   private final FeedCountReader feedCountReader;
   private final FeedViewAssembler feedViewAssembler;
+  private final FeedSnapshotReader feedSnapshotReader;
+  private final LikedFeedReader likedFeedReader;
+  private final FeedPollVotesReader feedPollVotesReader;
 
   @Override
   @Transactional(readOnly = true)
@@ -40,6 +48,43 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
     }
     List<OfficialFeed> feeds = findFeeds(me.getGrade(), cursor);
     return toGridViews(feeds);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public FeedViews findOfficialFeedViews(long memberId, String cursor) {
+    FeedAuthor me = feedAuthorReader.getMember(memberId);
+    if (me.hasNoGrade()) {
+      return FeedViews.empty();
+    }
+    List<OfficialFeed> feeds = findFeeds(me.getGrade(), cursor);
+    if (isLastPage(feeds)) {
+      return new FeedViews(toFeedViews(me, feeds), null, false);
+    }
+    List<OfficialFeed> page = feeds.subList(0, PAGE_SIZE);
+    String nextCursor = OfficialFeedSortKey.of(page.getLast()).toCursor();
+    return new FeedViews(toFeedViews(me, page), nextCursor, true);
+  }
+
+  private List<FeedView> toFeedViews(FeedAuthor me, List<OfficialFeed> feeds) {
+    List<FeedSnapshot> snapshots = feeds.stream().map(FeedSnapshot::from).toList();
+    Set<Long> feedIds = snapshots.stream().map(FeedSnapshot::feedId).collect(Collectors.toSet());
+    Map<Long, FeedCounts> counts = feedCountReader.read(feedIds);
+    Set<Long> likedFeedIds = likedFeedReader.findLikedFeedIds(me.getMemberId(), feedIds);
+    Map<Long, PollVotes> pollVotes = feedPollVotesReader.read(me, snapshots);
+    Map<Long, FeedAuthorSnapshot> authors =
+        feedSnapshotReader.readAuthors(
+            snapshots.stream().map(FeedSnapshot::authorId).distinct().toList());
+    return snapshots.stream()
+        .map(feed ->
+            feedViewAssembler.toView(
+                feed,
+                authors.get(feed.authorId()),
+                false,
+                likedFeedIds.contains(feed.feedId()),
+                counts.get(feed.feedId()),
+                pollVotes.get(feed.feedId())))
+        .toList();
   }
 
   private List<OfficialFeed> findFeeds(String grade, String cursor) {

@@ -2,12 +2,17 @@ package kr.co.deepple.feed.application;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.feed.application.dto.FeedAuthorSnapshot;
 import kr.co.deepple.feed.application.dto.FeedCounts;
 import kr.co.deepple.feed.application.dto.FeedGridItemView;
 import kr.co.deepple.feed.application.dto.FeedGridViews;
 import kr.co.deepple.feed.application.dto.FeedSnapshot;
+import kr.co.deepple.feed.application.dto.FeedView;
+import kr.co.deepple.feed.application.dto.FeedViews;
+import kr.co.deepple.feed.application.dto.PollVotes;
 import kr.co.deepple.feed.application.port.in.FindMyFeedsUseCase;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
 import kr.co.deepple.feed.domain.Feed;
@@ -28,6 +33,8 @@ public class FindMyFeedsService implements FindMyFeedsUseCase {
   private final FeedAuthorReader feedAuthorReader;
   private final FeedCountReader feedCountReader;
   private final FeedViewAssembler feedViewAssembler;
+  private final LikedFeedReader likedFeedReader;
+  private final FeedPollVotesReader feedPollVotesReader;
 
   @Override
   @Transactional(readOnly = true)
@@ -38,6 +45,36 @@ public class FindMyFeedsService implements FindMyFeedsUseCase {
     List<Feed> page = hasMore ? feeds.subList(0, PAGE_SIZE) : feeds;
     String nextCursor = hasMore ? String.valueOf(page.getLast().getId()) : null;
     return new FeedGridViews(toGridItemViews(page), nextCursor, hasMore);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public FeedViews findMyFeedViews(long memberId, String cursor) {
+    FeedAuthor me = feedAuthorReader.getMember(memberId);
+    List<Feed> feeds = findFeeds(me.getId(), parseCursor(cursor));
+    boolean hasMore = feeds.size() > PAGE_SIZE;
+    List<Feed> page = hasMore ? feeds.subList(0, PAGE_SIZE) : feeds;
+    String nextCursor = hasMore ? String.valueOf(page.getLast().getId()) : null;
+    return new FeedViews(toFeedViews(me, page), nextCursor, hasMore);
+  }
+
+  private List<FeedView> toFeedViews(FeedAuthor me, List<Feed> feeds) {
+    List<FeedSnapshot> snapshots = feeds.stream().map(FeedSnapshot::from).toList();
+    Set<Long> feedIds = snapshots.stream().map(FeedSnapshot::feedId).collect(Collectors.toSet());
+    Map<Long, FeedCounts> counts = feedCountReader.read(feedIds);
+    Set<Long> likedFeedIds = likedFeedReader.findLikedFeedIds(me.getMemberId(), feedIds);
+    Map<Long, PollVotes> pollVotes = feedPollVotesReader.read(me, snapshots);
+    FeedAuthorSnapshot author = FeedAuthorSnapshot.from(me);
+    return snapshots.stream()
+        .map(feed ->
+            feedViewAssembler.toView(
+                feed,
+                author,
+                true,
+                likedFeedIds.contains(feed.feedId()),
+                counts.get(feed.feedId()),
+                pollVotes.get(feed.feedId())))
+        .toList();
   }
 
   private List<Feed> findFeeds(long authorId, Long lastFeedId) {

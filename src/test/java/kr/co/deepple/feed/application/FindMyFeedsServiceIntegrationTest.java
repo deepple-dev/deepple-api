@@ -10,6 +10,8 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.feed.application.dto.FeedGridItemView;
 import kr.co.deepple.feed.application.dto.FeedGridViews;
+import kr.co.deepple.feed.application.dto.FeedView;
+import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
 import kr.co.deepple.feed.application.port.out.FeedBlockRepository;
 import kr.co.deepple.feed.application.port.out.FeedRepository;
@@ -112,6 +114,39 @@ class FindMyFeedsServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(poll.content()).isEqualTo("주말에 뭐 할까요?");
     assertThat(poll.pollOptions()).containsExactly("영화", "산책", "집콕");
     assertThat(views.feeds().get(1).pollOptions()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("하나씩 보기 목록은 격자와 같은 순서·커서로 피드 상세 모양을 주고, 내 투표 피드는 결과가 보인다")
+  void getMyFeedViewsWithSameCursorAsGrid() {
+    // given
+    IntStream.rangeClosed(1, 21)
+        .forEach(index ->
+            feedRepository.save(
+                TextFeedFixture.builder().authorId(viewer.getId()).content("글 " + index).build()));
+    feedRepository.save(
+        PollFeedFixture.builder()
+            .authorId(viewer.getId())
+            .question("주말에 뭐 할까요?")
+            .options(List.of("영화", "산책"))
+            .build());
+
+    // when
+    FeedGridViews grid = findMyFeedsService.findMyFeeds(VIEWER_MEMBER_ID, null);
+    FeedViews first = findMyFeedsService.findMyFeedViews(VIEWER_MEMBER_ID, null);
+    FeedViews second = findMyFeedsService.findMyFeedViews(VIEWER_MEMBER_ID, first.nextCursor());
+
+    // then
+    assertThat(first.feeds())
+        .extracting(FeedView::feedId)
+        .containsExactlyElementsOf(grid.feeds().stream().map(FeedGridItemView::feedId).toList());
+    assertThat(first.nextCursor()).isEqualTo(grid.nextCursor());
+    FeedView poll = first.feeds().getFirst();
+    assertThat(poll.isMine()).isTrue();
+    assertThat(poll.poll().isResultVisible()).isTrue();
+    assertThat(poll.createdAt()).isNotNull();
+    assertThat(second.feeds()).extracting(FeedView::content).containsExactly("글 2", "글 1");
+    assertThat(second.hasMore()).isFalse();
   }
 
   @Test

@@ -6,6 +6,8 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import java.time.LocalDateTime;
 import java.util.Set;
 import kr.co.deepple.common.support.IntegrationTestSupport;
+import kr.co.deepple.feed.application.dto.FeedView;
+import kr.co.deepple.feed.application.dto.FeedViews;
 import kr.co.deepple.feed.application.dto.OfficialFeedGridItemView;
 import kr.co.deepple.feed.application.dto.OfficialFeedGridViews;
 import kr.co.deepple.feed.application.port.out.FeedAuthorRepository;
@@ -97,6 +99,50 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     OfficialFeedGridItemView item = views.feeds().getFirst();
     assertThat(item.content()).isEqualTo("12월 이벤트 안내");
     assertThat(item.likeCount()).isEqualTo(3L);
+  }
+
+  @Test
+  @DisplayName("하나씩 보기 목록은 격자와 같은 순서·커서로 관리자 작성자와 사진을 담은 피드 상세 모양을 준다")
+  void showOfficialFeedViewsWithSameCursorAsGrid() {
+    // given
+    for (int minutes = 1; minutes <= 12; minutes++) {
+      saveOfficialFeed(Set.of(), true, true, minutes);
+      saveOfficialFeed(Set.of(), false, true, minutes);
+    }
+
+    // when
+    OfficialFeedGridViews grid = findOfficialFeedsService.findOfficialFeeds(VIEWER_MEMBER_ID, null);
+    FeedViews first = findOfficialFeedsService.findOfficialFeedViews(VIEWER_MEMBER_ID, null);
+    FeedViews second =
+        findOfficialFeedsService.findOfficialFeedViews(VIEWER_MEMBER_ID, first.nextCursor());
+
+    // then
+    assertThat(first.feeds())
+        .extracting(FeedView::feedId)
+        .containsExactlyElementsOf(
+            grid.feeds().stream().map(OfficialFeedGridItemView::feedId).toList());
+    assertThat(first.nextCursor()).isEqualTo(grid.nextCursor());
+    FeedView view = first.feeds().getFirst();
+    assertThat(view.author().authorType()).isEqualTo("OFFICIAL");
+    assertThat(view.images()).isNotEmpty();
+    assertThat(view.isMine()).isFalse();
+    assertThat(second.feeds()).hasSize(4);
+    assertThat(second.hasMore()).isFalse();
+  }
+
+  @Test
+  @DisplayName("하나씩 보기 목록도 내 등급에 보이지 않거나 공개되지 않은 관리자 피드는 뺀다")
+  void excludeInvisibleOfficialFeedViews() {
+    // given
+    Feed visible = saveOfficialFeed(Set.of(), false, true, 1);
+    saveOfficialFeed(Set.of(), false, false, 2);
+    saveOfficialFeed(Set.of("DIAMOND"), false, true, 3);
+
+    // when
+    FeedViews views = findOfficialFeedsService.findOfficialFeedViews(VIEWER_MEMBER_ID, null);
+
+    // then
+    assertThat(views.feeds()).extracting(FeedView::feedId).containsExactly(visible.getId());
   }
 
   @Test
