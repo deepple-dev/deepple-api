@@ -3,6 +3,7 @@ package kr.co.deepple.payment.application;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.adapter.out.store.GooglePlayClient;
+import kr.co.deepple.payment.application.dto.VerifyReceiptResponse;
 import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.GooglePlayReceiptVerifiedEvent;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
@@ -22,15 +23,19 @@ public class GooglePlayPaymentService {
   private final GooglePlayClient googlePlayClient;
   private final OrderRepository orderRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final OrderService orderService;
 
-  public void verifyReceipt(String productId, String purchaseToken, long memberId) {
+  public VerifyReceiptResponse verifyReceipt(
+      String productId, String purchaseToken, long memberId) {
     ProductPurchase purchase = googlePlayClient.verifyPurchase(productId, purchaseToken);
     if (isConsumed(purchase)) {
       verifyAlreadyProcessed(purchase.getOrderId(), memberId);
-      return;
+    } else {
+      raiseReceiptVerifiedEvent(memberId, productId, purchase);
+      consumeSafely(productId, purchaseToken, purchase.getOrderId());
     }
-    raiseReceiptVerifiedEvent(memberId, productId, purchase);
-    consumeSafely(productId, purchaseToken, purchase.getOrderId());
+    return new VerifyReceiptResponse(
+        orderService.calculateHeartAmount(productId, googlePlayClient.resolveQuantity(purchase)));
   }
 
   private boolean isConsumed(ProductPurchase purchase) {

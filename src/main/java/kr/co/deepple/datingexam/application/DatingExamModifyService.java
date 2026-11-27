@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoResponse;
+import kr.co.deepple.datingexam.application.dto.DatingExamSubmitResponse;
 import kr.co.deepple.datingexam.application.port.in.DatingExamSubmitter;
 import kr.co.deepple.datingexam.application.port.out.DatingExamAnswerRepository;
 import kr.co.deepple.datingexam.application.port.out.DatingExamQueryRepository;
@@ -24,6 +25,7 @@ import kr.co.deepple.datingexam.domain.dto.AnswerSubmitRequest;
 import kr.co.deepple.datingexam.domain.dto.DatingExamSubmitRequest;
 import kr.co.deepple.datingexam.event.AllRequiredSubjectSubmittedEvent;
 import kr.co.deepple.datingexam.event.DominantPersonalityTypeChangedEvent;
+import kr.co.deepple.mission.application.port.in.FindMissionRewardUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,8 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 public class DatingExamModifyService implements DatingExamSubmitter {
 
+  private static final String FIRST_DATE_EXAM_MISSION_ACTION = "FIRST_DATE_EXAM";
+
   private final DatingExamSubjectRepository datingExamSubjectRepository;
   private final DatingExamSubmitRepository datingExamSubmitRepository;
   private final DatingExamQueryRepository datingExamQueryRepository;
@@ -43,16 +47,18 @@ public class DatingExamModifyService implements DatingExamSubmitter {
   private final DatingExamAnswerRepository datingExamAnswerRepository;
   private final DatingExamSubmitResultRepository datingExamSubmitResultRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final FindMissionRewardUseCase findMissionRewardUseCase;
 
   @Override
   @Transactional
-  public void submitSubject(DatingExamSubmitRequest submitRequest, long memberId) {
+  public DatingExamSubmitResponse submitSubject(
+      DatingExamSubmitRequest submitRequest, long memberId) {
     DatingExamSubject subject = getDatingExamSubject(submitRequest.subjectId());
     validateSubmit(submitRequest, subject, memberId);
     DatingExamSubmit datingExamSubmit = DatingExamSubmit.of(submitRequest, answerEncoder, memberId);
     datingExamSubmitRepository.save(datingExamSubmit);
     updateSubmitResult(submitRequest, memberId);
-    checkAndPublishAllRequiredSubjectsSubmitted(subject, memberId);
+    return new DatingExamSubmitResponse(completeRequiredSubjects(subject, memberId));
   }
 
   private void validateSubmit(
@@ -76,15 +82,15 @@ public class DatingExamModifyService implements DatingExamSubmitter {
                 DatingExamErrorCode.DATING_EXAM_SUBJECT_NOT_FOUND, "subjectId=" + subjectId));
   }
 
-  private void checkAndPublishAllRequiredSubjectsSubmitted(
-      DatingExamSubject subject, long memberId) {
-    if (subject.isRequired() == false) {
-      return;
+  private Integer completeRequiredSubjects(DatingExamSubject subject, long memberId) {
+    if (!subject.isRequired() || !isAllRequiredSubjectsSubmitted(memberId)) {
+      return null;
     }
-
-    if (isAllRequiredSubjectsSubmitted(memberId)) {
-      eventPublisher.publishEvent(AllRequiredSubjectSubmittedEvent.from(memberId));
-    }
+    Integer rewardedHeartAmount =
+        findMissionRewardUseCase.findNextRewardedHeartAmount(
+            memberId, FIRST_DATE_EXAM_MISSION_ACTION);
+    eventPublisher.publishEvent(AllRequiredSubjectSubmittedEvent.from(memberId));
+    return rewardedHeartAmount;
   }
 
   private void updateSubmitResult(DatingExamSubmitRequest submitRequest, long memberId) {

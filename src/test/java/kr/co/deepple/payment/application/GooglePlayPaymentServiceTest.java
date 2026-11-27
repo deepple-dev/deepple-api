@@ -1,5 +1,6 @@
 package kr.co.deepple.payment.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
@@ -11,6 +12,7 @@ import com.google.api.services.androidpublisher.model.ProductPurchase;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.adapter.out.store.GooglePlayClient;
+import kr.co.deepple.payment.application.dto.VerifyReceiptResponse;
 import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.GooglePlayReceiptVerifiedEvent;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
@@ -41,6 +43,8 @@ class GooglePlayPaymentServiceTest {
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
+  @Mock private OrderService orderService;
+
   @InjectMocks private GooglePlayPaymentService googlePlayPaymentService;
 
   @Test
@@ -50,9 +54,14 @@ class GooglePlayPaymentServiceTest {
     ProductPurchase purchase = new ProductPurchase().setOrderId(ORDER_ID);
     when(googlePlayClient.verifyPurchase(PRODUCT_ID, PURCHASE_TOKEN)).thenReturn(purchase);
     when(googlePlayClient.resolveQuantity(purchase)).thenReturn(QUANTITY);
+    when(orderService.calculateHeartAmount(PRODUCT_ID, QUANTITY)).thenReturn(45L);
 
-    // when & then
-    googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID);
+    // when
+    VerifyReceiptResponse response =
+        googlePlayPaymentService.verifyReceipt(PRODUCT_ID, PURCHASE_TOKEN, MEMBER_ID);
+
+    // then
+    assertThat(response.purchasedHeartAmount()).isEqualTo(45L);
 
     Mockito.verify(eventPublisher)
         .publishEvent(

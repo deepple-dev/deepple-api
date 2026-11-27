@@ -31,9 +31,7 @@ public class InterviewAnswerController {
   @PostMapping
   public ResponseEntity<InterviewAnswerCreateResponse> saveAnswer(
       @Valid @RequestBody InterviewAnswerSaveRequest request, @CurrentMemberId long memberId) {
-    boolean hasProcessedMission = interviewAnswerService.saveAnswer(request, memberId);
-    InterviewAnswerCreateResponse response = new InterviewAnswerCreateResponse(hasProcessedMission);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(interviewAnswerService.saveAnswer(request, memberId));
   }
 
   @Operation(summary = "인터뷰 답변 수정 API")

@@ -5,7 +5,6 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.lock.DistributedLockTemplate;
 import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
 import kr.co.deepple.payment.application.port.out.OrderRepository;
-import kr.co.deepple.payment.domain.HeartPurchaseOption;
 import kr.co.deepple.payment.domain.Order;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import kr.co.deepple.payment.domain.PaymentMethod;
@@ -78,17 +77,18 @@ public class OrderService {
     }
   }
 
+  public long calculateHeartAmount(String productId, int quantity) {
+    return heartPurchaseOptionRepository
+        .findByProductIdAndDeletedAtIsNull(productId.toUpperCase())
+        .orElseThrow(() ->
+            new DeeppleException(
+                PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND,
+                "하트 구매 옵션이 존재하지 않습니다. product id:" + productId))
+        .calculateHeartAmount(quantity);
+  }
+
   private void purchaseHeart(long memberId, long orderId, String productId, int quantity) {
-    String normalizedProductId = productId.toUpperCase();
-    HeartPurchaseOption heartPurchaseOption =
-        heartPurchaseOptionRepository
-            .findByProductIdAndDeletedAtIsNull(normalizedProductId)
-            .orElseThrow(() ->
-                new DeeppleException(
-                    PaymentErrorCode.HEART_PURCHASE_OPTION_NOT_FOUND,
-                    "하트 구매 옵션이 존재하지 않습니다. product id:" + productId));
     eventPublisher.publishEvent(
-        HeartPurchasedEvent.of(
-            memberId, orderId, heartPurchaseOption.calculateHeartAmount(quantity)));
+        HeartPurchasedEvent.of(memberId, orderId, calculateHeartAmount(productId, quantity)));
   }
 }

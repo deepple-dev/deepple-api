@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoWithSubjectSubmissionResponse;
+import kr.co.deepple.datingexam.application.dto.DatingExamSubmitResponse;
 import kr.co.deepple.datingexam.application.dto.DominantPersonalityTypeResponse;
 import kr.co.deepple.datingexam.application.port.in.DatingExamFinder;
 import kr.co.deepple.datingexam.application.port.in.DatingExamSubmitter;
@@ -29,11 +30,10 @@ public class DatingExamApi {
 
   @Operation(summary = "과목 답안 제출 API")
   @PostMapping("/submit")
-  public ResponseEntity<Void> submitRequiredExam(
+  public ResponseEntity<DatingExamSubmitResponse> submitRequiredExam(
       @RequestBody @Valid DatingExamSubmitRequest datingExamSubmitRequest,
       @CurrentMemberId long memberId) {
-    datingExamSubmitter.submitSubject(datingExamSubmitRequest, memberId);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(datingExamSubmitter.submitSubject(datingExamSubmitRequest, memberId));
   }
 
   @Operation(summary = "필수 과목 정보 조회 API")

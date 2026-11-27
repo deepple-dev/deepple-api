@@ -18,6 +18,9 @@ public interface MemberMissionRepository extends JpaRepository<MemberMission, Lo
       """)
   Optional<MemberMission> findForUpdate(long memberId, long missionId, String period);
 
+  Optional<MemberMission> findByMemberIdAndMissionIdAndPeriod(
+      long memberId, long missionId, String period);
+
   @Modifying
   @Query(
       value =

@@ -1,5 +1,6 @@
 package kr.co.deepple.payment.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -7,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.adapter.out.store.AppStoreClient;
+import kr.co.deepple.payment.application.dto.VerifyReceiptResponse;
 import kr.co.deepple.payment.domain.AppStoreReceiptVerifiedEvent;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +27,8 @@ class AppStorePaymentServiceTest {
   @Mock private AppStoreClient appStoreClient;
 
   @Mock private ApplicationEventPublisher eventPublisher;
+
+  @Mock private OrderService orderService;
 
   @InjectMocks private AppStorePaymentService appStorePaymentService;
 
@@ -46,9 +50,14 @@ class AppStorePaymentServiceTest {
     when(decodedPayload.getQuantity()).thenReturn(quantity);
 
     when(appStoreClient.verifyAndDecodeTransaction(signedTransaction)).thenReturn(decodedPayload);
+    when(orderService.calculateHeartAmount(productId, quantity)).thenReturn(45L);
 
-    // When & Then
-    appStorePaymentService.verifyReceipt(signedTransaction, memberId);
+    // When
+    VerifyReceiptResponse response =
+        appStorePaymentService.verifyReceipt(signedTransaction, memberId);
+
+    // Then
+    assertThat(response.purchasedHeartAmount()).isEqualTo(45L);
     Mockito.verify(eventPublisher)
         .publishEvent(
             ArgumentMatchers.<Object>argThat(event ->

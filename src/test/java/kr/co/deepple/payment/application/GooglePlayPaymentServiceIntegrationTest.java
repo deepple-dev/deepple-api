@@ -21,6 +21,7 @@ import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.payment.adapter.out.store.GooglePlayClient;
+import kr.co.deepple.payment.application.dto.VerifyReceiptResponse;
 import kr.co.deepple.payment.application.port.out.HeartPurchaseOptionRepository;
 import kr.co.deepple.payment.application.port.out.OrderRepository;
 import kr.co.deepple.payment.domain.HeartPurchaseOption;
@@ -58,6 +59,8 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ApplicationEventPublisher eventPublisher;
 
+  @Autowired private OrderService orderService;
+
   private HeartPurchaseOption option;
   private Member member;
 
@@ -70,7 +73,8 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
             HeartPurchaseOptionFixture.builder().amount(OPTION_AMOUNT).build());
     when(googlePlayClient.resolveQuantity(any())).thenReturn(1);
     googlePlayPaymentService =
-        new GooglePlayPaymentService(googlePlayClient, orderRepository, eventPublisher);
+        new GooglePlayPaymentService(
+            googlePlayClient, orderRepository, eventPublisher, orderService);
   }
 
   @AfterEach
@@ -105,8 +109,11 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
         .thenReturn(purchase(CONSUMPTION_STATE_CONSUMED));
     verifyReceipt();
 
-    // when & then
-    assertThatCode(this::verifyReceipt).doesNotThrowAnyException();
+    // when
+    VerifyReceiptResponse response = verifyReceipt();
+
+    // then
+    assertThat(response.purchasedHeartAmount()).isEqualTo(OPTION_AMOUNT);
     verify(googlePlayClient, times(1)).consumePurchase(option.getProductId(), PURCHASE_TOKEN);
     assertGrantedOnce();
   }
@@ -126,8 +133,9 @@ class GooglePlayPaymentServiceIntegrationTest extends IntegrationTestSupport {
     verify(googlePlayClient, never()).consumePurchase(any(), any());
   }
 
-  private void verifyReceipt() {
-    googlePlayPaymentService.verifyReceipt(option.getProductId(), PURCHASE_TOKEN, member.getId());
+  private VerifyReceiptResponse verifyReceipt() {
+    return googlePlayPaymentService.verifyReceipt(
+        option.getProductId(), PURCHASE_TOKEN, member.getId());
   }
 
   private ProductPurchase purchase(int consumptionState) {

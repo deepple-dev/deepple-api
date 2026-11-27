@@ -11,6 +11,7 @@ import kr.co.deepple.payment.application.GooglePlayPaymentService;
 import kr.co.deepple.payment.application.dto.AppleNotificationRequest;
 import kr.co.deepple.payment.application.dto.GooglePlayVerifyReceiptRequest;
 import kr.co.deepple.payment.application.dto.VerifyReceiptRequest;
+import kr.co.deepple.payment.application.dto.VerifyReceiptResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,18 +34,18 @@ public class PaymentController {
 
   @Operation(summary = "앱스토어 결제 영수증 인증")
   @PostMapping("/app-store/verify-receipt")
-  public ResponseEntity<Void> verifyReceipt(
+  public ResponseEntity<VerifyReceiptResponse> verifyReceipt(
       @Valid @RequestBody VerifyReceiptRequest request, @CurrentMemberId long memberId) {
-    appStorePaymentService.verifyReceipt(request.appReceipt(), memberId);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(appStorePaymentService.verifyReceipt(request.appReceipt(), memberId));
   }
 
   @Operation(summary = "Google Play 결제 영수증 인증")
   @PostMapping("/google-play/verify-receipt")
-  public ResponseEntity<Void> verifyGooglePlayReceipt(
+  public ResponseEntity<VerifyReceiptResponse> verifyGooglePlayReceipt(
       @Valid @RequestBody GooglePlayVerifyReceiptRequest request, @CurrentMemberId long memberId) {
-    googlePlayPaymentService.verifyReceipt(request.productId(), request.purchaseToken(), memberId);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(
+        googlePlayPaymentService.verifyReceipt(
+            request.productId(), request.purchaseToken(), memberId));
   }
 
   @Operation(

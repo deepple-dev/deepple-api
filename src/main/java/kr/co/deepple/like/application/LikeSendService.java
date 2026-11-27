@@ -5,6 +5,7 @@ import static kr.co.deepple.like.application.LikeMapper.toLikeLevel;
 import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.application.dto.LikeSendRequest;
+import kr.co.deepple.like.application.dto.LikeSendResponse;
 import kr.co.deepple.like.application.port.out.LikeRepository;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeErrorCode;
@@ -12,6 +13,7 @@ import kr.co.deepple.like.event.LikeSentEvent;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
+import kr.co.deepple.mission.application.port.in.MissionExecutionResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,7 @@ public class LikeSendService {
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
-  public boolean send(long senderId, LikeSendRequest request) {
+  public LikeSendResponse send(long senderId, LikeSendRequest request) {
     long receiverId = request.receiverId();
 
     if (likeRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
@@ -45,11 +47,11 @@ public class LikeSendService {
     Like like = Like.of(senderId, receiverId, toLikeLevel(request.likeLevel()));
     likeRepository.save(like);
 
-    boolean hasProcessedMission =
+    MissionExecutionResult missionResult =
         executeMissionUseCase.executeMissionsByAction(senderId, LIKE_MISSION_ACTION);
     eventPublisher.publishEvent(LikeSentEvent.of(senderId, sender.requireNickname(), receiverId));
 
-    return hasProcessedMission;
+    return LikeSendResponse.from(missionResult);
   }
 
   private void validateMember(MemberSummary sender, MemberSummary receiver) {
