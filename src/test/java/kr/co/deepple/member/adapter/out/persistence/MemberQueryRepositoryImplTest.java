@@ -72,7 +72,7 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
       Member member =
           MemberFixture.builder()
               .yearOfBirth(Calendar.getInstance().get(Calendar.YEAR) - 25)
-              .height(20)
+              .height(170)
               .highestEducation(HighestEducation.ASSOCIATE)
               .nickname("nickname")
               .district(District.DONG_GU_DAEJEON)
@@ -113,7 +113,7 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
       assertThat(detail.gender()).isEqualTo("MALE");
       assertThat(detail.yearOfBirth()).isEqualTo(member.getProfile().getYearOfBirth().getValue());
       assertThat(detail.age()).isEqualTo(member.getProfile().getYearOfBirth().getAge());
-      assertThat(detail.height()).isEqualTo(20);
+      assertThat(detail.height()).isEqualTo(170);
       assertThat(detail.job()).isEqualTo("JOB_SEARCHING");
       assertThat(detail.highestEducation()).isEqualTo("ASSOCIATE");
       assertThat(detail.city()).isEqualTo(member.getProfile().getRegion().getCity().name());

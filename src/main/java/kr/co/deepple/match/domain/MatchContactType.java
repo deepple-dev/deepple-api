@@ -7,6 +7,9 @@ public enum MatchContactType {
   KAKAO;
 
   public static MatchContactType from(String value) {
+    if (value == null) {
+      throw new DeeppleException(MatchErrorCode.INVALID_MATCH_CONTACT_TYPE, "value=null");
+    }
     try {
       return MatchContactType.valueOf(value);
     } catch (IllegalArgumentException e) {

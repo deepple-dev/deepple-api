@@ -22,4 +22,12 @@ class MatchContactTypeTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_CONTACT_TYPE);
   }
+
+  @Test
+  @DisplayName("연락 수단이 null 이면 INVALID_MATCH_CONTACT_TYPE 예외를 던진다.")
+  void throwWhenContactTypeIsNull() {
+    assertThatThrownBy(() -> MatchContactType.from(null))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", MatchErrorCode.INVALID_MATCH_CONTACT_TYPE);
+  }
 }
