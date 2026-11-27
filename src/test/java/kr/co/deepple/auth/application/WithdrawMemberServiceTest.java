@@ -8,9 +8,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.co.deepple.auth.application.port.out.MemberAccountRepository;
+import kr.co.deepple.auth.application.port.out.MemberWithdrawalRepository;
 import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.MemberAccount;
+import kr.co.deepple.auth.domain.MemberWithdrawal;
 import kr.co.deepple.auth.domain.TokenOwner;
+import kr.co.deepple.auth.domain.WithdrawalReason;
 import kr.co.deepple.auth.event.MemberAccountDeletedEvent;
 import kr.co.deepple.auth.fixture.MemberAccountFixture;
 import kr.co.deepple.common.exception.DeeppleException;
@@ -30,6 +33,8 @@ class WithdrawMemberServiceTest {
 
   @Mock private MemberAccountRepository memberAccountRepository;
 
+  @Mock private MemberWithdrawalRepository memberWithdrawalRepository;
+
   @Mock private RefreshTokenService refreshTokenService;
 
   @Mock private ApplicationEventPublisher eventPublisher;
@@ -42,7 +47,7 @@ class WithdrawMemberServiceTest {
     MemberAccount account = MemberAccountFixture.builder().id(ACCOUNT_ID).build();
     when(memberAccountRepository.findByIdForUpdate(ACCOUNT_ID)).thenReturn(Optional.of(account));
 
-    withdrawMemberService.withdraw(ACCOUNT_ID);
+    withdrawMemberService.withdraw(ACCOUNT_ID, null);
 
     assertThat(account.isDeleted()).isTrue();
     verify(refreshTokenService).revokeAll(TokenOwner.member(ACCOUNT_ID));
@@ -50,6 +55,40 @@ class WithdrawMemberServiceTest {
         ArgumentCaptor.forClass(MemberAccountDeletedEvent.class);
     verify(eventPublisher).publishEvent(captor.capture());
     assertThat(captor.getValue().accountId()).isEqualTo(ACCOUNT_ID);
+    verifyNoInteractions(memberWithdrawalRepository);
+  }
+
+  @Test
+  @DisplayName("탈퇴 사유를 보내면 사유를 저장한다.")
+  void saveWithdrawalReason() {
+    MemberAccount account = MemberAccountFixture.builder().id(ACCOUNT_ID).build();
+    when(memberAccountRepository.findByIdForUpdate(ACCOUNT_ID)).thenReturn(Optional.of(account));
+
+    withdrawMemberService.withdraw(ACCOUNT_ID, "NO_LIKES_OR_MESSAGES");
+
+    ArgumentCaptor<MemberWithdrawal> captor = ArgumentCaptor.forClass(MemberWithdrawal.class);
+    verify(memberWithdrawalRepository).save(captor.capture());
+    assertThat(captor.getValue().getReason()).isEqualTo(WithdrawalReason.NO_LIKES_OR_MESSAGES);
+  }
+
+  @Test
+  @DisplayName("이미 탈퇴한 계정이면 다시 처리하지 않고 사유도 저장하지 않는다.")
+  void skipWhenAlreadyWithdrawn() {
+    MemberAccount account = MemberAccountFixture.builder().id(ACCOUNT_ID).deleted(true).build();
+    when(memberAccountRepository.findByIdForUpdate(ACCOUNT_ID)).thenReturn(Optional.of(account));
+
+    withdrawMemberService.withdraw(ACCOUNT_ID, "NO_REASON");
+
+    verifyNoInteractions(memberWithdrawalRepository, refreshTokenService, eventPublisher);
+  }
+
+  @Test
+  @DisplayName("없는 탈퇴 사유면 탈퇴하지 않고 INVALID_WITHDRAWAL_REASON 예외를 던진다.")
+  void throwWhenReasonIsInvalid() {
+    assertThatThrownBy(() -> withdrawMemberService.withdraw(ACCOUNT_ID, "UNKNOWN"))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.INVALID_WITHDRAWAL_REASON);
+    verifyNoInteractions(memberAccountRepository, memberWithdrawalRepository, eventPublisher);
   }
 
   @Test
@@ -57,7 +96,7 @@ class WithdrawMemberServiceTest {
   void throwWhenAccountNotFound() {
     when(memberAccountRepository.findByIdForUpdate(ACCOUNT_ID)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> withdrawMemberService.withdraw(ACCOUNT_ID))
+    assertThatThrownBy(() -> withdrawMemberService.withdraw(ACCOUNT_ID, null))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MEMBER_NOT_FOUND);
     verifyNoInteractions(refreshTokenService, eventPublisher);

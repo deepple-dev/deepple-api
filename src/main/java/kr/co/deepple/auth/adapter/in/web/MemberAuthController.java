@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import kr.co.deepple.auth.application.dto.MemberCodeRequest;
 import kr.co.deepple.auth.application.dto.MemberLoginRequest;
 import kr.co.deepple.auth.application.dto.MemberLoginResponse;
+import kr.co.deepple.auth.application.dto.MemberWithdrawRequest;
 import kr.co.deepple.auth.application.dto.TokenPairResponse;
 import kr.co.deepple.auth.application.dto.TokenRefreshResponse;
 import kr.co.deepple.auth.application.port.in.LoginMemberUseCase;
@@ -84,8 +85,10 @@ public class MemberAuthController {
 
   @Operation(summary = "멤버 탈퇴")
   @DeleteMapping
-  public ResponseEntity<Void> withdraw(@CurrentMemberId long memberId) {
-    withdrawMemberUseCase.withdraw(memberId);
+  public ResponseEntity<Void> withdraw(
+      @RequestBody(required = false) MemberWithdrawRequest request,
+      @CurrentMemberId long memberId) {
+    withdrawMemberUseCase.withdraw(memberId, request == null ? null : request.reason());
 
     return ResponseEntity.noContent()
         .header(HttpHeaders.SET_COOKIE, refreshTokenCookies.expire().toString())
