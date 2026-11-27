@@ -6,4 +6,5 @@ import kr.co.deepple.match.domain.MatchContactType;
 
 public record MatchResponseDto(
     @NotBlank String responseMessage,
-    @Schema(implementation = MatchContactType.class) String contactType) {}
+    @NotBlank(message = "연락처 타입을 설정해주세요") @Schema(implementation = MatchContactType.class)
+        String contactType) {}

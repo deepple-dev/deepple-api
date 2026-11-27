@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import java.util.HashSet;
 import java.util.Set;
+import kr.co.deepple.common.exception.DeeppleException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +20,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberProfile {
+
+  private static final int MIN_HEIGHT = 130;
+  private static final int MAX_HEIGHT = 220;
+  private static final int MAX_HOBBY_COUNT = 3;
 
   @Embedded private Nickname nickname;
 
@@ -76,6 +81,8 @@ public class MemberProfile {
       HighestEducation highestEducation,
       Job job,
       Set<Hobby> hobbies) {
+    validateHeight(height);
+    validateHobbies(hobbies);
     this.nickname = nickname;
     this.yearOfBirth = YearOfBirth.from(yearOfBirth);
     this.gender = gender;
@@ -88,6 +95,18 @@ public class MemberProfile {
     this.highestEducation = highestEducation;
     this.job = job;
     this.hobbies = hobbies;
+  }
+
+  private static void validateHeight(Integer height) {
+    if (height != null && (height < MIN_HEIGHT || height > MAX_HEIGHT)) {
+      throw new DeeppleException(MemberErrorCode.INVALID_HEIGHT, "height=" + height);
+    }
+  }
+
+  private static void validateHobbies(Set<Hobby> hobbies) {
+    if (hobbies != null && hobbies.size() > MAX_HOBBY_COUNT) {
+      throw new DeeppleException(MemberErrorCode.HOBBY_COUNT_EXCEEDED, "count=" + hobbies.size());
+    }
   }
 
   public boolean isProfileSettingNeeded() {

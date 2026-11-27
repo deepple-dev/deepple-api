@@ -2,6 +2,7 @@ package kr.co.deepple.match.adapter.in.web;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kr.co.deepple.common.config.ApiTags;
 import kr.co.deepple.common.security.CurrentMemberId;
 import kr.co.deepple.match.application.MatchQueryService;
@@ -32,7 +33,7 @@ public class MatchController {
   @Operation(summary = "메시지 전송 (매칭 요청)")
   @PostMapping("/request")
   public ResponseEntity<Void> requestMatch(
-      @RequestBody MatchRequestDto matchRequestDto, @CurrentMemberId long memberId) {
+      @Valid @RequestBody MatchRequestDto matchRequestDto, @CurrentMemberId long memberId) {
     matchService.request(memberId, matchRequestDto);
     return ResponseEntity.noContent().build();
   }
@@ -41,7 +42,7 @@ public class MatchController {
   @PatchMapping("/{matchId}/approve")
   public ResponseEntity<Void> approveMatch(
       @PathVariable long matchId,
-      @RequestBody MatchResponseDto matchResponseDto,
+      @Valid @RequestBody MatchResponseDto matchResponseDto,
       @CurrentMemberId long memberId) {
     matchService.approve(matchId, memberId, matchResponseDto);
     return ResponseEntity.noContent().build();
