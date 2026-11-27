@@ -3,6 +3,7 @@ package kr.co.deepple.admin.application;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.co.deepple.admin.application.dto.RawScreeningDetailView;
@@ -15,7 +16,11 @@ import kr.co.deepple.admin.application.dto.ScreeningSearchCondition;
 import kr.co.deepple.admin.application.dto.ScreeningView;
 import kr.co.deepple.admin.application.port.out.ScreeningDetailQueryRepository;
 import kr.co.deepple.admin.application.port.out.ScreeningQueryRepository;
+import kr.co.deepple.admin.application.port.out.ScreeningRepository;
 import kr.co.deepple.admin.domain.AdminErrorCode;
+import kr.co.deepple.admin.domain.RejectionReasonType;
+import kr.co.deepple.admin.domain.Screening;
+import kr.co.deepple.admin.domain.ScreeningStatus;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.interview.application.port.in.FindMemberInterviewAnswersUseCase;
 import kr.co.deepple.member.application.port.in.FindMemberScreeningProfilesUseCase;
@@ -38,10 +43,17 @@ public class ScreeningQueryService {
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
   private final ScreeningQueryRepository screeningQueryRepository;
+  private final ScreeningRepository screeningRepository;
   private final ScreeningDetailQueryRepository screeningDetailQueryRepository;
   private final SearchMemberIdsUseCase searchMemberIdsUseCase;
   private final FindMemberScreeningProfilesUseCase findMemberScreeningProfilesUseCase;
   private final FindMemberInterviewAnswersUseCase findMemberInterviewAnswersUseCase;
+
+  public Optional<RejectionReasonType> findLatestRejectionReason(long memberId) {
+    return screeningRepository
+        .findFirstByMemberIdAndStatusOrderByIdDesc(memberId, ScreeningStatus.REJECTED)
+        .map(Screening::getRejectionReason);
+  }
 
   public Page<ScreeningView> findScreenings(ScreeningSearchCondition condition, Pageable pageable) {
     MemberIdSearchCondition memberCondition = toMemberCondition(condition);

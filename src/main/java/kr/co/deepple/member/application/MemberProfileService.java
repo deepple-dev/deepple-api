@@ -1,13 +1,19 @@
 package kr.co.deepple.member.application;
 
+import java.util.Optional;
+import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.dto.MemberProfileUpdateRequest;
 import kr.co.deepple.member.application.dto.MemberStatusResponse;
 import kr.co.deepple.member.application.port.in.ChangeMemberActivityStatusUseCase;
 import kr.co.deepple.member.application.port.in.ChangeMemberScreeningStatusUseCase;
 import kr.co.deepple.member.application.port.in.MarkDatingExamSubmittedUseCase;
+import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.application.port.in.ValidateContactTypeSettingUseCase;
+import kr.co.deepple.member.application.port.out.MemberQueryRepository;
 import kr.co.deepple.member.application.port.out.MemberRepository;
+import kr.co.deepple.member.application.port.out.spi.ScreeningRejection;
+import kr.co.deepple.member.application.port.out.spi.ScreeningRejectionFinder;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Mbti;
@@ -37,6 +43,8 @@ public class MemberProfileService
 
   private final MemberRepository memberRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final MemberQueryRepository memberQueryRepository;
+  private final ScreeningRejectionFinder screeningRejectionFinder;
 
   @Transactional
   public void updateMember(long memberId, MemberProfileUpdateRequest request) {
@@ -53,8 +61,21 @@ public class MemberProfileService
   public MemberStatusResponse getStatus(long memberId) {
     Member member = getMemberById(memberId);
     ActivityStatus activityStatus = member.getActivityStatus();
+    Optional<ScreeningRejection> rejection =
+        activityStatus == ActivityStatus.REJECTED_SCREENING
+            ? screeningRejectionFinder.findLatestRejection(memberId)
+            : Optional.empty();
+    MemberPreview preview =
+        memberQueryRepository.findPreviewsByMemberIds(Set.of(memberId)).stream()
+            .findFirst()
+            .orElse(null);
     return new MemberStatusResponse(
-        activityStatus == null ? null : activityStatus.name(), member.isProfileSettingNeeded());
+        activityStatus == null ? null : activityStatus.name(),
+        member.isProfileSettingNeeded(),
+        preview == null ? null : preview.nickname(),
+        preview == null ? null : preview.profileImageUrl(),
+        rejection.map(ScreeningRejection::reason).orElse(null),
+        rejection.map(ScreeningRejection::reasonDescription).orElse(null));
   }
 
   @Transactional
