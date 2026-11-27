@@ -1,5 +1,6 @@
 package kr.co.deepple.match.application.port.out;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.match.domain.Match;
@@ -42,6 +43,23 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
   boolean existsReceivedMatchRequest(long responderId, long requesterId);
 
   Optional<Match> findByIdAndRequesterId(long id, long requesterId);
+
+  @Query(
+      """
+      SELECT m
+      FROM Match m
+      WHERE m.requesterId = :memberId OR m.responderId = :memberId
+      """)
+  List<Match> findAllOfMember(long memberId);
+
+  @Query(
+      """
+      SELECT m
+      FROM Match m
+      WHERE (m.requesterId = :memberId AND m.responderId = :anotherMemberId)
+      OR (m.requesterId = :anotherMemberId AND m.responderId = :memberId)
+      """)
+  List<Match> findAllBetween(long memberId, long anotherMemberId);
 
   Optional<Match> findByIdAndResponderId(long id, long responderId);
 

@@ -27,6 +27,8 @@ public class MatchFixture {
   private MatchContactType requesterContactType = MatchContactType.PHONE_NUMBER;
   private MatchContactType responderContactType;
   private LocalDateTime readByResponderAt;
+  private LocalDateTime respondedAt;
+  private LocalDateTime expiredAt;
 
   public static MatchFixture builder() {
     return new MatchFixture();
@@ -44,6 +46,8 @@ public class MatchFixture {
     setField(match, "requesterContactType", requesterContactType);
     setField(match, "responderContactType", responderContactType);
     setField(match, "readByResponderAt", readByResponderAt);
+    setField(match, "respondedAt", respondedAt);
+    setField(match, "expiredAt", expiredAt);
     return match;
   }
 }

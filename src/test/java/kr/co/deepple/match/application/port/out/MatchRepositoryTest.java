@@ -352,4 +352,30 @@ class MatchRepositoryTest extends RepositoryTestSupport {
     Assertions.assertThat(matchRepository.existsReceivedMatchRequest(responderId, requesterId))
         .isTrue();
   }
+
+  @Test
+  @DisplayName("회원의 모든 매칭은 보낸 것과 받은 것을 지난 매칭까지 모두 찾는다.")
+  void findAllOfMemberAsRequesterAndResponder() {
+    // Given
+    Match sent = MatchFixture.builder().requesterId(1L).responderId(2L).build();
+    Match received =
+        MatchFixture.builder()
+            .requesterId(3L)
+            .responderId(1L)
+            .status(MatchStatus.REJECT_CHECKED)
+            .build();
+    Match others = MatchFixture.builder().requesterId(4L).responderId(5L).build();
+    entityManager.persist(sent);
+    entityManager.persist(received);
+    entityManager.persist(others);
+    entityManager.flush();
+
+    // When & Then
+    Assertions.assertThat(matchRepository.findAllOfMember(1L))
+        .extracting(Match::getId)
+        .containsExactlyInAnyOrder(sent.getId(), received.getId());
+    Assertions.assertThat(matchRepository.findAllBetween(1L, 3L))
+        .extracting(Match::getId)
+        .containsExactly(received.getId());
+  }
 }
