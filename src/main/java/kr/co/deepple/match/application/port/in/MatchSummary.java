@@ -1,5 +1,7 @@
 package kr.co.deepple.match.application.port.in;
 
+import java.time.LocalDateTime;
+
 public record MatchSummary(
     long matchId,
     long requesterId,
@@ -8,4 +10,5 @@ public record MatchSummary(
     String responseMessage,
     String status,
     String requesterContactType,
-    String responderContactType) {}
+    String responderContactType,
+    LocalDateTime readByResponderAt) {}

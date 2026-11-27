@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
 import kr.co.deepple.block.fixture.BlockFixture;
 import kr.co.deepple.common.enums.Role;
@@ -14,6 +16,8 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.community.domain.ProfileExchange;
 import kr.co.deepple.community.domain.ProfileExchangeStatus;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
+import kr.co.deepple.datingexam.domain.AnswerPersonalityType;
+import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
 import kr.co.deepple.interview.domain.InterviewCategory;
 import kr.co.deepple.interview.domain.InterviewQuestion;
 import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
@@ -25,6 +29,7 @@ import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchStatus;
 import kr.co.deepple.match.fixture.MatchFixture;
 import kr.co.deepple.member.domain.ActivityStatus;
+import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.ProfileImageFixture;
@@ -102,7 +107,13 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
                 .status(MatchStatus.MATCHED)
                 .requesterContactType(MatchContactType.KAKAO)
                 .responderContactType(MatchContactType.PHONE_NUMBER)
+                .readByResponderAt(LocalDateTime.of(2026, 11, 27, 10, 30))
                 .build());
+    save(
+        DatingExamSubmitResultFixture.builder()
+            .memberId(otherMemberId)
+            .counts(Map.of(AnswerPersonalityType.DECISIVE_INDEPENDENT, 3))
+            .build());
     save(
         LikeFixture.builder()
             .senderId(memberId)
@@ -152,6 +163,15 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
         .extractingPath("$.memberInfo.id")
         .isEqualTo(Math.toIntExact(otherMemberId));
     assertThat(result).bodyJson().extractingPath("$.memberInfo.nickname").isEqualTo("상대회원");
+    assertThat(result)
+        .bodyJson()
+        .extractingPath("$.memberInfo.personalityType")
+        .isEqualTo("DECISIVE_INDEPENDENT");
+    assertThat(result)
+        .bodyJson()
+        .extractingPath("$.memberInfo.personalityTypeName")
+        .isEqualTo("자기주도형");
+    assertThat(result).bodyJson().extractingPath("$.matchInfo.readAt").isNull();
     assertThat(result)
         .bodyJson()
         .extractingPath("$.memberInfo.profileImageUrl")
@@ -336,6 +356,38 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
 
     assertThat(result).hasStatus(HttpStatus.NOT_FOUND);
     assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("MEMBER_NOT_FOUND");
+  }
+
+  @Test
+  @DisplayName("작성자 시트는 프로필 교환 상태와 함께 누가 신청했는지 응답한다.")
+  void respondProfileExchangeDirectionInSummary() {
+    Member member = save(MemberFixture.builder().gender(Gender.MALE).build());
+    Member sender = save(MemberFixture.builder().gender(Gender.FEMALE).build());
+    Member receiver = save(MemberFixture.builder().gender(Gender.FEMALE).build());
+    save(
+        ProfileExchangeFixture.builder()
+            .requesterId(sender.getId())
+            .responderId(member.getId())
+            .status(ProfileExchangeStatus.WAITING)
+            .build());
+    save(
+        ProfileExchangeFixture.builder()
+            .requesterId(member.getId())
+            .responderId(receiver.getId())
+            .status(ProfileExchangeStatus.WAITING)
+            .build());
+
+    MvcTestResult received = get("/members/" + sender.getId() + "/summary", member.getId());
+    MvcTestResult sent = get("/members/" + receiver.getId() + "/summary", member.getId());
+
+    assertThat(received).hasStatusOk();
+    assertThat(received).bodyJson().extractingPath("$.profileExchangeStatus").isEqualTo("WAITING");
+    assertThat(received)
+        .bodyJson()
+        .extractingPath("$.profileExchangeDirection")
+        .isEqualTo("RECEIVED");
+    assertThat(sent).hasStatusOk();
+    assertThat(sent).bodyJson().extractingPath("$.profileExchangeDirection").isEqualTo("SENT");
   }
 
   private MvcTestResult get(String uri, long memberId) {

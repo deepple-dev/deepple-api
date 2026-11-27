@@ -39,7 +39,8 @@ public class FindMatchBetweenService implements FindMatchBetweenUseCase {
         valueOf(match.getResponseMessage()),
         match.getStatus() == null ? null : match.getStatus().name(),
         match.getRequesterContactType() == null ? null : match.getRequesterContactType().name(),
-        match.getResponderContactType() == null ? null : match.getResponderContactType().name());
+        match.getResponderContactType() == null ? null : match.getResponderContactType().name(),
+        match.getReadByResponderAt());
   }
 
   private static String valueOf(Message message) {

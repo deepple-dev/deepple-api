@@ -3,6 +3,7 @@ package kr.co.deepple.match.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import kr.co.deepple.match.application.port.in.MatchSummary;
 import kr.co.deepple.match.application.port.out.MatchRepository;
@@ -19,6 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class FindMatchBetweenServiceTest {
+
+  private static final LocalDateTime READ_AT = LocalDateTime.of(2026, 11, 27, 10, 0);
 
   @Mock private MatchRepository matchRepository;
 
@@ -37,13 +40,22 @@ class FindMatchBetweenServiceTest {
             .status(MatchStatus.MATCHED)
             .requesterContactType(MatchContactType.PHONE_NUMBER)
             .responderContactType(MatchContactType.KAKAO)
+            .readByResponderAt(READ_AT)
             .build();
     given(matchRepository.findActiveMatchBetween(2L, 1L)).willReturn(Optional.of(match));
 
     assertThat(findMatchBetweenService.findActiveMatchBetween(2L, 1L))
         .contains(
             new MatchSummary(
-                10L, 1L, 2L, "매치 신청합니다.", "매치 수락합니다!", "MATCHED", "PHONE_NUMBER", "KAKAO"));
+                10L,
+                1L,
+                2L,
+                "매치 신청합니다.",
+                "매치 수락합니다!",
+                "MATCHED",
+                "PHONE_NUMBER",
+                "KAKAO",
+                READ_AT));
   }
 
   @Test
@@ -62,7 +74,8 @@ class FindMatchBetweenServiceTest {
 
     assertThat(findMatchBetweenService.findActiveMatchBetween(1L, 2L))
         .contains(
-            new MatchSummary(10L, 1L, 2L, "매치 신청합니다.", null, "WAITING", "PHONE_NUMBER", null));
+            new MatchSummary(
+                10L, 1L, 2L, "매치 신청합니다.", null, "WAITING", "PHONE_NUMBER", null, null));
   }
 
   @Test

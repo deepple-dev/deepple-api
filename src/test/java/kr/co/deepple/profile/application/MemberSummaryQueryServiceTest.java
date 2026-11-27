@@ -93,7 +93,8 @@ class MemberSummaryQueryServiceTest {
                 "ISTP",
                 Set.of("HIKING_AND_CLIMBING"),
                 "INTERESTED",
-                "WAITING"));
+                "WAITING",
+                "SENT"));
   }
 
   @Test
@@ -120,6 +121,25 @@ class MemberSummaryQueryServiceTest {
     assertThat(view.profileImageUrl()).isNull();
     assertThat(view.likeLevel()).isNull();
     assertThat(view.profileExchangeStatus()).isNull();
+    assertThat(view.profileExchangeDirection()).isNull();
+  }
+
+  @Test
+  @DisplayName("상대가 프로필 교환을 신청했으면 신청 방향을 RECEIVED로 응답한다.")
+  void returnsReceivedWhenOtherRequestedProfileExchange() {
+    // Given
+    given(getMemberDetailUseCase.getMemberDetail(OTHER_MEMBER_ID))
+        .willReturn(MemberDetailFixture.builder().memberId(OTHER_MEMBER_ID).build());
+    given(findProfileExchangeUseCase.findProfileExchangeBetween(MEMBER_ID, OTHER_MEMBER_ID))
+        .willReturn(
+            Optional.of(new ProfileExchangeSummary(10L, OTHER_MEMBER_ID, MEMBER_ID, "WAITING")));
+
+    // When
+    MemberSummaryView view = memberSummaryQueryService.getMemberSummary(MEMBER_ID, OTHER_MEMBER_ID);
+
+    // Then
+    assertThat(view.profileExchangeStatus()).isEqualTo("WAITING");
+    assertThat(view.profileExchangeDirection()).isEqualTo("RECEIVED");
   }
 
   @Test

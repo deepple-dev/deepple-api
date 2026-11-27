@@ -17,6 +17,8 @@ import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.application.port.in.FindProfileExchangeUseCase;
 import kr.co.deepple.community.application.port.in.ProfileExchangeSummary;
+import kr.co.deepple.datingexam.application.port.in.DominantPersonalityType;
+import kr.co.deepple.datingexam.application.port.in.FindDominantPersonalityTypesUseCase;
 import kr.co.deepple.interview.application.port.in.FindMemberInterviewAnswersUseCase;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswer;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswerDetail;
@@ -58,6 +60,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MemberProfileQueryServiceTest {
 
+  private static final LocalDateTime READ_AT = LocalDateTime.of(2026, 11, 27, 10, 0);
+
   private static final long MEMBER_ID = 1L;
   private static final long OTHER_MEMBER_ID = 2L;
 
@@ -69,6 +73,7 @@ class MemberProfileQueryServiceTest {
   @Mock private FindMatchBetweenUseCase findMatchBetweenUseCase;
   @Mock private FindLikeLevelUseCase findLikeLevelUseCase;
   @Mock private FindProfileExchangeUseCase findProfileExchangeUseCase;
+  @Mock private FindDominantPersonalityTypesUseCase findDominantPersonalityTypesUseCase;
 
   @InjectMocks private MemberProfileQueryService memberProfileQueryService;
 
@@ -389,6 +394,8 @@ class MemberProfileQueryServiceTest {
               List.of(
                   new MemberProfileImage("https://image/main.jpg", 0, true),
                   new MemberProfileImage("https://image/sub1.jpg", 1, false)));
+      given(findDominantPersonalityTypesUseCase.findDominantPersonalityType(OTHER_MEMBER_ID))
+          .willReturn(Optional.of(new DominantPersonalityType("DECISIVE_INDEPENDENT", "자기주도형")));
 
       // When
       MemberProfileResponse response =
@@ -407,6 +414,8 @@ class MemberProfileQueryServiceTest {
                   otherMember.job(),
                   Set.of("ANIMATION", "BOARD_GAMES"),
                   otherMember.mbti(),
+                  "DECISIVE_INDEPENDENT",
+                  "자기주도형",
                   otherMember.city(),
                   otherMember.district(),
                   otherMember.smokingStatus(),
@@ -512,6 +521,7 @@ class MemberProfileQueryServiceTest {
                       null,
                       status,
                       "PHONE_NUMBER",
+                      null,
                       null)));
 
       // When
@@ -529,6 +539,7 @@ class MemberProfileQueryServiceTest {
                   null,
                   status,
                   "PHONE_NUMBER",
+                  null,
                   null));
       assertThat(response.contactInfo()).isNull();
     }
@@ -556,7 +567,8 @@ class MemberProfileQueryServiceTest {
                       "매치 수락합니다!",
                       "MATCHED",
                       "PHONE_NUMBER",
-                      "KAKAO")));
+                      "KAKAO",
+                      READ_AT)));
 
       // When
       MemberProfileResponse response =
@@ -573,12 +585,13 @@ class MemberProfileQueryServiceTest {
                   "매치 수락합니다!",
                   "MATCHED",
                   "PHONE_NUMBER",
-                  "KAKAO"));
+                  "KAKAO",
+                  READ_AT));
       assertThat(response.contactInfo()).isEqualTo(new ContactInfo("KAKAO", "otherKakao"));
     }
 
     @Test
-    @DisplayName("상대방의 매치 요청을 수락한 경우, 요청자인 상대가 고른 연락 수단의 연락처를 포함한다.")
+    @DisplayName("상대방의 매치 요청을 수락한 경우, 요청자인 상대가 고른 연락 수단의 연락처를 포함하고 내가 읽은 시각은 내려 주지 않는다.")
     void returnsRequesterContactWhenOtherMemberIsRequester() {
       // Given
       given(getMemberDetailUseCase.getMemberDetail(OTHER_MEMBER_ID))
@@ -601,7 +614,8 @@ class MemberProfileQueryServiceTest {
                       "매치 수락합니다!",
                       "MATCHED",
                       "PHONE_NUMBER",
-                      "KAKAO")));
+                      "KAKAO",
+                      READ_AT)));
 
       // When
       MemberProfileResponse response =
@@ -609,6 +623,9 @@ class MemberProfileQueryServiceTest {
 
       // Then
       assertThat(response.contactInfo()).isEqualTo(new ContactInfo("PHONE_NUMBER", "01099998888"));
+      assertThat(response.matchInfo().readAt()).isNull();
+      assertThat(response.memberInfo().personalityType()).isNull();
+      assertThat(response.memberInfo().personalityTypeName()).isNull();
     }
 
     @Test
