@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.datingexam.application.dto.DatingExamInfoResponse;
+import kr.co.deepple.datingexam.application.dto.DatingExamSubmitResponse;
 import kr.co.deepple.datingexam.application.port.out.DatingExamAnswerRepository;
 import kr.co.deepple.datingexam.application.port.out.DatingExamQueryRepository;
 import kr.co.deepple.datingexam.application.port.out.DatingExamSubjectRepository;
@@ -35,6 +37,7 @@ import kr.co.deepple.datingexam.fixture.DatingExamAnswerFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubjectFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitFixture;
 import kr.co.deepple.datingexam.fixture.DatingExamSubmitResultFixture;
+import kr.co.deepple.mission.application.port.in.FindMissionRewardUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -52,6 +55,8 @@ import org.springframework.context.ApplicationEventPublisher;
 class DatingExamModifyServiceTest {
 
   @Mock private ApplicationEventPublisher eventPublisher;
+
+  @Mock private FindMissionRewardUseCase findMissionRewardUseCase;
 
   @InjectMocks private DatingExamModifyService datingExamModifyService;
 
@@ -116,12 +121,15 @@ class DatingExamModifyServiceTest {
             .thenAnswer(invocation -> null);
 
         // When
-        datingExamModifyService.submitSubject(request, memberId);
+        DatingExamSubmitResponse response =
+            datingExamModifyService.submitSubject(request, memberId);
 
         // Then
         mockedDatingExamSubmit.verify(() -> DatingExamSubmit.of(request, answerEncoder, memberId));
         verify(datingExamSubmitRepository).save(submit);
         verify(datingExamSubmitResultRepository).save(any(DatingExamSubmitResult.class));
+        assertThat(response.rewardedHeartAmount()).isNull();
+        verifyNoInteractions(findMissionRewardUseCase);
       }
     }
 
@@ -165,7 +173,7 @@ class DatingExamModifyServiceTest {
     }
 
     @Test
-    @DisplayName("필수 과목 제출 후 모든 필수 과목이 제출된 경우 이벤트를 발행한다.")
+    @DisplayName("필수 과목 제출 후 모든 필수 과목이 제출된 경우 이벤트를 발행하고 받은 하트 개수를 응답한다.")
     void publishEventWhenAllRequiredSubjectsSubmitted() {
       // Given
       Long memberId = 1L;
@@ -212,9 +220,12 @@ class DatingExamModifyServiceTest {
             .thenReturn(Set.of(subject));
 
         when(datingExamSubmitRepository.findAllByMemberId(memberId)).thenReturn(Set.of(submit));
+        when(findMissionRewardUseCase.findNextRewardedHeartAmount(memberId, "FIRST_DATE_EXAM"))
+            .thenReturn(15);
 
         // When
-        datingExamModifyService.submitSubject(request, memberId);
+        DatingExamSubmitResponse response =
+            datingExamModifyService.submitSubject(request, memberId);
 
         // Then
         mockedDatingExamSubmit.verify(() -> DatingExamSubmit.of(request, answerEncoder, memberId));
@@ -225,6 +236,7 @@ class DatingExamModifyServiceTest {
                 ArgumentMatchers.<Object>argThat(event ->
                     event instanceof AllRequiredSubjectSubmittedEvent written
                         && written.memberId() == memberId));
+        assertThat(response.rewardedHeartAmount()).isEqualTo(15);
       }
     }
   }

@@ -10,6 +10,7 @@ import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.like.application.dto.LikeLevelRequest;
 import kr.co.deepple.like.application.dto.LikeSendRequest;
+import kr.co.deepple.like.application.dto.LikeSendResponse;
 import kr.co.deepple.like.application.port.out.LikeRepository;
 import kr.co.deepple.like.domain.Like;
 import kr.co.deepple.like.domain.LikeErrorCode;
@@ -19,6 +20,7 @@ import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
 import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
+import kr.co.deepple.mission.application.port.in.MissionExecutionResult;
 import kr.co.deepple.mission.domain.ActionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,17 +68,17 @@ class LikeSendServiceTest {
     when(checkBlockUseCase.isBlocked(senderId, receiverId)).thenReturn(false);
     when(checkBlockUseCase.isBlocked(receiverId, senderId)).thenReturn(false);
 
-    boolean expectedMissionProcessed = true;
     when(executeMissionUseCase.executeMissionsByAction(senderId, ActionType.LIKE.name()))
-        .thenReturn(expectedMissionProcessed);
+        .thenReturn(MissionExecutionResult.of(true, 2));
 
     // when
-    boolean hasProcessedMission = likeSendService.send(senderId, request);
+    LikeSendResponse response = likeSendService.send(senderId, request);
 
     // then
     verify(likeRepository).save(any(Like.class));
     verify(executeMissionUseCase).executeMissionsByAction(senderId, ActionType.LIKE.name());
-    assertThat(hasProcessedMission).isEqualTo(expectedMissionProcessed);
+    assertThat(response.hasProcessedMission()).isTrue();
+    assertThat(response.rewardedHeartAmount()).isEqualTo(2);
   }
 
   @Test

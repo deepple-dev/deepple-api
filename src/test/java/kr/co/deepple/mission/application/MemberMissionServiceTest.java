@@ -12,6 +12,7 @@ import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.domain.MemberErrorCode;
 import kr.co.deepple.member.fixture.MemberFixture;
 import kr.co.deepple.member.fixture.MemberSummaryFixture;
+import kr.co.deepple.mission.application.port.in.MissionExecutionResult;
 import kr.co.deepple.mission.application.port.out.MemberMissionRepository;
 import kr.co.deepple.mission.application.port.out.MissionRepository;
 import kr.co.deepple.mission.domain.ActionType;
@@ -110,11 +111,12 @@ public class MemberMissionServiceTest {
       givenMemberMission(mission, memberMission);
 
       // When
-      boolean hasProcessedMission =
+      MissionExecutionResult result =
           memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name());
 
       // Then
-      assertThat(hasProcessedMission).isTrue();
+      assertThat(result.hasProcessedMission()).isTrue();
+      assertThat(result.rewardedHeartAmount()).isEqualTo(rewardedHeart);
       assertThat(memberMission.getSuccessCount()).isEqualTo(1);
       Mockito.verify(eventPublisher)
           .publishEvent(
@@ -141,12 +143,13 @@ public class MemberMissionServiceTest {
       givenMemberMission(twoAttemptMission, memberMission);
 
       // When
-      boolean hasProcessedMission =
+      MissionExecutionResult result =
           memberMissionService.executeMissionsByAction(
               memberId, twoAttemptMission.getActionType().name());
 
       // Then
-      assertThat(hasProcessedMission).isTrue();
+      assertThat(result.hasProcessedMission()).isTrue();
+      assertThat(result.rewardedHeartAmount()).isNull();
       assertThat(memberMission.getAttemptCount()).isEqualTo(1);
       Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
     }
@@ -192,14 +195,101 @@ public class MemberMissionServiceTest {
       givenMemberMission(mission, completedMemberMission);
 
       // When
-      boolean hasProcessedMission =
+      MissionExecutionResult result =
           memberMissionService.executeMissionsByAction(memberId, mission.getActionType().name());
 
       // Then
       assertThat(completedMemberMission.getSuccessCount()).isEqualTo(repeatableCount);
       assertThat(completedMemberMission.getAttemptCount()).isZero();
-      assertThat(hasProcessedMission).isFalse();
+      assertThat(result.hasProcessedMission()).isFalse();
+      assertThat(result.rewardedHeartAmount()).isNull();
       Mockito.verify(eventPublisher, Mockito.never()).publishEvent(Mockito.any(Object.class));
+    }
+
+    @Test
+    @DisplayName("다음 시도에 성공할 미션이면 그 미션의 보상 하트 개수를 돌려줍니다.")
+    void findNextRewardWhenNotAttemptedYet() {
+      // Given
+      givenMissionAndMember(mission);
+      Mockito.when(
+              memberMissionRepository.findByMemberIdAndMissionIdAndPeriod(
+                  memberId, missionId, LocalDate.now().toString()))
+          .thenReturn(Optional.empty());
+
+      // When
+      Integer reward =
+          memberMissionService.findNextRewardedHeartAmount(
+              memberId, mission.getActionType().name());
+
+      // Then
+      assertThat(reward).isEqualTo(rewardedHeart);
+    }
+
+    @Test
+    @DisplayName("이미 완료한 미션이면 받을 하트가 없어 null을 돌려줍니다.")
+    void findNextRewardWhenCompleted() {
+      // Given
+      givenMissionAndMember(mission);
+      Mockito.when(
+              memberMissionRepository.findByMemberIdAndMissionIdAndPeriod(
+                  memberId, missionId, LocalDate.now().toString()))
+          .thenReturn(
+              Optional.of(
+                  MemberMissionFixture.builder()
+                      .memberId(memberId)
+                      .missionId(missionId)
+                      .successCount(repeatableCount)
+                      .completed(true)
+                      .build()));
+
+      // When
+      Integer reward =
+          memberMissionService.findNextRewardedHeartAmount(
+              memberId, mission.getActionType().name());
+
+      // Then
+      assertThat(reward).isNull();
+    }
+
+    @Test
+    @DisplayName("한 동작으로 성별 미션과 전체 미션이 함께 성공하면 보상 하트를 합쳐 돌려줍니다.")
+    void sumRewardsOfAllSucceededMissions() {
+      // Given
+      long allMissionId = 9L;
+      Mission allGenderMission =
+          MissionFixture.builder()
+              .id(allMissionId)
+              .actionType(ActionType.LIKE)
+              .frequencyType(FrequencyType.DAILY)
+              .targetGender(TargetGender.ALL)
+              .rewardedHeart(10)
+              .build();
+      Mockito.when(
+              missionRepository.findByActionTypeAndTargetGender(ActionType.LIKE, TargetGender.MALE))
+          .thenReturn(List.of(mission));
+      Mockito.when(
+              missionRepository.findByActionTypeAndTargetGender(ActionType.LIKE, TargetGender.ALL))
+          .thenReturn(List.of(allGenderMission));
+      Mockito.when(findMemberSummaryUseCase.getMemberSummary(memberId))
+          .thenReturn(MemberSummaryFixture.from(member));
+      givenMemberMission(mission, memberMission);
+      Mockito.when(
+              memberMissionRepository.findForUpdate(
+                  memberId, allMissionId, LocalDate.now().toString()))
+          .thenReturn(
+              Optional.of(
+                  MemberMissionFixture.builder()
+                      .id(10L)
+                      .memberId(memberId)
+                      .missionId(allMissionId)
+                      .build()));
+
+      // When
+      MissionExecutionResult result =
+          memberMissionService.executeMissionsByAction(memberId, ActionType.LIKE.name());
+
+      // Then
+      assertThat(result.rewardedHeartAmount()).isEqualTo(rewardedHeart + 10);
     }
 
     private void givenMissionAndMember(Mission mission) {

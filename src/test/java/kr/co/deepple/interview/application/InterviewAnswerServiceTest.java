@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.interview.application.dto.InterviewAnswerCreateResponse;
 import kr.co.deepple.interview.application.dto.InterviewAnswerSaveRequest;
 import kr.co.deepple.interview.application.dto.InterviewAnswerUpdateRequest;
 import kr.co.deepple.interview.application.port.out.InterviewAnswerRepository;
@@ -24,6 +25,7 @@ import kr.co.deepple.interview.domain.InterviewQuestion;
 import kr.co.deepple.interview.fixture.InterviewAnswerFixture;
 import kr.co.deepple.interview.fixture.InterviewQuestionFixture;
 import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
+import kr.co.deepple.mission.application.port.in.MissionExecutionResult;
 import kr.co.deepple.mission.domain.ActionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -133,7 +135,7 @@ class InterviewAnswerServiceTest {
           .thenReturn(false);
 
       when(executeMissionUseCase.executeMissionsByAction(memberId, ActionType.INTERVIEW.name()))
-          .thenReturn(true);
+          .thenReturn(MissionExecutionResult.of(true, 30));
 
       InterviewAnswer interviewAnswer = mock(InterviewAnswer.class);
       try (MockedStatic<InterviewAnswer> mockedStatic = mockStatic(InterviewAnswer.class)) {
@@ -143,10 +145,11 @@ class InterviewAnswerServiceTest {
             .thenReturn(interviewAnswer);
 
         // when
-        boolean result = interviewAnswerService.saveAnswer(request, memberId);
+        InterviewAnswerCreateResponse result = interviewAnswerService.saveAnswer(request, memberId);
 
         // then
-        assertThat(result).isTrue();
+        assertThat(result.hasProcessedMission()).isTrue();
+        assertThat(result.rewardedHeartAmount()).isEqualTo(30);
       }
       verify(interviewAnswerRepository).save(interviewAnswer);
       verify(executeMissionUseCase).executeMissionsByAction(memberId, ActionType.INTERVIEW.name());
@@ -178,10 +181,11 @@ class InterviewAnswerServiceTest {
             .thenReturn(interviewAnswer);
 
         // when
-        boolean result = interviewAnswerService.saveAnswer(request, memberId);
+        InterviewAnswerCreateResponse result = interviewAnswerService.saveAnswer(request, memberId);
 
         // then
-        assertThat(result).isFalse();
+        assertThat(result.hasProcessedMission()).isFalse();
+        assertThat(result.rewardedHeartAmount()).isNull();
       }
       verify(interviewAnswerRepository).save(interviewAnswer);
       verify(executeMissionUseCase, never()).executeMissionsByAction(anyLong(), anyString());

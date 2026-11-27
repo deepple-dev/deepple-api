@@ -1,6 +1,7 @@
 package kr.co.deepple.interview.application;
 
 import kr.co.deepple.common.exception.DeeppleException;
+import kr.co.deepple.interview.application.dto.InterviewAnswerCreateResponse;
 import kr.co.deepple.interview.application.dto.InterviewAnswerSaveRequest;
 import kr.co.deepple.interview.application.dto.InterviewAnswerUpdateRequest;
 import kr.co.deepple.interview.application.port.out.InterviewAnswerRepository;
@@ -24,16 +25,16 @@ public class InterviewAnswerService {
   private final ExecuteMissionUseCase executeMissionUseCase;
 
   @Transactional
-  public boolean saveAnswer(InterviewAnswerSaveRequest request, long memberId) {
+  public InterviewAnswerCreateResponse saveAnswer(
+      InterviewAnswerSaveRequest request, long memberId) {
     validateQuestion(request.interviewQuestionId(), memberId);
     boolean isFirstInterviewAnswer = isFirstInterviewAnswer(memberId);
     createInterviewAnswer(request.interviewQuestionId(), memberId, request.answerContent());
-    boolean hasProcessedMission = false;
-    if (isFirstInterviewAnswer) {
-      hasProcessedMission =
-          executeMissionUseCase.executeMissionsByAction(memberId, INTERVIEW_MISSION_ACTION);
+    if (!isFirstInterviewAnswer) {
+      return new InterviewAnswerCreateResponse(false, null);
     }
-    return hasProcessedMission;
+    return InterviewAnswerCreateResponse.from(
+        executeMissionUseCase.executeMissionsByAction(memberId, INTERVIEW_MISSION_ACTION));
   }
 
   @Transactional

@@ -3,6 +3,7 @@ package kr.co.deepple.payment.application;
 import com.apple.itunes.storekit.model.JWSTransactionDecodedPayload;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.payment.adapter.out.store.AppStoreClient;
+import kr.co.deepple.payment.application.dto.VerifyReceiptResponse;
 import kr.co.deepple.payment.domain.AppStoreReceiptVerifiedEvent;
 import kr.co.deepple.payment.domain.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +16,16 @@ public class AppStorePaymentService {
 
   private final AppStoreClient appStoreClient;
   private final ApplicationEventPublisher eventPublisher;
+  private final OrderService orderService;
 
-  public void verifyReceipt(String signedTransaction, long memberId) {
+  public VerifyReceiptResponse verifyReceipt(String signedTransaction, long memberId) {
     JWSTransactionDecodedPayload decodedPayload =
         appStoreClient.verifyAndDecodeTransaction(signedTransaction);
     verifyPayload(decodedPayload);
     raiseReceiptVerifiedEvent(memberId, decodedPayload);
+    return new VerifyReceiptResponse(
+        orderService.calculateHeartAmount(
+            decodedPayload.getProductId(), decodedPayload.getQuantity()));
   }
 
   private void verifyPayload(JWSTransactionDecodedPayload decodedPayload) {

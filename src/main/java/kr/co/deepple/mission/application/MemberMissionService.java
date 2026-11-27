@@ -8,6 +8,8 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
 import kr.co.deepple.member.application.port.in.MemberSummary;
 import kr.co.deepple.mission.application.port.in.ExecuteMissionUseCase;
+import kr.co.deepple.mission.application.port.in.FindMissionRewardUseCase;
+import kr.co.deepple.mission.application.port.in.MissionExecutionResult;
 import kr.co.deepple.mission.application.port.out.MemberMissionRepository;
 import kr.co.deepple.mission.application.port.out.MissionRepository;
 import kr.co.deepple.mission.domain.ActionType;
@@ -23,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class MemberMissionService implements ExecuteMissionUseCase {
+public class MemberMissionService implements ExecuteMissionUseCase, FindMissionRewardUseCase {
 
   private final MemberMissionRepository memberMissionRepository;
   private final MissionRepository missionRepository;
@@ -32,13 +34,14 @@ public class MemberMissionService implements ExecuteMissionUseCase {
 
   @Override
   @Transactional
-  public boolean executeMissionsByAction(long memberId, String actionType) {
+  public MissionExecutionResult executeMissionsByAction(long memberId, String actionType) {
     MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);
     validateMember(member);
 
     List<Mission> missions = getMission(actionType, member.gender());
     LocalDate today = LocalDate.now();
     boolean hasProcessedMission = false;
+    int rewardedHeartAmount = 0;
     for (Mission mission : missions) {
       MemberMission memberMission =
           findOrCreateForUpdate(memberId, mission.getId(), mission.periodOf(today));
@@ -56,10 +59,36 @@ public class MemberMissionService implements ExecuteMissionUseCase {
                 member.requireNickname(),
                 mission.getRewardedHeart(),
                 mission.getActionType().getDescription()));
+        rewardedHeartAmount += mission.getRewardedHeart();
       }
       hasProcessedMission = true;
     }
-    return hasProcessedMission;
+    return MissionExecutionResult.of(hasProcessedMission, rewardedHeartAmount);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Integer findNextRewardedHeartAmount(long memberId, String actionType) {
+    MemberSummary member = findMemberSummaryUseCase.getMemberSummary(memberId);
+    if (member.gender() == null) {
+      return null;
+    }
+    LocalDate today = LocalDate.now();
+    int rewardedHeartAmount =
+        getMission(actionType, member.gender()).stream()
+            .filter(mission -> isRewardedOnNextAttempt(memberId, mission, today))
+            .mapToInt(Mission::getRewardedHeart)
+            .sum();
+    return rewardedHeartAmount > 0 ? rewardedHeartAmount : null;
+  }
+
+  private boolean isRewardedOnNextAttempt(long memberId, Mission mission, LocalDate today) {
+    return memberMissionRepository
+        .findByMemberIdAndMissionIdAndPeriod(memberId, mission.getId(), mission.periodOf(today))
+        .map(memberMission ->
+            !memberMission.isCompleted()
+                && memberMission.getAttemptCount() + 1 >= mission.getRequiredAttempt())
+        .orElse(mission.getRequiredAttempt() <= 1);
   }
 
   private MemberMission findOrCreateForUpdate(long memberId, long missionId, String period) {

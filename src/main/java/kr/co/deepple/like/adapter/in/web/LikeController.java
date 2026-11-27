@@ -33,10 +33,7 @@ public class LikeController {
   @PostMapping
   public ResponseEntity<LikeSendResponse> send(
       @Valid @RequestBody LikeSendRequest request, @CurrentMemberId long memberId) {
-    long senderId = memberId;
-    boolean hasProcessedMission = likeSendService.send(senderId, request);
-    LikeSendResponse response = new LikeSendResponse(hasProcessedMission);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(likeSendService.send(memberId, request));
   }
 
   @Operation(summary = "내가 보낸 좋아요 목록 조회")
