@@ -23,10 +23,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberMapper {
 
+  /**
+   * 요청으로 새 프로필을 만든다. 태어난 해가 지금 저장된 값({@code storedYearOfBirth}, DB에 저장된 값만)과 같으면 나이 범위를 다시 검사하지
+   * 않는다.
+   */
   public static MemberProfile toMemberProfile(
-      MemberProfileUpdateRequest memberProfileUpdateRequest) {
+      MemberProfileUpdateRequest memberProfileUpdateRequest, Integer storedYearOfBirth) {
     return MemberProfile.builder()
         .yearOfBirth(memberProfileUpdateRequest.yearOfBirth())
+        .storedYearOfBirth(storedYearOfBirth)
         .height(memberProfileUpdateRequest.height())
         .nickname(Nickname.from(memberProfileUpdateRequest.nickname()))
         .gender(Gender.from(memberProfileUpdateRequest.gender()))

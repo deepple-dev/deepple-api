@@ -49,7 +49,7 @@ public class MemberProfileService
   @Transactional
   public void updateMember(long memberId, MemberProfileUpdateRequest request) {
     Member member = getMemberById(memberId);
-    member.updateProfile(MemberMapper.toMemberProfile(request));
+    member.updateProfile(MemberMapper.toMemberProfile(request, storedYearOfBirth(member)));
     publishSummaryChangedEvent(memberId, member);
     publishProfileChangedEvent(memberId, member.getProfile());
     if (member.isProfileInitialized()) {
@@ -208,6 +208,14 @@ public class MemberProfileService
 
   private void nonPublish(Member member) {
     member.nonPublishProfile();
+  }
+
+  private Integer storedYearOfBirth(Member member) {
+    MemberProfile profile = member.getProfile();
+    if (profile == null || profile.getYearOfBirth() == null) {
+      return null;
+    }
+    return profile.getYearOfBirth().getValue();
   }
 
   private Member getMemberById(long memberId) {

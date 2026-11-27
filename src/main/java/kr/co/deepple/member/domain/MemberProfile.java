@@ -80,11 +80,15 @@ public class MemberProfile {
       DrinkingStatus drinkingStatus,
       HighestEducation highestEducation,
       Job job,
-      Set<Hobby> hobbies) {
+      Set<Hobby> hobbies,
+      Integer storedYearOfBirth) {
     validateHeight(height);
     validateHobbies(hobbies);
     this.nickname = nickname;
-    this.yearOfBirth = YearOfBirth.from(yearOfBirth);
+    this.yearOfBirth =
+        storedYearOfBirth != null && storedYearOfBirth.equals(yearOfBirth)
+            ? YearOfBirth.unchanged(yearOfBirth)
+            : YearOfBirth.from(yearOfBirth);
     this.gender = gender;
     this.height = height;
     this.mbti = mbti;

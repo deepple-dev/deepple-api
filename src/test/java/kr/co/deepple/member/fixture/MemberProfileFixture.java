@@ -46,6 +46,8 @@ public class MemberProfileFixture {
     return MemberProfile.builder()
         .nickname(nickname == null ? null : Nickname.from(nickname))
         .yearOfBirth(yearOfBirth)
+        // 저장된 회원을 흉내 내므로 나이 범위 검사 없이 만든다
+        .storedYearOfBirth(yearOfBirth)
         .gender(gender)
         .height(height)
         .mbti(mbti)
