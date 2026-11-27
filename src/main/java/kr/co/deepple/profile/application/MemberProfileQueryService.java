@@ -8,6 +8,7 @@ import kr.co.deepple.block.application.port.in.CheckBlockUseCase;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.community.application.port.in.FindProfileExchangeUseCase;
 import kr.co.deepple.community.application.port.in.ProfileExchangeSummary;
+import kr.co.deepple.datingexam.application.port.in.FindDominantPersonalityTypesUseCase;
 import kr.co.deepple.interview.application.port.in.FindMemberInterviewAnswersUseCase;
 import kr.co.deepple.interview.application.port.in.MemberInterviewAnswerDetail;
 import kr.co.deepple.like.application.port.in.FindLikeLevelUseCase;
@@ -46,6 +47,7 @@ public class MemberProfileQueryService {
   private final FindMatchBetweenUseCase findMatchBetweenUseCase;
   private final FindLikeLevelUseCase findLikeLevelUseCase;
   private final FindProfileExchangeUseCase findProfileExchangeUseCase;
+  private final FindDominantPersonalityTypesUseCase findDominantPersonalityTypesUseCase;
 
   public MemberInfoView getInfoCache(long memberId) {
     MemberDetail member = getMemberDetailUseCase.getMemberDetail(memberId);
@@ -73,7 +75,7 @@ public class MemberProfileQueryService {
     MatchInfo matchInfo =
         findMatchBetweenUseCase
             .findActiveMatchBetween(memberId, otherMemberId)
-            .map(MemberProfileMapper::toMatchInfo)
+            .map(match -> MemberProfileMapper.toMatchInfo(match, memberId))
             .orElse(null);
     String likeLevel = findLikeLevelUseCase.findLikeLevel(memberId, otherMemberId).orElse(null);
     List<MemberProfileImage> profileImages =
@@ -85,7 +87,13 @@ public class MemberProfileQueryService {
             .toList();
 
     return new MemberProfileResponse(
-        MemberProfileMapper.toMemberInfo(otherMember, profileImages, likeLevel),
+        MemberProfileMapper.toMemberInfo(
+            otherMember,
+            profileImages,
+            likeLevel,
+            findDominantPersonalityTypesUseCase
+                .findDominantPersonalityType(otherMemberId)
+                .orElse(null)),
         matchInfo,
         MemberProfileMapper.toContactInfo(otherMember, matchInfo),
         profileExchange

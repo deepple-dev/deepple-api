@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberSummaryQueryService {
 
   private static final String ACTIVE = "ACTIVE";
+  private static final String SENT = "SENT";
+  private static final String RECEIVED = "RECEIVED";
 
   private final GetMemberDetailUseCase getMemberDetailUseCase;
   private final FindMemberScreeningProfilesUseCase findMemberScreeningProfilesUseCase;
@@ -38,6 +40,8 @@ public class MemberSummaryQueryService {
 
     Optional<DominantPersonalityType> personalityType =
         findDominantPersonalityTypesUseCase.findDominantPersonalityType(otherMemberId);
+    Optional<ProfileExchangeSummary> profileExchange =
+        findProfileExchangeUseCase.findProfileExchangeBetween(memberId, otherMemberId);
     return new MemberSummaryView(
         otherMemberId,
         otherMember.nickname(),
@@ -51,9 +55,9 @@ public class MemberSummaryQueryService {
         otherMember.mbti(),
         otherMember.hobbies(),
         findLikeLevelUseCase.findLikeLevel(memberId, otherMemberId).orElse(null),
-        findProfileExchangeUseCase
-            .findProfileExchangeBetween(memberId, otherMemberId)
-            .map(ProfileExchangeSummary::status)
+        profileExchange.map(ProfileExchangeSummary::status).orElse(null),
+        profileExchange
+            .map(exchange -> exchange.requesterId() == memberId ? SENT : RECEIVED)
             .orElse(null));
   }
 

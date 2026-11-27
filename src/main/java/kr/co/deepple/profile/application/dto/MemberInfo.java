@@ -17,6 +17,12 @@ public record MemberInfo(
     @Schema(description = "취미 목록. 값은 회원 프로필의 hobbies와 같다", example = "[\"TRAVEL\"]")
         Set<String> hobbies,
     @Schema(description = "MBTI. 값은 회원 프로필의 mbti와 같다", example = "ENFP") String mbti,
+    @Schema(
+            description = "연애고사 대표 유형 코드. 값은 작성자 시트의 personalityType과 같고, 테스트를 하지 않았으면 null이다",
+            example = "DECISIVE_INDEPENDENT")
+        String personalityType,
+    @Schema(description = "연애고사 대표 유형명. 테스트를 하지 않았으면 null이다", example = "자기주도형")
+        String personalityTypeName,
     @Schema(description = "지역. 값은 회원 프로필의 city와 같다", example = "SEOUL") String city,
     @Schema(description = "세부 지역. 값은 회원 프로필의 district와 같다", example = "GANGNAM_GU") String district,
     @Schema(description = "흡연 여부. 값은 회원 프로필의 smokingStatus와 같다", example = "NONE")

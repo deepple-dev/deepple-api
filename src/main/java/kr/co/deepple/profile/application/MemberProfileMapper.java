@@ -2,6 +2,7 @@ package kr.co.deepple.profile.application;
 
 import java.util.List;
 import java.util.Objects;
+import kr.co.deepple.datingexam.application.port.in.DominantPersonalityType;
 import kr.co.deepple.match.application.port.in.MatchSummary;
 import kr.co.deepple.member.application.port.in.MemberDetail;
 import kr.co.deepple.member.application.port.in.MemberProfileImage;
@@ -45,7 +46,10 @@ public class MemberProfileMapper {
   }
 
   public static MemberInfo toMemberInfo(
-      MemberDetail member, List<MemberProfileImage> profileImages, String likeLevel) {
+      MemberDetail member,
+      List<MemberProfileImage> profileImages,
+      String likeLevel,
+      DominantPersonalityType personalityType) {
     String primaryImageUrl =
         profileImages.stream()
             .filter(MemberProfileImage::primary)
@@ -68,6 +72,8 @@ public class MemberProfileMapper {
         member.job(),
         member.hobbies(),
         member.mbti(),
+        personalityType == null ? null : personalityType.code(),
+        personalityType == null ? null : personalityType.name(),
         member.city(),
         member.district(),
         member.smokingStatus(),
@@ -79,7 +85,7 @@ public class MemberProfileMapper {
         additionalProfileImages);
   }
 
-  public static MatchInfo toMatchInfo(MatchSummary match) {
+  public static MatchInfo toMatchInfo(MatchSummary match, long viewerId) {
     return new MatchInfo(
         match.matchId(),
         match.requesterId(),
@@ -88,7 +94,8 @@ public class MemberProfileMapper {
         match.responseMessage(),
         match.status(),
         match.requesterContactType(),
-        match.responderContactType());
+        match.responderContactType(),
+        match.requesterId() == viewerId ? match.readByResponderAt() : null);
   }
 
   public static ContactInfo toContactInfo(MemberDetail member, MatchInfo matchInfo) {

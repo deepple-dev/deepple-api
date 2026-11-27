@@ -35,4 +35,8 @@ public record MemberSummaryView(
     @Schema(
             description = "나와 이 회원 사이의 프로필 교환 상태. 값은 프로필 교환의 status와 같고, 신청한 적이 없으면 null이다",
             example = "WAITING")
-        String profileExchangeStatus) {}
+        String profileExchangeStatus,
+    @Schema(
+            description = "프로필 교환을 누가 신청했는지 - SENT: 내가 신청, RECEIVED: 상대가 신청. 신청한 적이 없으면 null이다",
+            example = "SENT")
+        String profileExchangeDirection) {}
