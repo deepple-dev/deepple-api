@@ -5,8 +5,8 @@ import static kr.co.deepple.notification.domain.QNotification.notification;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import kr.co.deepple.notification.application.dto.NotificationView;
-import kr.co.deepple.notification.application.dto.QNotificationView;
+import kr.co.deepple.notification.application.dto.NotificationRow;
+import kr.co.deepple.notification.application.dto.QNotificationRow;
 import kr.co.deepple.notification.application.port.out.NotificationQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,7 +18,7 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<NotificationView> findNotifications(long receiverId, Long lastId, int limit) {
+  public List<NotificationRow> findNotifications(long receiverId, Long lastId, int limit) {
     BooleanExpression condition =
         notification.receiverId.eq(receiverId).and(notification.deletedAt.isNull());
 
@@ -28,11 +28,12 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
 
     return queryFactory
         .select(
-            new QNotificationView(
+            new QNotificationRow(
                 notification.id,
+                notification.senderType,
                 notification.senderId,
                 notification.receiverId,
-                notification.type.stringValue(),
+                notification.type,
                 notification.title,
                 notification.body,
                 notification.readAt.isNotNull(),

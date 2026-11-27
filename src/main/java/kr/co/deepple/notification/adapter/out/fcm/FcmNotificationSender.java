@@ -12,6 +12,7 @@ import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.notification.domain.ChannelType;
 import kr.co.deepple.notification.domain.DeviceRegistration;
 import kr.co.deepple.notification.domain.Notification;
+import kr.co.deepple.notification.domain.NotificationDestination;
 import kr.co.deepple.notification.domain.NotificationErrorCode;
 import kr.co.deepple.notification.domain.NotificationSender;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,6 +26,8 @@ public class FcmNotificationSender implements NotificationSender {
   private static final String KEY_SENDER_TYPE = "senderType";
   private static final String KEY_RECEIVER_ID = "receiverId";
   private static final String KEY_NOTIFICATION_TYPE = "notificationType";
+  private static final String KEY_DESTINATION = "destination";
+  private static final String KEY_DESTINATION_ID = "destinationId";
 
   @Override
   public ChannelType channel() {
@@ -36,7 +39,8 @@ public class FcmNotificationSender implements NotificationSender {
   @CircuitBreaker(name = CIRCUIT_BREAKER_POLICY_NAME)
   public void send(Notification notification, DeviceRegistration deviceRegistration)
       throws Exception {
-    Message message =
+    NotificationDestination destination = NotificationDestination.of(notification.getType());
+    Message.Builder message =
         Message.builder()
             .setToken(deviceRegistration.getRegistrationToken())
             .setNotification(
@@ -48,9 +52,14 @@ public class FcmNotificationSender implements NotificationSender {
             .putData(KEY_SENDER_TYPE, notification.getSenderType().toString())
             .putData(KEY_RECEIVER_ID, String.valueOf(notification.getReceiverId()))
             .putData(KEY_NOTIFICATION_TYPE, notification.getType().toString())
-            .build();
+            .putData(KEY_DESTINATION, destination.name());
+    Long destinationId =
+        destination.destinationId(notification.getSenderType(), notification.getSenderId());
+    if (destinationId != null) {
+      message.putData(KEY_DESTINATION_ID, String.valueOf(destinationId));
+    }
 
-    FirebaseMessaging.getInstance().send(message);
+    FirebaseMessaging.getInstance().send(message.build());
   }
 
   @SuppressWarnings("unused")
