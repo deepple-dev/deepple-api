@@ -65,6 +65,7 @@ public class MatchTest {
       Assertions.assertThat(match.getStatus()).isEqualTo(MatchStatus.MATCHED);
       Assertions.assertThat(match.getResponseMessage().getValue())
           .isEqualTo(responseMessage.getValue());
+      Assertions.assertThat(match.getRespondedAt()).isNotNull();
     }
 
     @Test
@@ -146,5 +147,25 @@ public class MatchTest {
       // Then
       Assertions.assertThat(match.getReadByResponderAt()).isEqualTo(firstReadAt);
     }
+  }
+
+  @Test
+  @DisplayName("거절하면 응답 시각을 남긴다.")
+  void recordRespondedAtWhenRejected() {
+    Match match = MatchFixture.builder().build();
+
+    match.reject();
+
+    Assertions.assertThat(match.getRespondedAt()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("만료되면 만료 시각을 남긴다.")
+  void recordExpiredAtWhenExpired() {
+    Match match = MatchFixture.builder().build();
+
+    match.expire();
+
+    Assertions.assertThat(match.getExpiredAt()).isNotNull();
   }
 }

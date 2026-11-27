@@ -58,6 +58,10 @@ public class Match extends BaseEntity {
 
   private LocalDateTime readByResponderAt;
 
+  private LocalDateTime respondedAt;
+
+  private LocalDateTime expiredAt;
+
   public static Match request(
       long requesterId,
       long responderId,
@@ -77,16 +81,19 @@ public class Match extends BaseEntity {
     status = MatchStatus.MATCHED;
     responseMessage = message;
     responderContactType = contactType;
+    respondedAt = LocalDateTime.now();
   }
 
   public void reject() {
     validateChangeStatus();
     status = MatchStatus.REJECTED;
+    respondedAt = LocalDateTime.now();
   }
 
   public void expire() {
     validateChangeStatus();
     status = MatchStatus.EXPIRED;
+    expiredAt = LocalDateTime.now();
   }
 
   public void checkRejected() {

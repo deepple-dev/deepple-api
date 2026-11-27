@@ -1,0 +1,11 @@
+package kr.co.deepple.conversation.domain;
+
+public enum ConversationEventType {
+  PROFILE_EXCHANGE_REQUESTED,
+  PROFILE_EXCHANGE_APPROVED,
+  PROFILE_EXCHANGE_REJECTED,
+  MESSAGE_SENT,
+  MESSAGE_ACCEPTED,
+  MESSAGE_REJECTED,
+  MESSAGE_EXPIRED
+}

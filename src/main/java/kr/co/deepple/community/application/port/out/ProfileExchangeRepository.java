@@ -1,5 +1,6 @@
 package kr.co.deepple.community.application.port.out;
 
+import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.community.domain.ProfileExchange;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,12 @@ public interface ProfileExchangeRepository extends JpaRepository<ProfileExchange
           OR (pe.requesterId = :anotherMemberId AND pe.responderId = :memberId)
           """)
   Optional<ProfileExchange> findProfileExchangeBetween(long memberId, long anotherMemberId);
+
+  @Query(
+      """
+      SELECT pe
+      FROM ProfileExchange pe
+      WHERE pe.requesterId = :memberId OR pe.responderId = :memberId
+      """)
+  List<ProfileExchange> findAllOfMember(long memberId);
 }

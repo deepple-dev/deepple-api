@@ -1,0 +1,17 @@
+package kr.co.deepple.match.application.port.in;
+
+import java.time.LocalDateTime;
+
+public record MatchHistory(
+    long matchId,
+    long requesterId,
+    long responderId,
+    String requestMessage,
+    String responseMessage,
+    String status,
+    String requesterContactType,
+    String responderContactType,
+    LocalDateTime requestedAt,
+    LocalDateTime respondedAt,
+    LocalDateTime expiredAt,
+    LocalDateTime readByResponderAt) {}

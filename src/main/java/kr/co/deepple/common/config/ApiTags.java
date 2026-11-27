@@ -12,6 +12,7 @@ public final class ApiTags {
   public static final String MEMBER = "회원";
   public static final String RECOMMENDATION = "이성 소개";
   public static final String MATCH = "매칭";
+  public static final String CONVERSATION = "대화";
   public static final String LIKE = "좋아요";
   public static final String HEART = "하트";
   public static final String PAYMENT = "결제";
@@ -32,6 +33,7 @@ public final class ApiTags {
         tag(MEMBER, "내 정보, 상대 프로필, 프로필 바텀시트, 프로필 이미지, 관리자 회원 목록·상세"),
         tag(RECOMMENDATION, "이상형, 소개 목록, 오늘의 카드, 소울메이트·성격 유형 소개, 프로필 블러 해제"),
         tag(MATCH, "매칭 요청 메시지, 수락·거절, 메시지 내역"),
+        tag(CONVERSATION, "메시지 탭 사람별 대화 목록, 한 사람과의 메시지 상세 타임라인"),
         tag(LIKE, "좋아요 전송, 보낸·받은 목록"),
         tag(HEART, "하트 보유량, 하트 거래 내역"),
         tag(PAYMENT, "App Store·Google Play 영수증 검증, 하트 구매 옵션, 환불"),
