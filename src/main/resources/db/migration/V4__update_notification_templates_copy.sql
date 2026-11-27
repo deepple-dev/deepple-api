@@ -1,0 +1,18 @@
+UPDATE `notification_templates` SET `title_template` = '새 메시지', `body_template` = '{senderName}님이 메시지를 보냈어요' WHERE `type` = 'MATCH_REQUEST';
+UPDATE `notification_templates` SET `title_template` = '매칭 성공', `body_template` = '{senderName}님과 매칭됐어요' WHERE `type` = 'MATCH_ACCEPT';
+UPDATE `notification_templates` SET `title_template` = '메시지 거절', `body_template` = '{senderName}님이 메시지를 거절했어요' WHERE `type` = 'MATCH_REJECT';
+UPDATE `notification_templates` SET `title_template` = '프로필 교환 요청', `body_template` = '{senderName}님이 프로필 교환을 요청했어요' WHERE `type` = 'PROFILE_EXCHANGE_REQUEST';
+UPDATE `notification_templates` SET `title_template` = '프로필 교환 수락', `body_template` = '{senderName}님이 프로필 교환을 수락했어요' WHERE `type` = 'PROFILE_EXCHANGE_ACCEPT';
+UPDATE `notification_templates` SET `title_template` = '프로필 교환 거절', `body_template` = '{senderName}님이 프로필 교환을 거절했어요' WHERE `type` = 'PROFILE_EXCHANGE_REJECT';
+UPDATE `notification_templates` SET `title_template` = '좋아요', `body_template` = '{senderName}님이 내 프로필을 좋아해요' WHERE `type` = 'LIKE';
+UPDATE `notification_templates` SET `title_template` = '프로필 사진', `body_template` = '나를 더 잘 보여 주는 사진으로 바꿔 보세요' WHERE `type` = 'PROFILE_IMAGE_CHANGE_REQUEST';
+UPDATE `notification_templates` SET `title_template` = '인터뷰', `body_template` = '인터뷰를 처음 쓰면 하트를 받을 수 있어요' WHERE `type` = 'INTERVIEW_WRITE_REQUEST';
+UPDATE `notification_templates` SET `title_template` = '프로필 수정 요청', `body_template` = '프로필에 부적절한 내용이 있어 수정이 필요해요' WHERE `type` = 'INAPPROPRIATE_PROFILE';
+UPDATE `notification_templates` SET `title_template` = '프로필 사진 수정 요청', `body_template` = '프로필 사진에 부적절한 내용이 있어 수정이 필요해요' WHERE `type` = 'INAPPROPRIATE_PROFILE_IMAGE';
+UPDATE `notification_templates` SET `title_template` = '인터뷰 수정 요청', `body_template` = '인터뷰에 부적절한 내용이 있어 수정이 필요해요' WHERE `type` = 'INAPPROPRIATE_INTERVIEW';
+UPDATE `notification_templates` SET `title_template` = '게시글 수정 요청', `body_template` = '게시글에 부적절한 내용이 있어 수정이 필요해요' WHERE `type` = 'INAPPROPRIATE_SELF_INTRODUCTION';
+UPDATE `notification_templates` SET `title_template` = '다시 방문 안내', `body_template` = '새로운 사람들이 기다리고 있어요' WHERE `type` = 'INACTIVITY_REMINDER';
+UPDATE `notification_templates` SET `title_template` = '심사 통과', `body_template` = '프로필 심사를 통과했어요' WHERE `type` = 'SCREENING_APPROVED';
+UPDATE `notification_templates` SET `title_template` = '심사 반려', `body_template` = '프로필 심사가 반려됐어요 (사유: {rejectionReason})' WHERE `type` = 'SCREENING_REJECTED';
+UPDATE `notification_templates` SET `title_template` = '신고 누적 안내', `body_template` = '신고가 여러 번 접수돼 이용이 제한될 수 있어요' WHERE `type` = 'REPORT';
+UPDATE `notification_templates` SET `title_template` = '하트 지급', `body_template` = '하트 {amount}개를 받았어요' WHERE `type` = 'HEART_GRANTED';
