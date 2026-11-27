@@ -30,6 +30,7 @@ public class InterviewQuestionQueryRepositoryImpl implements InterviewQuestionQu
                 interviewQuestion.id,
                 interviewQuestion.content,
                 interviewQuestion.category.stringValue(),
+                interviewQuestion.description,
                 interviewAnswer.id.isNotNull(),
                 interviewAnswer.id,
                 interviewAnswer.content))
@@ -54,6 +55,7 @@ public class InterviewQuestionQueryRepositoryImpl implements InterviewQuestionQu
                     interviewQuestion.id,
                     interviewQuestion.content,
                     interviewQuestion.category.stringValue(),
+                    interviewQuestion.description,
                     interviewAnswer.id.isNotNull(),
                     interviewAnswer.id,
                     interviewAnswer.content))

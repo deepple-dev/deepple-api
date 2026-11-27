@@ -20,7 +20,8 @@ public class InterviewQuestionService {
   public void createQuestion(InterviewQuestionSaveRequest request) {
     validateQuestionCreation(request.questionContent());
     InterviewCategory interviewCategory = InterviewCategory.from(request.category());
-    createQuestion(request.questionContent(), interviewCategory, request.isPublic());
+    createQuestion(
+        request.questionContent(), interviewCategory, request.isPublic(), request.description());
   }
 
   @Transactional
@@ -28,7 +29,8 @@ public class InterviewQuestionService {
     InterviewQuestion interviewQuestion = getInterviewQuestion(questionId);
     InterviewCategory interviewCategory = InterviewCategory.from(request.category());
     validateQuestionUpdate(interviewQuestion, request.questionContent());
-    interviewQuestion.update(request.questionContent(), interviewCategory, request.isPublic());
+    interviewQuestion.update(
+        request.questionContent(), interviewCategory, request.isPublic(), request.description());
   }
 
   private void validateQuestionCreation(String questionContent) {
@@ -39,9 +41,12 @@ public class InterviewQuestionService {
   }
 
   private void createQuestion(
-      String questionContent, InterviewCategory interviewCategory, boolean isPublic) {
+      String questionContent,
+      InterviewCategory interviewCategory,
+      boolean isPublic,
+      String description) {
     InterviewQuestion interviewQuestion =
-        InterviewQuestion.of(questionContent, interviewCategory, isPublic);
+        InterviewQuestion.of(questionContent, interviewCategory, isPublic, description);
     interviewQuestionRepository.save(interviewQuestion);
   }
 

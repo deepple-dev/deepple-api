@@ -18,13 +18,15 @@ public class InterviewQuestionFixture {
   private String content = "인터뷰 질문";
   private InterviewCategory category = InterviewCategory.PERSONAL;
   private boolean publicQuestion = true;
+  private String description;
 
   public static InterviewQuestionFixture builder() {
     return new InterviewQuestionFixture();
   }
 
   public InterviewQuestion build() {
-    InterviewQuestion question = InterviewQuestion.of(content, category, publicQuestion);
+    InterviewQuestion question =
+        InterviewQuestion.of(content, category, publicQuestion, description);
     setField(question, "id", id);
     return question;
   }

@@ -33,14 +33,20 @@ public class InterviewQuestion extends BaseEntity {
 
   private boolean isPublic;
 
-  private InterviewQuestion(String content, @NonNull InterviewCategory category, boolean isPublic) {
+  @Column(length = 100)
+  private String description;
+
+  private InterviewQuestion(
+      String content, @NonNull InterviewCategory category, boolean isPublic, String description) {
     setContent(content);
     this.category = category;
     this.isPublic = isPublic;
+    this.description = normalize(description);
   }
 
-  public static InterviewQuestion of(String content, InterviewCategory category, boolean isPublic) {
-    return new InterviewQuestion(content, category, isPublic);
+  public static InterviewQuestion of(
+      String content, InterviewCategory category, boolean isPublic, String description) {
+    return new InterviewQuestion(content, category, isPublic, description);
   }
 
   private void setContent(@NonNull String content) {
@@ -50,9 +56,17 @@ public class InterviewQuestion extends BaseEntity {
     this.content = content;
   }
 
-  public void update(String content, @NonNull InterviewCategory category, boolean isPublic) {
+  public void update(
+      String content, @NonNull InterviewCategory category, boolean isPublic, String description) {
     setContent(content);
     this.category = category;
     this.isPublic = isPublic;
+    if (description != null) {
+      this.description = normalize(description);
+    }
+  }
+
+  private static String normalize(String description) {
+    return description == null || description.isBlank() ? null : description;
   }
 }

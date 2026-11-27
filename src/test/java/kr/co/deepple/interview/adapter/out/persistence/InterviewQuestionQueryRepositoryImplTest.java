@@ -48,6 +48,7 @@ class InterviewQuestionQueryRepositoryImplTest extends RepositoryTestSupport {
             .content(content)
             .category(category)
             .publicQuestion(isPublic)
+            .description(content + " 설명")
             .build();
     entityManager.persist(question);
     return question;
@@ -91,6 +92,7 @@ class InterviewQuestionQueryRepositoryImplTest extends RepositoryTestSupport {
       assertThat(view.questionId()).isEqualTo(question.getId());
       assertThat(view.category()).isEqualTo(question.getCategory().name());
       assertThat(view.questionContent()).isEqualTo(question.getContent());
+      assertThat(view.description()).isEqualTo("질문1 설명");
       assertThat(view.answerContent()).isEqualTo(answer.getContent());
       assertThat(view.answerId()).isEqualTo(answer.getId());
       assertThat(view.isAnswered()).isTrue();
