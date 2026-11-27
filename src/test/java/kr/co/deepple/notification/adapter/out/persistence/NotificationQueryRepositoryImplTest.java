@@ -54,6 +54,7 @@ class NotificationQueryRepositoryImplTest extends RepositoryTestSupport {
     assertThat(results).hasSize(2);
     assertThat(results).extracting("title").containsExactlyInAnyOrder("unread", "read");
     assertThat(results).extracting("isRead").containsExactlyInAnyOrder(false, true);
+    assertThat(results).extracting("senderType").containsOnly(SYSTEM);
   }
 
   @Test
