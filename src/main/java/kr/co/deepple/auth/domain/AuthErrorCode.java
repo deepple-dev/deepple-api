@@ -16,6 +16,7 @@ public enum AuthErrorCode implements ErrorCode {
   PENDING_ADMIN_NOT_FOUND(ErrorType.NOT_FOUND, "승인 대기 중인 관리자를 찾을 수 없습니다."),
   ADMIN_NOT_PENDING(ErrorType.FAILED_PRECONDITION, "승인 대기 중인 관리자만 승인할 수 있습니다."),
   INVALID_ADMIN_ROLE(ErrorType.INVALID_ARGUMENT, "유효하지 않은 관리자 역할입니다."),
+  INVALID_WITHDRAWAL_REASON(ErrorType.INVALID_ARGUMENT, "유효하지 않은 탈퇴 사유입니다."),
   INVALID_APPROVAL_STATUS(ErrorType.INVALID_ARGUMENT, "유효하지 않은 승인 상태입니다."),
   INVALID_EMAIL(ErrorType.INVALID_ARGUMENT, "유효하지 않은 이메일 형식입니다."),
   INVALID_NAME(ErrorType.INVALID_ARGUMENT, "이름은 문자와 숫자로 10자 이내여야 합니다."),
