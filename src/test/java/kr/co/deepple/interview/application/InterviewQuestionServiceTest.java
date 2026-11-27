@@ -41,7 +41,7 @@ class InterviewQuestionServiceTest {
       String category = InterviewCategory.PERSONAL.name();
       boolean isPublic = true;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(content, category, isPublic);
+          new InterviewQuestionSaveRequest(content, category, isPublic, null);
 
       when(interviewQuestionRepository.existsByContent(content)).thenReturn(true);
 
@@ -60,7 +60,7 @@ class InterviewQuestionServiceTest {
       String category = "notExist";
       boolean isPublic = true;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(content, category, isPublic);
+          new InterviewQuestionSaveRequest(content, category, isPublic, null);
 
       when(interviewQuestionRepository.existsByContent(content)).thenReturn(false);
 
@@ -78,7 +78,7 @@ class InterviewQuestionServiceTest {
       String category = InterviewCategory.PERSONAL.name();
       boolean isPublic = true;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(content, category, isPublic);
+          new InterviewQuestionSaveRequest(content, category, isPublic, null);
 
       when(interviewQuestionRepository.existsByContent(content)).thenReturn(false);
 
@@ -103,7 +103,7 @@ class InterviewQuestionServiceTest {
       String category = InterviewCategory.PERSONAL.name();
       boolean isPublic = true;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(content, category, isPublic);
+          new InterviewQuestionSaveRequest(content, category, isPublic, null);
 
       when(interviewQuestionRepository.findById(questionId)).thenReturn(Optional.empty());
 
@@ -126,7 +126,7 @@ class InterviewQuestionServiceTest {
       String updatedCategory = "notExist";
       boolean updatedIsPublic = false;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
+          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic, null);
 
       when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
@@ -150,7 +150,7 @@ class InterviewQuestionServiceTest {
       String updatedCategory = InterviewCategory.SOCIAL.name();
       boolean updatedIsPublic = false;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
+          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic, null);
 
       when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
@@ -176,7 +176,7 @@ class InterviewQuestionServiceTest {
       String updatedCategory = InterviewCategory.SOCIAL.name();
       boolean updatedIsPublic = false;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
+          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic, null);
 
       when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));
@@ -204,7 +204,7 @@ class InterviewQuestionServiceTest {
       String updatedCategory = InterviewCategory.SOCIAL.name();
       boolean updatedIsPublic = false;
       InterviewQuestionSaveRequest request =
-          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic);
+          new InterviewQuestionSaveRequest(updatedContent, updatedCategory, updatedIsPublic, null);
 
       when(interviewQuestionRepository.findById(questionId))
           .thenReturn(Optional.of(interviewQuestion));

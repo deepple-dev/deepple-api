@@ -31,6 +31,7 @@ public class AdminInterviewQuestionQueryRepositoryImpl
                     interviewQuestion.content,
                     interviewQuestion.category.stringValue(),
                     interviewQuestion.isPublic,
+                    interviewQuestion.description,
                     interviewQuestion.createdAt))
             .from(interviewQuestion)
             .offset(pageable.getOffset())
@@ -56,6 +57,7 @@ public class AdminInterviewQuestionQueryRepositoryImpl
                     interviewQuestion.content,
                     interviewQuestion.category.stringValue(),
                     interviewQuestion.isPublic,
+                    interviewQuestion.description,
                     interviewQuestion.createdAt))
             .from(interviewQuestion)
             .where(interviewQuestion.id.eq(id))

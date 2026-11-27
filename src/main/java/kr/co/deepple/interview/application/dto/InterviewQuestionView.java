@@ -8,6 +8,7 @@ public record InterviewQuestionView(
     Long questionId,
     String questionContent,
     @Schema(implementation = InterviewCategory.class) String category,
+    @Schema(description = "질문 설명. 질문 카드와 답변 입력칸 안내에 쓴다. 없으면 null이다") String description,
     boolean isAnswered,
     Long answerId,
     String answerContent) {

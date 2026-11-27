@@ -10,6 +10,7 @@ public record AdminInterviewQuestionView(
     String content,
     @Schema(implementation = InterviewCategory.class) String category,
     Boolean isPublic,
+    @Schema(description = "질문 설명. 없으면 null이다") String description,
     LocalDateTime createdAt) {
   @QueryProjection
   public AdminInterviewQuestionView {}
