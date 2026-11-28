@@ -60,6 +60,7 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     // given
     Feed old = saveOfficialFeed(Set.of(), false, true, 1);
     Feed recent = saveOfficialFeed(Set.of("GOLD"), false, true, 3);
+    Feed multiGrade = saveOfficialFeed(Set.of("GOLD", "DIAMOND"), false, true, 2);
     Feed pinned = saveOfficialFeed(Set.of(), true, true, 0);
     saveOfficialFeed(Set.of(), false, false, 4);
     saveOfficialFeed(Set.of("DIAMOND"), false, true, 5);
@@ -72,10 +73,11 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(views.feeds())
         .extracting(OfficialFeedGridItemView::feedId)
-        .containsExactly(pinned.getId(), recent.getId(), old.getId());
+        .containsExactly(pinned.getId(), recent.getId(), multiGrade.getId(), old.getId());
     assertThat(views.feeds().getFirst().thumbnailUrl())
         .endsWith("images/admins/1/1-thumbnail.webp");
     assertThat(views.hasMore()).isFalse();
+    assertThat(views.totalCount()).isEqualTo(4L);
   }
 
   @Test
@@ -166,6 +168,8 @@ class FindOfficialFeedsServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(second.feeds()).hasSize(10);
     assertThat(second.hasMore()).isFalse();
     assertThat(second.nextCursor()).isNull();
+    assertThat(first.totalCount()).isEqualTo(30L);
+    assertThat(second.totalCount()).isEqualTo(30L);
     assertThat(first.feeds())
         .extracting(OfficialFeedGridItemView::feedId)
         .doesNotContainAnyElementsOf(

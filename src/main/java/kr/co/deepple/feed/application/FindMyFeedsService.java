@@ -44,7 +44,8 @@ public class FindMyFeedsService implements FindMyFeedsUseCase {
     boolean hasMore = feeds.size() > PAGE_SIZE;
     List<Feed> page = hasMore ? feeds.subList(0, PAGE_SIZE) : feeds;
     String nextCursor = hasMore ? String.valueOf(page.getLast().getId()) : null;
-    return new FeedGridViews(toGridItemViews(page), nextCursor, hasMore);
+    long totalCount = feedRepository.countByAuthorIdAndDeletedAtIsNull(me.getId());
+    return new FeedGridViews(toGridItemViews(page), nextCursor, hasMore, totalCount);
   }
 
   @Override

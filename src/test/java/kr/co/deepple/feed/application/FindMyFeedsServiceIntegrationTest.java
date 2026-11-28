@@ -72,9 +72,11 @@ class FindMyFeedsServiceIntegrationTest extends IntegrationTestSupport {
     assertThat(first.feeds()).hasSize(20);
     assertThat(first.feeds().getFirst().content()).isEqualTo("글 22");
     assertThat(first.hasMore()).isTrue();
+    assertThat(first.totalCount()).isEqualTo(22L);
     assertThat(second.feeds()).extracting(FeedGridItemView::content).containsExactly("글 2", "글 1");
     assertThat(second.hasMore()).isFalse();
     assertThat(second.nextCursor()).isNull();
+    assertThat(second.totalCount()).isEqualTo(22L);
   }
 
   @Test

@@ -47,7 +47,7 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
       return OfficialFeedGridViews.empty();
     }
     List<OfficialFeed> feeds = findFeeds(me.getGrade(), cursor);
-    return toGridViews(feeds);
+    return toGridViews(feeds, feedRepository.countOfficialFeeds(me.getGrade()));
   }
 
   @Override
@@ -100,13 +100,13 @@ public class FindOfficialFeedsService implements FindOfficialFeedsUseCase {
         grade, after.isPinned(), after.publishedAt(), after.feedId(), FETCH_LIMIT);
   }
 
-  private OfficialFeedGridViews toGridViews(List<OfficialFeed> feeds) {
+  private OfficialFeedGridViews toGridViews(List<OfficialFeed> feeds, long totalCount) {
     if (isLastPage(feeds)) {
-      return new OfficialFeedGridViews(toGridItemViews(feeds), null, false);
+      return new OfficialFeedGridViews(toGridItemViews(feeds), null, false, totalCount);
     }
     List<OfficialFeed> page = feeds.subList(0, PAGE_SIZE);
     String nextCursor = OfficialFeedSortKey.of(page.getLast()).toCursor();
-    return new OfficialFeedGridViews(toGridItemViews(page), nextCursor, true);
+    return new OfficialFeedGridViews(toGridItemViews(page), nextCursor, true, totalCount);
   }
 
   private boolean isLastPage(List<OfficialFeed> feeds) {
