@@ -19,5 +19,6 @@ public record FeedTextPosition(
         Double y,
     @Schema(description = "회전 각도. 지금은 0으로 고정", example = "0") @NotNull(message = "글 회전 각도는 필수입니다.")
         Double rotation,
-    @Schema(description = "배율. 지금은 1로 고정", example = "1") @NotNull(message = "글 배율은 필수입니다.")
+    @Schema(description = "글 배율. 두 손가락으로 키우거나 줄인 크기(기본 1). 앱은 0.5~3으로 제한해 보낸다", example = "1")
+        @NotNull(message = "글 배율은 필수입니다.")
         Double scale) {}
