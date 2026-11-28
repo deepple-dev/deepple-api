@@ -77,7 +77,7 @@ class FindHeartTransactionsServiceTest {
   private List<HeartTransactionView> createHeartTransactionViews(int size) {
     List<HeartTransactionView> views = new ArrayList<>();
     for (long i = 0; i < size; i++) {
-      views.add(new HeartTransactionView(i, null, null, 0L));
+      views.add(new HeartTransactionView(i, null, null, null, 0L));
     }
     return views;
   }
