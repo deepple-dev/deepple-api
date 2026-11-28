@@ -30,6 +30,7 @@ public class HeartTransactionQueryRepositoryImpl implements HeartTransactionQuer
             new QHeartTransactionView(
                 heartTransaction.id,
                 heartTransaction.createdAt,
+                heartTransaction.transactionType.stringValue(),
                 heartTransaction.content,
                 heartTransaction.amount.amount))
         .from(heartTransaction)

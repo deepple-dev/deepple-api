@@ -45,6 +45,7 @@ class HeartTransactionQueryRepositoryImplTest extends RepositoryTestSupport {
     assertThat(result).hasSize(1);
     HeartTransactionView view = result.get(0);
     assertThat(view.id()).isEqualTo(heartTransaction.getId());
+    assertThat(view.transactionType()).isEqualTo(TransactionType.PURCHASE.name());
     assertThat(view.content()).isEqualTo(heartTransaction.getContent());
     assertThat(view.heartAmount()).isEqualTo(heartTransaction.getAmount());
     assertThat(view.createdAt())
