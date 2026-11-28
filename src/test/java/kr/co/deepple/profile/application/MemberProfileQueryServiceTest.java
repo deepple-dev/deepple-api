@@ -122,6 +122,7 @@ class MemberProfileQueryServiceTest {
                   member.gender(),
                   member.kakaoId(),
                   member.age(),
+                  member.yearOfBirth(),
                   member.height(),
                   member.phoneNumber()));
       assertThat(view.profileInfo())
