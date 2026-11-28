@@ -12,6 +12,8 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.community.application.port.out.ProfileExchangeRepository;
 import kr.co.deepple.community.domain.ProfileExchangeStatus;
 import kr.co.deepple.community.fixture.ProfileExchangeFixture;
+import kr.co.deepple.like.application.port.out.LikeRepository;
+import kr.co.deepple.like.fixture.LikeFixture;
 import kr.co.deepple.match.application.port.out.MatchRepository;
 import kr.co.deepple.match.domain.MatchContactType;
 import kr.co.deepple.match.domain.MatchStatus;
@@ -21,6 +23,8 @@ import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Gender;
 import kr.co.deepple.member.domain.Member;
 import kr.co.deepple.member.fixture.MemberFixture;
+import kr.co.deepple.recommendation.application.port.out.MemberIntroductionRepository;
+import kr.co.deepple.recommendation.fixture.MemberIntroductionFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +47,10 @@ class ConversationControllerIntegrationTest extends IntegrationTestSupport {
   @Autowired private ProfileExchangeRepository profileExchangeRepository;
 
   @Autowired private BlockRepository blockRepository;
+
+  @Autowired private LikeRepository likeRepository;
+
+  @Autowired private MemberIntroductionRepository memberIntroductionRepository;
 
   private Member me;
   private Member sender;
@@ -156,6 +164,7 @@ class ConversationControllerIntegrationTest extends IntegrationTestSupport {
     assertThat(result).bodyJson().extractingPath("$.match.status").isEqualTo("MATCHED");
     assertThat(result).bodyJson().extractingPath("$.contact.contactType").isEqualTo("KAKAO");
     assertThat(result).bodyJson().extractingPath("$.contact.contact").isEqualTo("matchedKakao");
+    assertThat(result).bodyJson().extractingPath("$.canViewProfile").isEqualTo(true);
   }
 
   @Test
@@ -183,6 +192,74 @@ class ConversationControllerIntegrationTest extends IntegrationTestSupport {
     assertThat(result).hasStatusOk();
     assertThat(result).bodyJson().extractingPath("$.contact").isNull();
     assertThat(result).bodyJson().extractingPath("$.isCounterpartActive").isEqualTo(false);
+    assertThat(result).bodyJson().extractingPath("$.canViewProfile").isEqualTo(false);
+  }
+
+  @Test
+  @DisplayName("메시지 상세의 canViewProfile은 상대 프로필 조회가 허용될 때만 true다.")
+  void canViewProfileFollowsProfileAccessRule() {
+    Member messageReceived = saveCounterpart();
+    matchRepository.save(
+        MatchFixture.builder()
+            .requesterId(messageReceived.getId())
+            .responderId(me.getId())
+            .build());
+    Member messageSentOnly = saveCounterpartWithSentMessage();
+    Member likedMe = saveCounterpartWithSentMessage();
+    likeRepository.save(
+        LikeFixture.builder().senderId(likedMe.getId()).receiverId(me.getId()).build());
+    Member introduced = saveCounterpartWithSentMessage();
+    memberIntroductionRepository.save(
+        MemberIntroductionFixture.builder()
+            .memberId(me.getId())
+            .introducedMemberId(introduced.getId())
+            .build());
+    Member exchangeApproved = saveCounterpartWithExchange(me, ProfileExchangeStatus.APPROVE);
+    Member exchangeWaiting = saveCounterpartWithExchange(me, ProfileExchangeStatus.WAITING);
+    Member exchangeReceived = saveCounterpart();
+    profileExchangeRepository.save(
+        ProfileExchangeFixture.builder()
+            .requesterId(exchangeReceived.getId())
+            .responderId(me.getId())
+            .status(ProfileExchangeStatus.WAITING)
+            .build());
+
+    assertCanViewProfile(messageReceived, true);
+    assertCanViewProfile(likedMe, true);
+    assertCanViewProfile(introduced, true);
+    assertCanViewProfile(exchangeApproved, true);
+    assertCanViewProfile(exchangeReceived, true);
+    assertCanViewProfile(messageSentOnly, false);
+    assertCanViewProfile(exchangeWaiting, false);
+  }
+
+  private Member saveCounterpart() {
+    return memberRepository.save(MemberFixture.builder().gender(Gender.FEMALE).build());
+  }
+
+  private Member saveCounterpartWithSentMessage() {
+    Member counterpart = saveCounterpart();
+    matchRepository.save(
+        MatchFixture.builder().requesterId(me.getId()).responderId(counterpart.getId()).build());
+    return counterpart;
+  }
+
+  private Member saveCounterpartWithExchange(Member requester, ProfileExchangeStatus status) {
+    Member counterpart = saveCounterpart();
+    profileExchangeRepository.save(
+        ProfileExchangeFixture.builder()
+            .requesterId(requester.getId())
+            .responderId(counterpart.getId())
+            .status(status)
+            .build());
+    return counterpart;
+  }
+
+  private void assertCanViewProfile(Member counterpart, boolean expected) {
+    MvcTestResult result = get("/conversations/" + counterpart.getId());
+
+    assertThat(result).hasStatusOk();
+    assertThat(result).bodyJson().extractingPath("$.canViewProfile").isEqualTo(expected);
   }
 
   @Test

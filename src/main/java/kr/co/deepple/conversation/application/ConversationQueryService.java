@@ -25,6 +25,7 @@ import kr.co.deepple.member.application.port.in.GetMemberDetailUseCase;
 import kr.co.deepple.member.application.port.in.MemberDetail;
 import kr.co.deepple.member.application.port.in.MemberPreview;
 import kr.co.deepple.member.application.port.in.MemberSummary;
+import kr.co.deepple.profile.application.port.in.CheckProfileAccessUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +43,7 @@ public class ConversationQueryService {
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
   private final FindMemberPreviewsUseCase findMemberPreviewsUseCase;
   private final GetMemberDetailUseCase getMemberDetailUseCase;
+  private final CheckProfileAccessUseCase checkProfileAccessUseCase;
 
   public ConversationViews findConversations(long memberId, String cursor) {
     Optional<ConversationCursor> after = ConversationCursor.parse(cursor);
@@ -97,7 +99,8 @@ public class ConversationQueryService {
         conversation.profileExchangeView(),
         findContact(conversation),
         conversation.needsMyAction(),
-        conversation.counterpartActive());
+        conversation.counterpartActive(),
+        checkProfileAccessUseCase.canViewProfile(memberId, counterpartId));
   }
 
   private List<Conversation> findConversationsOf(long memberId) {

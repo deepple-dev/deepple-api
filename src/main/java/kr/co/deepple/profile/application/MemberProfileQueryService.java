@@ -25,6 +25,7 @@ import kr.co.deepple.profile.application.dto.MemberInfoView;
 import kr.co.deepple.profile.application.dto.MemberProfileResponse;
 import kr.co.deepple.profile.application.dto.ProfileExchangeInfo;
 import kr.co.deepple.profile.application.dto.StatusInfo;
+import kr.co.deepple.profile.application.port.in.CheckProfileAccessUseCase;
 import kr.co.deepple.profile.domain.ProfileErrorCode;
 import kr.co.deepple.recommendation.application.port.in.FindIntroductionTypeUseCase;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MemberProfileQueryService {
+public class MemberProfileQueryService implements CheckProfileAccessUseCase {
 
   private static final String ACTIVE = "ACTIVE";
   private static final String PROFILE_EXCHANGE_APPROVE = "APPROVE";
@@ -69,8 +70,10 @@ public class MemberProfileQueryService {
         findIntroductionTypeUseCase.findIntroductionType(memberId, otherMemberId);
     Optional<ProfileExchangeSummary> profileExchange =
         findProfileExchangeUseCase.findProfileExchangeBetween(memberId, otherMemberId);
-    validateProfileAccess(
-        memberId, otherMember, introductionType.isPresent(), profileExchange.orElse(null));
+    if (!canViewProfile(
+        memberId, otherMember, introductionType.isPresent(), profileExchange.orElse(null))) {
+      throw accessDeniedException(memberId, otherMemberId);
+    }
 
     MatchInfo matchInfo =
         findMatchBetweenUseCase
@@ -108,34 +111,42 @@ public class MemberProfileQueryService {
         interviews);
   }
 
-  private void validateProfileAccess(
+  @Override
+  public boolean canViewProfile(long memberId, long otherMemberId) {
+    return canViewProfile(
+        memberId,
+        getMemberDetailUseCase.getMemberDetail(otherMemberId),
+        findIntroductionTypeUseCase.findIntroductionType(memberId, otherMemberId).isPresent(),
+        findProfileExchangeUseCase
+            .findProfileExchangeBetween(memberId, otherMemberId)
+            .orElse(null));
+  }
+
+  private boolean canViewProfile(
       long memberId,
       MemberDetail otherMember,
       boolean introduced,
       ProfileExchangeSummary profileExchange) {
     long otherMemberId = otherMember.memberId();
     if (checkBlockUseCase.isBlocked(otherMemberId, memberId)) {
-      throw accessDeniedException(memberId, otherMemberId);
+      return false;
     }
     if (!ACTIVE.equals(otherMember.activityStatus())) {
-      throw accessDeniedException(memberId, otherMemberId);
+      return false;
     }
     if (introduced) {
-      return;
+      return true;
     }
     if (findMatchBetweenUseCase.hasReceivedMatchRequest(memberId, otherMemberId)) {
-      return;
+      return true;
     }
     if (findLikeLevelUseCase.findLikeLevel(otherMemberId, memberId).isPresent()) {
-      return;
+      return true;
     }
     if (profileExchange != null && PROFILE_EXCHANGE_APPROVE.equals(profileExchange.status())) {
-      return;
+      return true;
     }
-    if (profileExchange != null && profileExchange.responderId() == memberId) {
-      return;
-    }
-    throw accessDeniedException(memberId, otherMemberId);
+    return profileExchange != null && profileExchange.responderId() == memberId;
   }
 
   private DeeppleException accessDeniedException(long memberId, long otherMemberId) {
