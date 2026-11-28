@@ -42,6 +42,8 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
   List<Feed> findByAuthorIdAndIdLessThanAndDeletedAtIsNullOrderByIdDesc(
       long authorId, long id, Limit limit);
 
+  long countByAuthorIdAndDeletedAtIsNull(long authorId);
+
   Optional<Feed> findByAuthorIdAndIdempotencyKey(long authorId, String idempotencyKey);
 
   List<Feed> findByIdInAndStatusAndDeletedAtIsNull(Collection<Long> ids, FeedStatus status);
@@ -85,6 +87,15 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
       ORDER BY f.isPinned DESC, f.publishedAt DESC, f.id DESC
       """)
   List<OfficialFeed> findFirstOfficialFeeds(String grade, Limit limit);
+
+  @Query(
+      """
+      SELECT COUNT(f) FROM OfficialFeed f
+      WHERE f.status = kr.co.deepple.feed.domain.FeedStatus.PUBLISHED
+        AND f.deletedAt IS NULL
+        AND (f.targetGrades IS EMPTY OR :grade MEMBER OF f.targetGrades)
+      """)
+  long countOfficialFeeds(String grade);
 
   @Query(
       """

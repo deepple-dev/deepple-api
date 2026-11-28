@@ -70,7 +70,8 @@ public class FeedController {
 
   @Operation(
       summary = "내가 쓴 글 목록 조회",
-      description = "격자형 목록. 최신순이고 심사 대기·반려된 피드도 포함한다. 칸을 누르면 피드 상세를 조회한다.")
+      description =
+          "격자형 목록. 최신순이고 심사 대기·반려된 피드도 포함한다. 칸을 누르면 피드 상세를 조회한다. totalCount는 같은 조건의 전체 개수다.")
   @GetMapping("/me/feeds")
   public ResponseEntity<FeedGridViews> getMyFeeds(
       @CurrentMemberId long memberId,
@@ -81,7 +82,8 @@ public class FeedController {
 
   @Operation(
       summary = "공식 계정 피드 목록 조회",
-      description = "공식 계정 화면의 격자형 목록. 상단 고정 피드가 먼저 오고 나머지는 최신순이다. 칸을 누르면 피드 상세를 조회한다.")
+      description =
+          "공식 계정 화면의 격자형 목록. 상단 고정 피드가 먼저 오고 나머지는 최신순이다. 칸을 누르면 피드 상세를 조회한다. totalCount는 같은 조건의 전체 개수다.")
   @GetMapping("/official/feeds")
   public ResponseEntity<OfficialFeedGridViews> getOfficialFeeds(
       @CurrentMemberId long memberId,
