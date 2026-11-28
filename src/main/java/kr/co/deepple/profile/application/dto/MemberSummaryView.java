@@ -33,6 +33,14 @@ public record MemberSummaryView(
             example = "INTERESTED")
         String likeLevel,
     @Schema(
+            description =
+                "나와 이 회원 사이의 프로필 교환 ID. 방향·상태와 관계없이 교환이 있으면 응답한다. "
+                    + "상대가 신청했고(RECEIVED) 대기 중(WAITING)일 때 "
+                    + "PATCH /profile-exchange/{profileExchangeId}/approve·reject에 쓴다. "
+                    + "신청한 적이 없으면 null이다",
+            example = "10")
+        Long profileExchangeId,
+    @Schema(
             description = "나와 이 회원 사이의 프로필 교환 상태. 값은 프로필 교환의 status와 같고, 신청한 적이 없으면 null이다",
             example = "WAITING")
         String profileExchangeStatus,

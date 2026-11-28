@@ -55,6 +55,7 @@ public class MemberSummaryQueryService {
         otherMember.mbti(),
         otherMember.hobbies(),
         findLikeLevelUseCase.findLikeLevel(memberId, otherMemberId).orElse(null),
+        profileExchange.map(ProfileExchangeSummary::profileExchangeId).orElse(null),
         profileExchange.map(ProfileExchangeSummary::status).orElse(null),
         profileExchange
             .map(exchange -> exchange.requesterId() == memberId ? SENT : RECEIVED)
