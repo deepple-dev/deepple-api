@@ -22,6 +22,20 @@ public class YearOfBirthTest {
         .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_YEAR_OF_BIRTH);
   }
 
+  @DisplayName("이미 저장된 태어난 해를 그대로 두면 나이 범위를 넘었어도 정상 동작")
+  @ParameterizedTest
+  @ValueSource(ints = {19, 47})
+  void keepStoredYearOfBirthEvenWhenAgeIsOutOfRange(int age) {
+    // Given
+    int yearOfBirth = AgeConverter.toYearOfBirth(age);
+
+    // When
+    YearOfBirth result = YearOfBirth.unchanged(yearOfBirth);
+
+    // Then
+    Assertions.assertThat(result.getValue()).isEqualTo(yearOfBirth);
+  }
+
   @DisplayName("태어난 해가 null 인 경우, 정상 동작")
   @Test
   void createYearOfBirthWithNull() {

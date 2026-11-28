@@ -152,6 +152,74 @@ class MemberProfileServiceTest {
     assertThat(existingMember.getProfile().getReligion()).isEqualTo(Religion.BUDDHIST);
   }
 
+  @DisplayName("가입 뒤 47세가 된 회원도 태어난 해를 그대로 두면 다른 항목을 수정할 수 있다")
+  @Test
+  void updatesProfileWhenStoredYearOfBirthIsUnchangedButOutOfRange() {
+    // Given
+    long memberId = 1L;
+    int yearOfBirthAge47 = Calendar.getInstance().get(Calendar.YEAR) - 46;
+    Member existingMember =
+        MemberFixture.builder().id(memberId).yearOfBirth(yearOfBirthAge47).build();
+    MemberProfileUpdateRequest request = updateRequest(yearOfBirthAge47, Set.of("TRAVEL"));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
+
+    // When
+    memberProfileService.updateMember(memberId, request);
+
+    // Then
+    assertThat(existingMember.getProfile().getYearOfBirth().getValue()).isEqualTo(yearOfBirthAge47);
+    assertThat(existingMember.getProfile().getHobbies()).containsExactly(Hobby.TRAVEL);
+  }
+
+  @DisplayName("태어난 해를 범위 밖의 다른 값으로 바꾸면 예외 발생")
+  @Test
+  void throwsWhenYearOfBirthChangesToOutOfRange() {
+    // Given
+    long memberId = 1L;
+    int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+    Member existingMember =
+        MemberFixture.builder().id(memberId).yearOfBirth(currentYear - 46).build();
+    MemberProfileUpdateRequest request = updateRequest(currentYear - 47, Set.of("TRAVEL"));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
+
+    // When & Then
+    assertThatThrownBy(() -> memberProfileService.updateMember(memberId, request))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_YEAR_OF_BIRTH);
+  }
+
+  @DisplayName("처음 프로필을 쓸 때 범위 밖 태어난 해면 예외 발생")
+  @Test
+  void throwsWhenNewProfileYearOfBirthIsOutOfRange() {
+    // Given
+    long memberId = 1L;
+    Member existingMember = MemberFixture.builder().id(memberId).noProfile().build();
+    MemberProfileUpdateRequest request =
+        updateRequest(Calendar.getInstance().get(Calendar.YEAR) - 46, Set.of("TRAVEL"));
+    when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
+
+    // When & Then
+    assertThatThrownBy(() -> memberProfileService.updateMember(memberId, request))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", MemberErrorCode.INVALID_YEAR_OF_BIRTH);
+  }
+
+  private MemberProfileUpdateRequest updateRequest(int yearOfBirth, Set<String> hobbies) {
+    return new MemberProfileUpdateRequest(
+        "nickname",
+        "MALE",
+        yearOfBirth,
+        180,
+        "DONG_GU_DAEJEON",
+        "OTHER",
+        "ENFJ",
+        "DAILY",
+        "QUIT",
+        "BUDDHIST",
+        hobbies,
+        Job.JOB_SEARCHING.name());
+  }
+
   @DisplayName("멤버가 존재하는 경우, 특정 값에 null 이 포함되어 있더라도 성공.")
   @Test
   void succeedsWhenNullValueExists() {
