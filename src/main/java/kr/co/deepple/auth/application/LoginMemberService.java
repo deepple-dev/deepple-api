@@ -7,6 +7,7 @@ import kr.co.deepple.auth.application.dto.TokenPairResponse;
 import kr.co.deepple.auth.application.port.in.LoginMemberUseCase;
 import kr.co.deepple.auth.application.port.out.MemberAccountRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
+import kr.co.deepple.auth.application.port.out.spi.ExpiredSuspensionReleaser;
 import kr.co.deepple.auth.application.port.out.spi.MemberRegistrar;
 import kr.co.deepple.auth.domain.MemberAccount;
 import kr.co.deepple.auth.domain.PhoneNumber;
@@ -31,6 +32,7 @@ public class LoginMemberService implements LoginMemberUseCase {
   private final TokenProvider tokenProvider;
   private final RefreshTokenService refreshTokenService;
   private final MemberRegistrar memberRegistrar;
+  private final ExpiredSuspensionReleaser expiredSuspensionReleaser;
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
@@ -43,6 +45,9 @@ public class LoginMemberService implements LoginMemberUseCase {
     MemberAccount account = existingAccount.orElseGet(() -> register(request.phoneNumber()));
     Instant now = Instant.now();
     account.validateLoginAllowed(now);
+    if (account.isTemporarySuspensionExpired(now)) {
+      expiredSuspensionReleaser.releaseIfExpired(account.getId());
+    }
 
     String accessToken = tokenProvider.createAccessToken(account.getId(), Role.MEMBER, now);
     String refreshToken = refreshTokenService.issue(TokenOwner.member(account.getId()));

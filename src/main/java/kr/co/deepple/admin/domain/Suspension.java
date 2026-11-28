@@ -13,6 +13,7 @@ import kr.co.deepple.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Entity
 @Table(name = "suspensions")
@@ -33,8 +34,8 @@ public class Suspension extends BaseEntity {
   private SuspensionStatus status;
 
   /**
-   * 일시 정지 만료 시각 - status == TEMPORARY인 경우, 이 시각이 지나면 자동 해제(=정지 엔티티 삭제)해야 한다. - status == PERMANENT인
-   * 경우 null이다.
+   * 일시 정지 만료 시각 - status == TEMPORARY인 경우, 이 시각이 지나면 자동 해제(=정지 엔티티 삭제)한다
+   * (SuspensionReleaseScheduler, 로그인·토큰 재발급). - status == PERMANENT인 경우 null이다.
    */
   private Instant expireAt;
 
@@ -55,6 +56,21 @@ public class Suspension extends BaseEntity {
 
   public static Suspension createPermanent(long adminId, long memberId) {
     return new Suspension(adminId, memberId, SuspensionStatus.PERMANENT, null);
+  }
+
+  /** 일시 정지이고 만료 시각이 지났으면 true. 영구 정지는 만료되지 않는다. */
+  public boolean isExpired(@NonNull Instant now) {
+    return status == SuspensionStatus.TEMPORARY && expireAt != null && !expireAt.isAfter(now);
+  }
+
+  /** 만료된 일시 정지면 지금부터 다시 일시 정지한다. 바뀌었으면 true. */
+  public boolean restartTemporaryIfExpired(long adminId, @NonNull Instant now) {
+    if (!isExpired(now)) {
+      return false;
+    }
+    this.adminId = adminId;
+    this.expireAt = now.plus(SuspensionPolicy.TEMPORARY_SUSPENSION_DURATION);
+    return true;
   }
 
   public boolean changeToPermanent(long adminId) {

@@ -65,6 +65,11 @@ public class MemberAccount extends SoftDeleteBaseEntity {
     this.suspendedUntil = null;
   }
 
+  /** 일시 정지 기간이 지났지만 아직 해제되지 않았으면 true. */
+  public boolean isTemporarySuspensionExpired(@NonNull Instant now) {
+    return status == MemberAccountStatus.SUSPENDED_TEMPORARILY && !suspendedUntil.isAfter(now);
+  }
+
   public void validateLoginAllowed(@NonNull Instant now) {
     if (isDeleted()) {
       throw new DeeppleException(AuthErrorCode.MEMBER_DELETED, "accountId=" + id);

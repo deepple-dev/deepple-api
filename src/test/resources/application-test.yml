@@ -94,6 +94,7 @@ scheduler:
   feed-vote-count-reconcile-cron: "-"
   feed-comment-count-flush-cron: "-"
   feed-comment-count-reconcile-cron: "-"
+  suspension-release-cron: "-"
 
 image:
   processing:

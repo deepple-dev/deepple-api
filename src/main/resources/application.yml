@@ -161,3 +161,4 @@ scheduler:
   feed-comment-count-flush-cron: "15 * * * * *"
   feed-comment-count-reconcile-cron: "30 0 5 * * *"
   member-account-purge-cron: "0 0 0 * * *"
+  suspension-release-cron: "45 * * * * *"

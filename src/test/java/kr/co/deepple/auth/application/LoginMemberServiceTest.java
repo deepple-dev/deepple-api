@@ -15,6 +15,7 @@ import kr.co.deepple.auth.application.dto.MemberLoginRequest;
 import kr.co.deepple.auth.application.dto.TokenPairResponse;
 import kr.co.deepple.auth.application.port.out.MemberAccountRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
+import kr.co.deepple.auth.application.port.out.spi.ExpiredSuspensionReleaser;
 import kr.co.deepple.auth.application.port.out.spi.MemberRegistrar;
 import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.MemberAccount;
@@ -53,6 +54,8 @@ class LoginMemberServiceTest {
 
   @Mock private MemberRegistrar memberRegistrar;
 
+  @Mock private ExpiredSuspensionReleaser expiredSuspensionReleaser;
+
   @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private LoginMemberService loginMemberService;
@@ -68,6 +71,7 @@ class LoginMemberServiceTest {
     assertThat(response).isEqualTo(new TokenPairResponse("access-token", "refresh-token"));
     verify(authMessageService).authenticate(PHONE_NUMBER, "123456");
     verify(memberAccountRepository, never()).save(any());
+    verifyNoInteractions(expiredSuspensionReleaser);
     ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
     verify(eventPublisher).publishEvent(captor.capture());
     assertThat(captor.getValue())
@@ -106,7 +110,48 @@ class LoginMemberServiceTest {
     assertThatThrownBy(() -> loginMemberService.login(REQUEST))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MEMBER_PERMANENTLY_SUSPENDED);
-    verifyNoInteractions(tokenProvider, refreshTokenService, eventPublisher, memberRegistrar);
+    verifyNoInteractions(
+        tokenProvider,
+        refreshTokenService,
+        eventPublisher,
+        memberRegistrar,
+        expiredSuspensionReleaser);
+  }
+
+  @Test
+  @DisplayName("일시 정지가 만료된 계정이면 정지 해제를 요청하고 토큰을 발급한다.")
+  void releaseExpiredTemporarySuspensionOnLogin() {
+    givenExistingAccount(
+        MemberAccountFixture.builder()
+            .id(ACCOUNT_ID)
+            .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
+            .suspendedUntil(Instant.now().minusSeconds(1))
+            .build());
+    givenTokens();
+
+    TokenPairResponse response = loginMemberService.login(REQUEST);
+
+    assertThat(response).isEqualTo(new TokenPairResponse("access-token", "refresh-token"));
+    verify(expiredSuspensionReleaser).releaseIfExpired(ACCOUNT_ID);
+  }
+
+  @Test
+  @DisplayName("일시 정지가 만료되지 않은 계정이면 정지 만료일과 함께 예외를 던지고 해제하지 않는다.")
+  void rejectNotExpiredTemporarySuspension() {
+    givenExistingAccount(
+        MemberAccountFixture.builder()
+            .id(ACCOUNT_ID)
+            .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
+            .suspendedUntil(Instant.now().plusSeconds(60))
+            .build());
+
+    assertThatThrownBy(() -> loginMemberService.login(REQUEST))
+        .isInstanceOf(DeeppleException.class)
+        .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MEMBER_TEMPORARILY_SUSPENDED)
+        .satisfies(e ->
+            assertThat(((DeeppleException) e).getProperties())
+                .containsKey(MemberAccount.SUSPENSION_EXPIRE_AT_PROPERTY));
+    verifyNoInteractions(expiredSuspensionReleaser, tokenProvider, refreshTokenService);
   }
 
   @Test
