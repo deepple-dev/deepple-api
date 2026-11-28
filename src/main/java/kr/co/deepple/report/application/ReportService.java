@@ -14,6 +14,7 @@ import kr.co.deepple.report.domain.ReportReasonType;
 import kr.co.deepple.report.domain.ReportTargetType;
 import kr.co.deepple.report.event.ReportCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ReportService {
+
+  private static final String DUPLICATE_REPORT_CONSTRAINT =
+      "uk_reports_target_type_target_id_reporter_id";
 
   private final ReportRepository reportRepository;
   private final FindMemberSummaryUseCase findMemberSummaryUseCase;
@@ -88,8 +92,18 @@ public class ReportService {
     try {
       reportRepository.save(report);
     } catch (DataIntegrityViolationException e) {
-      throw reportAlreadyExistsException(report, e);
+      if (isDuplicateReport(e)) {
+        throw reportAlreadyExistsException(report, e);
+      }
+      throw e;
     }
+  }
+
+  // MySQL은 위반한 제약조건 이름을 `reports.uk_...`처럼 테이블 이름을 붙여 알려준다.
+  private static boolean isDuplicateReport(DataIntegrityViolationException e) {
+    return e.getCause() instanceof ConstraintViolationException violation
+        && violation.getConstraintName() != null
+        && violation.getConstraintName().endsWith(DUPLICATE_REPORT_CONSTRAINT);
   }
 
   private DeeppleException reportAlreadyExistsException(
