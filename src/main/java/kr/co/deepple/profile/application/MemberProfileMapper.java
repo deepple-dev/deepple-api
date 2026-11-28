@@ -28,6 +28,7 @@ public class MemberProfileMapper {
         member.gender(),
         member.kakaoId(),
         member.age(),
+        member.yearOfBirth(),
         member.height(),
         member.phoneNumber());
   }

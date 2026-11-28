@@ -186,6 +186,7 @@ class AdminMemberQueryServiceTest {
                   member.gender(),
                   member.kakaoId(),
                   member.age(),
+                  member.yearOfBirth(),
                   member.height(),
                   member.phoneNumber()));
       assertThat(result.heartBalanceInfo()).isEqualTo(new HeartBalanceView(0L, 0L, 0L));

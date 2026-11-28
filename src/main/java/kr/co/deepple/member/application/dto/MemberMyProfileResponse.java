@@ -16,6 +16,8 @@ import kr.co.deepple.member.domain.SmokingStatus;
 public record MemberMyProfileResponse(
     String nickname,
     Integer age,
+    @Schema(description = "태어난 해. 프로필을 수정할 때 이 값을 그대로 보낸다. 프로필을 작성하지 않았으면 null이다", example = "1997")
+        Integer yearOfBirth,
     @Schema(implementation = Gender.class) String gender,
     Integer height,
     @Schema(implementation = Job.class) String job,

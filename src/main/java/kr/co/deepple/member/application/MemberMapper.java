@@ -55,6 +55,7 @@ public class MemberMapper {
     return new MemberMyProfileResponse(
         view.nickname(),
         AgeConverter.toAge(view.yearOfBirth()),
+        view.yearOfBirth(),
         view.gender(),
         view.height(),
         view.job(),
