@@ -2,7 +2,6 @@ package kr.co.deepple.member.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import java.util.Calendar;
 import kr.co.deepple.common.exception.DeeppleException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class YearOfBirth {
 
+  private static final int MIN_AGE = 19;
+  private static final int MAX_AGE = 45;
+
   @Column(name = "year_of_birth")
   private Integer value;
 
@@ -20,11 +22,11 @@ public class YearOfBirth {
     this.value = value;
   }
 
-  /** 새로 정하는 태어난 해. 한국식 나이 20~46세만 받는다. */
+  /** 새로 정하는 태어난 해. 연 나이(올해 − 태어난 해) 19~45세만 받는다. */
   public static YearOfBirth from(Integer yearOfBirth) {
     if (yearOfBirth != null) {
-      int age = Calendar.getInstance().get(Calendar.YEAR) - yearOfBirth + 1;
-      if (age < 20 || age > 46) {
+      int age = AgeConverter.toAge(yearOfBirth);
+      if (age < MIN_AGE || age > MAX_AGE) {
         throw new DeeppleException(
             MemberErrorCode.INVALID_YEAR_OF_BIRTH, "yearOfBirth=" + yearOfBirth);
       }

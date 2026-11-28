@@ -108,7 +108,7 @@ class SelfIntroductionQueryServiceTest {
             "nickname" + id,
             null,
             city,
-            age == null ? null : Year.now().getValue() - age + 1,
+            age == null ? null : Year.now().getValue() - age,
             gender));
   }
 

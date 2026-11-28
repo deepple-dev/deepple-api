@@ -8,13 +8,15 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 
 public record MemberIdealUpdateRequest(
-    @NotNull(message = "최소 나이를 입력해주세요.")
-        @Min(value = 20, message = "최소 나이는 20보다 작을 수 없습니다.")
-        @Max(value = 46, message = "최소 나이는 46보다 작을 수 없습니다.")
+    @Schema(description = "최소 나이. 연 나이(올해 − 태어난 해) 19~45. 옛 앱 호환으로 46도 받고 45로 저장한다", example = "25")
+        @NotNull(message = "최소 나이를 입력해주세요.")
+        @Min(value = 19, message = "최소 나이는 19보다 작을 수 없습니다.")
+        @Max(value = 46, message = "최소 나이는 45보다 클 수 없습니다.")
         Integer minAge,
-    @NotNull(message = "최대 나이를 입력해주세요.")
-        @Min(value = 20, message = "최대 나이는 20보다 작을 수 없습니다.")
-        @Max(value = 46, message = "최대 나이는 46보다 작을 수 없습니다.")
+    @Schema(description = "최대 나이. 연 나이(올해 − 태어난 해) 19~45. 옛 앱 호환으로 46도 받고 45로 저장한다", example = "35")
+        @NotNull(message = "최대 나이를 입력해주세요.")
+        @Min(value = 19, message = "최대 나이는 19보다 작을 수 없습니다.")
+        @Max(value = 46, message = "최대 나이는 45보다 클 수 없습니다.")
         Integer maxAge,
     @ArraySchema(schema = @Schema(description = "지역. 값은 회원 프로필의 city와 같다", example = "SEOUL"))
         @NotNull(message = "지역을 입력해주세요.")

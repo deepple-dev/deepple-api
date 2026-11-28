@@ -119,6 +119,27 @@ class MemberIdealServiceTest {
     }
 
     @Test
+    @DisplayName("옛 앱이 최대 나이 46을 보내면 45로 저장한다.")
+    void clampsOldAppMaximumAge() {
+      long memberId = 1L;
+      MemberIdeal memberIdeal = MemberIdealFixture.builder().memberId(memberId).build();
+      when(memberIdealRepository.findByMemberId(memberId)).thenReturn(Optional.of(memberIdeal));
+      when(validateProfileOptionsUseCase.validate(requestedOptions))
+          .thenReturn(
+              new ProfileOptions(
+                  Set.of("SEOUL"), Set.of("DANCE", "WINE"), "CHRISTIAN", "VAPE", "SOCIAL"));
+      MemberIdealUpdateRequest oldAppRequest =
+          new MemberIdealUpdateRequest(
+              20, 46, Set.of("seoul"), "christian", "vape", "social", Set.of("dance", "wine"));
+
+      // when
+      memberIdealService.update(oldAppRequest, memberId);
+
+      // then
+      assertThat(memberIdeal.getAgeRange()).isEqualTo(AgeRange.of(20, 45));
+    }
+
+    @Test
     @DisplayName("memberIdeal이 존재하는 경우 검증을 거쳐 정규화된 값으로 memberIdeal을 업데이트한다.")
     void updateMemberIdeal() {
       long memberId = 1L;

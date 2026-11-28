@@ -21,6 +21,7 @@ public class FeedAuthorFixture {
   private Instant activityStatusUpdatedAt;
   private String grade;
   private String nickname;
+  private Integer yearOfBirth;
 
   public static FeedAuthorFixture builder() {
     return new FeedAuthorFixture();
@@ -42,6 +43,7 @@ public class FeedAuthorFixture {
     setField(author, "activityStatusUpdatedAt", activityStatusUpdatedAt);
     setField(author, "grade", grade);
     setField(author, "nickname", nickname);
+    setField(author, "yearOfBirth", yearOfBirth);
     return author;
   }
 }

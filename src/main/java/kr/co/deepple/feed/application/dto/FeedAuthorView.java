@@ -18,7 +18,7 @@ public record FeedAuthorView(
     @Schema(description = "연애고사 대표 유형명. 공식 계정이면 null", example = "동반성장형")
         String personalityTypeName,
     @Schema(description = "대표 프로필 사진. 공식 계정이면 공식 프로필 이미지") String profileImageUrl,
-    @Schema(description = "나이. 공식 계정이면 null") Integer age,
+    @Schema(description = "연 나이(올해 − 태어난 해). 공식 계정이면 null") Integer age,
     @Schema(description = "성별. 값은 회원 프로필의 gender와 같다. 공식 계정이면 null", example = "FEMALE")
         String gender,
     @Schema(description = "지역. 값은 회원 프로필의 city와 같다. 공식 계정이면 null", example = "SEOUL") String city,

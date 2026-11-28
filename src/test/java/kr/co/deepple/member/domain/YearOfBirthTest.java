@@ -1,5 +1,6 @@
 package kr.co.deepple.member.domain;
 
+import java.util.Calendar;
 import kr.co.deepple.common.exception.DeeppleException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -9,9 +10,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class YearOfBirthTest {
 
-  @DisplayName("나이가 20살 미만이거나 46살 초과인 태어난 해인 경우, 예외 발생")
+  @DisplayName("연 나이가 19살 미만이거나 45살 초과인 태어난 해인 경우, 예외 발생")
   @ParameterizedTest
-  @ValueSource(ints = {19, 47})
+  @ValueSource(ints = {18, 46})
   void throwExceptionWhenAgeIsOutOfRange(int age) {
     // Given
     int yearOfBirth = AgeConverter.toYearOfBirth(age);
@@ -24,7 +25,7 @@ public class YearOfBirthTest {
 
   @DisplayName("이미 저장된 태어난 해를 그대로 두면 나이 범위를 넘었어도 정상 동작")
   @ParameterizedTest
-  @ValueSource(ints = {19, 47})
+  @ValueSource(ints = {18, 46})
   void keepStoredYearOfBirthEvenWhenAgeIsOutOfRange(int age) {
     // Given
     int yearOfBirth = AgeConverter.toYearOfBirth(age);
@@ -47,9 +48,9 @@ public class YearOfBirthTest {
     Assertions.assertThat(yearOfBirth.getValue()).isNull();
   }
 
-  @DisplayName("나이가 20살 이상 46살 이하인 태어난 해인 경우, 정상 동작")
+  @DisplayName("연 나이가 19살 이상 45살 이하인 태어난 해인 경우, 정상 동작")
   @ParameterizedTest
-  @ValueSource(ints = {20, 46})
+  @ValueSource(ints = {19, 45})
   void createYearOfBirthWhenAgeIsInRange(int age) {
     // Given
     int yearOfBirth = AgeConverter.toYearOfBirth(age);
@@ -60,5 +61,22 @@ public class YearOfBirthTest {
     // Then
     Assertions.assertThat(result.getValue()).isEqualTo(yearOfBirth);
     Assertions.assertThat(result.getAge()).isEqualTo(age);
+  }
+
+  @DisplayName("가입할 수 있는 태어난 해는 올해−45년부터 올해−19년까지다")
+  @Test
+  void acceptsSameBirthYearsAsBefore() {
+    // Given
+    int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+
+    // When & Then
+    Assertions.assertThat(YearOfBirth.from(currentYear - 19).getValue())
+        .isEqualTo(currentYear - 19);
+    Assertions.assertThat(YearOfBirth.from(currentYear - 45).getValue())
+        .isEqualTo(currentYear - 45);
+    Assertions.assertThatThrownBy(() -> YearOfBirth.from(currentYear - 18))
+        .isInstanceOf(DeeppleException.class);
+    Assertions.assertThatThrownBy(() -> YearOfBirth.from(currentYear - 46))
+        .isInstanceOf(DeeppleException.class);
   }
 }

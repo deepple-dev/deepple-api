@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.time.Year;
 import java.util.Set;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.common.support.IntegrationTestSupport;
@@ -47,7 +48,14 @@ class GetFeedServiceIntegrationTest extends IntegrationTestSupport {
   @BeforeEach
   void setUp() {
     viewer = feedAuthorRepository.save(activeMember(VIEWER_MEMBER_ID, "GOLD"));
-    writer = feedAuthorRepository.save(activeMember(WRITER_MEMBER_ID, "GOLD"));
+    writer =
+        feedAuthorRepository.save(
+            FeedAuthorFixture.builder()
+                .memberId(WRITER_MEMBER_ID)
+                .activityStatus("ACTIVE")
+                .grade("GOLD")
+                .yearOfBirth(Year.now().getValue() - 25)
+                .build());
   }
 
   @Test
@@ -64,6 +72,7 @@ class GetFeedServiceIntegrationTest extends IntegrationTestSupport {
     // then
     assertThat(view.type()).isEqualTo("POLL");
     assertThat(view.author().memberId()).isEqualTo(WRITER_MEMBER_ID);
+    assertThat(view.author().age()).isEqualTo(25);
     assertThat(view.background().backgroundId()).isEqualTo(1L);
     assertThat(view.isMine()).isFalse();
     assertThat(view.likeCount()).isZero();

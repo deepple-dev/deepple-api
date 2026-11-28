@@ -57,6 +57,7 @@ class MemberIdealQueryRepositoryImplTest extends RepositoryTestSupport {
             .build();
     entityManager.persist(memberIdeal);
     entityManager.flush();
+    entityManager.clear();
 
     // when
     MemberIdealView memberIdealView =
@@ -70,5 +71,36 @@ class MemberIdealQueryRepositoryImplTest extends RepositoryTestSupport {
     assertThat(memberIdealView.religion()).isEqualTo(religion);
     assertThat(memberIdealView.smokingStatus()).isEqualTo(smokingStatus);
     assertThat(memberIdealView.drinkingStatus()).isEqualTo(drinkingStatus);
+  }
+
+  @Test
+  @DisplayName("나이 범위는 연 나이로 읽고, DB에는 옛 버전과 같은 한국식 나이(연 나이 + 1)로 저장한다.")
+  void storesAgeRangeAsKoreanAge() {
+    // given
+    long memberId = 1L;
+    MemberIdeal memberIdeal =
+        MemberIdealFixture.builder().memberId(memberId).minAge(19).maxAge(29).build();
+    entityManager.persist(memberIdeal);
+    entityManager.flush();
+    entityManager.clear();
+
+    // when
+    Object[] stored =
+        (Object[])
+            entityManager
+                .getEntityManager()
+                .createNativeQuery("select min_age, max_age from member_ideals where member_id = ?")
+                .setParameter(1, memberId)
+                .getSingleResult();
+    MemberIdeal found = entityManager.find(MemberIdeal.class, memberIdeal.getId());
+    MemberIdealView view = memberIdealQueryRepository.findMemberIdealByMemberId(memberId).get();
+
+    // then
+    assertThat(((Number) stored[0]).intValue()).isEqualTo(20);
+    assertThat(((Number) stored[1]).intValue()).isEqualTo(30);
+    assertThat(found.getAgeRange().getMinAge()).isEqualTo(19);
+    assertThat(found.getAgeRange().getMaxAge()).isEqualTo(29);
+    assertThat(view.minAge()).isEqualTo(19);
+    assertThat(view.maxAge()).isEqualTo(29);
   }
 }
