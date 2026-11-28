@@ -93,6 +93,7 @@ class MemberSummaryQueryServiceTest {
                 "ISTP",
                 Set.of("HIKING_AND_CLIMBING"),
                 "INTERESTED",
+                10L,
                 "WAITING",
                 "SENT"));
   }
@@ -120,12 +121,13 @@ class MemberSummaryQueryServiceTest {
     assertThat(view.personalityTypeName()).isNull();
     assertThat(view.profileImageUrl()).isNull();
     assertThat(view.likeLevel()).isNull();
+    assertThat(view.profileExchangeId()).isNull();
     assertThat(view.profileExchangeStatus()).isNull();
     assertThat(view.profileExchangeDirection()).isNull();
   }
 
   @Test
-  @DisplayName("상대가 프로필 교환을 신청했으면 신청 방향을 RECEIVED로 응답한다.")
+  @DisplayName("상대가 프로필 교환을 신청했으면 교환 ID와 함께 신청 방향을 RECEIVED로 응답한다.")
   void returnsReceivedWhenOtherRequestedProfileExchange() {
     // Given
     given(getMemberDetailUseCase.getMemberDetail(OTHER_MEMBER_ID))
@@ -138,7 +140,27 @@ class MemberSummaryQueryServiceTest {
     MemberSummaryView view = memberSummaryQueryService.getMemberSummary(MEMBER_ID, OTHER_MEMBER_ID);
 
     // Then
+    assertThat(view.profileExchangeId()).isEqualTo(10L);
     assertThat(view.profileExchangeStatus()).isEqualTo("WAITING");
+    assertThat(view.profileExchangeDirection()).isEqualTo("RECEIVED");
+  }
+
+  @Test
+  @DisplayName("대기 중이 아닌 프로필 교환도 교환 ID와 상태를 응답한다.")
+  void returnsProfileExchangeIdWhenProfileExchangeIsNotWaiting() {
+    // Given
+    given(getMemberDetailUseCase.getMemberDetail(OTHER_MEMBER_ID))
+        .willReturn(MemberDetailFixture.builder().memberId(OTHER_MEMBER_ID).build());
+    given(findProfileExchangeUseCase.findProfileExchangeBetween(MEMBER_ID, OTHER_MEMBER_ID))
+        .willReturn(
+            Optional.of(new ProfileExchangeSummary(10L, OTHER_MEMBER_ID, MEMBER_ID, "REJECTED")));
+
+    // When
+    MemberSummaryView view = memberSummaryQueryService.getMemberSummary(MEMBER_ID, OTHER_MEMBER_ID);
+
+    // Then
+    assertThat(view.profileExchangeId()).isEqualTo(10L);
+    assertThat(view.profileExchangeStatus()).isEqualTo("REJECTED");
     assertThat(view.profileExchangeDirection()).isEqualTo("RECEIVED");
   }
 

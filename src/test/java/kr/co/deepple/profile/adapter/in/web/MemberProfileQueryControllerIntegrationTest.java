@@ -359,35 +359,51 @@ class MemberProfileQueryControllerIntegrationTest extends IntegrationTestSupport
   }
 
   @Test
-  @DisplayName("작성자 시트는 프로필 교환 상태와 함께 누가 신청했는지 응답한다.")
-  void respondProfileExchangeDirectionInSummary() {
+  @DisplayName("작성자 시트는 프로필 교환 ID·상태와 함께 누가 신청했는지 응답하고, 교환이 없으면 null로 응답한다.")
+  void respondProfileExchangeInSummary() {
     Member member = save(MemberFixture.builder().gender(Gender.MALE).build());
     Member sender = save(MemberFixture.builder().gender(Gender.FEMALE).build());
     Member receiver = save(MemberFixture.builder().gender(Gender.FEMALE).build());
-    save(
-        ProfileExchangeFixture.builder()
-            .requesterId(sender.getId())
-            .responderId(member.getId())
-            .status(ProfileExchangeStatus.WAITING)
-            .build());
-    save(
-        ProfileExchangeFixture.builder()
-            .requesterId(member.getId())
-            .responderId(receiver.getId())
-            .status(ProfileExchangeStatus.WAITING)
-            .build());
+    Member stranger = save(MemberFixture.builder().gender(Gender.FEMALE).build());
+    ProfileExchange receivedExchange =
+        save(
+            ProfileExchangeFixture.builder()
+                .requesterId(sender.getId())
+                .responderId(member.getId())
+                .status(ProfileExchangeStatus.WAITING)
+                .build());
+    ProfileExchange sentExchange =
+        save(
+            ProfileExchangeFixture.builder()
+                .requesterId(member.getId())
+                .responderId(receiver.getId())
+                .status(ProfileExchangeStatus.WAITING)
+                .build());
 
     MvcTestResult received = get("/members/" + sender.getId() + "/summary", member.getId());
     MvcTestResult sent = get("/members/" + receiver.getId() + "/summary", member.getId());
+    MvcTestResult none = get("/members/" + stranger.getId() + "/summary", member.getId());
 
     assertThat(received).hasStatusOk();
+    assertThat(received)
+        .bodyJson()
+        .extractingPath("$.profileExchangeId")
+        .isEqualTo(Math.toIntExact(receivedExchange.getId()));
     assertThat(received).bodyJson().extractingPath("$.profileExchangeStatus").isEqualTo("WAITING");
     assertThat(received)
         .bodyJson()
         .extractingPath("$.profileExchangeDirection")
         .isEqualTo("RECEIVED");
     assertThat(sent).hasStatusOk();
+    assertThat(sent)
+        .bodyJson()
+        .extractingPath("$.profileExchangeId")
+        .isEqualTo(Math.toIntExact(sentExchange.getId()));
     assertThat(sent).bodyJson().extractingPath("$.profileExchangeDirection").isEqualTo("SENT");
+    assertThat(none).hasStatusOk();
+    assertThat(none).bodyJson().extractingPath("$.profileExchangeId").isNull();
+    assertThat(none).bodyJson().extractingPath("$.profileExchangeStatus").isNull();
+    assertThat(none).bodyJson().extractingPath("$.profileExchangeDirection").isNull();
   }
 
   private MvcTestResult get(String uri, long memberId) {
