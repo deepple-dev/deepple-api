@@ -185,7 +185,7 @@ class MemberProfileQueryServiceTest {
   }
 
   @Nested
-  @DisplayName("getMemberProfile 접근 권한 테스트")
+  @DisplayName("getMemberProfile·canViewProfile 접근 권한 테스트")
   class ProfileAccessTest {
 
     @Test
@@ -359,6 +359,7 @@ class MemberProfileQueryServiceTest {
     private void assertAuthorized() {
       assertThatCode(() -> memberProfileQueryService.getMemberProfile(MEMBER_ID, OTHER_MEMBER_ID))
           .doesNotThrowAnyException();
+      assertThat(memberProfileQueryService.canViewProfile(MEMBER_ID, OTHER_MEMBER_ID)).isTrue();
     }
 
     private void assertDenied() {
@@ -368,6 +369,7 @@ class MemberProfileQueryServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", ProfileErrorCode.PROFILE_ACCESS_DENIED);
       verify(findMatchBetweenUseCase, never()).findActiveMatchBetween(MEMBER_ID, OTHER_MEMBER_ID);
       verifyNoInteractions(findMemberInterviewAnswersUseCase, findMemberScreeningProfilesUseCase);
+      assertThat(memberProfileQueryService.canViewProfile(MEMBER_ID, OTHER_MEMBER_ID)).isFalse();
     }
   }
 
