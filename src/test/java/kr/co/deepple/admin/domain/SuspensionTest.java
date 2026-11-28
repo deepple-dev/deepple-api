@@ -92,4 +92,48 @@ class SuspensionTest {
     assertThat(suspension.getAdminId()).isEqualTo(originalAdminId);
     assertThat(suspension.getExpireAt()).isEqualTo(originalExpireAt);
   }
+
+  @Test
+  @DisplayName("isExpired(): 일시 정지는 만료 시각이 지나면 만료, 영구 정지는 만료되지 않는다")
+  void isExpired() {
+    var now = Instant.parse("2026-11-13T00:00:00Z");
+
+    assertThat(SuspensionFixture.builder().expireAt(now.minusSeconds(1)).build().isExpired(now))
+        .isTrue();
+    assertThat(SuspensionFixture.builder().expireAt(now).build().isExpired(now)).isTrue();
+    assertThat(SuspensionFixture.builder().expireAt(now.plusSeconds(1)).build().isExpired(now))
+        .isFalse();
+    assertThat(
+            SuspensionFixture.builder().status(SuspensionStatus.PERMANENT).build().isExpired(now))
+        .isFalse();
+  }
+
+  @Test
+  @DisplayName("restartTemporaryIfExpired(): 만료된 일시 정지는 지금부터 다시 정지한다")
+  void restartExpiredTemporary() {
+    var now = Instant.parse("2026-11-13T00:00:00Z");
+    var suspension = SuspensionFixture.builder().adminId(1L).expireAt(now.minusSeconds(1)).build();
+
+    boolean restarted = suspension.restartTemporaryIfExpired(2L, now);
+
+    assertThat(restarted).isTrue();
+    assertThat(suspension.getAdminId()).isEqualTo(2L);
+    assertThat(suspension.getExpireAt())
+        .isEqualTo(now.plus(SuspensionPolicy.TEMPORARY_SUSPENSION_DURATION));
+  }
+
+  @Test
+  @DisplayName("restartTemporaryIfExpired(): 만료되지 않은 일시 정지와 영구 정지는 바꾸지 않는다")
+  void doNotRestartWhenNotExpired() {
+    var now = Instant.parse("2026-11-13T00:00:00Z");
+    var expireAt = now.plusSeconds(1);
+    var active = SuspensionFixture.builder().adminId(1L).expireAt(expireAt).build();
+    var permanent = SuspensionFixture.builder().status(SuspensionStatus.PERMANENT).build();
+
+    assertThat(active.restartTemporaryIfExpired(2L, now)).isFalse();
+    assertThat(active.getAdminId()).isEqualTo(1L);
+    assertThat(active.getExpireAt()).isEqualTo(expireAt);
+    assertThat(permanent.restartTemporaryIfExpired(2L, now)).isFalse();
+    assertThat(permanent.getExpireAt()).isNull();
+  }
 }

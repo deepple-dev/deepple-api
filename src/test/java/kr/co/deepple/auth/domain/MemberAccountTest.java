@@ -114,4 +114,27 @@ class MemberAccountTest {
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MEMBER_PERMANENTLY_SUSPENDED);
   }
+
+  @Test
+  @DisplayName("일시 정지 기간이 지난 계정만 정지 만료로 본다.")
+  void detectExpiredTemporarySuspension() {
+    MemberAccount expired =
+        MemberAccountFixture.builder()
+            .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
+            .suspendedUntil(NOW)
+            .build();
+    MemberAccount notExpired =
+        MemberAccountFixture.builder()
+            .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
+            .suspendedUntil(NOW.plusSeconds(1))
+            .build();
+    MemberAccount permanent =
+        MemberAccountFixture.builder().status(MemberAccountStatus.SUSPENDED_PERMANENTLY).build();
+    MemberAccount active = MemberAccountFixture.builder().build();
+
+    assertThat(expired.isTemporarySuspensionExpired(NOW)).isTrue();
+    assertThat(notExpired.isTemporarySuspensionExpired(NOW)).isFalse();
+    assertThat(permanent.isTemporarySuspensionExpired(NOW)).isFalse();
+    assertThat(active.isTemporarySuspensionExpired(NOW)).isFalse();
+  }
 }

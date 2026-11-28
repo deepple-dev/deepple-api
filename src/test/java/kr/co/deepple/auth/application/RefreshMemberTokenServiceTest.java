@@ -14,6 +14,7 @@ import java.util.Optional;
 import kr.co.deepple.auth.application.dto.TokenPairResponse;
 import kr.co.deepple.auth.application.port.out.MemberAccountRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
+import kr.co.deepple.auth.application.port.out.spi.ExpiredSuspensionReleaser;
 import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.MemberAccountStatus;
 import kr.co.deepple.auth.domain.TokenOwner;
@@ -44,6 +45,8 @@ class RefreshMemberTokenServiceTest {
   @Mock private RefreshTokenService refreshTokenService;
 
   @Mock private ApplicationEventPublisher eventPublisher;
+
+  @Mock private ExpiredSuspensionReleaser expiredSuspensionReleaser;
 
   @InjectMocks private RefreshMemberTokenService refreshMemberTokenService;
 
@@ -83,7 +86,30 @@ class RefreshMemberTokenServiceTest {
         .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.MEMBER_PERMANENTLY_SUSPENDED);
     verify(refreshTokenService).revokeAll(OWNER);
     verify(refreshTokenService, never()).issue(any());
-    verifyNoInteractions(eventPublisher);
+    verifyNoInteractions(eventPublisher, expiredSuspensionReleaser);
+  }
+
+  @Test
+  @DisplayName("일시 정지가 만료된 계정이 재발급하면 정지 해제를 요청하고 새 토큰을 발급한다.")
+  void releaseExpiredTemporarySuspensionOnRefresh() {
+    when(refreshTokenService.consume(REFRESH_TOKEN)).thenReturn(OWNER);
+    when(memberAccountRepository.findById(ACCOUNT_ID))
+        .thenReturn(
+            Optional.of(
+                MemberAccountFixture.builder()
+                    .id(ACCOUNT_ID)
+                    .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
+                    .suspendedUntil(Instant.now().minusSeconds(1))
+                    .build()));
+    when(tokenProvider.createAccessToken(eq(ACCOUNT_ID), eq(Role.MEMBER), any(Instant.class)))
+        .thenReturn("new-access-token");
+    when(refreshTokenService.issue(OWNER)).thenReturn("new-refresh-token");
+
+    TokenPairResponse response = refreshMemberTokenService.refresh(REFRESH_TOKEN);
+
+    assertThat(response).isEqualTo(new TokenPairResponse("new-access-token", "new-refresh-token"));
+    verify(expiredSuspensionReleaser).releaseIfExpired(ACCOUNT_ID);
+    verify(refreshTokenService, never()).revokeAll(any());
   }
 
   @Test

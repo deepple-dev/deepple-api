@@ -11,6 +11,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import kr.co.deepple.admin.application.port.out.SuspensionRepository;
+import kr.co.deepple.admin.domain.SuspensionStatus;
+import kr.co.deepple.admin.fixture.SuspensionFixture;
 import kr.co.deepple.auth.application.port.out.AuthMessageRepository;
 import kr.co.deepple.auth.application.port.out.MemberAccountRepository;
 import kr.co.deepple.auth.domain.MemberAccount;
@@ -21,6 +24,7 @@ import kr.co.deepple.common.support.IntegrationTestSupport;
 import kr.co.deepple.member.application.port.out.MemberRepository;
 import kr.co.deepple.member.domain.ActivityStatus;
 import kr.co.deepple.member.domain.Member;
+import kr.co.deepple.member.fixture.MemberFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +46,8 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
   @Autowired private MemberRepository memberRepository;
 
   @Autowired private AuthMessageRepository authMessageRepository;
+
+  @Autowired private SuspensionRepository suspensionRepository;
 
   @Test
   @DisplayName("처음 로그인하면 계정과 같은 번호의 회원을 만들고 access token만 본문으로 응답한다.")
@@ -99,7 +105,10 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
   @DisplayName("일시 정지 계정이 로그인하면 403과 MEMBER_TEMPORARILY_SUSPENDED, 정지 만료일을 응답한다.")
   void respondTemporarilySuspended() {
     Instant suspendedUntil = Instant.now().plus(3, ChronoUnit.DAYS);
-    saveTemporarilySuspendedAccount(suspendedUntil);
+    long accountId = saveTemporarilySuspendedAccount(suspendedUntil).getId();
+    saveSuspendedMember(accountId, ActivityStatus.SUSPENDED_TEMPORARILY);
+    suspensionRepository.save(
+        SuspensionFixture.builder().memberId(accountId).expireAt(suspendedUntil).build());
     authMessageRepository.save(PHONE_NUMBER, CODE);
 
     MvcTestResult result = login();
@@ -119,12 +128,44 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
                 .isEqualTo(
                     LocalDateTime.ofInstant(suspendedUntil, ZoneId.systemDefault())
                         .truncatedTo(ChronoUnit.SECONDS)));
+    awaitEventProcessing();
+    assertStillSuspended(
+        accountId, MemberAccountStatus.SUSPENDED_TEMPORARILY, ActivityStatus.SUSPENDED_TEMPORARILY);
+  }
+
+  @Test
+  @DisplayName("일시 정지가 만료된 계정이 로그인하면 정지를 해제하고 프로필을 다시 공개한다.")
+  void releaseExpiredTemporarySuspensionOnLogin() {
+    Instant suspendedUntil = Instant.now().minus(1, ChronoUnit.MINUTES);
+    long accountId = saveTemporarilySuspendedAccount(suspendedUntil).getId();
+    saveSuspendedMember(accountId, ActivityStatus.SUSPENDED_TEMPORARILY);
+    suspensionRepository.save(
+        SuspensionFixture.builder().memberId(accountId).expireAt(suspendedUntil).build());
+    authMessageRepository.save(PHONE_NUMBER, CODE);
+
+    MvcTestResult result = login();
+
+    assertThat(result).hasStatus(HttpStatus.OK);
+    assertThat(suspensionRepository.findByMemberId(accountId)).isEmpty();
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(() -> {
+          MemberAccount account = memberAccountRepository.findById(accountId).orElseThrow();
+          assertThat(account.getStatus()).isEqualTo(MemberAccountStatus.ACTIVE);
+          assertThat(account.getSuspendedUntil()).isNull();
+          Member member = memberRepository.findById(accountId).orElseThrow();
+          assertThat(member.getActivityStatus()).isEqualTo(ActivityStatus.ACTIVE);
+          assertThat(member.isProfilePublic()).isTrue();
+        });
   }
 
   @Test
   @DisplayName("영구 정지 계정이 로그인하면 403과 MEMBER_PERMANENTLY_SUSPENDED를 응답한다.")
   void respondPermanentlySuspended() {
-    savePermanentlySuspendedAccount();
+    long accountId = savePermanentlySuspendedAccount().getId();
+    saveSuspendedMember(accountId, ActivityStatus.SUSPENDED_PERMANENTLY);
+    suspensionRepository.save(
+        SuspensionFixture.builder().memberId(accountId).status(SuspensionStatus.PERMANENT).build());
     authMessageRepository.save(PHONE_NUMBER, CODE);
 
     MvcTestResult result = login();
@@ -134,10 +175,33 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
         .bodyJson()
         .extractingPath("$.code")
         .isEqualTo("MEMBER_PERMANENTLY_SUSPENDED");
+    awaitEventProcessing();
+    assertStillSuspended(
+        accountId, MemberAccountStatus.SUSPENDED_PERMANENTLY, ActivityStatus.SUSPENDED_PERMANENTLY);
   }
 
-  private void saveTemporarilySuspendedAccount(Instant suspendedUntil) {
-    memberAccountRepository.save(
+  private void assertStillSuspended(
+      long accountId, MemberAccountStatus accountStatus, ActivityStatus activityStatus) {
+    assertThat(suspensionRepository.findByMemberId(accountId)).isPresent();
+    assertThat(memberAccountRepository.findById(accountId).orElseThrow().getStatus())
+        .isEqualTo(accountStatus);
+    Member member = memberRepository.findById(accountId).orElseThrow();
+    assertThat(member.getActivityStatus()).isEqualTo(activityStatus);
+    assertThat(member.isProfilePublic()).isFalse();
+  }
+
+  private void saveSuspendedMember(long accountId, ActivityStatus activityStatus) {
+    memberRepository.save(
+        MemberFixture.builder()
+            .id(accountId)
+            .phoneNumber(PHONE_NUMBER)
+            .activityStatus(activityStatus)
+            .profilePublic(false)
+            .build());
+  }
+
+  private MemberAccount saveTemporarilySuspendedAccount(Instant suspendedUntil) {
+    return memberAccountRepository.save(
         MemberAccountFixture.builder()
             .phoneNumber(PHONE_NUMBER)
             .status(MemberAccountStatus.SUSPENDED_TEMPORARILY)
@@ -145,8 +209,8 @@ class MemberLoginIntegrationTest extends IntegrationTestSupport {
             .build());
   }
 
-  private void savePermanentlySuspendedAccount() {
-    memberAccountRepository.save(
+  private MemberAccount savePermanentlySuspendedAccount() {
+    return memberAccountRepository.save(
         MemberAccountFixture.builder()
             .phoneNumber(PHONE_NUMBER)
             .status(MemberAccountStatus.SUSPENDED_PERMANENTLY)

@@ -5,6 +5,7 @@ import kr.co.deepple.auth.application.dto.TokenPairResponse;
 import kr.co.deepple.auth.application.port.in.RefreshMemberTokenUseCase;
 import kr.co.deepple.auth.application.port.out.MemberAccountRepository;
 import kr.co.deepple.auth.application.port.out.TokenProvider;
+import kr.co.deepple.auth.application.port.out.spi.ExpiredSuspensionReleaser;
 import kr.co.deepple.auth.domain.AuthErrorCode;
 import kr.co.deepple.auth.domain.MemberAccount;
 import kr.co.deepple.auth.domain.TokenOwner;
@@ -23,6 +24,7 @@ public class RefreshMemberTokenService implements RefreshMemberTokenUseCase {
   private final MemberAccountRepository memberAccountRepository;
   private final TokenProvider tokenProvider;
   private final RefreshTokenService refreshTokenService;
+  private final ExpiredSuspensionReleaser expiredSuspensionReleaser;
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
@@ -54,6 +56,9 @@ public class RefreshMemberTokenService implements RefreshMemberTokenUseCase {
     } catch (DeeppleException e) {
       refreshTokenService.revokeAll(owner);
       throw e;
+    }
+    if (account.isTemporarySuspensionExpired(now)) {
+      expiredSuspensionReleaser.releaseIfExpired(owner.id());
     }
   }
 }

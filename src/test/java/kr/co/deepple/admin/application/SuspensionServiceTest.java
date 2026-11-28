@@ -1,9 +1,13 @@
 package kr.co.deepple.admin.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.time.Instant;
 import java.util.Optional;
 import kr.co.deepple.admin.application.dto.SuspendRequest;
 import kr.co.deepple.admin.application.port.out.SuspensionRepository;
@@ -11,6 +15,7 @@ import kr.co.deepple.admin.domain.Suspension;
 import kr.co.deepple.admin.domain.SuspensionPolicy;
 import kr.co.deepple.admin.domain.SuspensionStatus;
 import kr.co.deepple.admin.event.MemberSuspendedEvent;
+import kr.co.deepple.admin.event.MemberUnsuspendedEvent;
 import kr.co.deepple.admin.fixture.SuspensionFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +26,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.TaskScheduler;
 
 @ExtendWith(MockitoExtension.class)
 class SuspensionServiceTest {
@@ -29,8 +33,6 @@ class SuspensionServiceTest {
   @Mock SuspensionRepository suspensionRepository;
 
   @Mock SuspensionPolicy suspensionPolicy;
-
-  @Mock TaskScheduler taskScheduler;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -43,7 +45,7 @@ class SuspensionServiceTest {
     var adminId = 10L;
     var memberId = 20L;
     var request = new SuspendRequest("PERMANENT");
-    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.empty());
 
     // when
     suspensionService.suspendByAdmin(adminId, memberId, request);
@@ -71,7 +73,7 @@ class SuspensionServiceTest {
             .status(SuspensionStatus.TEMPORARY)
             .build();
     var request = new SuspendRequest("PERMANENT");
-    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.of(existing));
 
     // when
     suspensionService.suspendByAdmin(adminId, memberId, request);
@@ -91,7 +93,7 @@ class SuspensionServiceTest {
     var memberId = 22L;
     var warningCount = 2L;
     given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.TEMPORARY);
-    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.empty());
 
     // when
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
@@ -115,7 +117,7 @@ class SuspensionServiceTest {
     var memberId = 22L;
     var warningCount = 2L;
     given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.PERMANENT);
-    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.empty());
 
     // when
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
@@ -146,7 +148,7 @@ class SuspensionServiceTest {
             .status(SuspensionStatus.TEMPORARY)
             .build();
     given(suspensionPolicy.evaluate(warningCount)).willReturn(SuspensionStatus.PERMANENT);
-    given(suspensionRepository.findByMemberId(memberId)).willReturn(Optional.of(existing));
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.of(existing));
 
     // when
     suspensionService.suspendByWarningCount(adminId, memberId, warningCount);
@@ -156,5 +158,96 @@ class SuspensionServiceTest {
     assertThat(existing.getAdminId()).isEqualTo(adminId);
     assertThat(existing.getStatus()).isEqualTo(SuspensionStatus.PERMANENT);
     assertThat(existing.getExpireAt()).isNull();
+  }
+
+  @Test
+  @DisplayName("suspendByAdmin(): 만료됐지만 해제되지 않은 일시 정지가 있으면 기간을 다시 시작한다")
+  void suspendByAdminRestartsExpiredTemporary() {
+    // given
+    var memberId = 24L;
+    var existing =
+        SuspensionFixture.builder()
+            .memberId(memberId)
+            .expireAt(Instant.now().minusSeconds(60))
+            .build();
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.of(existing));
+
+    // when
+    suspensionService.suspendByAdmin(14L, memberId, new SuspendRequest("TEMPORARY"));
+
+    // then
+    verify(eventPublisher).publishEvent(any(MemberSuspendedEvent.class));
+    assertThat(existing.getAdminId()).isEqualTo(14L);
+    assertThat(existing.getExpireAt()).isAfter(Instant.now());
+  }
+
+  @Test
+  @DisplayName("releaseIfExpired(): 만료된 일시 정지는 관리자 해제처럼 삭제하고 해제 이벤트를 발행한다")
+  void releaseExpiredTemporary() {
+    // given
+    var memberId = 30L;
+    var now = Instant.now();
+    var expired = SuspensionFixture.builder().memberId(memberId).expireAt(now).build();
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.of(expired));
+
+    // when
+    suspensionService.releaseIfExpired(memberId, now);
+
+    // then
+    verify(suspensionRepository).deleteByMemberId(memberId);
+    var captor = ArgumentCaptor.forClass(MemberUnsuspendedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertThat(captor.getValue().memberId()).isEqualTo(memberId);
+  }
+
+  @Test
+  @DisplayName("releaseIfExpired(): 아직 만료되지 않은 일시 정지는 해제하지 않는다")
+  void doNotReleaseNotExpiredTemporary() {
+    // given
+    var memberId = 31L;
+    var now = Instant.now();
+    var active =
+        SuspensionFixture.builder().memberId(memberId).expireAt(now.plusSeconds(1)).build();
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.of(active));
+
+    // when
+    suspensionService.releaseIfExpired(memberId, now);
+
+    // then
+    verify(suspensionRepository, never()).deleteByMemberId(anyLong());
+    Mockito.verifyNoInteractions(eventPublisher);
+  }
+
+  @Test
+  @DisplayName("releaseIfExpired(): 영구 정지는 해제하지 않는다")
+  void doNotReleasePermanent() {
+    // given
+    var memberId = 32L;
+    var permanent =
+        SuspensionFixture.builder().memberId(memberId).status(SuspensionStatus.PERMANENT).build();
+    given(suspensionRepository.findByMemberIdForUpdate(memberId))
+        .willReturn(Optional.of(permanent));
+
+    // when
+    suspensionService.releaseIfExpired(memberId, Instant.now());
+
+    // then
+    verify(suspensionRepository, never()).deleteByMemberId(anyLong());
+    Mockito.verifyNoInteractions(eventPublisher);
+  }
+
+  @Test
+  @DisplayName("releaseIfExpired(): 이미 해제됐으면 아무것도 하지 않는다")
+  void doNothingWhenAlreadyReleased() {
+    // given
+    var memberId = 33L;
+    given(suspensionRepository.findByMemberIdForUpdate(memberId)).willReturn(Optional.empty());
+
+    // when
+    suspensionService.releaseIfExpired(memberId, Instant.now());
+
+    // then
+    verify(suspensionRepository, never()).deleteByMemberId(anyLong());
+    Mockito.verifyNoInteractions(eventPublisher);
   }
 }
