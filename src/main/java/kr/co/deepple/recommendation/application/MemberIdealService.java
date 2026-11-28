@@ -43,7 +43,7 @@ public class MemberIdealService {
   @Transactional
   public void update(MemberIdealUpdateRequest request, long memberId) {
     MemberIdeal memberIdeal = getMemberIdealByMemberId(memberId);
-    AgeRange ageRange = AgeRange.of(request.minAge(), request.maxAge());
+    AgeRange ageRange = AgeRange.ofRequested(request.minAge(), request.maxAge());
     ProfileOptions options =
         validateProfileOptionsUseCase.validate(
             new ProfileOptions(

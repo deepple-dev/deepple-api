@@ -36,6 +36,52 @@ class IntroductionSearchConditionCombinatorTest {
     assertCondition(condition, base);
   }
 
+  @Test
+  @DisplayName("저장된 나이 범위가 지금 허용 범위를 넘어도 실패하지 않고 그대로 조건에 쓴다")
+  void keepsStoredAgeRangeOutOfAllowedRange() {
+    // Given
+    IntroductionSearchCondition base =
+        IntroductionSearchCondition.of(
+            Set.of(), 20, 46, Set.of(), Set.of(), null, null, null, null, Gender.MALE.name(), null);
+
+    // When
+    List<IntroductionSearchCondition> combinations =
+        IntroductionSearchConditionCombinator.generateCombinations(base, 0);
+
+    // Then
+    assertThat(combinations).hasSize(1);
+    assertThat(combinations.get(0).getMinAge()).isEqualTo(20);
+    assertThat(combinations.get(0).getMaxAge()).isEqualTo(46);
+  }
+
+  @Test
+  @DisplayName("나이 범위가 비어 있으면 나이 조건 없이 만든다")
+  void generatesWithoutAgeWhenAgeRangeIsEmpty() {
+    // Given
+    IntroductionSearchCondition base =
+        IntroductionSearchCondition.of(
+            Set.of(),
+            null,
+            null,
+            Set.of(),
+            Set.of(),
+            null,
+            null,
+            null,
+            null,
+            Gender.MALE.name(),
+            null);
+
+    // When
+    List<IntroductionSearchCondition> combinations =
+        IntroductionSearchConditionCombinator.generateCombinations(base, 0);
+
+    // Then
+    assertThat(combinations).hasSize(1);
+    assertThat(combinations.get(0).getMinAge()).isNull();
+    assertThat(combinations.get(0).getMaxAge()).isNull();
+  }
+
   @ParameterizedTest
   @ValueSource(ints = {1, 2, 3, 4, 5})
   @DisplayName("상관없음 옵션 수와 비 선택 가능 옵션 수에 따른 조합 수 테스트")

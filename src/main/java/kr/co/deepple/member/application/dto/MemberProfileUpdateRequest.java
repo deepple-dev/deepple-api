@@ -16,7 +16,8 @@ import kr.co.deepple.member.domain.SmokingStatus;
 public record MemberProfileUpdateRequest(
     String nickname,
     @Schema(implementation = Gender.class) String gender,
-    Integer yearOfBirth,
+    @Schema(description = "태어난 해. 새로 정하거나 바꿀 때는 연 나이(올해 − 태어난 해) 19~45세만 받는다", example = "1997")
+        Integer yearOfBirth,
     Integer height,
     @Schema(implementation = District.class) String district,
     @Schema(implementation = HighestEducation.class) String highestEducation,

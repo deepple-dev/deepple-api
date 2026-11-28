@@ -663,7 +663,7 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
       Member member2 =
           entityManager.persist(
               MemberFixture.builder()
-                  .yearOfBirth(currentYear - 39)
+                  .yearOfBirth(currentYear - 40)
                   .hobbies(Set.of(Hobby.CAMPING, Hobby.BADMINTON_AND_TENNIS))
                   .religion(Religion.NONE)
                   .district(District.GANGNAM_GU)
@@ -678,7 +678,7 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
           new MemberSearchCondition(
               fieldName.equals("excludedIds") ? Set.of(member2.getId()) : Set.of(),
               fieldName.equals("minAge") ? 40 : null,
-              fieldName.equals("maxAge") ? 20 : null,
+              fieldName.equals("maxAge") ? 19 : null,
               fieldName.equals("hobbies")
                   ? member1.getProfile().getHobbies().stream()
                       .map(Hobby::name)
@@ -721,13 +721,13 @@ class MemberQueryRepositoryImplTest extends RepositoryTestSupport {
     }
 
     @Test
-    @DisplayName("최소·최대 나이를 함께 주면 그 사이 나이의 회원만 찾는다.")
+    @DisplayName("최소·최대 나이를 함께 주면 그 사이 연 나이(올해 − 태어난 해)의 회원만 찾는다.")
     void searchByAgeRange() {
       int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-      Member age24 = persistPublicMember(currentYear - 23);
-      Member age25 = persistPublicMember(currentYear - 24);
-      Member age30 = persistPublicMember(currentYear - 29);
-      Member age31 = persistPublicMember(currentYear - 30);
+      Member age24 = persistPublicMember(currentYear - 24);
+      Member age25 = persistPublicMember(currentYear - 25);
+      Member age30 = persistPublicMember(currentYear - 30);
+      Member age31 = persistPublicMember(currentYear - 31);
       entityManager.flush();
 
       Set<Long> result = memberQueryRepository.searchIntroducibleIds(ageCondition(25, 30), 10L);

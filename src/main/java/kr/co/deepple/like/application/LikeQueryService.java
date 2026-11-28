@@ -1,6 +1,5 @@
 package kr.co.deepple.like.application;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,7 @@ public class LikeQueryService {
         opponent.profileImageUrl(),
         opponent.nickname(),
         opponent.city(),
-        opponent.yearOfBirth() == null ? null : LocalDate.now().getYear() - opponent.yearOfBirth(),
+        opponent.age(),
         raw.isMutualLike(),
         raw.createdAt());
   }

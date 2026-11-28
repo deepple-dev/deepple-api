@@ -8,8 +8,8 @@ import java.util.List;
 public record SelfIntroductionSearchRequest(
     @ArraySchema(schema = @Schema(description = "지역. 값은 회원 프로필의 city와 같다", example = "SEOUL"))
         List<String> preferredCities,
-    Integer fromAge,
-    Integer toAge,
+    @Schema(description = "최소 나이. 연 나이(올해 − 태어난 해)", example = "25") Integer fromAge,
+    @Schema(description = "최대 나이. 연 나이(올해 − 태어난 해)", example = "35") Integer toAge,
     @Schema(description = "성별. 값은 회원 프로필의 gender와 같다", example = "MALE")
         @Pattern(regexp = "(?i)MALE|FEMALE", message = "성별은 MALE 또는 FEMALE이어야 합니다.")
         String gender,

@@ -152,22 +152,22 @@ class MemberProfileServiceTest {
     assertThat(existingMember.getProfile().getReligion()).isEqualTo(Religion.BUDDHIST);
   }
 
-  @DisplayName("가입 뒤 47세가 된 회원도 태어난 해를 그대로 두면 다른 항목을 수정할 수 있다")
+  @DisplayName("가입 뒤 46세가 된 회원도 태어난 해를 그대로 두면 다른 항목을 수정할 수 있다")
   @Test
   void updatesProfileWhenStoredYearOfBirthIsUnchangedButOutOfRange() {
     // Given
     long memberId = 1L;
-    int yearOfBirthAge47 = Calendar.getInstance().get(Calendar.YEAR) - 46;
+    int yearOfBirthAge46 = Calendar.getInstance().get(Calendar.YEAR) - 46;
     Member existingMember =
-        MemberFixture.builder().id(memberId).yearOfBirth(yearOfBirthAge47).build();
-    MemberProfileUpdateRequest request = updateRequest(yearOfBirthAge47, Set.of("TRAVEL"));
+        MemberFixture.builder().id(memberId).yearOfBirth(yearOfBirthAge46).build();
+    MemberProfileUpdateRequest request = updateRequest(yearOfBirthAge46, Set.of("TRAVEL"));
     when(memberRepository.findById(memberId)).thenReturn(Optional.of(existingMember));
 
     // When
     memberProfileService.updateMember(memberId, request);
 
     // Then
-    assertThat(existingMember.getProfile().getYearOfBirth().getValue()).isEqualTo(yearOfBirthAge47);
+    assertThat(existingMember.getProfile().getYearOfBirth().getValue()).isEqualTo(yearOfBirthAge46);
     assertThat(existingMember.getProfile().getHobbies()).containsExactly(Hobby.TRAVEL);
   }
 

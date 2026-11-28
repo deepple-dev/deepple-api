@@ -18,8 +18,8 @@ public class MemberIdealFixture {
 
   private Long id;
   private long memberId = 1L;
-  private Integer minAge = 20;
-  private Integer maxAge = 46;
+  private Integer minAge = 19;
+  private Integer maxAge = 45;
   private Set<String> hobbies = new HashSet<>();
   private Set<String> cities = new HashSet<>();
   private String religion;

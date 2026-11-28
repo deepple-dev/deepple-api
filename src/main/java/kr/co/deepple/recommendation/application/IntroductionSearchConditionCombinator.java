@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import kr.co.deepple.recommendation.application.dto.IntroductionSearchCondition;
-import kr.co.deepple.recommendation.domain.AgeRange;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -27,7 +26,7 @@ public final class IntroductionSearchConditionCombinator {
   /** fieldOptions 의 순서에 따른 우선순위로 조합을 생성합니다. 나이, 도시, 종교, 취미, 흡연 여부, 음주 여부 순서로 우선순위를 가집니다. */
   private static List<List<Object>> getFieldOptions(IntroductionSearchCondition base) {
     return Arrays.asList(
-        choices(AgeRange.of(base.getMinAge(), base.getMaxAge()), null),
+        choices(Ages.of(base.getMinAge(), base.getMaxAge()), null),
         choices(base.getCities(), EMPTY_SET),
         choices(base.getReligion(), null),
         choices(base.getHobbies(), EMPTY_SET),
@@ -80,9 +79,9 @@ public final class IntroductionSearchConditionCombinator {
   @SuppressWarnings("unchecked")
   private static IntroductionSearchCondition toCondition(
       List<Object> values, IntroductionSearchCondition base) {
-    AgeRange ageRange = (AgeRange) values.get(0);
-    Integer minAge = ageRange != null ? ageRange.getMinAge() : null;
-    Integer maxAge = ageRange != null ? ageRange.getMaxAge() : null;
+    Ages ages = (Ages) values.get(0);
+    Integer minAge = ages != null ? ages.minAge() : null;
+    Integer maxAge = ages != null ? ages.maxAge() : null;
     Set<String> cities = (Set<String>) values.get(1);
     String religion = (String) values.get(2);
     Set<String> hobbies = (Set<String>) values.get(3);
@@ -108,5 +107,16 @@ public final class IntroductionSearchConditionCombinator {
     return combinations.stream()
         .map(fieldOption -> IntroductionSearchConditionCombinator.toCondition(fieldOption, base))
         .toList();
+  }
+
+  /**
+   * 저장된 나이 범위를 그대로 옮긴다. {@code AgeRange}로 다시 만들면 범위 검사를 다시 해서, 허용 범위가 좁아지기 전에 저장된 값(예: 46)이 있는 회원의
+   * 추천 전체가 실패한다.
+   */
+  private record Ages(Integer minAge, Integer maxAge) {
+
+    private static Ages of(Integer minAge, Integer maxAge) {
+      return minAge == null && maxAge == null ? null : new Ages(minAge, maxAge);
+    }
   }
 }

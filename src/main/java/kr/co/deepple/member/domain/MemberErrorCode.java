@@ -16,7 +16,7 @@ public enum MemberErrorCode implements ErrorCode {
   INVALID_PHONE_NUMBER(ErrorType.INVALID_ARGUMENT, "유효하지 않은 전화번호 형식입니다."),
   INVALID_KAKAO_ID(ErrorType.INVALID_ARGUMENT, "유효하지 않은 카카오 아이디입니다."),
   INVALID_NICKNAME(ErrorType.INVALID_ARGUMENT, "유효하지 않은 닉네임입니다."),
-  INVALID_YEAR_OF_BIRTH(ErrorType.INVALID_ARGUMENT, "20세 이상 46세 이하만 가입할 수 있습니다."),
+  INVALID_YEAR_OF_BIRTH(ErrorType.INVALID_ARGUMENT, "19세 이상 45세 이하만 가입할 수 있습니다."),
   INVALID_HEIGHT(ErrorType.INVALID_ARGUMENT, "키는 130cm 이상 220cm 이하만 입력할 수 있습니다."),
   HOBBY_COUNT_EXCEEDED(ErrorType.INVALID_ARGUMENT, "취미는 3개까지 선택할 수 있습니다."),
   INVALID_PROFILE_OPTION(ErrorType.INVALID_ARGUMENT, "유효하지 않은 프로필 선택 값입니다."),

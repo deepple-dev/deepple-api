@@ -132,11 +132,12 @@ public class FeedViewAssembler {
     return FeedCommentDisplayStatus.VISIBLE;
   }
 
+  /** 연 나이(올해 − 태어난 해). */
   private Integer toAge(Integer yearOfBirth) {
     if (yearOfBirth == null) {
       return null;
     }
-    return Year.now().getValue() - yearOfBirth + 1;
+    return Year.now().getValue() - yearOfBirth;
   }
 
   private FeedTextPosition toTextPosition(TextPosition position) {
