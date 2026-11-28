@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import kr.co.deepple.common.exception.DeeppleException;
 import kr.co.deepple.member.application.port.in.FindMemberSummaryUseCase;
@@ -20,6 +22,9 @@ import kr.co.deepple.report.domain.ReportErrorCode;
 import kr.co.deepple.report.domain.ReportReasonType;
 import kr.co.deepple.report.domain.ReportTargetType;
 import kr.co.deepple.report.event.ReportCreatedEvent;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.ConstraintViolationException.ConstraintKind;
+import org.hibernate.exception.DataException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,12 +90,53 @@ class ReportServiceTest {
     // given
     when(reportTargetFinder.findFeedAuthorMemberId(REPORTER_ID, FEED_ID))
         .thenReturn(Optional.of(REPORTEE_ID));
-    when(reportRepository.save(any())).thenThrow(new DataIntegrityViolationException("중복"));
+    when(reportRepository.save(any()))
+        .thenThrow(
+            new DataIntegrityViolationException(
+                "중복",
+                new ConstraintViolationException(
+                    "중복",
+                    new SQLException(),
+                    ConstraintKind.UNIQUE,
+                    "reports.uk_reports_target_type_target_id_reporter_id")));
 
     // when, then
     assertThatThrownBy(() -> reportService.report(feedRequest(REPORTEE_ID), REPORTER_ID))
         .isInstanceOf(DeeppleException.class)
         .hasFieldOrPropertyWithValue("errorCode", ReportErrorCode.REPORT_ALREADY_EXISTS);
+
+    verify(eventPublisher, never()).publishEvent(any(Object.class));
+  }
+
+  @Test
+  @DisplayName("중복 신고가 아닌 무결성 위반은 이미 신고했다는 예외로 바꾸지 않고 그대로 던진다.")
+  void rethrowsIntegrityViolationOtherThanDuplicateReport() {
+    // given
+    when(reportTargetFinder.findFeedAuthorMemberId(REPORTER_ID, FEED_ID))
+        .thenReturn(Optional.of(REPORTEE_ID));
+    DataIntegrityViolationException tooLong =
+        new DataIntegrityViolationException(
+            "길이 초과", new DataException("길이 초과", new SQLException()));
+    DataIntegrityViolationException notNull =
+        new DataIntegrityViolationException(
+            "null",
+            new ConstraintViolationException(
+                "null", new SQLException(), ConstraintKind.NOT_NULL, "target_type"));
+    DataIntegrityViolationException otherUniqueKey =
+        new DataIntegrityViolationException(
+            "중복",
+            new ConstraintViolationException(
+                "중복", new SQLException(), ConstraintKind.UNIQUE, "reports.PRIMARY"));
+    DataIntegrityViolationException noCause = new DataIntegrityViolationException("원인 없음");
+    List<DataIntegrityViolationException> violations =
+        List.of(tooLong, notNull, otherUniqueKey, noCause);
+    when(reportRepository.save(any())).thenThrow(violations.toArray(RuntimeException[]::new));
+
+    // when, then
+    for (DataIntegrityViolationException violation : violations) {
+      assertThatThrownBy(() -> reportService.report(feedRequest(REPORTEE_ID), REPORTER_ID))
+          .isSameAs(violation);
+    }
 
     verify(eventPublisher, never()).publishEvent(any(Object.class));
   }

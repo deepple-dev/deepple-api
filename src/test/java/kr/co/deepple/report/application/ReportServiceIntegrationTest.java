@@ -33,7 +33,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @DisplayName("피드·댓글 신고 통합 테스트")
 class ReportServiceIntegrationTest extends IntegrationTestSupport {
@@ -49,6 +52,8 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
   @Autowired private FeedCommentRepository feedCommentRepository;
 
   @Autowired private MemberRepository memberRepository;
+
+  @Autowired private TransactionTemplate transactionTemplate;
 
   private long writerMemberId;
   private List<Long> reporterIds;
@@ -149,6 +154,31 @@ class ReportServiceIntegrationTest extends IntegrationTestSupport {
     // when & then
     assertThatThrownBy(() -> reportService.report(request("FEED", feedId), reporterId))
         .isInstanceOf(DeeppleException.class)
+        .extracting("errorCode")
+        .isEqualTo(ReportErrorCode.REPORT_ALREADY_EXISTS);
+    assertThat(reportRepository.count()).isEqualTo(1L);
+  }
+
+  @Test
+  @DisplayName("신고 여부를 확인한 뒤 다른 요청이 먼저 저장해 unique 제약에 걸려도 이미 신고했다고 거절한다")
+  void rejectDuplicateReportWhenUniqueConstraintIsViolated() {
+    // given
+    long reporterId = reporterIds.get(0);
+    TransactionTemplate newTransaction =
+        new TransactionTemplate(transactionTemplate.getTransactionManager());
+    newTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+    // when & then
+    assertThatThrownBy(() ->
+            transactionTemplate.executeWithoutResult(status -> {
+              // 이 트랜잭션은 처음 읽은 시점의 데이터만 보므로 뒤에 저장된 신고를 조회하지 못한다
+              reportRepository.count();
+              newTransaction.executeWithoutResult(
+                  other -> reportService.report(request("FEED", feedId), reporterId));
+              reportService.report(request("FEED", feedId), reporterId);
+            }))
+        .isInstanceOf(DeeppleException.class)
+        .hasCauseInstanceOf(DataIntegrityViolationException.class)
         .extracting("errorCode")
         .isEqualTo(ReportErrorCode.REPORT_ALREADY_EXISTS);
     assertThat(reportRepository.count()).isEqualTo(1L);

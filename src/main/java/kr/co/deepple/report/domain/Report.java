@@ -42,6 +42,7 @@ public class Report extends BaseEntity {
   @Column(columnDefinition = "varchar(50)")
   private ReportReasonType reason;
 
+  @Column(length = 1000)
   private String content;
 
   @Enumerated(EnumType.STRING)
